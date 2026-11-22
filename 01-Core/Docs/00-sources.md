@@ -1,6 +1,6 @@
-# 01 Core — sources
+# 01 Core — Sources
 
-## Fetched 2026-11-16 (speed sweep)
+## Fetched 2026-11-16 (Speed Sweep)
 
 `/speed-sweep P005` scout; standing, leaders, causes and targets in [05-modint.md](05-modint.md#optimality-gap).
 
@@ -15,16 +15,16 @@
 | Web searches for speed archives and write-ups of the eleven problems (cp-algorithms-aux verify files, AZZRCN `precious-speed`, Codeforces blogs 101655, 142063, 78489 and 22448) | — | searched; `precious-speed` holds only the `big_integer` problems, and the Codeforces results were read as search summaries, not fetched | — |
 | AtCoder Library Practice Contest standings, SPOJ MUL/VFMUL, Kattis fastest lists, GMP timings | — | not fetched: none bears on a problem in scope | — |
 
-## Fetched 2026-11-16 (P005 speed stage sweep)
+## Fetched 2026-11-16 (P005 Speed Stage Sweep)
 
-`/package C03` completeness sweep for the row of `05-modint.hpp`: no missing operation; aliases in [05-modint.md](05-modint.md#aliases), the two unmeasured backend candidates in [00-notes.md](00-notes.md#reduction-and-modular-types).
+`/package C03` completeness sweep of the `05-modint.hpp` row: no missing operation. Aliases are in [05-modint.md](05-modint.md#aliases); the two backend candidates' measured verdicts are in [05-modint.md](05-modint.md#optimization-candidates).
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
 | ACL modint document | https://atcoder.github.io/ac-library/production/document_en/modint.html | yes | API baseline (`static_modint`, `dynamic_modint`, `set_mod`, `raw`, `val`, `pow`, `inv`) |
 | hitonanode `modint.hpp`, maspypy `mod/modint.hpp`, yosupo `math/modint.hpp` and `math/modint61.hpp`, KACTL `ModularArithmetic.h`, Benq `ModInt.h` | https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/modint.hpp, https://raw.githubusercontent.com/maspypy/library/main/mod/modint.hpp, https://raw.githubusercontent.com/yosupo06/Algorithm/master/src/math/modint.hpp, https://raw.githubusercontent.com/yosupo06/Algorithm/master/src/math/modint61.hpp, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/number-theory/ModularArithmetic.h, https://raw.githubusercontent.com/bqi343/cp-notebook/master/Implementations/content/number-theory%20(11.1)/Modular%20Arithmetic/ModInt.h | yes | operation names against the row (`get_mod`, `inverse`, `invert`, `_setval`, `set_v`, `operator<`, `operator^`, `re`); nothing missing |
-| ecnerwala `num/modnum.hpp` | https://raw.githubusercontent.com/ecnerwala/cp-book/master/src/num/modnum.hpp | yes | `mod_goldilocks` and `reduce_u128_raw` (candidate, unmeasured), `from_reduced`, `neg`, `MOD_READER`; `mod_constraint operator&` belongs to Mathematics |
-| Nyaan library index, `math-fast/inv.hpp`, `math-fast/inv-o1.hpp` | https://nyaannyaan.github.io/library/, https://nyaannyaan.github.io/library/math-fast/inv.hpp, https://nyaannyaan.github.io/library/math-fast/inv-o1.hpp | yes (index: first 100,000 characters) | `fast_modinv` binary-GCD inverse (candidate, unmeasured); `inv-o1` already rejected by Mathematics |
+| ecnerwala `num/modnum.hpp` | https://raw.githubusercontent.com/ecnerwala/cp-book/master/src/num/modnum.hpp | yes | `mod_goldilocks` and `reduce_u128_raw` (backend candidate), `from_reduced`, `neg`, `MOD_READER`; `mod_constraint operator&` belongs to Mathematics |
+| Nyaan library index, `math-fast/inv.hpp`, `math-fast/inv-o1.hpp` | https://nyaannyaan.github.io/library/, https://nyaannyaan.github.io/library/math-fast/inv.hpp, https://nyaannyaan.github.io/library/math-fast/inv-o1.hpp | yes (index: first 100,000 characters) | `fast_modinv` binary-GCD inverse (backend candidate); `inv-o1` already rejected by Mathematics |
 | suisen library index, `math/modint_extension.hpp`, `math/inv_mods.hpp` | https://suisen-cp.github.io/cp-library-cpp/, https://suisen-cp.github.io/cp-library-cpp/library/math/modint_extension.hpp, https://suisen-cp.github.io/cp-library-cpp/library/math/inv_mods.hpp | yes (index: first 100,000 characters) | free `pow`, `inv`, `safe_sqrt`, `sqrt`, `get_invs` as aliases; `inv_mods` belongs to Mathematics `inverseTable` |
 | ei1333 library index, cp-algorithms index, OI Wiki inverse page | https://ei1333.github.io/library/, https://cp-algorithms.com/, https://oi-wiki.org/math/number-theory/inverse/ | yes (ei1333: first 100,000 characters) | no operation outside the row; the prefix-product inverse is `batchInv`, the linear table Mathematics' |
 | ecnerwala and yosupo source trees | https://github.com/ecnerwala/cp-book/tree/master/src, https://github.com/yosupo06/Algorithm/tree/master/src/math | yes | file locations |
@@ -39,9 +39,9 @@ User decision of 2026-10-25 to add the Fermat-ring product as a backend of `07-i
 | Wikipedia, Schönhage–Strassen algorithm (structure, the K-th root 2^(2N/K) in Z/(2^N + 1), coefficient bound D M' >= 2M + k, pointwise products mod 2^N + 1 or by another method, O(n log n log log n)) | https://en.wikipedia.org/wiki/Sch%C3%B6nhage%E2%80%93Strassen_algorithm | yes | `Fermat`, `schonhageStrassen` parameter rules |
 | Schönhage, Strassen, "Schnelle Multiplikation großer Zahlen", Computing 7 (1971) 281–292, doi:10.1007/BF02242355; Gaudry, Kruppa, Zimmermann, "A GMP-based implementation of Schönhage–Strassen's large integer multiplication algorithm" (2007), inria-00126462 | https://doi.org/10.1007/BF02242355, https://inria.hal.science/inria-00126462 | no (cited from the Wikipedia reference list; the √2 trick and the recursive negacyclic pointwise products they describe are not implemented) | provenance |
 
-## Fetched 2026-10-26 (P018 stage 1: conversion and I/O)
+## Fetched 2026-10-26 (P018 Stage 1: Conversion and I/O)
 
-InfInt conversion and I/O sweep (P018 stage 1, `@researcher`); the four adopted items (`std::formatter`, the lowercase digit flag, `UInt` stream `>>`, `UInt<M>` to `UInt<N>` conversion; user decision 2026-10-26) are in row 07 and [07-infint.md](07-infint.md), the rejected ones in [00-notes.md](00-notes.md#integers), the fastio hooks in [19-fastio.md](19-fastio.md) and the `probablePrime` handoff in [07-infint.md](07-infint.md#dependent-owner-handoff).
+InfInt conversion and I/O sweep (P018 stage 1, `@researcher`). The four adopted items (`std::formatter`, the lowercase digit flag, `UInt` stream `>>`, `UInt<M>` to `UInt<N>` conversion; user decision 2026-10-26) are in row 07 and [07-infint.md](07-infint.md), the rejected ones in [00-notes.md](00-notes.md#integers), the fastio hooks in [19-fastio.md](19-fastio.md) and the `probablePrime` handoff in [07-infint.md](07-infint.md#dependent-owner-handoff).
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -53,7 +53,7 @@ InfInt conversion and I/O sweep (P018 stage 1, `@researcher`); the four adopted 
 | FLINT `fmpz` (`fmpz_addmul`, `fmpz_fmma`/`fmms`) | https://flintlib.org/doc/fmpz/index.html | yes | `addmul`/`fmma` rejected (`a += b * c` with arena temporaries) |
 | Library Checker `big_integer` generators and the judge's input format | https://github.com/yosupo06/library-checker-problems/tree/master/big_integer | yes | Fastio hooks, now in `19-fastio.hpp` |
 
-## Fetched 2026-10-26 (speed sweep)
+## Fetched 2026-10-26 (Speed Sweep)
 
 `/speed-sweep P018` scout; standing, leaders, causes and targets in [07-infint.md](07-infint.md#optimality-gap).
 
@@ -65,7 +65,7 @@ InfInt conversion and I/O sweep (P018 stage 1, `@researcher`); the four adopted 
 | SPOJ MUL and VFMUL rankings | https://www.spoj.com/ranks/MUL/, https://www.spoj.com/ranks/VFMUL/ | no (JavaScript challenge page) | — |
 | AtCoder Library Practice Contest standings, Luogu/LibreOJ/UOJ template rankings, Kattis fastest lists, GMP timings | — | not fetched this sweep | the GMP figures of the 2026-10-25 re-check and the judge's GMP entries (216205, 199072, 199073) stand as the ruler |
 
-## Fetched 2026-10-26 (P018 stage 2: transforms)
+## Fetched 2026-10-26 (P018 Stage 2: Transforms)
 
 Transform-multiplication sweep (P018 stage 2, `@researcher`): no operation adopted (the candidates are mpn-level kernel names, overlap rejected items or belong to stage 3; [00-notes.md](00-notes.md#integers)). The error analysis of the double FFT ([07-infint.md](07-infint.md#exactness)) rests on the two papers below, read locally from the saved PDFs with `pdftotext`.
 
@@ -82,7 +82,7 @@ Transform-multiplication sweep (P018 stage 2, `@researcher`): no operation adopt
 | Library Checker leader sources 385662 (`Integer.h`), 390082 (HyperInt), 389886 and 391969 (`precious-speed`), cached under `96-Local Testing/.judge-cache/sources/`; AZZRCN `precious-speed` archive | https://judge.yosupo.jp/submission/<id>, https://github.com/AZZRCN/precious-speed | yes (cache) | Transform shapes (real-packed double FFT, 2^11 leaves, 3·2^k and 5·2^k lengths, two-level roots) adopted in exact form; heuristic piece widths rejected |
 | maspypy library (bigint), Nyaan's library (multiprecision), cp-algorithms FFT | https://maspypy.github.io/library/, https://nyaannyaan.github.io/library/ (multiprecision page 404), https://cp-algorithms.com/algebra/fft.html | yes except the Nyaan page | No missing operation; cp-algorithms' big-integer FFT is the heuristic double FFT |
 
-## Fetched 2026-10-31 (P018 stage 3: division, modular and gcd)
+## Fetched 2026-10-31 (P018 Stage 3: Division, Modular and Gcd)
 
 Division, modular and gcd sweep (P018 stage 3, `@researcher`): nine candidates (M1–M9), none adopted; the decisions are in [00-notes.md](00-notes.md#integers), the Mathematics handoffs (big `sqrtMod`, big linear congruence) in [07-infint.md](07-infint.md). Every alias found maps to an existing name (`divModEuclid`/`Floor`/`Ceil`, `divMod` by scalar, `divExact`, `removeFactor`, `inv`, `powMod`, `exGcd`, radix text and digit vectors, `toLimbs`/`fromLimbs`).
 
@@ -96,7 +96,7 @@ Division, modular and gcd sweep (P018 stage 3, `@researcher`): nine candidates (
 | Nyaan (`math/bigint.hpp`, `bigint-gcd.hpp`), maspy (`bigint/base.hpp`), ei1333 (`convert-base.hpp`), suisen (`bigint.hpp`, `unsigned_bigint.hpp`), hitonanode (`multiprecision_int.hpp`), cp-algorithms (big-integer article, index), KACTL number-theory folder, PyRival `algebra` folder, OI Wiki bignum | https://nyaannyaan.github.io/library/math/bigint.hpp, https://maspypy.github.io/library/bigint/base.hpp, https://ei1333.github.io/library/math/number-theory/convert-base.hpp, https://suisen-cp.github.io/cp-library-cpp/library/math/bigint.hpp, https://hitonanode.github.io/cplib-cpp/utilities/multiprecision_int.hpp, https://cp-algorithms.com/algebra/big-integer.html, https://github.com/kth-competitive-programming/kactl/tree/main/content/number-theory, https://github.com/cheran-senthil/PyRival/tree/master/pyrival/algebra, https://oi-wiki.org/math/bignum/ | yes | M7, M8 (native-int modular roots and congruences only), M9 (native-int base conversion only); no new big-integer operation |
 | Boost `cpp_int` reference page, PyRival `number_theory` folder | https://www.boost.org/doc/libs/latest/libs/multiprecision/doc/html/boost_multiprecision/ref/cpp_int.html, https://github.com/cheran-senthil/PyRival/tree/master/pyrival/number_theory | no (404) | — |
 
-## Fetched 2026-10-31 (speed sweep)
+## Fetched 2026-10-31 (Speed Sweep)
 
 `/speed-sweep P018` scout of the final stage-3 header; standing, leaders, causes and targets in [07-infint.md](07-infint.md#optimality-gap).
 
@@ -110,9 +110,9 @@ Division, modular and gcd sweep (P018 stage 3, `@researcher`): nine candidates (
 | Web searches for write-ups of the six problems, Luogu P1919 and LibreOJ speed rankings and Kattis fastest lists | — | searched; nothing bearing on the problems in scope beyond the pages above (the Luogu P1919 articles describe base-10^8/10^4 double FFTs of 389886's class) | — |
 | AtCoder Library Practice Contest standings, UOJ template rankings, GMP timings | — | not fetched this sweep | the judge's GMP entries (414197, 216205, 199072, 199073) stand as the ruler |
 
-## Fetched 2026-11-01 (P018 stage 4: fast I/O)
+## Fetched 2026-11-01 (P018 Stage 4: Fast I/O)
 
-Completeness sweep of row 19 (`@researcher`) after the move of `06-Miscellaneous/03-fastio.hpp` to `19-fastio.hpp`; adopted: pair and tuple `read`/`writeValue`, `bool` written as 0/1, `float` reading (row 19); left out with reasons in [00-notes.md](00-notes.md#fast-io). Earlier fast I/O sources: [06 sources](../../06-Miscellaneous/Docs/00-sources.md) (rows `03` and `17`).
+Completeness sweep of row 19 (`@researcher`) after `06-Miscellaneous/03-fastio.hpp` moved to `19-fastio.hpp`. Adopted: pair and tuple `read`/`writeValue`, `bool` written as 0/1 and `float` reading (row 19); left out, with reasons: [00-notes.md](00-notes.md#fast-io). Earlier fast I/O sources: [06 sources](../../06-Miscellaneous/Docs/00-sources.md) (rows `03` and `17`).
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -128,9 +128,9 @@ Completeness sweep of row 19 (`@researcher`) after the move of `06-Miscellaneous
 | Library Checker problem list through the v3 API (`aplusb`, `many_aplusb`, `many_aplusb_128bit`) | https://v3.api.judge.yosupo.jp/problems | yes (https://judge.yosupo.jp/ returned no content) | covered by `readInt`/`writeInt` through 128 bits |
 | cp-algorithms, ACL | — | not fetched (no fast I/O article found by search; ACL has none) | — |
 
-## Fetched 2026-10-17 (P019 InfIntMini and Rational sweep)
+## Fetched 2026-10-17 (P019 InfIntMini and Rational Sweep)
 
-Completeness sweeps of rows 08 and 09 (`@researcher`); adopted items are in the rows and in [08-infintmini.md](08-infintmini.md) and [09-rational.md](09-rational.md), rejected ones in those documents and [00-notes.md](00-notes.md).
+Completeness sweeps of rows 08 and 09 (`@researcher`): adopted items are in the rows, [08-infintmini.md](08-infintmini.md) and [09-rational.md](09-rational.md); rejected ones in those documents and [00-notes.md](00-notes.md#integers).
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -146,7 +146,7 @@ KACTL has no `Fraction.h` (HTTP 404), the judge.yosupo.jp pages render only with
 
 ## Fetched 2026-10-17
 
-InfInt completeness sweep (P018, `@researcher`); adopted items are in row 07 and [07-infint.md](07-infint.md), rejected ones in [00-notes.md](00-notes.md).
+InfInt completeness sweep (P018, `@researcher`): adopted items are in row 07 and [07-infint.md](07-infint.md), rejected ones in [00-notes.md](00-notes.md#integers).
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -178,7 +178,7 @@ InfInt completeness sweep (P018, `@researcher`); adopted items are in row 07 and
 | FLINT documentation (index, fmpz, fmpq, nmod_poly, fmpz_poly, fmpz_mod_poly, nmod_poly_factor, fmpz_mat, nmod_mat, fmpq_mat, nmod_poly_mat, fmpz_poly_mat, double_extras, double_interval) | https://flintlib.org/doc/ | yes | Rational (canonicalise, cmp, pow, reconstruction), polynomial section lists (mulmid/mulhigh, Newton division, Taylor shift, modular composition, HGCD, power sums, series transcendental functions, Berlekamp–Massey, squarefree/factorisation), matrix section lists (Waksman/Strassen/multi-mod products, Bareiss/modular determinant, Berkowitz/Danilevsky charpoly, minpoly, nullspace, Dixon/Cramer solving, Cholesky, Kronecker product, permanent); no double-double module |
 | NTL module tour and module docs (ZZ, ZZ_p, zz_p, ZZX, ZZ_pX, zz_pX, GF2X, GF2, mat_ZZ, mat_ZZ_p, mat_GF2, ZZ_pE, xdouble, quad_float, RR) | https://libntl.org/doc/tour-modules.html, https://libntl.org/doc/ZZ.cpp.html, https://libntl.org/doc/ZZ_pX.cpp.html, https://libntl.org/doc/GF2X.cpp.html | yes | ZZ bit/number-theoretic API (NumBits, SetBit, Jacobi, SqrRoot, RandomBnd/RandomBits/RandomLen), polynomial modulus contexts (PowerMod, CompMod, ProjectPowers, MinPolyMod, pseudo-division, trunc products), GF2X packed polynomials, matrix kernel/image/solve, quad_float double-double caveats (FMA, x87) |
 
-## Fetched 2026-10-06 — P002 re-audit sweep
+## Fetched 2026-10-06 — P002 Re-Audit Sweep
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -194,7 +194,7 @@ InfInt completeness sweep (P018, `@researcher`); adopted items are in row 07 and
 
 Not fetched in this sweep: Codeforces blog entries 62393, 125435, 106195 and 91347 (HTTP 403); maspypy `ds/my_bitset.hpp` (404; superseded by `ds/bit_array.hpp`).
 
-## Fetched 2026-10-07 (P004 re-audit sweep)
+## Fetched 2026-10-07 (P004 Re-Audit Sweep)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -210,13 +210,13 @@ Not fetched in this sweep: Codeforces blog entries 62393, 125435, 106195 and 913
 | Nyaan `montgomery-modint.hpp`, `arbitrary-montgomery-modint.hpp`, ei1333 `montgomery-mod-int.hpp`, maspypy `montgomery_modint.hpp`, noshi91 `montgomery_modint.cpp` | https://nyaannyaan.github.io/library/modint/montgomery-modint.hpp and the sibling pages | yes | Confirmed modulus caps (2^30/2^62, 2^31) against this header's full odd range; `inverse`/`neg`/`==` belong to `05-modint.hpp` |
 | cp-algorithms Montgomery multiplication | https://cp-algorithms.com/algebra/montgomery_multiplication.html | yes | add/sub in Montgomery form, `__uint128_t` for 64-bit moduli |
 
-## Fetched 2026-10-07 (P005 re-audit sweep)
+## Fetched 2026-10-07 (P005 Re-Audit Sweep)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
 | ACL `modint.hpp` (`is_modint`, `is_static_modint`, `modint1000000007`, `raw`, `umod`), suisen `number/modint.hpp` and `number/modint_2^61m1.hpp`, hitonanode `modint.hpp` and `number/modint_mersenne61.hpp`, yosupo-library `modint.hpp`, maspypy `mod/modint61.hpp`, Nyaan `modint/modint-2-61m1.hpp`, ecnerwala `num/modnum.hpp`, Benq `ModInt.h`, KACTL `ModularArithmetic.h` | https://raw.githubusercontent.com/atcoder/ac-library/master/atcoder/modint.hpp, https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/number/modint.hpp, https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/number/modint_2^61m1.hpp, https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/number/modint_mersenne61.hpp, https://raw.githubusercontent.com/yosupo06/yosupo-library/main/src/yosupo/modint.hpp, https://raw.githubusercontent.com/maspypy/library/main/mod/modint61.hpp, https://raw.githubusercontent.com/NyaanNyaan/library/master/modint/modint-2-61m1.hpp, https://raw.githubusercontent.com/ecnerwala/cp-book/master/src/num/modnum.hpp, https://raw.githubusercontent.com/bqi343/cp-notebook/master/Implementations/content/number-theory%20(11.1)/Modular%20Arithmetic/ModInt.h, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/number-theory/ModularArithmetic.h | yes | `ModInt61` fold `(y >> 61) + (y & mod)` and its API parity with the 64-bit type; public residue-type concepts (`ModularInt`, `StaticModularInt`); the mini-modint survey (no operation outside the documented reductions). Rejected items are listed in [00-notes.md](00-notes.md#reduction-and-modular-types). |
 
-## Fetched 2026-10-08 (P025 Poly sweep)
+## Fetched 2026-10-08 (P025 Poly Sweep)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -227,7 +227,7 @@ Not fetched in this sweep: Codeforces blog entries 62393, 125435, 106195 and 913
 | cp-algorithms polynomial article, KACTL `numerical/Polynomial.h` | https://cp-algorithms.com/algebra/polynomial.html, https://github.com/kth-competitive-programming/kactl/blob/main/content/numerical/Polynomial.h | yes | Baseline operation vocabulary; KACTL `divroot` |
 | von zur Gathen, Gerhard, Modern Computer Algebra, chapter 11; Cohen, A Course in Computational Algebraic Number Theory, Algorithm 3.3.7; Kinoshita, Li, Power Series Composition in Near-Linear Time (arXiv 2404.05177); Bostan, Lecerf, Schost, Tellegen's principle into practice | textbook and paper references (not fetched in this session; algorithms implemented from memory of the published descriptions and verified by the tester) | no | Fast Euclidean algorithm, subresultant resultant, bivariate Bostan–Mori composition, transposed evaluation |
 
-## Fetched 2026-10-10 (P026 PolyMini sweep)
+## Fetched 2026-10-10 (P026 PolyMini Sweep)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -240,13 +240,13 @@ Not fetched in this sweep: Codeforces blog entries 62393, 125435, 106195 and 913
 
 The ACL convolution document returned HTTP 503 on 2026-10-10 and maspypy was not fetched in this sweep; the 2026-10-06 entries above cover both.
 
-## Previous source keys and audit narrative
+## Previous Source Keys and Audit Narrative
 
 - Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys). MCA was read as Brent and Zimmermann, [Modern Computer Arithmetic, v0.5.9 (2010-10-07)](https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf), [saved copy](../../95-Resources/05-modern_computer_arithmetic.pdf), CC BY-NC-ND; §§2.4.1–2.4.4 and §2.5 read 2026-09-27 for Barrett approximation, REDC, inverse lifting, special moduli and Montgomery–Svoboda/FastREDC/McLaughlin; no text or code copied.
-- The 2026-09-27 audit compared current Core declarations and selected bodies, *Modern Computer Arithmetic*'s contents and the external catalog/documentation sources recorded in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). Catalog inspection establishes missing feature families, not implementation correctness or a claim of surveying every paper.
-- The follow-up scope pass inspected the Matrix/BitMatrix/SparseMatrix and archived Poly/Moly public operations, full/mini InfInt conversion and sentinel interfaces, and the saved [KACTL notebook](../../95-Resources/06-kactl.pdf) tridiagonal-solver contract; it made structured solves and the mini/sparse migration obligations explicit without verifying implementations.
+- The 2026-09-27 audit compared the Core declarations and selected bodies against *Modern Computer Arithmetic* and the catalog and documentation sources recorded in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). Catalog inspection establishes missing feature families; it proves no implementation correct and does not claim every paper was surveyed.
+- The follow-up scope pass inspected the public operations of Matrix, BitMatrix, SparseMatrix and the archived Poly/Moly, the conversion and sentinel interfaces of full and mini InfInt, and the tridiagonal-solver contract of the saved [KACTL notebook](../../95-Resources/06-kactl.pdf). It made structured solves and the mini and sparse migration obligations explicit without verifying any implementation.
 
-## Not adopted
+## Not Adopted
 
 - Library Checker set_power_series (subset convolution, exp/log/composite/power projection of set power series): Mathematics `66-set_power_series.hpp` and `24-transform_algorithms.hpp` own them.
 - Library Checker bitwise and/xor, gcd/lcm, min-plus and Dirichlet convolutions: Mathematics `24`, `53`, `32` own them.
@@ -259,8 +259,8 @@ The ACL convolution document returned HTTP 503 on 2026-10-10 and maspypy was not
 - Nyaan `vectorize-modint`/`simd-montgomery` as public types: SIMD lanes remain internal kernels of Poly/Matrix rather than a separate public residue type.
 - maspy `O1_inverse`, `all_inverse`, `power_table`, `factorial*`: Mathematics `09-modinverse.hpp` and `05-combinatorics.hpp` own tables.
 - NTL `quad_float`/`xdouble`, FLINT `double_interval`: not Core types; Mathematics `63-multiprecision_float.hpp` (`BigFloat`) and `62-ball_arithmetic.hpp` (`RealInterval`, `Ball`) own extended-precision and interval arithmetic, and no row provides a double-double type.
-- GMP `mpz_probab_prime_p` beyond BPSW screening, factorial/binomial/Fibonacci/Lucas: Mathematics `36`, `05` own them; `mpz_nextprime` and primorial have no owner ([00-notes.md](00-notes.md#integers)); InfInt only screens primality.
+- GMP `mpz_probab_prime_p` beyond BPSW screening, factorial/binomial/Fibonacci/Lucas, `mpz_nextprime` and primorial: Mathematics `36` and `05` own them (`nextPrimeBig`, `prevPrimeBig`, `primorial`); InfInt only screens primality.
 - FLINT HNF/SNF/LLL and `fmpz_lll`: Mathematics `49-integer_linear_algebra.hpp` and `35-lattice_reduction.hpp` own them.
-- FLINT `fmpq` continued fractions and rational enumeration (Farey, simplest_between): Mathematics `20-continued_fraction.hpp` owns them; Calkin–Wilf is not adopted (Mathematics notes).
+- FLINT `fmpq` continued fractions and rational enumeration (Farey, simplest_between): Mathematics `20-continued_fraction.hpp` owns them; its row also holds Calkin–Wilf (`calkinWilfParent`, `calkinWilfChildren`).
 - FLINT/NTL finite-field extension polynomials (`ZZ_pE`, `GF2E`, `fq`): Mathematics `42-finite_fields.hpp` owns them.
 - maspy `ds/bitset` (`bit_array`, `bit_vector`, `binary_trie`), hitonanode `dynamic_bitset` beyond the verified Bitset API: Data Structures own succinct/dynamic rank-select and binary tries; no new Bitset operation was found.

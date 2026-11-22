@@ -1,6 +1,6 @@
-# 03 Geometry — sources
+# 03 Geometry — Sources
 
-## Catalog pages fetched on 2026-10-06
+## Catalog Pages Fetched on 2026-10-06
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -25,7 +25,7 @@
 | CGAL package overview | https://doc.cgal.org/latest/Manual/packages.html | 2026-10-06 | Contest-relevant packages: kernels, 2D/3D/dD hulls, polygons (partition, straight skeleton, Minkowski, polyline simplification, Fréchet, visibility), arrangements/envelopes, triangulations (2D/3D, constrained, alpha shapes), Voronoi (segment, L-infinity, Apollonius), spatial searching, bounding volumes/optimization, kinetic data structures |
 | Shewchuk robust predicates | https://www.cs.cmu.edu/~quake/robust.html | 2026-10-06 | orient2d/orient3d/incircle (`sideOfOrientedCircle`)/insphere families, extended-precision register caveat (row 36) |
 
-## P007 completeness sweep, fetched 2026-10-07
+## P007 Completeness Sweep, Fetched 2026-10-07
 
 | Source | URL | Used for |
 |---|---|---|
@@ -34,35 +34,35 @@
 | Nyaan geometry-base.hpp | https://nyaannyaan.github.io/library/geometry/geometry-base.hpp | `argApprox` (`arg`) |
 | suisen geom/geometry.hpp | https://suisen-cp.github.io/cp-library-cpp/library/geom/geometry.hpp | `argApprox` (`arg`) |
 | cp-algorithms, segment to line | https://cp-algorithms.com/geometry/segment-to-line.html | `canonicalLine` integer normalization |
-| ei1333 line.hpp, ccw.hpp | https://ei1333.github.io/library/geometry/line.hpp, https://ei1333.github.io/library/geometry/ccw.hpp | line equation form; five-way ccw (not adopted) |
+| ei1333 line.hpp, ccw.hpp | https://ei1333.github.io/library/geometry/line.hpp, https://ei1333.github.io/library/geometry/ccw.hpp | line equation form; five-way `ccw` |
 | KACTL PolygonCut.h | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/PolygonCut.h | `polygonCutApprox` (keeps the left side here, KACTL keeps the right) |
 | maspypy geo/convex_hull.hpp, suisen geom/convex_hull.hpp | https://maspypy.github.io/library/geo/convex_hull.hpp, https://suisen-cp.github.io/cp-library-cpp/library/geom/convex_hull.hpp | `convexHullIndices` (index-returning hull) |
-| maspypy geo/polygon.hpp, inside_polygon.hpp | https://maspypy.github.io/library/geo/polygon.hpp, https://maspypy.github.io/library/geo/inside_polygon.hpp | segment-in-polygon and polygon-line pieces (adopted 2026-11-08 into row 30) |
-| CGAL Convex_hull_2 reference | https://doc.cgal.org/latest/Convex_hull_2/group__PkgConvexHull2Ref.html | Melkman hull (adopted 2026-11-08 into row 04); lower/upper hull (not adopted) |
+| maspypy geo/polygon.hpp, inside_polygon.hpp | https://maspypy.github.io/library/geo/polygon.hpp, https://maspypy.github.io/library/geo/inside_polygon.hpp | row 30 `segmentInPolygon`, `polygonLineIntersection` |
+| CGAL Convex_hull_2 reference | https://doc.cgal.org/latest/Convex_hull_2/group__PkgConvexHull2Ref.html | `convexHullMelkman`; `lowerHull`, `upperHull` |
 
-## P008 completeness sweep, fetched 2026-10-07
+## P008 Completeness Sweep, Fetched 2026-10-07
 
 | Source | URL | Used for |
 |---|---|---|
-| CP-Algorithms, nearest points; OI Wiki nearest points | https://cp-algorithms.com/geometry/nearest_points.html, https://oi-wiki.org/geometry/nearest-points/ | 3D closest pair (divide and conquer); minimum-perimeter triangle and randomized grid (not adopted) |
-| maspypy geo/closest_pair.hpp; suisen geom/closest_pair.hpp | https://maspypy.github.io/library/geo/closest_pair.hpp, https://suisen-cp.github.io/cp-library-cpp/library/geom/closest_pair.hpp | randomized expected-linear closest pair and floating closest pair (adopted 2026-11-08 into row 05) |
+| CP-Algorithms, nearest points; OI Wiki nearest points | https://cp-algorithms.com/geometry/nearest_points.html, https://oi-wiki.org/geometry/nearest-points/ | `closestPair3` (divide and conquer); `minimumPerimeterTriangleApprox`; `closestPairRandomized` |
+| maspypy geo/closest_pair.hpp; suisen geom/closest_pair.hpp | https://maspypy.github.io/library/geo/closest_pair.hpp, https://suisen-cp.github.io/cp-library-cpp/library/geom/closest_pair.hpp | `closestPairRandomized` (expected linear), `closestPairApprox` (floating) |
 | AOJ CGL_7_A, Nyaan geometry/circle.hpp | https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_7_A, https://nyaannyaan.github.io/library/geometry/circle.hpp | `circleRelation` (4, 3, 2, 1, 0 common tangents) |
 | ei1333 geometry/circle.hpp | https://ei1333.github.io/library/geometry/circle.hpp | `circleSegmentIntersectionApprox` (`cross_point_cs`), circle-line/circle-circle cross-checks |
-| maspypy geo/apollonian_circle.hpp | https://maspypy.github.io/library/geo/apollonian_circle.hpp | ratio locus circle (adopted 2026-11-08 into row 24) |
+| maspypy geo/apollonian_circle.hpp | https://maspypy.github.io/library/geo/apollonian_circle.hpp | row 24 `apollonianCircle` (ratio locus) |
 | maspypy geo/furthest_pair.hpp; Library Checker furthest_pair | https://maspypy.github.io/library/geo/furthest_pair.hpp, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/furthest_pair/task.md | `farthestPair` (point-cloud wrapper with original indices) |
-| Toussaint 1983, Solving geometric problems with the rotating calipers; Wikipedia, Rotating calipers | https://www.cs.swarthmore.edu/~adanner/cs97/s08/pdf/calipers.pdf, https://en.wikipedia.org/wiki/Rotating_calipers | two-polygon calipers problems (not adopted; rows 04, 11, 17, 25) |
-| CGAL Aff_transformation_2 | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__2.html | line/direction images, map equality and exact rational transforms (not adopted) |
+| Toussaint 1983, Solving geometric problems with the rotating calipers; Wikipedia, Rotating calipers | https://www.cs.swarthmore.edu/~adanner/cs97/s08/pdf/calipers.pdf, https://en.wikipedia.org/wiki/Rotating_calipers | two-polygon calipers problems (rows 04, 11, 17, 25, 53 and 76) |
+| CGAL Aff_transformation_2 | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__2.html | exact rational transforms (`Affine2`); line and direction images and map equality (not adopted) |
 
-## P009 completeness sweep, fetched 2026-10-07
+## P009 Completeness Sweep, Fetched 2026-10-07
 
 | Source | URL | Used for |
 |---|---|---|
 | CGAL Kernel global functions (`angle`, `compare_angle`) | https://doc.cgal.org/latest/Kernel_23/group__kernel__global__function.html | `Triangle2::angleKind` (exact acute/right/obtuse classification) |
 | suisen geom/geometry.hpp; hitonanode geometry/triangle.hpp | https://suisen-cp.github.io/cp-library-cpp/library/geom/geometry.hpp, https://hitonanode.github.io/cplib-cpp/geometry/triangle.hpp | centroid, orthocenter and excenters (already in the row); incenter and circumcenter through row 06 `incircleApprox` and `circumcircleApprox` |
-| ei1333 geometry/angle.hpp; OI Wiki 2D geometry | https://ei1333.github.io/library/geometry/angle.hpp, https://oi-wiki.org/geometry/2d/ | vertex angles (covered by `01-point.hpp` `angleApprox`; not adopted) |
-| CGAL Triangle_2; KACTL geometry listing; maspypy triangle_area.hpp | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Triangle__2.html, https://github.com/kth-competitive-programming/kactl/tree/main/content/geometry, https://maspypy.github.io/library/geo/triangle_area.hpp | orientation, bounded side and transforms (owned by rows 02, 03 and 08); no further triangle operations |
+| ei1333 geometry/angle.hpp; OI Wiki 2D geometry | https://ei1333.github.io/library/geometry/angle.hpp, https://oi-wiki.org/geometry/2d/ | vertex angles (`TriangleApprox::angles`) |
+| CGAL Triangle_2; KACTL geometry listing; maspypy triangle_area.hpp | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Triangle__2.html, https://github.com/kth-competitive-programming/kactl/tree/main/content/geometry, https://maspypy.github.io/library/geo/triangle_area.hpp | `Triangle2::orient`, `Triangle2::locate`, `TriangleApprox::transform`; no further triangle operations |
 
-## P036 completeness sweep, fetched 2026-10-10
+## P036 Completeness Sweep, Fetched 2026-10-10
 
 Five `@researcher` passes: one each for rows 10, 11, 16 and 17, and one for the Lee–Preparata case analysis. Decisions are in [00-notes.md](00-notes.md#p036-completeness-decisions-2026-10-10).
 
@@ -72,35 +72,35 @@ Five `@researcher` passes: one each for rows 10, 11, 16 and 17, and one for the 
 | CGAL Nef_2 | https://doc.cgal.org/latest/Nef_2/index.html | Row 10: symbolic infimaximal box (contrast with exact unbounded kinds) |
 | Preparata & Shamos, Section 7.2.6 (book pp. 299–306) | https://www.cs.kent.edu/~dragan/CG/CG-Book.pdf | Row 10: `polygonKernelLinear` case analysis and linear-bound argument |
 | Bornstein & Bruckstein (Pattern Recognition 24(11), 1991); Schuierer (Nordic J. Computing 1, 1994) | https://freddy.cs.technion.ac.il/wp-content/uploads/2018/01/finding-the-kernel-of-planar-shapes.pdf, https://www.cs.helsinki.fi/njc/njc1_papers/number4/paper4.pdf | Row 10: existence of the wrap test and turning-angle conditions (the 6π guard here is derived independently) |
-| cp-algorithms Minkowski sum; maspypy geo/minkowski_sum.hpp; OI Wiki convex hull (闵可夫斯基和); CGAL Minkowski_sum_2 | https://cp-algorithms.com/geometry/minkowski.html, https://maspypy.github.io/library/geo/minkowski_sum.hpp, https://oi-wiki.org/geometry/convex-hull/, https://doc.cgal.org/latest/Minkowski_sum_2/index.html | Row 11: edge merge, start conventions, family sums (CF 87E), nonconvex methods (not adopted) |
-| KACTL CirclePolygonIntersection.h; ei1333 common_area_cp.hpp; AOJ CGL_7_H; CGAL Boolean_set_operations_2 | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/CirclePolygonIntersection.h, https://ei1333.github.io/library/geometry/common_area_cp.hpp, https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_7_H, https://doc.cgal.org/latest/Boolean_set_operations_2/index.html | Row 16: fan decomposition; region-valued disk ∩ polygon (adopted 2026-11-08 into row 30) |
-| Wikipedia rotating calipers; CGAL Polytope_distance_d and do_intersect | https://en.wikipedia.org/wiki/Rotating_calipers, https://doc.cgal.org/latest/Polytope_distance_d/index.html, https://doc.cgal.org/latest/Boolean_set_operations_2/group__boolean__do__intersect.html | Row 17: maximum distance (adopted), separating strip and common tangents (not adopted), closed versus open intersection semantics |
+| cp-algorithms Minkowski sum; maspypy geo/minkowski_sum.hpp; OI Wiki convex hull (闵可夫斯基和); CGAL Minkowski_sum_2 | https://cp-algorithms.com/geometry/minkowski.html, https://maspypy.github.io/library/geo/minkowski_sum.hpp, https://oi-wiki.org/geometry/convex-hull/, https://doc.cgal.org/latest/Minkowski_sum_2/index.html | Row 11: edge merge, start conventions, family sums (CF 87E), nonconvex sums (`minkowskiSumReducedConvolution`; convex decomposition not adopted) |
+| KACTL CirclePolygonIntersection.h; ei1333 common_area_cp.hpp; AOJ CGL_7_H; CGAL Boolean_set_operations_2 | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/CirclePolygonIntersection.h, https://ei1333.github.io/library/geometry/common_area_cp.hpp, https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_7_H, https://doc.cgal.org/latest/Boolean_set_operations_2/index.html | Row 16: fan decomposition; region-valued disk ∩ polygon (row 30 `diskPolygonIntersectionApprox`) |
+| Wikipedia rotating calipers; CGAL Polytope_distance_d and do_intersect | https://en.wikipedia.org/wiki/Rotating_calipers, https://doc.cgal.org/latest/Polytope_distance_d/index.html, https://doc.cgal.org/latest/Boolean_set_operations_2/group__boolean__do__intersect.html | Row 17: `convexPolygonMaxDistance`, `widestSeparatingStripApprox`, `commonTangents`; closed versus open intersection semantics |
 
-## P037 completeness sweep, fetched 2026-10-18
+## P037 Completeness Sweep, Fetched 2026-10-18
 
 Five `@researcher` passes, one each for rows 13, 14, 15, 19 and 54. Decisions are in [00-notes.md](00-notes.md#p037-completeness-decisions-2026-10-18). Pages that failed to load are listed as such.
 
 | Source | URL | Used for |
 |---|---|---|
 | OI Wiki 扫描线; cp-algorithms segment union length | https://oi-wiki.org/geometry/scanning/, https://cp-algorithms.com/geometry/length-of-segments-union.html | Row 13: area and perimeter sweeps (POJ 1177), 1D union |
-| CSES 1740, 1741, 1742; AOJ CGL_6_A, DSL_4_A, DSL_5_B | https://cses.fi/problemset/task/1740, https://cses.fi/problemset/task/1741, https://cses.fi/problemset/task/1742, https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_6_A&lang=en | Row 13: orthogonal counts (touching semantics), union area; Robot Path (not adopted) |
+| CSES 1740, 1741, 1742; AOJ CGL_6_A, DSL_4_A, DSL_5_B | https://cses.fi/problemset/task/1740, https://cses.fi/problemset/task/1741, https://cses.fi/problemset/task/1742, https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_6_A&lang=en | Row 13: orthogonal counts (touching semantics), union area; Robot Path (row 12 `firstSelfIntersection`) |
 | Library Checker area_of_union_of_rectangles task | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/data_structure/area_of_union_of_rectangles/task.md | Row 13: `rectangleUnionArea` |
-| maspypy ds/rectangle_union.hpp, ds/incremental_rectangle_union.hpp, other/cuboid_union_volume.hpp; ei1333 union-rectangle.hpp; hitonanode integer_segments.hpp; suisen geom/segment_intersections.hpp | https://maspypy.github.io/library/ds/rectangle_union.hpp, https://maspypy.github.io/library/ds/incremental_rectangle_union.hpp, https://maspypy.github.io/library/other/cuboid_union_volume.hpp, https://ei1333.github.io/library/structure/others/union-rectangle.hpp, https://hitonanode.github.io/cplib-cpp/utilities/integer_segments.hpp, https://suisen-cp.github.io/cp-library-cpp/library/geom/segment_intersections.hpp | Row 13: union area; incremental unions (not adopted); 3D union volume (adopted 2026-11-08 into row 58); integer coverage reading; closed orthogonal count |
-| Barbay, Pérez-Lantero, Rojas-Ledesma, depth distribution | https://arxiv.org/abs/1705.10022 | Row 13: all-depth distribution bound (not adopted) |
+| maspypy ds/rectangle_union.hpp, ds/incremental_rectangle_union.hpp, other/cuboid_union_volume.hpp; ei1333 union-rectangle.hpp; hitonanode integer_segments.hpp; suisen geom/segment_intersections.hpp | https://maspypy.github.io/library/ds/rectangle_union.hpp, https://maspypy.github.io/library/ds/incremental_rectangle_union.hpp, https://maspypy.github.io/library/other/cuboid_union_volume.hpp, https://ei1333.github.io/library/structure/others/union-rectangle.hpp, https://hitonanode.github.io/cplib-cpp/utilities/integer_segments.hpp, https://suisen-cp.github.io/cp-library-cpp/library/geom/segment_intersections.hpp | Row 13: union area; `IncrementalRectangleUnion`; 3D union volume (row 58 `boxUnionVolume`); integer coverage reading; closed orthogonal count |
+| Barbay, Pérez-Lantero, Rojas-Ledesma, depth distribution | https://arxiv.org/abs/1705.10022 | All-depth distribution bound (row 58) |
 | Library Checker minimum_enclosing_circle (task, checker, reference solution) | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/minimum_enclosing_circle/task.md, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/minimum_enclosing_circle/sol/correct.cpp | Row 14: exact predicates, every point on the circle (`locate`) |
 | KACTL MinimumEnclosingCircle.h; cp-algorithms enclosing circle; OI Wiki random incremental; maspypy minimum_enclosing_circle; tko919 Enclosing.hpp | https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/MinimumEnclosingCircle.h, https://cp-algorithms.com/geometry/enclosing-circle.html, https://oi-wiki.org/geometry/random-incremental/, https://maspypy.github.io/library/geo/minimum_enclosing_circle.hpp, https://tko919.github.io/library/Geometry/Enclosing.hpp | Row 14: three-loop form, epsilon versus exact predicates |
-| CGAL Bounding_volumes, Min_circle_2, Min_sphere_of_spheres_d | https://doc.cgal.org/latest/Bounding_volumes/index.html, https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Min__circle__2.html, https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Min__sphere__of__spheres__d.html | Row 14: exact bounded side and support; circles of circles (not adopted here; row 57); p-centres (adopted 2026-11-08 into row 21) |
+| CGAL Bounding_volumes, Min_circle_2, Min_sphere_of_spheres_d | https://doc.cgal.org/latest/Bounding_volumes/index.html, https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Min__circle__2.html, https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Min__sphere__of__spheres__d.html | Row 14: exact bounded side and support; circles of circles (row 57); p-centres (row 21 `rectangularPCenter`) |
 | KACTL LineHullIntersection.h, PointInsideHull.h; cp-algorithms point in convex polygon | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/LineHullIntersection.h, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/PointInsideHull.h, https://cp-algorithms.com/geometry/point-in-convex-polygon.html | Row 15: line intersection results, fan location |
 | maspypy geo/convex_polygon.hpp; ei1333 convex_polygon_contains, convex_polygon_cut; hitonanode geometry.hpp; Nyaan polygon.hpp | https://maspypy.github.io/library/geo/convex_polygon.hpp, https://ei1333.github.io/library/geometry/convex_polygon_contains.hpp, https://ei1333.github.io/library/geometry/convex_polygon_cut.hpp, https://hitonanode.github.io/cplib-cpp/geometry/geometry.hpp, https://nyaannyaan.github.io/library/geometry/polygon.hpp | Row 15: `side`, `min_dot`/`max_dot`, `visible_range`, `boundary_cross_line`, `area_between`, `left_area`, `O(n)` cuts |
-| CGAL Inscribed_areas; AKMSW (SMAWK applications); Keikha et al. 1705.11035; Kallus 1706.03049; Jin et al. 1707.04071; Rote 1905.11203 | https://doc.cgal.org/latest/Inscribed_areas/group__PkgInscribedAreasRef.html, https://hcsoso.github.io/teaching/topology-f21/papers/SMAWK.pdf, https://arxiv.org/abs/1705.11035, https://arxiv.org/html/1706.03049, https://arxiv.org/abs/1707.04071, https://arxiv.org/html/1905.11203v1 | Row 15: k-gon bounds, the Dobkin–Snyder flaw, linear triangle and quadrilateral algorithms and enclosing triangles (not adopted) |
+| CGAL Inscribed_areas; AKMSW (SMAWK applications); Keikha et al. 1705.11035; Kallus 1706.03049; Jin et al. 1707.04071; Rote 1905.11203 | https://doc.cgal.org/latest/Inscribed_areas/group__PkgInscribedAreasRef.html, https://hcsoso.github.io/teaching/topology-f21/papers/SMAWK.pdf, https://arxiv.org/abs/1705.11035, https://arxiv.org/html/1706.03049, https://arxiv.org/abs/1707.04071, https://arxiv.org/html/1905.11203v1 | Row 15: k-gon bounds, the Dobkin–Snyder flaw, linear triangle and quadrilateral algorithms; enclosing triangles (row 57) |
 | cp-algorithms lattice points; cp-algorithms continued fractions; OI Wiki 类欧几里得 and Pick | https://cp-algorithms.com/geometry/lattice-points.html, https://cp-algorithms.com/algebra/continued-fractions.html, https://oi-wiki.org/math/number-theory/euclidean/, https://oi-wiki.org/geometry/pick/ | Row 19: per-edge floor sums, boundary treatment, lattice hull under a line (not adopted) |
-| maspypy convex/lattice_point_count.hpp, lattice_point_sum_polynomial.hpp, nt/convex_floor_sum.hpp; Nyaan enumerate-convex.hpp; 259-momone blog | https://maspypy.github.io/library/convex/lattice_point_count.hpp, https://maspypy.github.io/library/convex/lattice_point_sum_polynomial.hpp, https://maspypy.github.io/library/nt/convex_floor_sum.hpp, https://nyaannyaan.github.io/library/math/enumerate-convex.hpp, https://259-momone.hatenablog.com/entry/2021/07/25/025655 | Row 19: halfplane counts; Stern–Brocot hull walks (not adopted); polynomial sums (adopted 2026-11-08) |
+| maspypy convex/lattice_point_count.hpp, lattice_point_sum_polynomial.hpp, nt/convex_floor_sum.hpp; Nyaan enumerate-convex.hpp; 259-momone blog | https://maspypy.github.io/library/convex/lattice_point_count.hpp, https://maspypy.github.io/library/convex/lattice_point_sum_polynomial.hpp, https://maspypy.github.io/library/nt/convex_floor_sum.hpp, https://nyaannyaan.github.io/library/math/enumerate-convex.hpp, https://259-momone.hatenablog.com/entry/2021/07/25/025655 | Row 19: halfplane counts; Stern–Brocot hull walks (not adopted); polynomial sums (`latticePolynomialSumInHalfplanePolygon`) |
 | AtCoder ABC191 D; sethigris/gauss-circle | https://atcoder.jp/contests/abc191/tasks/abc191_d, https://github.com/sethigris/gauss-circle | Row 19: rational-centre disk task; origin hull walk |
-| USACO Guide LeetCode 1453 solution; arXiv 1312.0389; arXiv 2509.16008 | https://usaco.guide/problems/lc-maximum-number-of-darts-inside-of-a-circular-dartboard/solution, https://arxiv.org/html/1312.0389v1, https://arxiv.org/html/2509.16008 | Row 54: floating angular sweep and tie rule; `O(n^2)` bound and variants (not adopted) |
+| USACO Guide LeetCode 1453 solution; arXiv 1312.0389; arXiv 2509.16008 | https://usaco.guide/problems/lc-maximum-number-of-darts-inside-of-a-circular-dartboard/solution, https://arxiv.org/html/1312.0389v1, https://arxiv.org/html/2509.16008 | Row 54: floating angular sweep and tie rule; `O(n^2)` bound and variants (row 56) |
 | CGAL Spatial_searching; OI Wiki nearest points; maspypy geo/closest_pair.hpp | https://doc.cgal.org/latest/Spatial_searching/index.html, https://oi-wiki.org/geometry/nearest-points/, https://maspypy.github.io/library/geo/closest_pair.hpp | Row 54: fixed-radius search ownership (row 28), grid hashing |
 | Failed fetches | LeetCode 1453 (HTTP 403), poj.org 1981 (refused), min-25 blog (404), QOJ 6188 (403), Springer BF02574380 (login) | Statements of those pages are not relied on |
 
-## P037 re-audit sources, fetched 2026-10-19
+## P037 Re-Audit Sources, Fetched 2026-10-19
 
 Two `@researcher` passes: k-gon interleaving (row 15) and output-sensitive contours (row 13). Decisions are in [00-notes.md](00-notes.md#p037-re-audit-decisions-2026-10-19).
 
@@ -114,7 +114,7 @@ Two `@researcher` passes: k-gon interleaving (row 15) and output-sensitive conto
 | mayoff/RectangleContour; gopchandani/union_of_rectangles | https://github.com/mayoff/RectangleContour, https://github.com/gopchandani/union_of_rectangles | Row 13: survey of implementations (Lipski–Preparata) |
 | Failed fetches | Boyce et al. SIAM and ACM PDFs (403), ResearchGate (403), Güting J. Algorithms 1984 (paywalled), Lipski–Preparata full text (2-page preview only) | Not relied on; Boyce et al. was read in round 3 from a copy the user supplied, see below |
 
-## P037 round-3 audit sources, fetched 2026-10-19
+## P037 Round-3 Audit Sources, Fetched 2026-10-19
 
 Five `@researcher` passes compared every operation of rows 13, 14, 15, 19 and 54 (and Mathematics `floorSumWide`) with the best known bounds; decisions are in [00-notes.md](00-notes.md#p037-round-3-decisions-2026-10-19). Paper keys used in the new planned rows:
 
@@ -142,9 +142,9 @@ Five `@researcher` passes compared every operation of rows 13, 14, 15, 19 and 54
 | — | Sladkey, arXiv 1206.3369 | https://arxiv.org/abs/1206.3369 | Row 19: log-free hull walk for the hyperbola (not used; no circle proof) |
 | — | Mount, lecture notes (fixed-radius grid) | https://graphics.stanford.edu/courses/cs268-09-winter/manuals/davidmount-754lects.pdf (pp. 6–9) | Row 54: output-sensitive grid bound |
 
-## Fetched 2026-11-08 (omission sweep)
+## Fetched 2026-11-08 (Omission Sweep)
 
-Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission Sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
 
 | URL | Used for |
 |---|---|
@@ -259,17 +259,17 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://arxiv.org/abs/1603.07269 | 65: `symmetryAxes`, `rotationalSymmetries` |
 | https://doc.cgal.org/latest/Convex_hull_d/index.html | 67: `HullD`, `facets` |
 
-## Source keys used in the inventory
+## Source Keys Used in the Inventory
 
 Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys). The HIGHNAM85 and KIMROTE16 URLs are in [Fetched 2026-11-08](#fetched-2026-11-08-omission-sweep); what was read of CL86, GR13, WANG22, HPM05, MEGIDDO83, OAMB86, STVWE95, ROTE19, BPR17, GUTING84, AST94, SCHIEBER98 and CP10 is in [P037 round-3 audit sources](#p037-round-3-audit-sources-fetched-2026-10-19). CGAL supplies breadth and contracts, never an automatic dependency.
 
-## 2026-09-27 audit provenance
+## 2026-09-27 Audit Provenance
 
 The 2026-09-27 cross-library audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md), metadata in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json)) inspected catalogs, selected API/comments and named paper abstracts. Package-level provenance for the verified rows (KACTL PDF pp. 16–20, Stanford notebook pp. 6–7, cp-algorithms hull/area/Pick/closest-pair/circle pages, KACTL CircleTangents/HullDiameter/ClosestPair, CGAL min_quadrilateral_2, MathWorld circle/triangle pages, Kahan's needle-triangle paper) is recorded with read scope in the per-header evidence documents [01-point.md](01-point.md) through [09-triangle.md](09-triangle.md). Items not adopted are in [00-notes.md](00-notes.md#2026-09-27-audit-not-adopted).
 
-## Fetched 2026-11-10 (P275 re-review)
+## Fetched 2026-11-10 (P275 Re-Review)
 
-Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 Re-Review 2026-11-10).
 
 - <https://doc.cgal.org/latest/Manual/packages.html>
 - <https://doc.cgal.org/latest/Snap_rounding_2/group__PkgSnapRounding2Ref.html>
@@ -294,7 +294,7 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 - <https://cses.fi/problemset/task/1742>
 - <https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_1_C>
 
-## P007 re-audit, fetched 2026-11-11
+## P007 Re-Audit, Fetched 2026-11-11
 
 Four `@researcher` passes, one per GE01 row; decisions in [00-notes.md](00-notes.md#p007-re-audit-decisions-2026-11-11).
 
@@ -315,7 +315,7 @@ Four `@researcher` passes, one per GE01 row; decisions in [00-notes.md](00-notes
 | OI Wiki 计算几何基础, 凸包 | https://oi-wiki.org/geometry/2d/, https://oi-wiki.org/geometry/convex-hull/ | row 03 aliases (even-odd and nonzero rules); no new operation |
 | ei1333, Nyaan, maspypy and KACTL catalog indexes | https://ei1333.github.io/library/, https://nyaannyaan.github.io/library/, https://maspypy.github.io/library/, https://github.com/kth-competitive-programming/kactl/tree/main/content/geometry | rows 01–04 checked; row 03 complete |
 
-## P008 re-audit, fetched 2026-11-14
+## P008 Re-Audit, Fetched 2026-11-14
 
 Four `@researcher` passes, one per GE02 row; decisions in [00-notes.md](00-notes.md#p008-re-audit-decisions-2026-11-14).
 
@@ -333,7 +333,7 @@ Four `@researcher` passes, one per GE02 row; decisions in [00-notes.md](00-notes
 | KACTL linearTransformation.h | https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/linearTransformation.h | 08: alias of `similarity` then `applyPoint` |
 | OI Wiki 坐标系 | https://oi-wiki.org/math/coordinate/ | `fromPolarApprox`, a follow-up for row 01 |
 
-## P009 re-audit, fetched 2026-11-15
+## P009 Re-Audit, Fetched 2026-11-15
 
 | Source | URL | Used for |
 |---|---|---|

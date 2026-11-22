@@ -1,14 +1,14 @@
-# 03-barrett.hpp — evidence
+# 03-barrett.hpp — Evidence
 
-`03-barrett.hpp` (C02, package P004, together with `04-montgomery.hpp`; see [04-montgomery.md](04-montgomery.md)) provides machine-word Barrett reduction: exact quotient and remainder of double-width dividends, products, powers and Shoup fixed multipliers. Backend choice and the research/ownership boundary for the reduction family are in [00-notes.md](00-notes.md#reduction-family); the benchmark method shared with Montgomery is under [Benchmarks](#benchmarks).
+`03-barrett.hpp` (C02, package P004 with `04-montgomery.hpp`; see [04-montgomery.md](04-montgomery.md)) provides machine-word Barrett reduction: the exact quotient and remainder of double-width dividends, products, powers and Shoup fixed multipliers. Backend choice and the ownership boundary of the reduction family are in [00-notes.md](00-notes.md#reduction-family); the benchmark method shared with Montgomery is under [Benchmarks](#benchmarks).
 
 ## Contracts
 
-### Common machine-word rules
+### Common Machine-Word Rules
 
-Let `w` be 32 or 64 and `R = 2^w`. A context's fields are public for contest use but must not be modified. Copying or moving contexts creates independent values; there are no caches, allocation, global modulus, reset operation, or CPU runtime dispatch. Scalar kernels use unsigned arithmetic and GNU double-width integers. Context storage and per-operation scratch are O(1); general construction includes native division for precomputation, while the power-of-two and Mersenne61 contexts skip it. Exponentiation takes O(1+log(e+1)) word operations for exponent e and bulk operations take O(n).
+Let `w` be 32 or 64 and `R = 2^w`. A context's fields are public for contest use but must not be modified. Copies and moves are independent values; there are no caches, allocation, global modulus, reset operation or run-time CPU dispatch. Scalar kernels use unsigned arithmetic and GNU double-width integers. Context storage and per-operation scratch are O(1). General construction divides natively once for its precomputation; the power-of-two and Mersenne61 contexts skip it. A power takes O(1 + log(e + 1)) word operations for exponent e, and bulk operations take O(n).
 
-All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address `n` words, with no alignment requirement. Count and pointer preconditions are asserted at entry. Empty calls permit null pointers. Buffers must be disjoint or have exactly the same start; partial overlap is outside the contract. Products support output aliasing either/both inputs. Fixed-multiplier arrays support exact in-place operation. Modulus zero and other domain violations are asserted in checked builds and remain preconditions under `NDEBUG`. Modulus one returns zero throughout, including exponent zero. No primality assumption or residue inverse belongs to this reducer. `LOCAL` does not affect the header.
+Every bulk API takes a pointer and an `int n >= 0` count; pointers address `n` words, with no alignment requirement. Count and pointer preconditions are asserted at entry, and an empty call may pass null pointers. Buffers must be disjoint or start at exactly the same address; partial overlap is outside the contract. Products may write over either or both inputs, and fixed-multiplier arrays work exactly in place. Modulus zero and the other domain violations are asserted in checked builds and remain preconditions under `NDEBUG`. Modulus one returns zero throughout, exponent zero included. The reducer assumes no primality and offers no residue inverse. `LOCAL` does not affect the header.
 
 | API | Domain and result |
 |---|---|
@@ -20,28 +20,28 @@ All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address
 
 ### Barrett32, Barrett64
 
-The fields `mod`, `mu` and `mask` are immutable state. Both constructors are `constexpr` (2026-11-16, for P005 with the user's yes: the dynamic modular types of `05-modint.hpp` hold a `constinit` reducer and need no initialization guard); the other members are unchanged. `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths (`MERSENNE61 = 2305843009213693951`); `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. Copies and moves are independent; there is no allocation, cache or global state. `Barrett64::highProduct` is the exact high half of a 128 x 128-bit product. `Barrett64::fold61` is the one Mersenne-61 fold: `divMod` applies it twice to an arbitrary dividend, and the modular types' Mersenne paths call it.
+The fields `mod`, `mu` and `mask` are immutable state. Both constructors are `constexpr` (2026-11-16, for P005 with the user's yes: the dynamic modular types of `05-modint.hpp` hold a `constinit` reducer and need no initialization guard). `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths (`MERSENNE61 = 2305843009213693951`); `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. `Barrett64::highProduct` is the exact high half of a 128 × 128-bit product. `Barrett64::fold61` is the one Mersenne-61 fold: `divMod` applies it twice to an arbitrary dividend, and the modular types' Mersenne paths call it.
 
 ### Barrett32::Multiplier, Barrett64::Multiplier
 
-Constructed as `Multiplier(r, b)` from a reducer `r` and any factor word `b`: `value = b % mod` and `mu = floor(value * R / mod)`. The multiplier has the same input, output, state and pointer contracts as `r` and does not depend on `r`'s lifetime. Barrett64's 128-bit intermediates keep the 65th residual bit, which full-width moduli need.
+`Multiplier(r, b)` takes a reducer `r` and any factor word `b`: `value = b % mod` and `mu = floor(value * R / mod)`. The multiplier has the same input, output, state and pointer contracts as `r` and does not depend on `r`'s lifetime. Barrett64's 128-bit intermediates keep the 65th residual bit that full-width moduli need.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed (prune, 2026-10-12) | Replacement |
 |---|---|
 | `div(x)` | `divMod(x).first` |
 | `multiplier(b)` | `Barrett32::Multiplier(r, b)`, `Barrett64::Multiplier(r, b)` for a reducer `r` |
 
-### Arithmetic justification
+### Arithmetic Justification
 
-**Barrett.** Set `B = R^2` and `mu = floor(B/m)`. Non-power-of-two moduli do not divide `B`, so the representable expression `floor((B-1)/m)` computes the same value. For `x < B`, `q = floor(x*mu/B)` is the exact quotient or one less: the approximation error is nonnegative and strictly below one. Thus `x-q*m < 2m`; one subtraction makes it canonical. Keep the extra residual bit until correction. Power-of-two moduli, including one, use masking and need no reciprocal. The 128-bit high product splits into four 64-bit products; summing the three middle limbs at 128-bit width preserves both carries. For `m=2^61-1`, use `2^61 = 1 (mod m)`: two folds of the entire 128-bit dividend leave a value at most `m+64 < 2m`, followed by one subtraction. One fold (`fold61`) of `x < 2^122 - 2^61` already leaves at most `2m - 1`, because then `x >> 61 <= m - 1` while `x & m <= m`.
+**Barrett.** Set `B = R^2` and `mu = floor(B/m)`. A modulus that is not a power of two does not divide `B`, so the representable `floor((B-1)/m)` has the same value. For `x < B`, `q = floor(x*mu/B)` is the exact quotient or one less, because the approximation error is nonnegative and below one. Thus `x - q*m < 2m`, and one subtraction makes it canonical; the extra residual bit is kept until that correction. Power-of-two moduli, one included, mask and need no reciprocal. The 128-bit high product splits into four 64-bit products; summing the three middle limbs at 128-bit width keeps both carries. For `m = 2^61-1`, `2^61 ≡ 1 (mod m)`: two folds of the whole 128-bit dividend leave at most `m + 64 < 2m`, then one subtraction. One fold (`fold61`) of `x < 2^122 - 2^61` already leaves at most `2m - 1`, because then `x >> 61 <= m - 1` and `x & m <= m`.
 
-**Fixed multiplier.** With `b < m`, precompute `c = floor(b*R/m)`. For any word `a`, `floor(a*c/R)` underestimates `floor(a*b/m)` by at most one. The widened residual is `<2m`, so one subtraction suffices, including full-width moduli. This replaces the general double-width reciprocal product for repeated scalar factors.
+**Fixed multiplier.** With `b < m`, precompute `c = floor(b*R/m)`. For any word `a`, `floor(a*c/R)` underestimates `floor(a*b/m)` by at most one, so the widened residual is below `2m` and one subtraction suffices, full-width moduli included. This replaces the general double-width reciprocal product for a repeated factor.
 
-**Quotients.** On the mask path `x >> countr_zero(m)` is the exact quotient (shift zero for `m=1`). On the reciprocal path `q` is the true quotient or one less, so `q*m <= x` and `q + [r >= m]` is exact. For `m = 2^61-1` write `x = (x>>61)*2^61 + (x & m) = (x>>61)*m + y` with `y = fold61(x) = (x>>61) + (x & m) <= 2^67 + 2^61 - 2`, then `y = (y>>61)*m + z` with `z = fold61(y) = (y>>61) + (y & m) <= m + 64 < 2m`; hence `x = ((x>>61) + (y>>61))*m + z` and the quotient is `(x>>61) + (y>>61) + [z >= m]`, the remainder `z - [z >= m]*m`. `divMod` is the Barrett core: `reduce` reads its remainder, so the remainder path is unchanged after inlining (`Barrett32::reduce` 16 and `Barrett64::reduce` 104 instructions at `-O2` on GCC 16.2; 103 on GCC 14.4).
+**Quotients.** On the mask path `x >> countr_zero(m)` is the exact quotient (shift zero for `m = 1`). On the reciprocal path `q` is the true quotient or one less, so `q*m <= x` and `q + [r >= m]` is exact. For `m = 2^61-1` write `x = (x>>61)*2^61 + (x & m) = (x>>61)*m + y` with `y = fold61(x) = (x>>61) + (x & m) <= 2^67 + 2^61 - 2`, then `y = (y>>61)*m + z` with `z = fold61(y) = (y>>61) + (y & m) <= m + 64 < 2m`; hence `x = ((x>>61) + (y>>61))*m + z`, the quotient is `(x>>61) + (y>>61) + [z >= m]` and the remainder `z - [z >= m]*m`. `divMod` is the Barrett core and `reduce` reads its remainder, so the remainder path is unchanged after inlining (`Barrett32::reduce` 16 and `Barrett64::reduce` 104 instructions at `-O2` on GCC 16.2; 103 on GCC 14.4).
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Harness: [`05-testing.md`](../../00-Guidelines/05-testing.md); the entry uses only Python's standard library and GCC.
 
@@ -58,32 +58,44 @@ Harness: [`05-testing.md`](../../00-Guidelines/05-testing.md); the entry uses on
 | `Barrett` alias, `load`, `store` | `03-barrett_tester.cpp` | `Barrett(17).mul(123, 456)` against `123 * 456 % 17`, and the multiple-TU build compares `Barrett` with `Barrett64`; the AVX2 helpers run inside every AVX2 bulk kernel of the batch tests in the optimized, checked and sanitized AVX2 builds |
 | Bulk fixed products | `03-barrett_tester.cpp` `batches()` | Factors `MAX`, `m-1` and a seeded random factor for 16 (32-bit) / 17 (64-bit) batch moduli, checked against `Wide(a)*f % m`, sizes 0–65, 127–129, 255–257, 4095–4097, eight offsets, separate and in-place, leading/trailing guards; Barrett32 moduli include `2^32-5` and `3*2^30+1`, so the AVX2 Shoup kernel runs with residuals near `2^33` through its signed correction |
 
-Quick mode covers every public operation with smaller exhaustive/random corpora. Full uses 60,000 random cases per width and exhaustive `m<=128, x<16384`; stress uses 600,000 and `m<=256, x<65536`, with exhaustive small fixed-factor pairs. Full/stress execute optimized `-O3 -DNDEBUG`, checked, and ASan/UBSan scalar/AVX2 paths (including a checked AVX2 build).
+Quick mode covers every public operation with smaller exhaustive and random corpora. Full uses 60,000 random cases per width and exhaustive `m <= 128, x < 16384`; stress uses 600,000 and `m <= 256, x < 65536`, with exhaustive small fixed-factor pairs. Full and stress run the optimized `-O3 -DNDEBUG`, checked and ASan/UBSan builds on the scalar and AVX2 paths (including a checked AVX2 build).
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1085 MB; 6 builds, 32.0 s compiling, 33.4 s running, longest run 14.9 s; MEMORY peak 1052 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1082 MB; 6 builds, 43.9 s compiling, 32.8 s running, longest run 13.6 s; MEMORY peak 1036 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized-scalar 22.6 s compile + 0.3 s run, checked-scalar 20.3 s compile + 0.3 s run, optimized-avx2 22.2 s compile + 0.2 s run, checked-avx2 13.0 s compile + 0.3 s run; MEMORY peak 1237 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 48 MB; 6 builds, 14.8 s compiling, 29.3 s running, longest run 12.3 s; MEMORY peak 1044 MB. Dated rows below stay those commands' latest results.
+Latest header run, 2026-11-16 (P005 speed stage, which added `constexpr` to the two constructors and the `constants` check; GCC 16.2.1 and GCC 14.4.1, Intel Core i9-11900H, experiment none):
 
-Constexpr constructors, 2026-11-16 (P005 speed stage; the word `constexpr` added to the two constructors, the `constants` check added to the tester; GCC 16.2.1 and GCC 14.4.1, Intel Core i9-11900H, experiment none): `python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261116` PASS, six configurations, 53,670,556 checks each (four of them the new run-time checks beside the compile-time ones), 11.7 s, peak 1050 MB; the same with `CXX=g++-14` PASS, 16.9 s, peak 1051 MB. The header held no mutation record, so this edit from another package needed no campaign (`05-testing.md`, Mutation testing, later passes); P005 ran the whole-file one on 2026-11-17 all the same, `python3 '96-Local Testing/04-mutation.py' run 01-Core/03-barrett.hpp --workdir <session scratchpad>/mut-barrett`, COMPLETE in 7 minutes (Mutation testing).
+```bash
+python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261116              # PASS, six configurations, 53,670,556 checks each, 11.7 s, peak 1050 MB
+CXX=g++-14 python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261116   # PASS, 16.9 s, peak 1051 MB
+```
 
-Prune, 2026-10-12 (`div` and `multiplier` removed, `fold61` added; the Montgomery exponent widened in the same change):
+2026-11-22: quick mode (seed 1) passed as a consumer in P005's `/finish C03` chain on the committed tree ([05-modint.md](05-modint.md#commands-and-results)).
+
+Library-wide runs of 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, run beside the other suites, build cache emptied before each cold run), all PASS:
+
+| Command | Compiler | This suite | Memory peak |
+|---|---|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` | GCC 16.2.1 | preflight quick peak 1085 MB; 6 builds, 32.0 s compiling, 33.4 s running, longest run 14.9 s | 1052 MB |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | GCC 14.4.1 | preflight quick peak 1082 MB; 6 builds, 43.9 s compiling, 32.8 s running, longest run 13.6 s | 1036 MB |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | GCC 16.2.1 | optimized-scalar 22.6 s compile + 0.3 s run, checked-scalar 20.3 s + 0.3 s, optimized-avx2 22.2 s + 0.2 s, checked-avx2 13.0 s + 0.3 s | 1237 MB |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | GCC 16.2.1 | preflight quick peak 48 MB; 6 builds, 14.8 s compiling, 29.3 s running, longest run 12.3 s | 1044 MB |
+
+Prune checks of 2026-10-12 (`div` and `multiplier` removed, `fold61` added; the Montgomery exponent widened in the same change), the latest run of each:
 
 ```bash
 python3 '96-Local Testing/03-consistency.py' --braces 01-Core/03-barrett.hpp 01-Core/04-montgomery.hpp
-python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261012
-CXX=g++-14 python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261012
 python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 python3 '96-Local Testing/01-Core/03-reduction_benchmark.py' --seed 20261012 --repetitions 5 --milliseconds 2 --output '96-Local Testing/01-Core/03-reduction_benchmark.jsonl'
 ```
 
-All passed on GCC 16.2.1 and GCC 14.4.1, GNU++20, Linux x86-64 (Intel Core i9-11900H), every tester build with `-Wall -Wextra -Wshadow -Wconversion -Werror` (the benchmark builds use the `-Wall -Wextra` flags recorded in the JSONL; its source also compiles clean under the strict flags on both compilers). Full (seed 20261012): **53,670,566 non-removable checks in each of six configurations** (optimized and checked scalar, optimized and checked AVX2, scalar and AVX2 ASan/UBSan with leak detection; 16 precondition deaths per checked build; standalone/multiple-TU build), 36.47 s on g++ and 37.55 s on g++-14, memory peak 616 MB and 619 MB under the 4096 MB cap. `02-integration.py` passed 136 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage and the Workspace snapshot; `03-consistency.py` reports no errors and no brace, comment-cap or free-function violations. The benchmark run verified all 9,116 measurements against native wide `%`.
+All passed on GCC 16.2.1 and GCC 14.4.1, GNU++20, Linux x86-64 (Intel Core i9-11900H). `02-integration.py` passed 136 standalone and aggregate headers, scalar and AVX2 multiple-translation-unit linkage and the Workspace snapshot; `03-consistency.py` reported no errors and no brace, comment-cap or free-function violations. The benchmark builds use the `-Wall -Wextra` flags recorded in the JSONL (its source also compiles clean under `-Wall -Wextra -Wshadow -Wconversion -Werror` on both compilers), and the run verified all 9,116 measurements against native wide `%`.
 
 ## Benchmarks
 
-The [benchmark entry](<../../96-Local Testing/01-Core/03-reduction_benchmark.py>) serves both reduction headers and writes `96-Local Testing/01-Core/03-reduction_benchmark.jsonl` with compiler commands, hardware, flags, seed, adaptive warmup and medians of five repetitions. Builds use GNU++20: baseline `-O3 -DNDEBUG` without AVX2/BMI2, accelerated `-O3 -DNDEBUG -mavx2 -mbmi2 -mno-avx512f`, and `scalar-asserts`/`avx2-asserts` at `-O2` with assertions enabled (the Codeforces build). Inputs are shared between implementations and every measured output is verified. Compiler memory barriers and volatile result sinks prevent elimination/hoisting. Kernels use precomputed contexts and O(n) input/output storage with O(1) scratch. Setup-and-power includes context construction and conversion for each of eight full-word bases/exponents.
+The [benchmark entry](<../../96-Local Testing/01-Core/03-reduction_benchmark.py>) serves both reduction headers and writes `96-Local Testing/01-Core/03-reduction_benchmark.jsonl` with compiler commands, hardware, flags, seed, adaptive warmup and medians of five repetitions. Builds use GNU++20: baseline `-O3 -DNDEBUG` without AVX2/BMI2, accelerated `-O3 -DNDEBUG -mavx2 -mbmi2 -mno-avx512f`, and `scalar-asserts`/`avx2-asserts` at `-O2` with assertions enabled (the Codeforces build). Both implementations read the same inputs and every measured output is verified. Compiler memory barriers and volatile result sinks prevent elimination and hoisting. Kernels use precomputed contexts and O(n) input and output storage with O(1) scratch. Setup-and-power includes context construction and conversion for each of eight full-word bases and exponents.
 
-The corpus covers modulus one, powers of two, typical contest primes, `2^31-1`, `2^61-1`, `2^64-59` and `2^64-1`; uniform and near-modulus inputs; bulk lengths 1, 7, 8, 9, 16, 32, 256 and 4096; arbitrary full-width dividends and fixed factors; canonical/lazy products, conversions, dependent product chains and dependent power chains with 64- and 128-bit exponents on one context. Unit-factor chains avoid products collapsing to zero, while the separate uniform distribution includes that legitimate case. Timings are observations on this host (Intel Core i9-11900H, GCC 16.2.1), not universal claims or timing gates.
+The corpus covers modulus one, powers of two, typical contest primes, `2^31-1`, `2^61-1`, `2^64-59` and `2^64-1`; uniform and near-modulus inputs; bulk lengths 1, 7, 8, 9, 16, 32, 256 and 4096; arbitrary full-width dividends and fixed factors; canonical and lazy products, conversions, dependent product chains and dependent power chains with 64- and 128-bit exponents on one context. Unit-factor chains keep products from collapsing to zero, while the separate uniform distribution includes that legitimate case. Timings are observations on this host (Intel Core i9-11900H, GCC 16.2.1), not universal claims or timing gates.
 
 Latest run, 2026-10-12 after the prune (seed 20261012, 2 ms warmup, five repetitions, four configurations): 9,116 verified measurements, held in the JSONL. Nanoseconds per complete workload, accelerated (AVX2) `-O3 -DNDEBUG` build:
 
@@ -100,17 +112,21 @@ Latest run, 2026-10-12 after the prune (seed 20261012, 2 ms warmup, five repetit
 
 Montgomery's figures for the shared power workloads are in [04-montgomery.md](04-montgomery.md#benchmarks).
 
-General 64-bit Barrett is **not universally faster than native remainder**: modulo `2^64-59` and `2^64-1`, 737 and 746 vs 571 and 574 ns for 256 reductions, and `divMod` 923 and 923 vs 585 and 597. `divMod` wins for every other measured modulus (`2^32+15`: 914 vs 1,133). Its value is a predictable exact precomputed backend over every modulus/dividend domain; use Montgomery for suitable long odd-modulus chains or Shoup for repeated factors, and ordinary `%` when setup/reuse does not justify a context.
+General 64-bit Barrett is **not universally faster than native remainder**: modulo `2^64-59` and `2^64-1` it takes 737 and 746 ns against 571 and 574 for 256 reductions, and `divMod` 923 and 923 against 585 and 597. `divMod` wins on every other measured modulus (`2^32+15`: 914 against 1,133). Its value is a predictable, exact, precomputed backend over every modulus and dividend; use Montgomery for long odd-modulus chains, Shoup for repeated factors, and plain `%` when setup and reuse do not justify a context.
 
-Rejected candidates ([measurements](<../../96-Local Testing/01-Core/03-reduction_candidates.jsonl>), snapshots that predate the final headers and are labeled accordingly): a general AVX2 Barrett32 kernel with a synthesized high-64 vector reciprocal product showed no consistent improvement (bulk/scalar about 1.07 at 4096 elements), so ordinary Barrett32 uses a scalar loop except for power-of-two masks (eight packed lanes). Mersenne31 folding lost to ordinary reciprocal reduction (about 286 vs 225 ns) and was removed; Mersenne61 folding is retained. Manual 64-bit unrolling added overhead on short arrays without a consistent general benefit, so 64-bit bulk loops remain direct. Ordinary 64-bit multiplication uses the compiler's native wide products.
+Rejected candidates ([measurements](<../../96-Local Testing/01-Core/03-reduction_candidates.jsonl>), snapshots that predate the final headers and are labeled so):
 
-Shoup threshold (median AVX2 bulk/scalar ratio over `998244353`, `2^31-1`, `2^32-5`): 1.27 at 7, 0.45 at 8, 0.57 at 9, 0.31 at 256 elements; 0.54 at 8 with assertions enabled. The eight-element dispatch stands.
+- A general AVX2 Barrett32 kernel with a synthesized high-64 vector reciprocal product showed no consistent improvement (bulk/scalar about 1.07 at 4096 elements), so ordinary Barrett32 runs a scalar loop except for power-of-two masks (eight packed lanes).
+- Mersenne31 folding lost to ordinary reciprocal reduction (about 286 against 225 ns) and was removed; Mersenne61 folding is kept.
+- Manual 64-bit unrolling added overhead on short arrays without a consistent general benefit, so 64-bit bulk loops stay direct. Ordinary 64-bit multiplication uses the compiler's native wide products.
 
-## Mutation testing
+Shoup threshold (median AVX2 bulk/scalar ratio over `998244353`, `2^31-1`, `2^32-5`): 1.27 at 7, 0.45 at 8, 0.57 at 9 and 0.31 at 256 elements; 0.54 at 8 with assertions enabled. The eight-element dispatch stands.
 
-Record: mewt 4.0.0 on blob `43274aa94c8c5767c12d48801b536d4113df0bed` (2026-11-17, seed 1, whole file, severity high,medium): 132 mutants, 125 caught (0 by timeout), 7 survived, 0 untested.
+## Mutation Testing
 
-The header's first campaign, run by P005's speed stage after it made the two constructors `constexpr`: all 132 mutants of high and medium severity among the 596 generated (the sample cap of 500 was not reached); lines that carry only low-severity mutants (arithmetic and comparison operators) got none, as the rule for a Core full header allows. Stage seconds: quick 369, full 49 (all six configurations). The 7 survivors are equivalent:
+Record: mewt 4.0.0 on blob `43274aa94c8c5767c12d48801b536d4113df0bed` (2026-11-17, seed 1, whole file, severity high,medium): 132 mutants, 125 caught (0 by timeout), 7 survived, 0 untested. Stage seconds: quick 369, full 49 (all six configurations).
+
+The campaign, run by P005's speed stage after the constructors became `constexpr`, tested all 132 high- and medium-severity mutants of the 596 generated under the sample rule of 2026-11-17, so lines that carry only low-severity mutants (arithmetic and comparison operators) got none; P004's sweep reruns it under the current rule. The 7 survivors are equivalent:
 
 | Mutant | Line | Why it survives |
 |---|---|---|
@@ -129,9 +145,11 @@ The header's first campaign, run by P005's speed stage after it made the two con
 
 The 2026-10-07 catalog sweep is in [00-sources.md](00-sources.md) ("Fetched 2026-10-07 (P004 re-audit sweep)"). Independently written; no external code copied.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses stay with `05-modint.hpp`. Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
+- The `Multiplier` has no quotient.
+- Signed-dividend reduction and residue inverses stay with `05-modint.hpp`.
+- Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
 ## Aliases
 
@@ -144,7 +162,9 @@ Search aliases (P263, grab --find): 快速取模, 取模优化, 巴雷特约减,
 - 2026-10-07: re-audit, 3 findings fixed, `divMod`/`div`, `MERSENNE61` and default modulus added, full and stress passed on g++.
 - 2026-10-07 (run): full (seed 20261007, 53,657,153 checks per configuration) and stress (seed 1, 146,158,229) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` differential (8.13 million cases) and mutants found no defect, benchmark (seed 20261007, 8,912 verified measurements).
 - 2026-10-08: restyle (comments only), full suite passed on g++ and g++-14, integration and consistency passed.
-- 2026-10-12: prune (div and multiplier removed, fold61 added), full suite (seed 20261012) passed on g++ and g++-14, benchmark verified 9,116 measurements.
-- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
-- 2026-11-16: P005 speed stage (C03) made the two constructors `constexpr` with the user's yes, for the `constinit` reducer of the dynamic modular types; `constants` check added; full suite passed on g++ and g++-14 (seed 20261116); first mutation record on 2026-11-17 (132 sampled, 125 caught, 7 equivalent).
+- 2026-10-12: prune (`div` and `multiplier` removed, `fold61` added), full suite (seed 20261012, 53,670,566 checks per configuration, 36.47 s on g++ and 37.55 s on g++-14) passed, benchmark verified 9,116 measurements.
+- 2026-11-07: P263 follow-up added Chinese search aliases (`grab --find`), Simplified plus Taiwan or Hong Kong terms where they differ; no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-16: P005 speed stage (C03) made the two constructors `constexpr` with the user's yes, for the `constinit` reducer of the dynamic modular types; `constants` check added; full suite passed on g++ and g++-14 (seed 20261116).
+- 2026-11-17: first mutation record (132 sampled, 125 caught, 7 equivalent).
+- 2026-11-22: quick mode passed as a consumer in P005's `/finish C03` chain.

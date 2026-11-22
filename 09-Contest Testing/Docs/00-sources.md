@@ -1,4 +1,4 @@
-# Contest testing sources
+# Contest Testing Sources
 
 Protocol references only; no code was imported. Decisions are in [00-notes.md](00-notes.md).
 

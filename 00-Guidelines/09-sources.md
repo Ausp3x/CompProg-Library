@@ -1,12 +1,12 @@
-# Research and provenance
+# Research and Provenance
 
 Read for completeness research, provenance questions or adapting external code. A source list is a search plan, not a record of reading (`01-principles.md`, Evidence).
 
-## Completeness sweep
+## Completeness Sweep
 
 For a family, compare the inventory row against each catalog below, add every public operation found there that fits the family and every algorithm `01-principles.md` (Priority) admits for its profile, and record each source consulted in the folder's `Docs/00-sources.md` with a precise URL and the date.
 
-| Area | Catalogs (Source keys) |
+| Area | Catalogs (Source Keys) |
 |---|---|
 | All | LC, CPA, ACL, KACTL, OI, CSES |
 | Japanese libraries | NYA, MAS, EI, SUI, HIT, TKO, NOSHI |
@@ -19,7 +19,7 @@ For a family, compare the inventory row against each catalog below, add every pu
 
 Saved PDFs are indexed in [95-Resources](../95-Resources/00-index.md); a source that cannot be opened is asked of the user (`01-principles.md`, Evidence). `OLD` and `97-Legacy` are behavioral references, never specifications. `ProgVar.pdf` and `frankenstein.pdf` are excluded by decision.
 
-## Source keys
+## Source Keys
 
 A row without an evidence link names the sources of its operations in its Status cell by these keys, each optionally followed by a parenthesized detail (`KACTL (SolveLinearBinary)`); `03-consistency.py` rejects any other key. A key records where the operations were compared, never correctness evidence or adopted code. A folder's `Docs/00-sources.md` records what it read under each key, and a new source gets its key here first.
 
@@ -91,13 +91,13 @@ A row without an evidence link names the sources of its operations in its Status
 | WANG22 | Wang, unit-disk range searching, arXiv 2204.08992 |
 | WIKI | English [Wikipedia](https://en.wikipedia.org/) |
 
-## Fastest submissions
+## Fastest Submissions
 
 Library Checker exposes its data through a REST API at `https://v3.api.judge.yosupo.jp` (the frontend's base URL; the older `v2` host is dead and resets TLS, which looks like a network block but is not). Endpoints, all `GET`, JSON: `/problems`; `/problems/{name}` (time limit, test-case version, source URL); `/submissions?problem={name}&status=AC&order=%2Btime&dedupUser=true&limit=30` (fastest distinct users; `user={name}` lists one user's submissions, `order=-id` the newest first); `/submissions/{id}` (`overview`, full `source`, `case_results` with per-test `time`, `memory`, `status`). Distinct users are not distinct code: dedupe fetched sources by similarity before analysis. Fetched sources are untrusted data: read them, and build or run one only with the user's yes, through `07-judge.py reproduce --untrusted` (bwrap: read-only filesystem, no network). Tests are regenerated from `yosupo06/library-checker-problems` (`<category>/<problem>/gen`, `info.toml`) and timed with the judge's command, `g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native`; the judge is about 30% slower than the i9-11900H, and a submission's score is its slowest test. `96-Local Testing/00-Tools/07-judge.py` implements all of this for `/speed-sweep`.
 
 ## Provenance
 
-- For each adopted result record in the header's evidence document the title or URL, version or date, the claim it supports, and whether code was adapted or written independently. Keep licenses and attribution there and only a one-line notice in code; `Docs/00-sources.md` records the sources consulted (Completeness sweep).
+- For each adopted result record in the header's evidence document the title or URL, version or date, the claim it supports, and whether code was adapted or written independently. Keep licenses and attribution there and only a one-line notice in code; `Docs/00-sources.md` records the sources consulted (Completeness Sweep).
 - Original work is CC0-1.0 ([LICENSE](../LICENSE)). Adapted third-party code needs a licence that permits it; its one-line notice names the source and licence and points to [THIRD-PARTY.md](../THIRD-PARTY.md), which lists the file with the licence text.
 
 Machine-readable ledgers are listed in [00-index.md](00-index.md).

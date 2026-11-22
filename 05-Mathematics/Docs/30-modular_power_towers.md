@@ -1,4 +1,4 @@
-# 30-modular_power_towers.hpp — evidence
+# 30-modular_power_towers.hpp — Evidence
 
 `30-modular_power_towers.hpp` evaluates power towers a_0^a_1^...^a_(n-1) and iterated powers a^a^...^a^x0 modulo any 64-bit m, exactly capped towers, and the Euler and Carmichael modulus chains they reduce through. It depends on `01-mod_arithmetic.hpp` (`modPow64`, `modMul64`), `07-primality_factorization.hpp` (`factorize`) and `08-multiplicative_functions.hpp` (`phi`, `carmichaelLambda`). Every operation is deterministic; the chains cost one Pollard rho factorization per level and every tower evaluation is allocation-free.
 
@@ -16,7 +16,7 @@ Common domain: bases, counts, tops and moduli are any `ulng`; m >= 1. The conven
 
 ### powerTowerMod, iteratedPowerMod, tetrationMod
 
-`powerTowerMod(a, chain)` returns E_0 mod chain[0] for the list a (a `std::span<const ulng>`, so a vector or a slice binds without copying). `iteratedPowerMod(a, k, x0, chain)` returns a^a^...^a^x0 with k copies of a, for any 64-bit k, and `tetrationMod(a, b, chain)` is its named special case x0 = 1, a↑↑b. The chain is `eulerChain(m)` or `carmichaelChain(m)` computed once by the caller: any chain whose next element is a multiple of lambda of the previous one works, so one chain serves many towers modulo the same m (Codeforces 906D slices). The chain is asserted nonempty, strictly decreasing and ending in 1.
+`powerTowerMod(a, chain)` returns E_0 mod chain[0] for the list a, a `std::span<const ulng>`, so a vector or a slice binds without copying. `iteratedPowerMod(a, k, x0, chain)` returns a^a^...^a^x0 with k copies of a, for any 64-bit k; `tetrationMod(a, b, chain)` is its special case x0 = 1, a↑↑b. The caller computes the chain once with `eulerChain(m)` or `carmichaelChain(m)`; any chain whose next element is a multiple of lambda of the previous one works, so one chain serves many towers modulo the same m (Codeforces 906D slices). The chain is asserted nonempty, strictly decreasing and ending in 1.
 
 Algorithm. Let D = min(n, L). Levels i < D keep the pair (E_i mod c_i, min(E_i, 64)) with c_i = chain[i]; deeper levels matter only through min(E_D, 64), because c_D = 1 when D = L. Going down a level with base a, modulus c and next modulus c1:
 
@@ -32,18 +32,14 @@ Edge cases follow from the recursion: m = 1 gives 0; a base 0 gives 0^E = [E = 0
 
 `powerTowerCapped(a, cap)` returns the exact min(E_0, cap) for any 64-bit cap (cap 0 gives 0). It propagates the needed precision upward: for a base a >= 2 and need N >= 2, min(a^E, N) = min(a^min(E, k), N) with k the least exponent with a^k >= N (found by saturating multiplication in O(log(N))), and k < N, so the need falls 2^64 - 1 -> 64 -> 6 -> 3 -> 2 -> 1 within five frames. A base 1 or a need of 1 stops at value 1; a zero run is resolved by its parity in one pass. Cost O(log(cap) + z). Comparing a tower with a bound B is `powerTowerCapped(a, B + 1) > B`. A capped tetration a↑↑b is the list of min(b, 6) copies of a for a >= 2 (2↑↑5 already exceeds 2^64), 1 for a = 1 and [b even] for a = 0.
 
-### Planned-name mapping
+### Planned-Name Mapping
 
 | Planned | Implemented |
 |---|---|
 | `zeroPowerZeroConvention` (removed from the row in P054: not an operation) | the 0^0 = 1 contract above |
 | `tetrationMod (Euler chain)` | `tetrationMod(a, b, chain)` with either chain |
 
-Aliases: Library Checker `tetration_mod`; maspypy `tetration`; Nyaan `tetration`; ei1333 `mod_tetration`; suisen `tetration_mod`, `saturation_pow`, `saturation_tetration`; Codeforces 906D power tower queries; SPOJ POWTOW; Project Euler 188 (hyperexponentiation).
-
-Search aliases (P263, grab --find): 费马小定理 & 欧拉定理, 欧拉降幂, 扩展欧拉定理, 幂塔, 迭代幂次.
-
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`30-modular_power_towers_tester.py`](<../../96-Local Testing/05-Mathematics/30-modular_power_towers_tester.py>).
 
@@ -57,41 +53,59 @@ Entry: [`30-modular_power_towers_tester.py`](<../../96-Local Testing/05-Mathemat
 | Oracle validation | The Python oracle is checked against exact big-integer towers, brute powers and its own iterated form before use. |
 | Preconditions | Six checked-build death probes: m = 0 for both chains and the threshold, a chain not ending in 1, an empty chain, a chain that is not decreasing. A separate `-DNDEBUG` probe (2026-10-19, `-O2` on g++ and `-O0` on g++-14) confirmed that the violating calls of the package terminate, including an empty chain with a 2^64 - 1 count and m = 0. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 748 MB; optimized 0.3 s compile + 1.7 s run, checked 12.4 s compile + 2.1 s run, ASan-UBSan 12.5 s compile + 4.2 s run; MEMORY peak 883 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 797 MB; optimized 0.2 s compile + 2.0 s run, checked 16.9 s compile + 3.6 s run, ASan-UBSan 17.9 s compile + 5.6 s run; MEMORY peak 935 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 22.6 s compile + 0.3 s run, checked 18.1 s compile + 1.7 s run; MEMORY peak 740 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 751 MB; optimized 0.1 s compile + 2.1 s run, checked 4.9 s compile + 3.5 s run, ASan-UBSan 5.3 s compile + 6.3 s run; MEMORY peak 541 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, Linux x86-64, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14. Every command passed; times are compile + run.
 
-Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. With `-Wall -Wextra -Wconversion`, the header compiles without warnings on both compilers.
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-| Command | Result |
-|---|---|
-| `30-modular_power_towers_tester.py --mode full --seed 1` | PASS, 89,235 C++ checks and 800 Python rows per configuration, 3 configurations, 6 assertion probes, `MEMORY peak=410MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=436MB` |
-| `30-modular_power_towers_tester.py --mode stress --seed 7` | PASS, 280,602 C++ checks and 4000 Python rows per configuration, 6 assertion probes, `MEMORY peak=524MB` |
-| `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
-| `03-consistency.py` | PASS, no errors |
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.3 + 1.7 s | 12.4 + 2.1 s | 12.5 + 4.2 s | 883 MB | 748 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 2.0 s | 16.9 + 3.6 s | 17.9 + 5.6 s | 935 MB | 797 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 22.6 + 0.3 s | 18.1 + 1.7 s | — | 740 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 2.1 s | 4.9 + 3.5 s | 5.3 + 6.3 s | 541 MB | 751 MB |
+
+- 2026-10-19, P054, the latest run with check counts. The runner built optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and, in full and stress, ASan/UBSan configurations. The header compiled without warnings under `-Wall -Wextra -Wconversion` on both compilers.
+
+  | Command | Result |
+  |---|---|
+  | `30-modular_power_towers_tester.py --mode full --seed 1` | PASS, 89,235 C++ checks and 800 Python rows per configuration, 3 configurations, 6 assertion probes, `MEMORY peak=410MB` |
+  | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=436MB` |
+  | `30-modular_power_towers_tester.py --mode stress --seed 7` | PASS, 280,602 C++ checks and 4000 Python rows per configuration, 6 assertion probes, `MEMORY peak=524MB` |
+  | `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
+  | `03-consistency.py` | PASS, no errors |
 
 ## Benchmarks
 
-None required (no specialized arithmetic or threshold).
+None required: no specialized arithmetic and no threshold.
 
 ## Sources
 
-Fetched 2026-10-19 by `@researcher` ([00-sources.md](00-sources.md), P054 sweep). The algorithms were implemented from the stated identities, and no external code was copied.
+Fetched 2026-10-19 by `@researcher` ([00-sources.md](00-sources.md), P054 sweep). The algorithms were implemented from the stated identities; no external code was copied.
 
 - Library Checker `tetration_mod` statement and verifier: 0 <= A, B <= 10^9, 1 <= M <= 10^9, 0^0 = 1.
 - OI Wiki 欧拉定理 and cp-algorithms Euler's totient: the extended Euler theorem a^e = a^(e mod phi(m) + phi(m)) for e >= log2(m), and the warning that lambda can lie below the threshold (lambda(8) = 2 < 3), handled here by exponents of at least 64.
 - Nyaan, maspypy, ei1333 and suisen tetration code: edge cases (m = 1, a = 0, a = 1, b = 0, b = 1) and the capped-pow idea; maspypy asserts positive bases, a narrowing not copied.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - Multiplicative orders are row 11; reducing exponents by orders or by suisen's exact preperiods gives the same values by another route and is not a separate operation.
-- Scope decisions (infinite towers, higher hyperoperations, exact tower comparison) are in [00-notes.md](00-notes.md), P054 research decisions.
+- The row is `partial`: infinite towers are the missing operation `infiniteTetrationMod`.
+- Pentation and exact comparison of two towers stay out ([00-notes.md](00-notes.md), P054 Research Decisions).
 - No `97-Legacy` excerpt existed for this row.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+Catalog aliases: Library Checker `tetration_mod`; maspypy `tetration`; Nyaan `tetration`; ei1333 `mod_tetration`; suisen `tetration_mod`, `saturation_pow`, `saturation_tetration`; Codeforces 906D power tower queries; SPOJ POWTOW; Project Euler 188 (hyperexponentiation).
+
+Search aliases (P263, grab --find): 费马小定理 & 欧拉定理, 欧拉降幂, 扩展欧拉定理, 幂塔, 迭代幂次.
+
 
 ## History
 
-- 2026-10-19: P054 initial implementation; `@reviewer` found 1 bug in this header (exponent overflow at m = 2^64 - 59) and a cost statement for `powerTowerCapped`, both fixed with a regression; full suite passed on g++ and g++-14, stress seed 7 passed.
-- 2026-10-19: P054 follow-up: shared Pollard rho moved into the folder runner, limits section reduced to handoffs; full and stress passed on g++, full on g++-14.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-19: P054 implementation; `@reviewer` found 1 bug in this header (exponent overflow at m = 2^64 - 59) and a cost statement for `powerTowerCapped`, both fixed with a regression; full passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19: P054 follow-up moved the shared Pollard rho into the folder runner and reduced the limits to handoffs; full and stress passed on g++, full on g++-14.
+- 2026-11-07: P263 added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.

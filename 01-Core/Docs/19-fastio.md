@@ -1,6 +1,6 @@
-# 19-fastio.hpp — evidence
+# 19-fastio.hpp — Evidence
 
-`19-fastio.hpp` implements `FastInput<N>` and `FastOutput<N>` over a borrowed `FILE*`: bytes, tokens (zero-copy views), lines, integers through 128 bits in bases 2–36, exactly rounded `float`/`double`, text-number hooks (`InfInt`, `InfIntMini`, `Rational`), variadic `read`/`print` over ranges, pairs and tuples, EOF and explicit flush/error handling. Package P018 (stage 4), a Core full type since 2026-11-01: moved from `06-Miscellaneous/03-fastio.hpp` (P013) with AVX2 kernels and Linux mapping, absorbing the planned `06-Miscellaneous/17-fast_io_advanced.hpp` (P066), so the Library Checker big-integer drivers need no private I/O header (user decisions 2026-11-01, [10-decisions.md](../../00-Guidelines/10-decisions.md)). Dependency: `01-template.hpp` only; the hooks are concepts, so the header includes no other Core type.
+`19-fastio.hpp` implements `FastInput<N>` and `FastOutput<N>` over a borrowed `FILE*`: bytes, tokens (zero-copy views), lines, integers through 128 bits in bases 2–36, exactly rounded `float`/`double`, text-number hooks (`InfInt`, `InfIntMini`, `Rational`), variadic `read`/`print` over ranges, pairs and tuples, and explicit EOF, flush and error handling. It has been a Core full type since 2026-11-01 (P018 stage 4): it moved from `06-Miscellaneous/03-fastio.hpp` (P013), gained AVX2 kernels and the Linux mapping, and absorbed the planned `06-Miscellaneous/17-fast_io_advanced.hpp` (P066), so the Library Checker big-integer drivers need no private I/O header (user decisions 2026-11-01, [10-decisions.md](../../00-Guidelines/10-decisions.md)). It depends on `01-template.hpp` only; the hooks are concepts, so it includes no other Core type.
 
 ## Contracts
 
@@ -46,18 +46,18 @@ bool ok = out.flush();
 
 Not public API. Input: `decWord`, `dec8` (SWAR digit test and value of eight bytes), `dec19` (1–19 decimal digits ending at a 32-byte window, AVX2 blend with the `TAIL` mask and two multiply-add steps, or three SWAR groups), `hexWord`, `hex8`, `hex16` (1–16 hex digits, AVX2 nibble table or SWAR), `hex32` (1–32 hex digits into two words); output: `decLen` (digit count by `bit_width * 1233 >> 12` and one power), `dec8Chars` (eight digits by reciprocal products in lanes), `dec16Chars` (AVX2, sixteen digits), `writeDec` (64-bit: two digits by table, eight by `dec8Chars`, twenty by a shifted store of the top group and the low sixteen; 128-bit: one Möller–Granlund 2-by-1 step at 10^19 and `dec19Chars`), `hex16Chars`, `writeHex` (64- and 128-bit by shifted 16-digit stores), `writeBase` (other bases, digit by digit, out of line); concepts `Int` (integer tokens, 128-bit by name), `Exact`, `TextIn`, `TextOut`; `HUGE_PAGE` and `AlignedFree` for the long-text temporary. The kernels write up to 24 (64-bit) or 40 (128-bit) bytes past the start of their text, inside `writeInt`'s 160-byte room. They repeat InfInt's short-token kernels on purpose: the header includes no Core type and InfInt includes no I/O header, so each copies the few lines it needs and the hooks stay generic.
 
-### Correctness argument
+### Correctness Argument
 
 - Token scan: the AVX2 class test looks each byte up by its low nibble in a 16-entry table holding `' '` at 0 and `\t`–`\r` at 9–13 and compares the entry with the byte; a byte matches exactly when it is one of the six (`pshufb` returns 0 for bytes from `0x80`, and 0 never equals its own entry `' '`). `readToken`'s fast path needs 32 readable bytes from `p` (`e - p >= 32`): the token starts after the trailing ones of the whitespace mask, and ends at the first set bit of the mask with those ones cleared, or past the load through `tokenEnd`. For `N > 0` a token reaching the end of the block takes the out-of-line path, which copies it across refills. The scalar scan flags bytes below `'!'` eight at a time by `(x - 0x21…) & ~x & 0x80…`, whose lowest flag is exact (borrows only reach higher bytes), and finishes byte by byte, so control bytes that are data resume the scan. A software prefetch 1 KiB ahead uses an integer address, which never faults past the buffer.
 - Integer windows: the kernels read the 32 bytes ending at the token's end; `parseInt` takes them in place only when the buffer holding the token has 32 bytes before that end (64 for two decimal windows), else from `pad`, the token right-aligned in `'0'` bytes. Digits are validated in the same pass (a nondigit fails the kernel, and the out-of-line path then reports `Invalid` or the digit-by-digit result), magnitudes are compared with the type's limit plus one for negatives, and the sign is applied as `(u ^ m) - m`, defined for the minimum. Tokens of more digits than a window go digit by digit against `limit / B` and `limit % B`, and after an overflow only validity is checked, eight bytes at a time in bases 10 and 16, so `Invalid` outranks `Overflow`.
 - Output: `writeDec` stores whole groups and returns the length from the digit count, so bytes past the end are scratch inside the room it checked; `writeDec(ulll)` takes the quotient by 10^19 from the reciprocal `⌊(2^128 - 1) / 10^19⌋ - 2^64` with one masked and one rare correction, exact for every `hi < 10^19`. The base-`B` paths compute digits from the unsigned magnitude `(v ^ m) - m`.
-- Exhaustive and differential checks of each claim: [Feature-to-test map](#feature-to-test-map).
+- Exhaustive and differential checks of each claim: [Feature-to-Test Map](#feature-to-test-map).
 
-### Optimization scope
+### Optimization Scope
 
-Core full profile: AVX2 kernels behind `#ifdef __AVX2__` with SWAR or scalar fallbacks giving identical results (tested in both builds), no BMI2 or FMA requirement, the Linux mapping behind `#ifdef __linux__` with an identical `fread` path ([03-cpp.md](../../00-Guidelines/03-cpp.md), Toolchain and judges). The base is a template argument and the common paths are inlined with their rare branches out of line (`tokenRest`, `intRest`, `textRest`, `padded`, `writeBase`), each choice measured in [Benchmarks](#benchmarks).
+Core full profile: AVX2 kernels behind `#ifdef __AVX2__` with SWAR or scalar fallbacks giving identical results (tested in both builds), no BMI2 or FMA requirement, the Linux mapping behind `#ifdef __linux__` with an identical `fread` path ([03-cpp.md](../../00-Guidelines/03-cpp.md), Toolchain and Judges). The base is a template argument and the common paths are inlined with their rare branches out of line (`tokenRest`, `intRest`, `textRest`, `padded`, `writeBase`), each choice measured in [Benchmarks](#benchmarks).
 
-### Legacy mapping
+### Legacy Mapping
 
 | Old name or form | Replacement |
 |---|---|
@@ -68,9 +68,9 @@ Core full profile: AVX2 kernels behind `#ifdef __AVX2__` with SWAR or scalar fal
 | `00-bigio.hpp` (stage-4 driver header, retired): `readAll`, `next`, `text`, `parseDec`, `parseHex`, `skipSpace` | `FastInput<0>`, `read(string_view &)`, the view itself, `parseInt`, `parseInt<16>`, `skipSpace` |
 | `00-bigio.hpp`: `hugeMap`, `writeHex`, `writeAll`, `to_chars` into the map | `FastOutput` with `print`, `print<16>`, `writeInt` |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-[`19-fastio_tester.py`](<../../96-Local Testing/01-Core/19-fastio_tester.py>) builds optimized scalar, checked scalar and optimized AVX2 configurations of [`19-fastio_tester.cpp`](<../../96-Local Testing/01-Core/19-fastio_tester.cpp>) in eleven translation units (full and stress add ASan/UBSan scalar and AVX2); each phase prints a digest that must agree across configurations, so the AVX2 kernels and the scalar fallbacks give identical results. Quick limits the type matrices to bases 2, 7, 10, 16, 36 and buffers 0, 7, 64, 160. The one-unit build (no `FASTIO_PART`), which `02-integration.py --sanitizers` compiles like every Core tester, runs a smoke subset (whitespace class, kernels, token grid and streams, print forms, bytes, lines, variadic reads, faults, lifetime, write forms) to fit that pass's 1664 MB and 180 s per compile (measured 1010 MB, 30 s at `-O1 -g` with ASan/UBSan); the whole suite under ASan/UBSan is the tester's own full and stress runs (user decision 2026-11-01).
+[`19-fastio_tester.py`](<../../96-Local Testing/01-Core/19-fastio_tester.py>) builds optimized scalar, checked scalar and optimized AVX2 configurations of [`19-fastio_tester.cpp`](<../../96-Local Testing/01-Core/19-fastio_tester.cpp>) from eleven translation units; full and stress add ASan/UBSan scalar and AVX2. Each phase prints a digest that must agree across configurations, so the AVX2 kernels and the scalar fallbacks give identical results. Quick limits the type matrices to bases 2, 7, 10, 16, 36 and buffers 0, 7, 64, 160. The one-unit build (no `FASTIO_PART`), which `02-integration.py --sanitizers` compiles like every Core tester, runs a smoke subset (whitespace class, kernels, token grid and streams, print forms, bytes, lines, variadic reads, faults, lifetime, write forms) to fit that pass's 1664 MB and 180 s per compile (measured: 1010 MB, 30 s at `-O1 -g` with ASan/UBSan); the whole suite runs under ASan/UBSan in the tester's own full and stress modes (user decision 2026-11-01).
 
 | Operation | Coverage | Oracle |
 |---|---|---|
@@ -94,13 +94,20 @@ Core full profile: AVX2 kernels behind `#ifdef __AVX2__` with SWAR or scalar fal
 | Preconditions | null `FILE*` (input `N` > 0 and `N` = 0, output), precision −1, 201 and 201 through the field | `SIGABRT` with the assertion message |
 | Compile rejections | `bool` and `long double` reads, `long double` writes, bases 1 and 37, `writeInt(bool)`, `FastOutput<0>`, `FastInput<-1>`, copy and move | the expected compiler diagnostic |
 
-Every check and the four Python oracles of the 06 tester have an equal or stronger counterpart here, with `N = 0` added.
+Every check and each of the four Python oracles of the former 06 tester has an equal or stronger counterpart here, with `N = 0` added.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1713 MB; optimized-scalar 960.0 s compile + 26.8 s run, checked-scalar 681.5 s compile + 27.0 s run, optimized-avx2 1179.9 s compile + 26.9 s run, sanitized-scalar 1473.5 s compile + 58.0 s run, sanitized-avx2 873.8 s compile + 57.2 s run; MEMORY peak 3618 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1883 MB; optimized-scalar 1491.6 s compile + 19.0 s run, checked-scalar 1004.0 s compile + 19.0 s run, optimized-avx2 1087.4 s compile + 18.3 s run, sanitized-scalar 558.5 s compile + 40.4 s run, sanitized-avx2 529.2 s compile + 39.8 s run; MEMORY peak 3620 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized-scalar 1139.7 s compile + 2.1 s run, checked-scalar 422.7 s compile + 2.1 s run, optimized-avx2 242.6 s compile + 2.0 s run; MEMORY peak 2969 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1621 MB; optimized-scalar 473.5 s compile + 36.7 s run, checked-scalar 305.0 s compile + 37.1 s run, optimized-avx2 495.7 s compile + 36.2 s run, sanitized-scalar 570.0 s compile + 83.4 s run, sanitized-avx2 586.8 s compile + 88.5 s run; MEMORY peak 3609 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), all PASS. Times are compile + run in seconds; peaks in MB.
 
-P018 stage 4, the `/finish` runs of 2026-11-02 (Opus 5.5 at xhigh): GCC 16.2.1 20260810 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14.8, Intel Core i9-11900H (governor powersave, EPP performance, turbo on, THP always; desktop applications and a VM ran throughout, and each suite ran beside the InfInt suite of its mode). Header `9202a3e985b6ad53`, tester `d5f7a8e5e8af050a`, InfInt `8eb193c5b3ab3e93`; the drivers and the judge reproduction ran alone after the suites. The benchmark ran on 2026-11-01 on header `1b721b07bb1ffcb6`, which differs from the final one by the `/finish` renames (`dec8`, `dec8Chars`, `dec16Chars`) alone, with identical machine code ([07-infint.md](07-infint.md#commands-and-results)).
+| Command | Optimized scalar | Checked scalar | Optimized AVX2 | Sanitized scalar | Sanitized AVX2 | Pre-flight quick peak | Peak |
+|---|---|---|---|---|---|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | 960.0 + 26.8 | 681.5 + 27.0 | 1179.9 + 26.9 | 1473.5 + 58.0 | 873.8 + 57.2 | 1713 | 3618 |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | 1491.6 + 19.0 | 1004.0 + 19.0 | 1087.4 + 18.3 | 558.5 + 40.4 | 529.2 + 39.8 | 1883 | 3620 |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | 1139.7 + 2.1 | 422.7 + 2.1 | 242.6 + 2.0 | — | — | — | 2969 |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 473.5 + 36.7 | 305.0 + 37.1 | 495.7 + 36.2 | 570.0 + 83.4 | 586.8 + 88.5 | 1621 | 3609 |
+
+The P018 `/finish` runs of 2026-11-02 (Opus 5.5 at xhigh) used GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`) and CPython 3.14.8 on an Intel Core i9-11900H (governor powersave, EPP performance, turbo on, THP always). Desktop applications and a VM ran throughout, and each suite ran beside the InfInt suite of its mode; the drivers and the judge reproduction ran alone afterwards. Header `9202a3e985b6ad53`, tester `d5f7a8e5e8af050a`, InfInt `8eb193c5b3ab3e93`. The benchmark ran on 2026-11-01 on header `1b721b07bb1ffcb6`, which differs from the final one only by the `/finish` renames (`dec8`, `dec8Chars`, `dec16Chars`) and compiles to identical machine code ([07-infint.md](07-infint.md#commands-and-results)).
 
 ```bash
 python3 '96-Local Testing/01-Core/19-fastio_tester.py' --mode quick --seed 241                 # PASS, 3 configurations, 33 sections with equal digests, 34,918 Python-oracle protocol cases each, 6 precondition and 11 compile-rejection probes, 222 s, MEMORY peak=2901MB cap=4096MB oom_kills=0
@@ -110,17 +117,17 @@ python3 '96-Local Testing/01-Core/19-fastio_tester.py' --mode stress --seed 244 
 python3 '96-Local Testing/02-integration.py' --sanitizers                                       # PASS, 183 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizer self-tests (this tester's one-unit smoke build among them), about 125 s, MEMORY peak=3896MB cap=8192MB oom_kills=0
 python3 '96-Local Testing/03-consistency.py'                                                    # no errors; --braces on the header and the tester: no violations
 g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE [-march=native] -Wall -Wextra -Werror [-fsanitize=address,undefined] <driver>.cpp   # the six drivers (final headers) built three ways (AVX2 and scalar with ASan/UBSan, scalar optimized; `-Werror`) on all 141 regenerated judge cases: 423 runs, output identical to the reference answers, no sanitizer report, 162 s, MEMORY peak=2917MB
-python3 '96-Local Testing/00-Tools/07-judge.py' reproduce <problem> '97-Online Testing/src/01-Yosupo/02-Big Integers/<driver>.cpp' --label final-20261102 --runs 3   # the six problems, every case AC (max / sum ms): addition 158.7 / 1453.2, multiplication 260.5 / 2806.0, division 217.6 / 2009.3, hex addition 5.0 / 53.3, hex multiplication 14.9 / 200.9, hex division 20.2 / 213.8 (final headers, idle host after the suites; host drift and the leaders: 07-infint.md, Library Checker reproduction)
+python3 '96-Local Testing/00-Tools/07-judge.py' reproduce <problem> '97-Online Testing/src/01-Yosupo/02-Big Integers/<driver>.cpp' --label final-20261102 --runs 3   # the six problems, every case AC (max / sum ms): addition 158.7 / 1453.2, multiplication 260.5 / 2806.0, division 217.6 / 2009.3, hex addition 5.0 / 53.3, hex multiplication 14.9 / 200.9, hex division 20.2 / 213.8 (final headers, idle host after the suites; host drift and the leaders: 07-infint.md, Library Checker Reproduction)
 python3 '96-Local Testing/01-Core/19-fastio_benchmark.py'                                       # PASS (header 1b721b07bb1ffcb6), every output compared; table below, 7 s, MEMORY peak=325MB
 ```
 
-Read-error probes (2026-11-01 on header `1b721b07bb1ffcb6`; scratchpad, not retained): `fopencookie` streams that fail after their bytes, with cut tails of 0, 1, 31, 32 and 100 bytes behind empty, short, 200-byte and line heads, through token, byte, peek-then-token and line reads at `N` = 0, 7 and 65536: every case reports `Error` and no cut token is accepted, AVX2 and scalar, ASan/UBSan, `-Wall -Wextra -Wshadow -Wconversion -Werror`.
+Read-error probes (2026-11-01 on header `1b721b07bb1ffcb6`; scratch programs, not kept): `fopencookie` streams that fail after their bytes, with cut tails of 0, 1, 31, 32 and 100 bytes behind empty, short, 200-byte and line heads, read by token, byte, peek-then-token and line at `N` = 0, 7 and 65536. Every case reports `Error` and accepts no cut token, in AVX2 and scalar builds under ASan/UBSan with `-Wall -Wextra -Wshadow -Wconversion -Werror`.
 
 ## Benchmarks
 
-### Library Checker drivers against the retired private header
+### Library Checker Drivers against the Retired Private Header
 
-Drivers on header `b7b315c8603e0c0b` (the final header `9202a3e985b6ad53` differs by the review's `parseInt` status store, the `HUGE_PAGE` rename, comments and the `/finish` renames, which compile to identical machine code ([07-infint.md](07-infint.md#commands-and-results)); with InfInt's C15 it runs the same instructions on every case, medians 1.0000, and cycles within the A/A spread: Design measurements) against `B8`, the retired `00-bigio.hpp` drivers on the InfInt of the same session, every judge case below 60 ms, `perf stat` cycles:u medians of interleaved runs pinned to one core (15 runs warm; 9 cold, a 96 MB thrash before each run), 2026-11-01:
+Drivers on header `b7b315c8603e0c0b` against `B8`, the retired `00-bigio.hpp` drivers on the InfInt of the same session, on every judge case below 60 ms; `perf stat` cycles:u ratios, medians of interleaved runs pinned to one core (15 warm runs; 9 cold runs, each after a 96 MB thrash), 2026-11-01. The final header `9202a3e985b6ad53` differs by the review's `parseInt` status store, the `HUGE_PAGE` rename, comments and the `/finish` renames, which compile to identical machine code ([07-infint.md](07-infint.md#commands-and-results)); with InfInt's C15 it runs the same instructions on every case (medians 1.0000) and its cycles stay within the A/A spread (Design Measurements).
 
 | Problem | Cases | Warm sum | Warm median | Cold sum | Cold median |
 |---|---:|---:|---:|---:|---:|
@@ -131,13 +138,13 @@ Drivers on header `b7b315c8603e0c0b` (the final header `9202a3e985b6ad53` differ
 | hex multiplication | 22 | 0.988 | 0.986 | 0.988 | 0.988 |
 | hex division | 27 | 0.996 | 0.986 | 0.998 | 0.985 |
 
-The cases above 1.01 in either pass (the 2M-cycle `example_00` files, hex division `burnikel_ziegler_bound_02` at 1.277, `length_ratio_integer_00`, `max_00`, `max_01`, `a_max_b_random_01`/`02`, `burnikel_ziegler_bound_03`, hex multiplication `max_max_00`) read 0.965–1.013 in a 21-run recheck, each with fewer instructions than `B8` (0.981–0.999). Against the morning's stage-4 drivers (`00-bigio.hpp` on the earlier stage-4 InfInt), every case including the large ones, 5 runs: per-problem cycle sums 0.986, 0.990, 0.979, 0.951, 0.989 and 0.981 in the order above, the cases above 1.02 at 0.942–1.012 in a 21-run recheck.
+The cases above 1.01 in either pass (the 2M-cycle `example_00` files, hex division `burnikel_ziegler_bound_02` at 1.277, `length_ratio_integer_00`, `max_00`, `max_01`, `a_max_b_random_01`/`02`, `burnikel_ziegler_bound_03`, hex multiplication `max_max_00`) read 0.965–1.013 in a 21-run recheck, each with fewer instructions than `B8` (0.981–0.999). Against the stage-4 drivers of the same morning (`00-bigio.hpp` on the earlier stage-4 InfInt), over every case including the large ones in 5 runs, the per-problem cycle sums were 0.986, 0.990, 0.979, 0.951, 0.989 and 0.981 in the order of the table; the cases above 1.02 read 0.942–1.012 in a 21-run recheck.
 
-Output path: the hex division driver with `FastOutput` against the whole output in one 2 MiB-aligned, huge-page-advised mapping and one `write` (the retired header's form), median cycles of 21 runs: `max_00` 4.776M against 4.762M, `large_00` 4.773M against 4.726M (within 1%; the variant also reads every token through InfInt, so its small and medium cases are not comparable). `FastOutput` stays.
+Output path: the hex division driver with `FastOutput` against the whole output written into one 2 MiB-aligned, huge-page-advised mapping with one `write` (the retired header's form), median cycles of 21 runs: `max_00` 4.776M against 4.762M, `large_00` 4.773M against 4.726M, within 1%. The variant also reads every token through InfInt, so its small and medium cases are not comparable. `FastOutput` stays.
 
-### Design measurements
+### Design Measurements
 
-Judge flags (`g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native`, GCC 16.2 unless stated, Intel Core i9-11900H), `perf stat` cycles:u and instructions:u, medians of interleaved runs pinned to one core, 2026-11-01; probes and switch headers in the scratchpad, not retained. Replicated inputs: `cc200` is 200 copies of hex addition `carry_chain_01` (642 MB), `dh20` and `dd20` 20 copies of hex and decimal division `small_00`, `mul18` 100,000 products of two 18-digit numbers, `msmall` 100,000 mixed short products. Each figure is the driver with the change against the driver without it; `B8` is the retired private-header driver on the same InfInt.
+Judge flags (`g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native`), GCC 16.2 unless stated, Intel Core i9-11900H; `perf stat` cycles:u and instructions:u, medians of interleaved runs pinned to one core, 2026-11-01; probes and switch headers were scratch files, not kept. Replicated inputs: `cc200` is 200 copies of hex addition `carry_chain_01` (642 MB), `dh20` and `dd20` 20 copies of hex and decimal division `small_00`, `mul18` 100,000 products of two 18-digit numbers, `msmall` 100,000 mixed short products. Each figure compares the driver with the change against the driver without it; `B8` is the retired private-header driver on the same InfInt.
 
 | Change | Measurement (cycles) | Decision |
 |---|---|---|
@@ -150,9 +157,9 @@ Judge flags (`g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native`, GCC 16.2 
 | `parseInt` sets `Ok` on success (a stale `Overflow` or `Invalid` survived a later success of the inline path): the store at entry, against the store on success and one merged `Ok`/`Overflow` store | readInt instructions 0.989 (on success 1.022, merged 1.022), cycles 0.963–0.996 over `int` and `lng`, `N` = 65536 and 0 (on success 0.979–1.034); a bare `parseInt` loop at `N` = 65536 1.02–1.04 also aligned (on success 1.00–1.01); judge drivers instructions 1.000, cycles within the A/A spread (0.960–1.024) | adopted: the store at entry |
 | `dec19`, `hex16`, `hex32` with one shared `return ok;` after the `#ifdef` (closing-brace rule) | `.text` identical to the earlier form on all six drivers in AVX2 and scalar builds; a `bool` accumulator in `dec19` and an early `return false` in `hex16` changed scalar code (the latter +0.55% instructions, +1–2% cycles on scalar hex division `small_00`, `medium_00`, `r_nearly_zero_00`) | shared `ok`, word accumulator in `dec19` |
 
-### Pipeline benchmark
+### Pipeline Benchmark
 
-[`19-fastio_benchmark.py`](<../../96-Local Testing/01-Core/19-fastio_benchmark.py>) with its `.cpp` and `.json` times complete pipelines on a warmed regular file (construct, parse all input, transform, format, flush), compares every output byte outside the timed region with independent expectations (`to_chars` for integers, `snprintf("%.9f")` for doubles), one warmup and five repetitions with the method order rotated. 2026-11-01, `-std=gnu++20 -O2 -DNDEBUG` (no `-march`: the scalar paths), seed 20260927; `fast-whole` is `FastInput<0>`. Medians in milliseconds:
+[`19-fastio_benchmark.py`](<../../96-Local Testing/01-Core/19-fastio_benchmark.py>), with its `.cpp` driver and `.json` log, times complete pipelines on a warmed regular file (construct, parse all input, transform, format, flush) and compares every output byte outside the timed region with independent expectations (`to_chars` for integers, `snprintf("%.9f")` for doubles). One warmup and five repetitions, method order rotated; 2026-11-01, `-std=gnu++20 -O2 -DNDEBUG` (no `-march`, so the scalar paths), seed 20260927; "Fast whole" is `FastInput<0>`. Medians in milliseconds:
 
 | Values / workload | Fast 4096 | Fast 65536 | Fast whole | fscanf/fprintf |
 |---|---:|---:|---:|---:|
@@ -166,7 +173,7 @@ Judge flags (`g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native`, GCC 16.2 
 | 500,000 full-width integers | 21.69 | 18.75 | 18.70 | 79.58 |
 | 500,000 doubles | 53.32 | 50.96 | 49.66 | 240.64 |
 
-Shared-host observations, not timing gates. The whole-stream reader costs its `fstat` and mapping on tiny inputs (about 3 µs) and is within 8% of the 64 KiB buffer from 20,000 values and within 5% at 500,000 (faster on doubles and full-width integers); integers run 3.2–4.2 times and doubles 4.7 times the speed of `fscanf`/`fprintf` at 500,000 values.
+These are shared-host observations, not timing gates. The whole-stream reader pays its `fstat` and mapping on tiny inputs (about 3 µs); it is within 8% of the 64 KiB buffer from 20,000 values and within 5% at 500,000, where it is faster on doubles and full-width integers. At 500,000 values integers run 3.2–4.2 times and doubles 4.7 times as fast as `fscanf`/`fprintf`.
 
 ## Sources
 
@@ -176,7 +183,7 @@ Shared-host observations, not timing gates. The whole-stream reader costs its `f
 - Linux man pages [mmap(2)](https://man7.org/linux/man-pages/man2/mmap.2.html) (`MAP_PRIVATE`, `MAP_POPULATE`, which prefaults without failing the call; `munmap` needs a page-aligned address; a zero length is `EINVAL`, `MAP_FAILED` on error), [madvise(2)](https://man7.org/linux/man-pages/man2/madvise.2.html) (`MADV_HUGEPAGE` on a page-aligned range, advice that leaves semantics unchanged), [fstat(2)](https://man7.org/linux/man-pages/man2/fstat.2.html) (-1 on error) and [fileno(3)](https://man7.org/linux/man-pages/man3/fileno.3.html) (POSIX; -1 with `EBADF` for a stream without a descriptor, which takes the `fread` path): the whole-stream mapping and the long-text temporary (read 2026-11-01).
 - Möller and Granlund, "Improved division by invariant integers" (IEEE Trans. Computers, 2011), as summarised in the GMP manual's Division Algorithms page (fetch record in [00-sources.md](00-sources.md#fetched-2026-10-17)): the 2-by-1 step of `writeDec(ulll)`, shared with InfInt ([07-infint.md](07-infint.md)).
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - `readDouble` reports total underflow as `Overflow`; `long double` I/O and locale-specific formats are not owned. Floating `from_chars`/`to_chars` are in libstdc++ from GCC 11 (portable `double` parsing from GCC 12), which bounds portability to older judges.
 - `FastInput<0>` holds the whole stream: a mapping of a regular file, else a vector that may reach twice the stream while it grows. Pipes and terminals take the vector path; interactive protocols use `FastInput<1>` with explicit flushes ([50-interactive.md](../../06-Miscellaneous/Docs/50-interactive.md)).
@@ -187,6 +194,7 @@ Shared-host observations, not timing gates. The whole-stream reader costs its `f
 - `readText` takes every type with `read(string_view, base)` (InfInt, InfIntMini, Rational), `writeText` only types with `charsBound` and `toChars` (InfInt): `print` and `writeValue` of an InfIntMini or a Rational do not compile, so such values print through `toString`.
 - When the room left in the block lies between `toChars`' early lower bound and the exact length (in base 10 one digit below 152,234 bits and at most two within the default block, one more per about 217K bits beyond; about 1% of the digits in base 3), InfInt's `toCharsRest` converts and then refuses, and `writeText` converts again after its drain: a long value at a block boundary can cost two conversions.
 - No Barrett or Montgomery reduction is involved.
+- Verified before the mutation rule of 2026-11-03; no record yet.
 
 ## Aliases
 
@@ -200,4 +208,4 @@ Search aliases (P263, grab --find): 读入、输出优化, 快读, 快写, 读�
 - 2026-11-01: P018 stage 4: moved to `01-Core/19-fastio.hpp` as a Core full header (no forwarding header in 06; P066's planned `MmapInput`/`SyscallOutput` row absorbed as `FastInput<0>` and `FastOutput`) with AVX2 and SWAR token kernels, the base as a template argument, `readText`/`writeText` for InfInt and the other text types, read-error tokens reported as `Error`, `parseInt`'s status set on success, `HUGE_PAGE`; `00-bigio.hpp` retired (drivers at or below it on every judge problem in cycles); new tester and Python protocols (one-unit sanitizer smoke subset under integration); `@reviewer` (Opus 5.5 at xhigh) findings fixed or kept by the user's decision; quick, full and stress suites passed on GCC 16 and full on GCC 14, sanitized integration and the benchmark passed.
 - 2026-11-02: P018 `/finish` (Opus 5.5 at xhigh): the kernel renames `dec8`, `dec8Chars` and `dec16Chars` (identical machine code), Limits for the room gap of InfInt's out-of-line conversion and for the text types `readText` reads but `writeText` cannot print, Sources records for the man pages and Möller–Granlund; quick, full and stress suites passed on GCC 16 and full on GCC 14, sanitized integration, the six drivers and the judge reproduction passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, with the 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

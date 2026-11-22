@@ -8,11 +8,11 @@
 
 ## Setup
 
-Clone, then run `python3 '.claude/skills/setup-check/setup_check.py'` (or `/setup-check` in Claude Code) until it prints PASS. It declares every tool the scripts run, with its floor and its Ubuntu and Arch packages, probes the compilers' sanitizers and static linking, the memory-capped systemd scope, `gh auth status` and the commit hook ([CLAUDE.md](CLAUDE.md), Start here), and prints the install commands for what is missing. A WARN disables only the feature named in its row. Open a new login shell after installing, so `~/.local/bin` (the GCC 16 link, `pipx ensurepath`) is on `PATH`.
+Clone, then run `python3 '.claude/skills/setup-check/setup_check.py'` (or `/setup-check` in Claude Code) until it prints PASS. It declares every tool the scripts run, with its floor and its Ubuntu and Arch packages, probes the compilers' sanitizers and static linking, the memory-capped systemd scope, `gh auth status` and the commit hook ([CLAUDE.md](CLAUDE.md), Start Here), and prints the install commands for what is missing. A WARN disables only the feature named in its row. Open a new login shell after installing, so `~/.local/bin` (the GCC 16 link, `pipx ensurepath`) is on `PATH`.
 
 Each tool's floor and packages are in its `TOOLS` entry, including Ubuntu's pre-release `g++-16` snapshot and Arch's AUR `gcc14`. `08-Python` modules keep their own baseline ([`04-python.md`](00-Guidelines/04-python.md)).
 
-## Roles and claims
+## Roles and Claims
 
 Work is planned as packages ([`01-prompts.md`](01-prompts.md)). The claim and landing rules are in [CLAUDE.md](CLAUDE.md) (Git): a contributor claims a package with a draft pull request on a `Pxxx-<batch>-<user>` branch, using the commands `python3 '00-Guidelines/13-Plan/plan.py' show Pxxx` prints, and the maintainer lands it with `/merge-pr`, which rebases it onto `master`, so never rebase a pushed claim branch yourself. Changes outside library code ([contract](<00-Guidelines/13-Plan/Docs/00-contribution.md#merging-pull-requests-sup19>)) need the maintainer's explicit yes. Leave `git config compprog.role` unset (contributor).
 

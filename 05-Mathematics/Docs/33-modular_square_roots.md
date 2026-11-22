@@ -1,16 +1,16 @@
-# 33-modular_square_roots.hpp — evidence
+# 33-modular_square_roots.hpp — Evidence
 
 `33-modular_square_roots.hpp` solves power and polynomial congruences modulo prime powers and composite moduli. It covers square roots (one root, the least root, or every root as residue classes), k-th roots and their count, all roots of a polynomial congruence by Hensel lifting, and quadratic congruences through the discriminant. Prime-field roots are row 11.
 
 ## Contracts
 
-Moduli are `lng` values of at least 1 (asserted). Prime-power forms take `(p, e)` with `e >= 1` and `p^e < 2^63` (asserted through an overflow-checked power), except `sqrtMod2k`, which accepts every `k` in `[0, 64]`. Residues and coefficients are any `lng`, `LLONG_MIN` included, normalized with `01` `modNorm`. Products are formed in `__int128`, and nothing is cached. Composite moduli are factored with `07` `factorize` (Pollard–Brent on Core `Montgomery64`). The header performs no Barrett or Montgomery arithmetic itself, so it needs no Compact twins.
+Moduli are `lng` values of at least 1 (asserted). Prime-power forms take `(p, e)` with `e >= 1` and `p^e < 2^63` (asserted through an overflow-checked power), except `sqrtMod2k`, which accepts every `k` in `[0, 64]`. Residues and coefficients are any `lng`, `LLONG_MIN` included, normalized with `01` `modNorm`. Products are formed in `__int128`, and nothing is cached. Composite moduli are factored with `07` `factorize` (Pollard–Brent on Core `Montgomery64`); the header performs no Barrett or Montgomery arithmetic itself.
 
 Primality of `p` in the prime-power forms is a precondition that is not asserted, as in row 11, because a Miller–Rabin test would dominate. A composite `p` still terminates within the same bounds with a meaningless result: row 11's Cipolla guard, bounded digit loops, and inverses through `extendedGcd`.
 
-Violated `m >= 1`, `k >= 0`, `0 <= k <= 64` and the `p^e` overflow are clamped or return the sentinel after the assertion: `m` becomes 1, `k` becomes 0, `k` is clamped to `[0, 64]`, and an overflowing `p^e` gives -1. An ad hoc `-DNDEBUG` probe, also built with ASan/UBSan, ran every violated precondition of rows 33 and 34 (49 calls) in 0.6 ms with no undefined behaviour. The calls include `p^e` overflow, `e = 0`, `e = 10^9`, `k = 65` and `k = 10^6`, `m = 0`, `m = -9` and `m = LLONG_MIN`, `k < 0`, and composite or square `p`.
+After the assertion, violated `m >= 1`, `k >= 0` and `0 <= k <= 64` are clamped (`m` to 1, `k` to 0, `k` into `[0, 64]`), and an overflowing `p^e` returns -1. An ad hoc `-DNDEBUG` probe, also built with ASan/UBSan, ran every violated precondition of rows 33 and 34 (49 calls: `p^e` overflow, `e = 0`, `e = 10^9`, `k = 65` and `k = 10^6`, `m = 0`, `m = -9` and `m = LLONG_MIN`, `k < 0`, composite or square `p`) in 0.6 ms with no undefined behaviour.
 
-### Residue classes
+### Residue Classes
 
 Every all-solutions operation returns `vector<pair<lng, lng>>`: classes `(r, M)` with `M | m` and `0 <= r < M`, sorted and pairwise disjoint. Their union is exactly the solution set in `[0, m)`, so the number of solutions is the sum of `m / M`. This is the `(residue, modulus)` convention of `10` `crt`. The compact form is needed because the root sets can be huge: `x^2 = 0 mod 2^62` alone has `2^31` roots, `x ≡ 0 mod 2^31`. `sqrtModAll` and `quadraticCongruenceMod` produce classes that share one modulus. `polynomialCongruenceRoots` classes may have different moduli. Classes from distinct prime powers are combined by CRT products (`merge`), so the output size is the product of the per-prime class counts.
 
@@ -120,7 +120,7 @@ Cost: `O(m^(1/4) * log(m) + w * log(m)^2 + out * w * log(m))` expected.
 
 Search aliases (P263, grab --find): quadratic residue (二次剩余), square root modulo prime powers and composites, Hensel lifting; 同余方程, 高次剩余 & 单位根, 模平方根, 亨泽尔引理, 多项式同余方程.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Legacy name | Replacement |
 |---|---|
@@ -129,7 +129,7 @@ Search aliases (P263, grab --find): quadratic residue (二次剩余), square roo
 | `modRoot` with a prime modulus | Row 11 (`kthRootModPrime`, `unitRootModPrime`) |
 | `opt` (trial or Pollard factorization) | Always Pollard–Brent through `07` `factorize` |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`33-modular_square_roots_tester.py`](<../../96-Local Testing/05-Mathematics/33-modular_square_roots_tester.py>).
 
@@ -139,7 +139,7 @@ The C++ oracles are enumeration, power tables, evaluation at every residue, and 
 - large primes up to `2^62`, counted from Euler's criterion and `gcd(k, p - 1)`;
 - squared or cubed medium primes, counted from the cyclic group order.
 
-Every returned class is checked exactly: `f(r) = 0` and `f^(j)(r) M^j / j! = 0 mod m` for all `j`. It must also be disjoint from the others, and the class sizes must add up to the constructed count. All tags in the table are present in the code. Limits below are given as quick / full / stress.
+Every returned class is checked exactly (`f(r) = 0` and `f^(j)(r) M^j / j! = 0 mod m` for all `j`), checked disjoint from the others, and the class sizes must add up to the constructed count. Limits in the table are quick / full / stress.
 
 | Feature | Oracle and edge classes |
 |---|---|
@@ -151,30 +151,39 @@ Every returned class is checked exactly: `f(r) = 0` and `f^(j)(r) M^j / j! = 0 m
 | `polynomialCongruenceRoots` | 400 / 4000 / 16000 cases with `m <= 300` and the moduli 64, 81, 128, 243, 625, 1024, 2187, 3125, 4608 and 2048, against evaluation at every residue: zero polynomial, random coefficients with multiples of `m`, products of `(x - r)^k` with multiplicity up to 3, contents 2, 3, 4, 8, 9, and an extra constant term. 40 / 300 / 1200 planted products modulo `2^61 - 1`, `2^62 - 57`, `1e9 + 7`, 998244353, `1e6 + 3` and `(1e9 + 7)^2`, through Cantor–Zassenhaus with Newton or cluster lifting; every Taylor term is checked and every planted root covered. Python: random small components; `prod (x - r)^m (x^2 - n)` modulo large `p`, counted as distinct `r`; and `(x - r1)^2 (x - r2)(x^2 - n)` modulo `p^2`, counted as `p + 1`. |
 | Preconditions | 15 checked-build probes: `p^e` overflow (`2^63`, `3^40`), `e = 0`, `p = 1`, `k = 65`, `k = -1`, `m = 0` and `m = -3` (composite forms, `rootCount`, polynomial, quadratic), and `k < 0`. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 826 MB; optimized 0.1 s compile + 5.7 s run, checked 18.3 s compile + 14.2 s run, ASan-UBSan 21.1 s compile + 42.0 s run; MEMORY peak 1025 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 900 MB; optimized 0.2 s compile + 9.9 s run, checked 37.1 s compile + 21.5 s run, ASan-UBSan 37.1 s compile + 49.7 s run; MEMORY peak 1095 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 33.5 s compile + 1.3 s run, checked 25.0 s compile + 6.4 s run; MEMORY peak 823 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 837 MB; optimized 0.1 s compile + 8.7 s run, checked 7.8 s compile + 16.0 s run, ASan-UBSan 8.3 s compile + 38.1 s run; MEMORY peak 650 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, Arch Linux, GNU++20, GCC 16.2 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14. Every command passed; times are compile + run.
 
-2026-10-17, i9-11900H, Arch Linux, GCC 16.2 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with probes, and ASan/UBSan (full and stress). Counts are per configuration and equal on both compilers.
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-| Command | Result |
-|---|---|
-| `33-modular_square_roots_tester.py --mode quick --seed 1` | PASS 2 configurations, 257,547 C++ checks and 420 Python cases, 15 probes; MEMORY peak 454 MB |
-| `33-modular_square_roots_tester.py --mode full --seed 1` | PASS 3 configurations, 1,950,562 C++ checks and 2,800 Python cases, 15 probes; MEMORY peak 551 MB |
-| same with `CXX=g++-14` | PASS, same counts; MEMORY peak 549 MB |
-| `33-modular_square_roots_tester.py --mode stress --seed 2` | PASS 3 configurations, 4,538,120 C++ checks and 10,500 Python cases, 15 probes; MEMORY peak 665 MB |
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 5.7 s | 18.3 + 14.2 s | 21.1 + 42.0 s | 1025 MB | 826 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 9.9 s | 37.1 + 21.5 s | 37.1 + 49.7 s | 1095 MB | 900 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 33.5 + 1.3 s | 25.0 + 6.4 s | — | 823 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 8.7 s | 7.8 + 16.0 s | 8.3 + 38.1 s | 650 MB | 837 MB |
 
-```bash
-python3 '96-Local Testing/05-Mathematics/33-modular_square_roots_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/33-modular_square_roots_tester.py' --mode full --seed 1
-python3 '96-Local Testing/05-Mathematics/33-modular_square_roots_tester.py' --mode stress --seed 2
-```
+- 2026-10-17, P178, the latest run with check counts. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with probes, and ASan/UBSan (full and stress); counts are per configuration and equal on both compilers.
+
+  ```bash
+  python3 '96-Local Testing/05-Mathematics/33-modular_square_roots_tester.py' --mode full --seed 1
+  CXX=g++-14 python3 '96-Local Testing/05-Mathematics/33-modular_square_roots_tester.py' --mode full --seed 1
+  python3 '96-Local Testing/05-Mathematics/33-modular_square_roots_tester.py' --mode stress --seed 2
+  ```
+
+  | Command | Result |
+  |---|---|
+  | `33-modular_square_roots_tester.py --mode quick --seed 1` | PASS 2 configurations, 257,547 C++ checks and 420 Python cases, 15 probes; MEMORY peak 454 MB |
+  | `33-modular_square_roots_tester.py --mode full --seed 1` | PASS 3 configurations, 1,950,562 C++ checks and 2,800 Python cases, 15 probes; MEMORY peak 551 MB |
+  | same with `CXX=g++-14` | PASS, same counts; MEMORY peak 549 MB |
+  | `33-modular_square_roots_tester.py --mode stress --seed 2` | PASS 3 configurations, 4,538,120 C++ checks and 10,500 Python cases, 15 probes; MEMORY peak 665 MB |
 
 The header and tester build with no warnings under `-Wall -Wextra -Wconversion -Werror` on both compilers. With `99-all.hpp` included, the only warning comes from `06-segmentedsieve.hpp:151`, outside this package.
 
 ## Benchmarks
 
-None are required: there is no Barrett, Montgomery or ISA-specific code. An ad hoc timing probe ran at Library Checker scale: `g++ -O2`, seed 1, three runs, median, with every result folded into a checksum. It measured:
+None is required: there is no Barrett, Montgomery or ISA-specific code. An ad hoc timing probe at Library Checker scale (`g++ -O2`, seed 1, median of three runs, every result folded into a checksum) measured:
 
 - `1e5` `sqrtModComposite` with random `m <= 1e18`, half of them planted: 1490 ms, about 15 µs each, dominated by Pollard–Brent factorization;
 - `sqrtModAll` on the same input: 1786 ms;
@@ -185,28 +194,28 @@ None are required: there is no Barrett, Montgomery or ISA-specific code. An ad h
 
 ## Sources
 
-[00-sources.md](00-sources.md), P178 sweep:
+From [00-sources.md](00-sources.md), P178 sweep:
 
 - OI Wiki quadratic and k-th residues: roots when `p | a`, counts for `p^e` and `2^e`, and the `p | k` digit search;
 - FLINT `ulong_extras` (`n_sqrtmod_primepow`, `n_sqrtmod_2pow`, `n_sqrtmodn`) and `fmpz_mod_poly_roots_factored`;
 - Nyaan `quadratic-equation.hpp`: the discriminant-1 case, tested;
 - maspypy `mod_kth_root`.
 
-The cluster lifting follows Berthomieu, Lecerf and Quintin, "Polynomial root finding over local rings and application to error correcting codes" (2013), cited from its published statement; the paper was not fetched. Cantor–Zassenhaus root splitting is the textbook algorithm. Everything was written independently. Legacy: `OLD/5-Mathematics/08-modlogandmodroot.hpp` (Legacy mapping).
+The cluster lifting follows Berthomieu, Lecerf and Quintin, "Polynomial root finding over local rings and application to error correcting codes" (2013), cited from its published statement; the paper was not fetched. Cantor–Zassenhaus root splitting is the textbook algorithm. Everything was written independently. Legacy: `OLD/5-Mathematics/08-modlogandmodroot.hpp` (Legacy Mapping). Research decisions are in [00-notes.md](00-notes.md), P178.
 
-Research decisions (adopted and rejected) are in [00-notes.md](00-notes.md), P178.
+## Limits and Handoffs
 
-## Limits and handoffs
-
+- The row is `partial`: `kthPowerResidueCount` and `kthRootModCompositeAll` are missing.
 - `sqrtModComposite` and the k-th root functions return a deterministic root, not the least. The least square root is `sqrtModAll(a, m)[0].first`.
-- k-th roots of a unit modulo `p^e` call row 11 `kthRootModPrime`, so a large prime power `q^s || p - 1` with `q^2 | p - 1` costs `O(q^(1/2))`. All k-th roots of a composite modulus are a coset, not a union of classes, and are not enumerated (00-notes).
-- `rootsModP` here is a private Cantor–Zassenhaus over `F_p` for 64-bit `p`. When row 46 `rootsModPrime` (prime-field polynomial roots) is implemented, that package should make this header call it rather than keep two public-equivalent kernels.
+- k-th roots of a unit modulo `p^e` call row 11 `kthRootModPrime`, so a large prime power `q^s || p - 1` with `q^2 | p - 1` costs `O(q^(1/2))`.
+- `rootsModP` here is a private Cantor–Zassenhaus over `F_p` for 64-bit `p`. When row 46 `rootsModPrime` (prime-field polynomial roots) is implemented, that package makes this header call it rather than keep two equivalent kernels.
 - `modroot_detail::mul` repeats row 11's `discrete_log_detail::mul` (one line, private to each family; neither is public API).
 - Polynomial degree enters cubically (`O(n^3 e log(p))`). The intended use is small-degree congruences, not row 46-scale factorization.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## History
 
-- 2026-10-17: P178 initial implementation, sweep added no operation (five candidates rejected), UBSan audit found no class enumeration in the header, review found no header defect, test coverage and style issues fixed; full suite passed on g++ and g++-14, stress on g++.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-17: P178 implementation; the sweep added no operation (five candidates rejected), the UBSan audit found no class enumeration in the header, and the review found no header defect (test coverage and style issues fixed); full passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 added the search aliases; no code or test change.
+- 2026-11-07: P263 follow-up added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.

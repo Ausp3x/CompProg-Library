@@ -1,13 +1,13 @@
 ---
 name: speed-sweep
-description: Optimality research for Core full types against the fastest judge submissions of their problems (Library Checker first). `scout` (default) ranks the leaders, reproduces our solutions with the judge's flags, has @speedscout explain the gaps and writes an "Optimality gap" section; `verify` refreshes the numbers after a package stage.
+description: Optimality research for Core full types against the fastest judge submissions of their problems (Library Checker first). `scout` (default) ranks the leaders, reproduces our solutions with the judge's flags, has @speedscout explain the gaps and writes an "Optimality Gap" section; `verify` refreshes the numbers after a package stage.
 disable-model-invocation: true
 argument-hint: "Pxxx | <header path> [scout | verify]"
 model: claude-fable-5-2
 effort: high
 ---
 
-`$ARGUMENTS` is a package id or a header path, optionally followed by `scout` (the default) or `verify`. `J` stands for `python3 '96-Local Testing/00-Tools/07-judge.py'` (usage: `J --help`; endpoints and judge recipe: `00-Guidelines/09-sources.md`, Fastest submissions). The sweep writes only the evidence and sources documents named below. Findings become `/package` work, never code edits here; the tool never submits.
+`$ARGUMENTS` is a package id or a header path, optionally followed by `scout` (the default) or `verify`. `J` stands for `python3 '96-Local Testing/00-Tools/07-judge.py'` (usage: `J --help`; endpoints and judge recipe: `00-Guidelines/09-sources.md`, Fastest Submissions). The sweep writes only the evidence and sources documents named below. Findings become `/package` work, never code edits here; the tool never submits.
 
 ## Scout
 
@@ -19,8 +19,8 @@ effort: high
 3. **Leaders.** Per problem:
    - `J fastest <problem>` gives the distinct users, with similar sources merged.
    - `J submission <id>` for the top five gives each cached source path and per-case table.
-   - `J mine Ausp3x <problem>` gives the user's standing and latest per-case table (`Ausp3x` is the user's account).
-4. **Archives.** Search GitHub and the web for speed archives, write-ups and library verify files of the same problems (github.com/AZZRCN/precious-speed held all six `big_integer` #1s with write-ups on 2026-10-25). Check these secondary sources before listing them: AtCoder Library Practice Contest standings, Luogu/LibreOJ/UOJ template-problem speed rankings, SPOJ MUL/VFMUL, Kattis fastest lists, and GMP as the ruler. Keep only pages you fetched that bear on a problem in scope.
+   - `J mine Ausp3x <problem>` gives our standing and latest per-case table (`Ausp3x` is the maintainer's judge account).
+4. **Archives.** Search GitHub and the web for speed archives, write-ups and library verify files of the same problems. Check these secondary sources before listing them: AtCoder Library Practice Contest standings, Luogu/LibreOJ/UOJ template-problem speed rankings, SPOJ MUL/VFMUL, Kattis fastest lists, and GMP as the ruler. Keep only pages you fetched that bear on a problem in scope.
 5. **Reproduce.** Per problem:
    - `J reproduce <problem> <our source> --label ours` builds with the judge's flags, takes the minimum of three wall times per regenerated test and checks each output with the problem's checker.
    - `J compare <problem> --user Ausp3x` gives the per-case table.
@@ -29,7 +29,7 @@ effort: high
    - the header and our solution paths, the problems, the compare tables;
    - the leaders' ids with their cached source paths;
    - the archive URLs from step 4.
-7. **Write.** In the header's evidence document (`<folder>/Docs/<NN-name>.md`), replace or create `### Optimality gap` at the end of `## Benchmarks` with:
+7. **Write.** In the header's evidence document (`<folder>/Docs/<NN-name>.md`), replace or create `### Optimality Gap` at the end of `## Benchmarks` with:
    - the conditions (date, CPU, compiler, flags, runs, tests commit);
    - per problem: the judge standing, the compare table's max and sum rows, and the cases with a gap above 1.5;
    - each leader's kernel and exactness status;
@@ -37,7 +37,7 @@ effort: high
    - the targets: per problem, the per-case times that would reach the best exact leader;
    - an empty `Verify runs` table: `| Date | Commit | Problem | Local max ms | Judge max ms | Rank | Best leader ms |`.
 
-   Add `- YYYY-MM-DD: speed sweep, <one-line standing>` to `## History`. List every fetched URL under `## Fetched YYYY-MM-DD (speed sweep)` in the folder's `Docs/00-sources.md`.
+   Add `- YYYY-MM-DD: speed sweep, <one-line standing>` to `## History`. List every fetched URL under `## Fetched YYYY-MM-DD (Speed Sweep)` in the folder's `Docs/00-sources.md`.
 8. **Report** to the user:
    - the standing per problem and the top causes;
    - the targets the next `/package` session should take, and any candidate problems;
@@ -46,9 +46,9 @@ effort: high
 
 ## Verify
 
-1. **Scope.** Steps 1–2 of Scout. If a header's evidence document has no `### Optimality gap`, stop and suggest `scout`.
+1. **Scope.** Steps 1–2 of Scout. If a header's evidence document has no `### Optimality Gap`, stop and suggest `scout`.
 2. **Refresh.** Per problem:
-   - `J fastest <problem>`, then `J mine Ausp3x <problem>` for the user's latest per-case table;
+   - `J fastest <problem>`, then `J mine Ausp3x <problem>` for the maintainer's latest per-case table;
    - `J reproduce <problem> <our source> --label ours`, then `J compare <problem> --user Ausp3x`.
 
    Rerun `--untrusted` only for the leader ids the section already records with the user's yes.

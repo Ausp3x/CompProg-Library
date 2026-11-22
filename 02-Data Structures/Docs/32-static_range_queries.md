@@ -1,6 +1,6 @@
-# 32-static_range_queries.hpp — evidence
+# 32-static_range_queries.hpp — Evidence
 
-Package P032 (batch DS28). New header of free functions and query structs over a fixed array: distinct counts, value frequency, mex, strict majority and threshold frequency. Contest profile: no ISA code, no Barrett/Montgomery reduction and no tuned threshold, so no benchmark is required; the scratch timings under [Benchmarks](#benchmarks) record the constant. Dependencies: `00-monoids.hpp` (`Min`, `MajorityVote`), `02-fenwick.hpp`, `03-segmenttree.hpp`, `17-waveletmatrix.hpp`, `18-persistentsegmenttree.hpp`. Every algorithm is deterministic and exact.
+Package P032 (batch DS28). New header of free functions and query structs over a fixed array: distinct counts, value frequency, mex, strict majority and threshold frequency. The Contest profile requires no benchmark here (no ISA code, reduction or tuned threshold); the scratch timings under [Benchmarks](#benchmarks) record the constant. Dependencies: `00-monoids.hpp` (`Min`, `MajorityVote`), `02-fenwick.hpp`, `03-segmenttree.hpp`, `17-waveletmatrix.hpp`, `18-persistentsegmenttree.hpp`. Every algorithm is deterministic and exact.
 
 ## Contracts
 
@@ -10,7 +10,7 @@ Ranges are zero-based and half-open, `0 <= l <= r <= n`, asserted once per query
 
 `staticRangeCountDistinct(a, qs)`: for each `(l, r)` the number of distinct values in `a[l, r)`; an empty range gives 0. `T` needs only `<` (equality is `!(x < y) && !(y < x)`); `n < 2^31`.
 
-- Correctness: sort `(a[i], i)` stably by value to get `prv[i]`, the previous index with an equal value (or -1). Sweep `r` upward. After positions `< r` are added, the Fenwick tree holds +1 exactly at the last occurrence before `r` of each value (adding `i` moves the mark from `prv[i]` to `i`). So `sum(l, r)` counts values whose last occurrence before `r` is at least `l`, which is the number of distinct values in the range.
+- Correctness: sorting `(a[i], i)` stably by value gives `prv[i]`, the previous index with an equal value (or -1). Sweeping `r` upward, after positions `< r` are added the Fenwick tree holds +1 exactly at each value's last occurrence before `r`, since adding `i` moves the mark from `prv[i]` to `i`. So `sum(l, r)` counts the values whose last occurrence before `r` is at least `l`, the distinct values of the range.
 - Queries are bucketed by `r` with a counting sort (`static_range_queries_detail::byRight`), O(n + q).
 - Cost: O(n * log(n)) sort, O((n + q) * log(n)) sweep, O(n + q) memory.
 
@@ -19,13 +19,13 @@ Ranges are zero-based and half-open, `0 <= l <= r <= n`, asserted once per query
 `StaticRangeFrequency<T>(a)`, `count(l, r, x)`: the number of `i` in `[l, r)` with `a[i]` equivalent to `x` under `<`. `x` need not occur in `a` (gives 0). `T` needs only `<`; `n < 2^31`; default construction gives `n = 0`.
 
 - Storage: the pairs `(a[i], i)` sorted by value, then position. `count` is the difference of two lower bounds on `(x, r)` and `(x, l)`. O(n * log(n)) build, O(log(n)) query, O(n) memory.
-- Beside row 17 `WaveletMatrix::countEqual`, row 16 `MergeSortTree::countEqual` and row 18 `PersistentValueTree::countEqual`, this is kept as a constant-factor variant (ruling 4 of `duplicates.md`): sorted (value, position) pairs, O(n) words, one pair of binary searches, and only `<` needed.
+- Kept beside row 17 `WaveletMatrix::countEqual`, row 16 `MergeSortTree::countEqual` and row 18 `PersistentValueTree::countEqual` as a constant-factor variant (ruling 4 of `duplicates.md`): O(n) words, one pair of binary searches, and only `<` needed.
 
 ### rangeMex
 
 `rangeMex(a, qs)`: for each `(l, r)` the least nonnegative integer absent from `a[l, r)`; an empty range gives 0. `T` is a signed or unsigned integer type other than `bool` and the character types (`std::cmp_less` rejects those); values below 0 or at least `n` are ignored, because a range of length at most `n` has mex at most `n`. `n <= 2^29` (the segment tree's size bound).
 
-- Correctness: sweep `r`; a `SegmentTree<Min<int>>` over values `[0, n)` holds the last occurrence before `r` (or -1). Then `v` is in `a[l, r)` iff `last[v] >= l`, so the mex is the first `v` with `last[v] < l`. `maxRight(0, x >= l)` returns that `v`, or `n` when all of `[0, n)` occur (then the range is the whole array). The predicate holds on `e() = INT_MAX` and stays false once it fails, as `maxRight` requires.
+- Correctness: sweeping `r`, a `SegmentTree<Min<int>>` over values `[0, n)` holds each value's last occurrence before `r` (or -1). `v` is in `a[l, r)` iff `last[v] >= l`, so the mex is the first `v` with `last[v] < l`. `maxRight(0, x >= l)` returns that `v`, or `n` when all of `[0, n)` occur (the range is then the whole array). The predicate holds on `e() = INT_MAX` and stays false once it fails, as `maxRight` requires.
 - Cost: O((n + q) * log(n)) time, O(n + q) memory.
 
 ### PersistentRangeMex
@@ -39,15 +39,15 @@ Ranges are zero-based and half-open, `0 <= l <= r <= n`, asserted once per query
 
 `RangeMajority<T>(a)`, `majority(l, r, res)`: returns true and stores in `res` the value occurring more than `(r - l) / 2` times (`2 * count > r - l`), or returns false and leaves `res` untouched. An empty range gives false. `T` is default-constructible (`MajorityVote::e()`), ordered by `<` and comparable by `==`, where `==` agrees with the equivalence of `<` (`x == y` iff neither is less); `n <= 2^29`.
 
-- Candidate: a `SegmentTree<MajorityVote<T>>` product over the range. `MajorityVote::op` is not associative, but every bracketing keeps the invariant of [00-monoids.md](00-monoids.md) (`s_y >= count_y - (len - count_y)` for every value `y`), so a strict majority ends as the candidate. `SegmentTree::prod` combines the range's leaves in order under some bracketing (its left and right accumulators), which is all the invariant needs; row 03's associativity requirement is relaxed here on that implementation property; row 32's majority tests exercise it with the tree's real bracketings. Verification: `StaticRangeFrequency::count`. Exact, deterministic, O(n * log(n)) build (the sort), O(log(n)) query, O(n) memory.
-- Not the wavelet median (`RangeThresholdFrequency::frequent` with `t = (r - l) / 2 + 1` gives the same answer by another algorithm, kept by user decision 2026-11-02).
+- Candidate: the `SegmentTree<MajorityVote<T>>` product over the range. `MajorityVote::op` is not associative, but every bracketing keeps the invariant of [00-monoids.md](00-monoids.md) (`s_y >= count_y - (len - count_y)` for every value `y`), so a strict majority ends as the candidate. `SegmentTree::prod` combines the range's leaves in order under some bracketing (its left and right accumulators), which is all the invariant needs; row 03's associativity requirement is relaxed here on that implementation property, and the majority tests exercise the tree's real bracketings. `StaticRangeFrequency::count` verifies the candidate. Exact and deterministic: O(n * log(n)) build (the sort), O(log(n)) query, O(n) memory.
+- `RangeThresholdFrequency::frequent` with `t = (r - l) / 2 + 1` gives the same answer by another algorithm; both are kept (user decision 2026-11-02).
 
 ### RangeThresholdFrequency
 
 `RangeThresholdFrequency<T>(a)`, `frequent(l, r, t)`: every `(value, count)` with `count >= t` in `[l, r)`, by increasing value; `t >= 1` is asserted. `t = 1` lists all distinct values with their counts, and `t > r - l` gives an empty list. `T` needs `<` and an `==` that agrees with its equivalence (`WaveletMatrix` deduplicates with `unique`); `n < 2^31`.
 
-- Correctness: in sorted order, a value with count `c >= t` fills a block of `c` consecutive ranks, which contains a rank `k` with `k % t == t - 1`. So the candidates are `kth(l, r, k)` at such ranks. One `WaveletMatrix::descend` on the candidate gives both the count below it and its own count (the run it leaves), so the scan reports it when its count is at least `t` and jumps to the first sampled rank after its block. Every candidate block is visited once. The rank counter is `lng`, so the jump cannot overflow.
-- Cost: O((1 + min(d, (r - l) / t)) * log(n)) per query for `d` distinct values in the range, with at most `(r - l) / t` reported pairs; the wavelet matrix takes O(n * log(n)) build and O(n * log(n)) bits. `descend` is row 17's public helper; its contract is in [17-waveletmatrix.md](17-waveletmatrix.md) (user decision 2026-11-02), and the scan relies only on it. The candidate's rank is recomputed by `lowerRank` (one binary search per candidate, dominated by the descents) rather than read from the address `kth` returns, which would rely on an undocumented internal. A k-majority query (count above `(r - l) / k`) is `t = (r - l) / k + 1`.
+- Correctness: in sorted order, a value with count `c >= t` fills a block of `c` consecutive ranks, which contains a rank `k` with `k % t == t - 1`, so the candidates are `kth(l, r, k)` at such ranks. One `WaveletMatrix::descend` on a candidate gives both the count below it and its own count (the run it leaves); the scan reports it when its count is at least `t` and jumps to the first sampled rank after its block, so every candidate block is visited once. The rank counter is `lng`, so the jump cannot overflow.
+- Cost: O((1 + min(d, (r - l) / t)) * log(n)) per query for `d` distinct values in the range, with at most `(r - l) / t` reported pairs; the wavelet matrix takes O(n * log(n)) build and O(n * log(n)) bits. The scan relies only on `descend`, row 17's public helper with its contract in [17-waveletmatrix.md](17-waveletmatrix.md) (user decision 2026-11-02). The candidate's rank is recomputed by `lowerRank` (one binary search per candidate, dominated by the descents) instead of read from the address `kth` returns, an undocumented internal. A k-majority query (count above `(r - l) / k`) is `t = (r - l) / k + 1`.
 
 ### Aliases
 
@@ -57,9 +57,9 @@ Ranges are zero-based and half-open, `0 <= l <= r <= n`, asserted once per query
 
 Search aliases (P263, grab --find): 主元素问题, 线段树与离线询问, 区间数颜色, 区间不同数个数, 区间出现次数, 区间mex, 区间绝对众数, 区间频率.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Tester `96-Local Testing/02-Data Structures/32-static_range_queries_tester.cpp`, entry `32-static_range_queries_tester.py` (driver `_00_contest_runner.py`; optimized, checked and ASan/UBSan builds; 24 assertion probes). BF means a brute force over the range with an ordered map or a direct count; the literal hand cases check the brute forces themselves. Seven deliberately broken scratch copies of the header (truncated mex values, an off-by-one majority test, wrong `frequent` ranks and others) all failed the tester.
+Tester `96-Local Testing/02-Data Structures/32-static_range_queries_tester.cpp`, entry `32-static_range_queries_tester.py` (driver `_00_contest_runner.py`; optimized, checked and ASan/UBSan builds; 24 assertion probes). BF is a brute force over the range with an ordered map or a direct count; the literal hand cases check the brute forces themselves. Seven deliberately broken scratch copies of the header (truncated mex values, an off-by-one majority test, wrong `frequent` ranks and others) all failed the tester (2026-11-02).
 
 | Operation | Groups | Oracle |
 |---|---|---|
@@ -88,25 +88,31 @@ Scratch timing only, not a gate. Conditions: 2026-11-02, AMD Ryzen AI 9 HX 370 (
 | `RangeMajority` | 194 ms | 207 ms | 266 ms |
 | `frequent`, `t = max(1, (r - l) / 4)` | 797 ms | 306 ms | 35 ms |
 
-The `PersistentRangeMex` and `frequent` rows were rerun after the review changes (pool reserve, block jump). Peak memory was 132 MB. The Library Checker limit for both problems is 5 s.
+The `PersistentRangeMex` and `frequent` rows are from a rerun after the review changes (pool reserve, block jump). Peak memory was 132 MB; the Library Checker limit for both problems is 5 s.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1292 MB; optimized 0.2 s compile + 13.4 s run, checked 60.1 s compile + 12.9 s run, ASan-UBSan 51.9 s compile + 65.1 s run; MEMORY peak 1962 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1279 MB; optimized 0.1 s compile + 13.4 s run, checked 62.7 s compile + 16.3 s run, ASan-UBSan 64.0 s compile + 85.6 s run; MEMORY peak 1941 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 72.9 s compile + 0.2 s run, checked 57.3 s compile + 9.0 s run; MEMORY peak 1284 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1290 MB; optimized 0.1 s compile + 17.7 s run, checked 29.2 s compile + 15.6 s run, ASan-UBSan 30.4 s compile + 49.6 s run; MEMORY peak 1243 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
 
-Latest run 2026-11-02, Linux x86-64 (AMD Ryzen AI 9 HX 370, WSL2), GNU++20, CPython 3.14.4:
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 1292 MB; optimized 0.2 + 13.4 s, checked 60.1 + 12.9 s, ASan-UBSan 51.9 + 65.1 s; MEMORY peak 1962 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 1279 MB; optimized 0.1 + 13.4 s, checked 62.7 + 16.3 s, ASan-UBSan 64.0 + 85.6 s; MEMORY peak 1941 MB |
+| `01-run.py --mode quick` | Optimized 72.9 + 0.2 s, checked 57.3 + 9.0 s; MEMORY peak 1284 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 1290 MB; optimized 0.1 + 17.7 s, checked 29.2 + 15.6 s, ASan-UBSan 30.4 + 49.6 s; MEMORY peak 1243 MB |
+
+Latest per-header runs, in the optimized, checked and ASan/UBSan builds. The maintainer gate of 2026-11-03 did not record counts; the counted rows are the contributor's run of 2026-11-02 on Linux x86-64 (AMD Ryzen AI 9 HX 370, WSL2), GNU++20, CPython 3.14.4. MEMORY peaks cover the whole runner scope, compiles included; the test binaries stay under 170 MB.
 
 | Command | Result |
 |---|---|
-| `32-static_range_queries_tester.py --mode quick` | PASS, 2 configurations, 478,667 checks (optimized), 478,424 (checked), 24 assertion probes; MEMORY peak 805 MB |
-| `32-static_range_queries_tester.py --mode full --seed 20261102` (`g++` 16.0.1) | PASS, 3 configurations; 8,584,909 checks (optimized and ASan), 4,240,709 (checked); MEMORY peak 955 MB |
-| `CXX=g++-14 32-static_range_queries_tester.py --mode full --seed 20261102` (g++-14 14.3.0, floor) | PASS, the same check counts; MEMORY peak 860 MB (pre-flight) |
-| `32-static_range_queries_tester.py --mode stress --seed 7` | PASS, 3 configurations; 29,103,590 checks (optimized), 21,409,440 (checked), 25,753,609 (ASan); MEMORY peak 955 MB |
-| `02-integration.py` | PASS, 185 standalone and aggregate headers, scalar and AVX2 multi-TU, workspace; MEMORY peak 1540 MB |
-| `03-consistency.py --braces` on the header and tester | No closing-brace, comment-cap or free-function violations |
-| `03-consistency.py`, `plan.py check` | No errors (maintainer gate `merge_pr.py gates 1`, 2026-11-03); `plan.py doctor --fix` declared the DS05 prerequisite for the `00-monoids.hpp` include |
-
-The memory peaks cover the whole runner scope, compiles included; the test binaries stay under 170 MB.
+| 2026-11-03 maintainer gate `merge_pr.py gates 1`: quick, full on g++ and g++-14, `02-integration.py --sanitizers` | PASS (counts not recorded) |
+| 2026-11-03: `03-consistency.py`, `plan.py check` (same gate) | No errors; `plan.py doctor --fix` declared the DS05 prerequisite for the `00-monoids.hpp` include |
+| 2026-11-02: `32-static_range_queries_tester.py --mode quick` | PASS, 2 configurations, 478,667 checks (optimized), 478,424 (checked), 24 assertion probes; MEMORY peak 805 MB |
+| 2026-11-02: `32-static_range_queries_tester.py --mode full --seed 20261102` (`g++` 16.0.1) | PASS, 3 configurations; 8,584,909 checks (optimized and ASan), 4,240,709 (checked); MEMORY peak 955 MB |
+| 2026-11-02: `CXX=g++-14 32-static_range_queries_tester.py --mode full --seed 20261102` (g++-14 14.3.0, floor) | PASS, the same check counts; MEMORY peak 860 MB (pre-flight) |
+| 2026-11-02: `32-static_range_queries_tester.py --mode stress --seed 7` | PASS, 3 configurations; 29,103,590 checks (optimized), 21,409,440 (checked), 25,753,609 (ASan); MEMORY peak 955 MB |
+| 2026-11-02: `02-integration.py` | PASS, 185 standalone and aggregate headers, scalar and AVX2 multi-TU, workspace; MEMORY peak 1540 MB |
+| 2026-11-02: `03-consistency.py --braces` on the header and tester | No closing-brace, comment-cap or free-function violations |
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/32-static_range_queries_tester.py' --mode quick
@@ -114,7 +120,10 @@ python3 '96-Local Testing/02-Data Structures/32-static_range_queries_tester.py' 
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/32-static_range_queries_tester.py' --mode full --seed 20261102
 python3 '96-Local Testing/02-Data Structures/32-static_range_queries_tester.py' --mode stress --seed 7
 python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/32-static_range_queries.hpp' '96-Local Testing/02-Data Structures/32-static_range_queries_tester.cpp'
 python3 '96-Local Testing/03-consistency.py'
+python3 '00-Guidelines/13-Plan/plan.py' check
 ```
 
 ## Sources
@@ -127,21 +136,21 @@ python3 '96-Local Testing/03-consistency.py'
 
 The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds28-sweep)). The mex sweep, both mex structures, the majority verification and the threshold sampling argument were written from the contracts above.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p032-omissions) (user decision 2026-11-02): weighted distinct sum, closest equal pair, exact-`k` frequency counts, the all-distinct test, xored mex, `RangeMexChange` and the k-th mex.
-- Violated preconditions under `NDEBUG`: an out-of-range query bound makes `byRight` index outside its bucket array, so the offline functions are undefined behaviour there rather than merely meaningless. The asserts catch it on every judge, because judges keep assertions. `PersistentRangeMex::mex` with a bad `r` reads `ver[r]` out of bounds the same way, and a constructor with `n` above about 7.7 · 10^7 (beyond the `2^26` bound) overflows the `int` reserve size. `frequent` with `t <= 0` returns an empty list (the loop guard; the start rank is computed in `lng`, so `t = INT_MIN` does not overflow); a scratch `-O0 -DNDEBUG -fsanitize=undefined` probe of `t = 0`, `-1` and `INT_MIN` terminated without a report on 2026-11-02.
-- `rangeMex` and `RangeMajority` inherit the `2^29` size bound of `SegmentTree`, and `PersistentRangeMex` is limited to `2^26` by its pool indices. None of these limits matters at contest sizes, and no test reaches sizes near them.
-- Integer types: `bool`, `char` and `char8_t` are rejected at compile time (checked ad hoc by the `/finish` audit, 2026-11-02); `int8_t`, `int`, `uint`, `lng`, `ulng` are tested; `int16_t`, `uint16_t` and `__int128` compile but are untested.
-- The scratch mutant run (7 broken header copies), the `NDEBUG` probes and the timing table were one-off scratch runs with no committed driver.
+- Left out with reasons in [00-notes.md](00-notes.md#p032-omissions) (user decision 2026-11-02): the all-distinct test and the k-th missing value. Weighted distinct sum, closest equal pair, exact-`k` frequency counts and xored mex are planned Esoteric row 73 (`staticRangeDistinctSum`, `staticRangeClosestEqual`, `staticRangeCountValueEqualsFrequency`, `RangeXoredMex`), and `RangeMexChange` row 71.
+- Violated preconditions under `NDEBUG`: an out-of-range query bound makes `byRight` index outside its bucket array, so the offline functions are undefined there, not merely meaningless; judges keep assertions, so the asserts catch it. `PersistentRangeMex::mex` with a bad `r` reads `ver[r]` out of bounds the same way, and a constructor with `n` above about 7.7 · 10^7 (beyond the `2^26` bound) overflows the `int` reserve size. `frequent` with `t <= 0` returns an empty list through its loop guard, and the start rank is computed in `lng`, so `t = INT_MIN` does not overflow; a scratch `-O0 -DNDEBUG -fsanitize=undefined` probe of `t = 0`, `-1` and `INT_MIN` terminated without a report on 2026-11-02.
+- `rangeMex` and `RangeMajority` inherit the `2^29` size bound of `SegmentTree`, and `PersistentRangeMex` is limited to `2^26` by its pool indices. These limits do not matter at contest sizes, and no test reaches them.
+- Integer types: `bool`, `char` and `char8_t` are rejected at compile time (checked by the `/finish` audit, 2026-11-02); `int8_t`, `int`, `uint`, `lng` and `ulng` are tested; `int16_t`, `uint16_t` and `__int128` compile but are untested.
+- The 7 scratch mutants, the `NDEBUG` probes and the timing table were one-off scratch runs with no committed driver.
 - API names (`count`, `mex`, `majority` with a `bool` status, `frequent` returning `(value, count)` pairs) kept by user decision 2026-11-02.
 - `00-Guidelines/Ledgers/library-checker-coverage.json`: `majority_voting` now targets rows 00, 03 and 16 and `point_set_range_frequency` row 16 only, since row 32 has no point update (user decision 2026-11-02).
-- No `97-Online Testing` solution uses this header yet. The Library Checker problems named above were not submitted (`01-principles.md`).
+- No `97-Online Testing` solution uses this header yet, and the Library Checker problems named above were not submitted (`01-principles.md`, Scope Discipline).
 
 ## History
 
-- 2026-11-02: P032 DS28 first implementation; tester follow-ups fixed (type requirements of `RangeMajority` and `RangeThresholdFrequency`, `lng` rank counter in `frequent`); independent review, 6 findings and 5 nits fixed (comment cap, `NDEBUG` loop on `t <= 0`, majority proof from the bracketing invariant, pool reserve, `duplicates.md` keeps, mex type domain with an `int8_t` case; `byRight` size, `n <= 2^29`, test-mode and benchmark wording, `frequent` jumps past each block); 7/7 scratch mutants caught; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed.
-- 2026-11-02: `/finish` audit, 3 defects and 2 nits fixed (`t = INT_MIN` start rank, `n <= 2^29` wording, pool reserve only for values in `[0, n)`), limits recorded; user decisions recorded (`descend` contract in row 17, API names kept, Library Checker ledger retargeted); diff review, 4 nits fixed; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7), row 17 quick, `02-integration.py` and `03-consistency.py` passed.
-- 2026-11-03: maintainer `/merge-pr 1`: the real `03-consistency.py` and `plan.py check` results recorded and the clone-specific limit dropped (P250's note keeps the follow-up); row 17 lists and tests `descend` and `lowerRank`, which `frequent` uses; the first maintainer gate (2026-11-03) passed quick and full on g++ and g++-14 and `02-integration.py --sanitizers`.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-02: P032 DS28 first implementation; tester follow-ups fixed (type requirements of `RangeMajority` and `RangeThresholdFrequency`, `lng` rank counter in `frequent`); the review's 6 findings and 5 nits fixed (among them the `NDEBUG` loop on `t <= 0`, the majority proof from the bracketing invariant, the pool reserve, the mex type domain with an `int8_t` case, `frequent` jumping past each block); 7/7 scratch mutants caught; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed.
+- 2026-11-02: `/finish` audit, 3 defects and 2 nits fixed (`t = INT_MIN` start rank, `n <= 2^29` wording, pool reserve only for values in `[0, n)`), limits recorded; user decisions on the `descend` contract in row 17, the API names and the Library Checker ledger; diff review, 4 nits fixed; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7), row 17 quick, `02-integration.py` and `03-consistency.py` passed.
+- 2026-11-03: maintainer `/merge-pr 1`: `03-consistency.py` and `plan.py check` results recorded, the clone-specific limit dropped (P250's note keeps the follow-up); row 17 lists and tests `descend` and `lowerRank`, which `frequent` uses; the gate passed quick, full on g++ and g++-14 and `02-integration.py --sanitizers`.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

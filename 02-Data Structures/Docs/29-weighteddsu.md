@@ -1,32 +1,32 @@
-# 29-weighteddsu.hpp — evidence
+# 29-weighteddsu.hpp — Evidence
 
-Package P035 (batch DS25). New header. It closes the weighted and parity part of the row 01 legacy handoff ([01-dsu.md](01-dsu.md#limits-and-handoffs)) and reuses row 09's undo contract ([09-rollbackdsu.md](09-rollbackdsu.md)) by inheritance; row 09 does not depend on this header. Groups are row 00 monoids with `inv` ([00-monoids.md](00-monoids.md#group-contract)). Preconditions are `assert`s checked once per call; `WeightedDSU::findSet` asserts and calls the recursive `root`, whose depth is at most `floor(log2(n)) + 1` under union by size.
+Package P035 (batch DS25). New header. It closes the weighted and parity part of the row 01 legacy handoff ([01-dsu.md](01-dsu.md#limits-and-handoffs)) and reuses row 09's undo contract ([09-rollbackdsu.md](09-rollbackdsu.md)) by inheritance; row 09 does not depend on this header. Groups are row 00 monoids with `inv` ([00-monoids.md](00-monoids.md#group-contract)). Each call asserts its preconditions once; `WeightedDSU::findSet` asserts and calls the recursive `root`, whose depth is at most `floor(log2(n)) + 1` under union by size.
 
 ## Contracts
 
-### Relations and groups
+### Relations and Groups
 
-`G` provides `S` (with `==`), `op` (associative), `e` (two-sided identity) and `inv` (two-sided inverse), under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): `G mon = {}` is the constructor's last argument and is kept as `m`, so presets (`Sum<T>`, `Xor<T>`), stateful structs (a runtime modulus) and user groups all work. `G` need not be commutative.
+`G` provides `S` with `==`, an associative `op`, a two-sided identity `e` and a two-sided inverse `inv`, under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract). `G mon = {}` is the constructor's last argument and is kept as `m`, so presets (`Sum<T>`, `Xor<T>`), stateful structs (a runtime modulus) and user groups all work. `G` need not be commutative.
 
-Each vertex `u` carries an unknown value `x_u` in `S`. `uniteSets(u, v, w)` records the relation `x_u^-1 x_v = w`, that is `x_v = op(x_u, w)` (for `Sum`: `x_v - x_u = w`; for `Xor<bool>`: `x_u xor x_v = w`). `diff(u, v)` is `x_u^-1 x_v` as implied by the accepted relations, so `diff(v, u) = inv(diff(u, v))` and `diff(u, v) · diff(v, y) = diff(u, y)`. Relations compose along a chain in chain order, which is why the orientation matters for non-commutative groups.
+Each vertex `u` carries an unknown value `x_u` in `S`. `uniteSets(u, v, w)` records the relation `x_u^-1 x_v = w`, that is `x_v = op(x_u, w)` (for `Sum`, `x_v - x_u = w`; for `Xor<bool>`, `x_u xor x_v = w`). `diff(u, v)` is `x_u^-1 x_v` as the accepted relations imply it, so `diff(v, u) = inv(diff(u, v))` and `diff(u, v) · diff(v, y) = diff(u, y)`. Relations compose along a chain in chain order, so orientation matters for non-commutative groups.
 
 ### WeightedDSU<G>
 
 Vertices `[0, n)`, `0 <= n <= INT_MAX`. Union by size (on equal sizes the first argument's root stays the root) with path compression; representatives are arbitrary and may change after a union.
 
 - `uniteSets(u, v, w)` returns `true` exactly when it merges two components. If `u` and `v` are already connected, it returns `false`. A consistent relation changes nothing; a contradicting one (`diff(u, v) != w`) increments its component's contradiction count and is otherwise ignored, so the potentials always satisfy every accepted relation. `uniteSets(u, u, w)` contradicts exactly when `w != e`.
-- `potential(u)`: `x_r^-1 x_u` for `r = findSet(u)`. It changes when the root changes. Returns `vector<S>::const_reference`, valid until the next `uniteSets` or `findSet`-based call.
+- `potential(u)`: `x_r^-1 x_u` for `r = findSet(u)`, so it changes when the root changes. It returns a `vector<S>::const_reference`, valid until the next `uniteSets` or `findSet`-based call.
 - `diff(u, v)`: asserts that `u` and `v` are connected.
-- `contradictions(u)`: number of contradicting `uniteSets` calls inside `u`'s component, summed through merges. `contradictions(u) == 0` means the accepted relations are the only ones recorded (bipartiteness for `Xor<bool>` with `w = true` on every edge).
+- `contradictions(u)`: the number of contradicting `uniteSets` calls inside `u`'s component, summed through merges. `contradictions(u) == 0` means every recorded relation was accepted; for `Xor<bool>` with `w = true` on every edge this is bipartiteness.
 - `findSet`, `isSameSet`, `size`, `count`, `groups` as row 01 `DSU` (`groups` in O(n), groups and members ordered by smallest vertex).
 - A root's stored potential is always `e`. A union costs two `op` and one or two `inv`; compressing a node costs one `op`. Bounds: O(alpha(n)) amortized group operations per call, O(n) memory of `S`.
 - `Sum<T>` over a signed `T` needs every value and every sum along a chain of relations to be representable, and no value equal to the lowest `T` (negation).
 
 ### ParityDSU
 
-Vertices `[0, n)`, `0 <= n <= INT_MAX / 2`. A row 01 `DSU` over `2n` nodes: node `u` is "same parity as `u`" and node `u + n` is "opposite parity of `u`".
+Vertices `[0, n)`, `0 <= n <= INT_MAX / 2`. A row 01 `DSU` over `2n` nodes, where node `u` means "same parity as `u`" and node `u + n` "opposite parity of `u`".
 
-- `uniteSets(u, v, w)` records `parity(u) xor parity(v) = w` (`false`: same, `true`: different) by two DSU unions. It returns `true` exactly when `u` and `v` were unrelated before the call (`parity(u, v) == -1`). Every relation is applied. A contradicting one merges a component with its mirror, which makes the component non-bipartite, as an odd cycle does in a graph. Callers who must reject contradictions check `parity` first.
+- `uniteSets(u, v, w)` records `parity(u) xor parity(v) = w` (`false` same, `true` different) by two DSU unions and returns `true` exactly when `u` and `v` were unrelated before the call (`parity(u, v) == -1`). Every relation is applied: a contradicting one merges a component with its mirror and makes it non-bipartite, as an odd cycle does in a graph. Callers who must reject contradictions check `parity` first.
 - `parity(u, v)`: `0` when some chain of relations of even total parity links `u` and `v`, else `1` when an odd chain does, else `-1`. In a component that is not bipartite both exist, so the result is `0` for every pair there.
 - `isBipartite(u)`: no odd closed chain in `u`'s component.
 - O(alpha(n)) amortized per call, memory O(n).
@@ -41,18 +41,18 @@ Vertices `[0, n)`, `0 <= n <= INT_MAX / 2`. A row 01 `DSU` over `2n` nodes: node
 - `climb(u)`: the root of `u` and `x_root^-1 x_u` in one walk. `potential(u)` is its second part, `diff(u, v)` asserts a common root and `contradictions(u)` reads the root.
 - A root's stored potential is never read, so `undo` leaves a separated root's stale value in place.
 
-### Violated preconditions
+### Violated Preconditions
 
 Under `NDEBUG`, an out-of-range vertex reads outside the arrays, `diff` across components returns a meaningless product, `undo` on an empty history reads an empty vector, `ParityDSU(N)` with `N > INT_MAX / 2` overflows `2N`, and a negative size makes `vector` throw `length_error`. `rollback(t)` stops at an empty history for `t < 0` and does nothing for `t > snapshot()`. Every loop and recursion is bounded by the depth or the history length.
 
-### Legacy mapping
+### Legacy Mapping
 
 - `OLD/algorithms.cpp:1402–1477` and `OLD/Team Notebook/src/graph/dsu.cpp` `DSU`: `uniteSets(u, v, w)` recorded `x_u - x_v = w`, which is `WeightedDSU<Sum<lng>>::uniteSets(v, u, w)`; `dis` and `getDis` (narrowed to `int`) → `potential`; `is_bip` and `isBipartite` with the default `w = 1` → `ParityDSU::uniteSets(u, v, true)` and `isBipartite`, or `WeightedDSU<Xor<bool>>::contradictions(u) == 0`; `esz` and `getEsiz` → row 09 `RollbackDSUAggregate::edgeCount`.
-- Planned `NoncommutativeWeightedDSU` → `WeightedDSU<G>` with a non-commutative `G` (decision recorded in `duplicates.md`, Kept by the sweep).
+- Planned `NoncommutativeWeightedDSU` → `WeightedDSU<G>` with a non-commutative `G` (decision recorded in `duplicates.md`, Kept by the Sweep).
 - Catalog names: maspypy `get(v)` → `findSet` and `potential`; maspypy `get_path`, noshi91 `distance`, Nyaan and suisen `diff` → `diff`; ei1333 `weight` → `potential`; Nyaan and hitonanode `unite`/`merge` returning `false` on conflict → `isSameSet` and `diff` before `uniteSets`, or `contradictions`; ei1333 `BipartiteGraph` and cp-algorithms parity DSU → `ParityDSU`; OI Wiki extended-domain DSU (k copies, NOI2011 food chain) → `WeightedDSU` over Z/k (`Sum<ModInt>` or a runtime `ModAdd`); maspypy `time()`/`rollback(t)` → `snapshot`/`rollback`.
 - P276 rename, 2026-11-10: `getSize` → `size`.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/29-weighteddsu_tester.cpp`, entry `29-weighteddsu_tester.py` (driver `_00_contest_runner.py`; three builds; 13 assertion probes). Groups: `Sum<lng>`, `Xor<bool>`, `Perm` (S5 under composition, non-commutative) and `ModAdd` (runtime modulus chosen by the seed from 7, 10^9+7 and 998244353). History groups run 300 rounds each in full mode (30 quick, 1000 stress; `ModAdd` and the rollback `Xor<bool>` half, the n <= 40 group a tenth).
 
@@ -65,21 +65,29 @@ Tester `96-Local Testing/02-Data Structures/29-weighteddsu_tester.cpp`, entry `2
 | Empty structures, self relations, copies, non-commutative composition and its swapped order, `undo` of a contradiction, runtime-modulus diffs, empty-group layout | `edges` | Direct values; `sizeof` against a mirror struct without `m` |
 | Preconditions | `invalid` | Out-of-range and negative vertices, negative size, `diff` across components, oversized and negative `ParityDSU`, out-of-range `parity` and `isBipartite`, empty `undo`, future `rollback`, rollback `diff` across components, out-of-range `potential` |
 
-Mutation check (2026-10-23, quick mode, seed 3): eight seeded faults were each caught: union orientation, compression order, the missing inverse on a swapped union, lost contradiction counts on merge and on `undo`, a rollback potential stored unoriented, `climb` composing in reverse, and `parity` preferring odd chains.
+A hand mutation check on 2026-10-23 (quick mode, seed 3) caught each of eight seeded faults: union orientation, compression order, the missing inverse on a swapped union, lost contradiction counts on merge and on `undo`, a rollback potential stored unoriented, `climb` composing in reverse, and `parity` preferring odd chains.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 872 MB; optimized 0.2 s compile + 10.8 s run, checked 23.9 s compile + 21.2 s run, ASan-UBSan 33.4 s compile + 93.9 s run; MEMORY peak 1074 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 938 MB; optimized 0.2 s compile + 13.4 s run, checked 30.3 s compile + 21.5 s run, ASan-UBSan 37.5 s compile + 85.8 s run; MEMORY peak 1050 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 51.0 s compile + 1.5 s run, checked 26.5 s compile + 12.4 s run; MEMORY peak 869 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 887 MB; optimized 0.1 s compile + 18.2 s run, checked 10.1 s compile + 41.6 s run, ASan-UBSan 13.3 s compile + 166.7 s run; MEMORY peak 1176 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
 
-Latest run 2026-10-23, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 872 MB; optimized 0.2 + 10.8 s, checked 23.9 + 21.2 s, ASan-UBSan 33.4 + 93.9 s; MEMORY peak 1074 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 938 MB; optimized 0.2 + 13.4 s, checked 30.3 + 21.5 s, ASan-UBSan 37.5 + 85.8 s; MEMORY peak 1050 MB |
+| `01-run.py --mode quick` | Optimized 51.0 + 1.5 s, checked 26.5 + 12.4 s; MEMORY peak 869 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 887 MB; optimized 0.1 + 18.2 s, checked 10.1 + 41.6 s, ASan-UBSan 13.3 + 166.7 s; MEMORY peak 1176 MB |
+
+Latest per-header runs on the same machine, in the optimized, checked and ASan/UBSan builds: P276 on 2026-11-10 did not record counts, so the counted rows are those of 2026-10-23 (CPython 3.14.7).
 
 | Command | Result |
 |---|---|
-| `29-weighteddsu_tester.py --mode full --seed 20261023` (GCC 16.2.1) | PASS, 3 configurations, 15,257,795 checks per configuration, 13 assertion probes, MEMORY peak 869 MB |
-| `CXX=g++-14 29-weighteddsu_tester.py --mode full --seed 20261023` (GCC 14.4.1, floor) | PASS, 15,257,795 checks per configuration, MEMORY peak 849 MB |
-| `29-weighteddsu_tester.py --mode stress --seed 7` | PASS, 59,186,521 checks per configuration, MEMORY peak 1205 MB |
-| `02-integration.py` | PASS, 174 standalone and aggregate headers, multi-TU, workspace; MEMORY peak 714 MB |
-| `03-consistency.py`, `plan.py check` | No errors |
+| 2026-11-10 P276: `29-weighteddsu_tester.py --mode full` on g++ and g++-14, `--mode stress`, extraction | PASS (counts not recorded) |
+| 2026-10-23: `29-weighteddsu_tester.py --mode full --seed 20261023` (GCC 16.2.1) | PASS, 3 configurations, 15,257,795 checks per configuration, 13 assertion probes, MEMORY peak 869 MB |
+| 2026-10-23: `CXX=g++-14 29-weighteddsu_tester.py --mode full --seed 20261023` (GCC 14.4.1, floor) | PASS, 15,257,795 checks per configuration, MEMORY peak 849 MB |
+| 2026-10-23: `29-weighteddsu_tester.py --mode stress --seed 7` | PASS, 59,186,521 checks per configuration, MEMORY peak 1205 MB |
+| 2026-10-23: `02-integration.py` | PASS, 174 standalone and aggregate headers, multi-TU, workspace; MEMORY peak 714 MB |
+| 2026-10-23: `03-consistency.py`, `plan.py check` | No errors |
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/29-weighteddsu_tester.py' --mode full --seed 20261023
@@ -99,7 +107,7 @@ python3 '00-Guidelines/13-Plan/plan.py' check
 
 Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-23-p035-sweep)); the implementation was written from the contract. The Library Checker statements `unionfind_with_potential` and `unionfind_with_potential_non_commutative_group` were not read (the pages render client-side).
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - Left out with reasons in [00-notes.md](00-notes.md#p035-omissions): a persistent weighted DSU.
 - Row 09 owns the generic undo substrate, row 63 drives rollback structures for offline deletion, and Graphs `26-dynamic_connectivity.hpp` owns bipartiteness under deletions. Component-wide actions with point reads are row 65 `DualDSU`.
@@ -112,7 +120,7 @@ Search aliases (P263, grab --find): 并查集, 并查集应用, 带权并查集,
 
 ## History
 
-- 2026-10-23: P035 first implementation (user decisions: `ParityDSU` as a 2n-node DSU, `inv` on row 00 `Sum`/`Xor`); independent review, 7 findings fixed across the package (here: `findSet` split from the recursive `root`, a negative `ParityDSU` probe); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-23: P035 first implementation (user decisions: `ParityDSU` as a 2n-node DSU, `inv` on row 00 `Sum`/`Xor`); the review's 7 findings were fixed across the package (here `findSet` split from the recursive `root` and a negative `ParityDSU` probe); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.
 - 2026-11-10: P276 rename (`getSize` → `size`); full on g++ and g++-14, stress and extraction passed.

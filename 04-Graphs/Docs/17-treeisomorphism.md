@@ -1,10 +1,10 @@
-# 17-treeisomorphism.hpp — evidence
+# 17-treeisomorphism.hpp — Evidence
 
-Owned by package P056 / GR06; omissions are in [00-notes.md](00-notes.md#p056-omissions). Contest profile. The header has a deterministic linear-time AHU classification with canonical ids, built on per-height tries. On top of it sit a Monte Carlo rooted hash, automorphism orbits, rooted and center-based isomorphism mappings, canonical strings and automorphism counts. The row was planned; there is no legacy code.
+Owned by package P056 / GR06; omissions are in [00-notes.md](00-notes.md#p056-omissions). Contest profile. The header holds a deterministic linear-time AHU classification with canonical ids, built on per-height tries, and on top of it a Monte Carlo rooted hash, automorphism orbits, rooted and center-based isomorphism mappings, canonical strings and automorphism counts. The row was planned; there is no legacy code.
 
 ## Contracts
 
-### Common domain
+### Common Domain
 
 Every function takes a tree: an undirected `Graph` or `CsrGraph`, connected, with `n >= 1` vertices and `n - 1` edges (all asserted through the edge count and a BFS that reaches every vertex). Weights are ignored.
 
@@ -100,7 +100,7 @@ The string is canonical but not the lexicographically smallest encoding.
 
 Search aliases (P263, grab --find): AHU 算法, 树哈希, 树同构, 有根树同构, 无根树同构, 树的最小表示, 树自同构.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 `96-Local Testing/04-Graphs/17-treeisomorphism_tester.py` uses the shared contest runner with `-Werror` warnings, in optimized, checked (`_GLIBCXX_DEBUG`, with probes) and ASan/UBSan (full and stress) builds.
 
@@ -121,33 +121,27 @@ Oracles:
 | `automorphismCount` | Every labelled tree n ≤ 6, plus 1 in 16 trees at n = 7 (`lll`, rooted and unrooted); families n ≤ 9; large star `(n-1)!`, path 2 and 1, complete binary tree `2^(2^(d-1)-1)` (`mint`) | Brute-force permutations; closed forms |
 | Preconditions | 9 probes: directed, root out of range, cycle, disconnected, empty, hash root, isomorphism root, automorphism root, unrooted cycle | Expected assertion failure |
 
-Planted mutants were each compiled against the quick suite on 2026-10-16. All 8 were killed:
+On 2026-10-16, 8 planted mutants, each compiled against the quick suite, were all killed: trie nodes never shared; preorder reversed; the second center equal to the first; automorphism runs off by one; orbits never shared; children paired in reverse; additive hash (killed by the saved regression); virtual root wrapped in parentheses.
 
-- trie nodes never shared;
-- preorder reversed;
-- the second center equal to the first;
-- automorphism runs off by one;
-- orbits never shared;
-- children paired in reverse;
-- additive hash (killed by the saved regression);
-- virtual root wrapped in parentheses.
+The checked build (`-O1 -D_GLIBCXX_DEBUG`) runs full and stress at n ≤ 7, 2,000 families and 50,000-vertex shapes, and the ASan/UBSan build runs stress at n ≤ 7, 2,000 families and 200,000-vertex shapes, so each run stayed inside the runner's former 180 s timeout.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 950 MB; optimized 0.1 s compile + 15.7 s run, checked 15.8 s compile + 83.6 s run, ASan-UBSan 18.2 s compile + 123.4 s run; MEMORY peak 1324 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 947 MB; optimized 0.3 s compile + 36.2 s run, checked 39.2 s compile + 194.9 s run, ASan-UBSan 40.9 s compile + 288.1 s run; MEMORY peak 1308 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 22.8 s compile + 0.5 s run, checked 22.1 s compile + 27.0 s run; MEMORY peak 944 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 56 MB; optimized 0.1 s compile + 99.3 s run, checked 11.0 s compile + 50.4 s run, ASan-UBSan 11.7 s compile + 78.2 s run; MEMORY peak 921 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, GNU++20, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`). The 2026-11-10 runs used seed 42, beside the other suites, with the build cache emptied before each cold run.
 
-2026-10-16, GCC 16.2.1 and GCC 14.4.1, Linux x86-64, GNU++20, 11th Gen Intel Core i9-11900H.
-
-| Command | Result |
-|---|---|
-| `17-treeisomorphism_tester.py --mode quick` | PASS 2 configurations, 1,642 cases, 639,138 checks, 9 probes; MEMORY peak 528 MB |
-| `17-treeisomorphism_tester.py --mode full --seed 1` | PASS 3 configurations, 20,249 cases, 4,664,734 checks (optimized; 3,366,430 in the capped checked build), 9 probes; 5 large non-isomorphic pairs; MEMORY peak 889 MB |
-| `CXX=g++-14 17-treeisomorphism_tester.py --mode full --seed 2` | PASS 3 configurations, 20,249 cases, 4,805,639 checks, 9 probes; MEMORY peak 884 MB |
-| `17-treeisomorphism_tester.py --mode stress --seed 3` | PASS 3 configurations, 290,393 cases, 39,646,926 checks (optimized: every labelled tree n ≤ 8, 10,000 families, 1,000,000-vertex shapes; ASan/UBSan 4,810,977 and checked 3,512,673 at their caps), 9 probes; MEMORY peak 896 MB |
-| `02-integration.py --sanitizers` | PASS 144 standalone/aggregate headers (each header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,763 MB |
-| `03-consistency.py` | No errors |
-
-The checked build (`-O1 -D_GLIBCXX_DEBUG`) runs full and stress at n ≤ 7, 2,000 families and 50,000-vertex shapes; the ASan/UBSan build runs stress at n ≤ 7, 2,000 families and 200,000-vertex shapes. Both caps keep each run inside the runner's former 180 s timeout.
+| Date | Command | Result |
+|---|---|---|
+| 2026-11-10 | `01-run.py --mode full` (P274, library-wide) | PASS (counts not recorded): pre-flight quick peak 950 MB; optimized 0.1 s compile + 15.7 s run, checked 15.8 + 83.6 s, ASan-UBSan 18.2 + 123.4 s; MEMORY peak 1324 MB |
+| 2026-11-10 | `CXX=g++-14 01-run.py --mode full` (P274) | PASS (counts not recorded): pre-flight quick peak 947 MB; optimized 0.3 + 36.2 s, checked 39.2 + 194.9 s, ASan-UBSan 40.9 + 288.1 s; MEMORY peak 1308 MB |
+| 2026-11-10 | `01-run.py --mode quick` (P274) | PASS (counts not recorded): optimized 22.8 + 0.5 s, checked 22.1 + 27.0 s; MEMORY peak 944 MB |
+| 2026-11-10 | `01-run.py --mode stress --rounds 1` (P274) | PASS (counts not recorded): pre-flight quick peak 56 MB; optimized 0.1 + 99.3 s, checked 11.0 + 50.4 s, ASan-UBSan 11.7 + 78.2 s; MEMORY peak 921 MB |
+| 2026-11-06 | P253: `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full; `02-integration.py` | PASS (counts not recorded) |
+| 2026-10-16 | `17-treeisomorphism_tester.py --mode quick` | PASS 2 configurations, 1,642 cases, 639,138 checks, 9 probes; MEMORY peak 528 MB |
+| 2026-10-16 | `17-treeisomorphism_tester.py --mode full --seed 1` | PASS 3 configurations, 20,249 cases, 4,664,734 checks (optimized; 3,366,430 in the capped checked build), 9 probes; 5 large non-isomorphic pairs; MEMORY peak 889 MB |
+| 2026-10-16 | `CXX=g++-14 17-treeisomorphism_tester.py --mode full --seed 2` | PASS 3 configurations, 20,249 cases, 4,805,639 checks, 9 probes; MEMORY peak 884 MB |
+| 2026-10-16 | `17-treeisomorphism_tester.py --mode stress --seed 3` | PASS 3 configurations, 290,393 cases, 39,646,926 checks (optimized: every labelled tree n ≤ 8, 10,000 families, 1,000,000-vertex shapes; ASan/UBSan 4,810,977 and checked 3,512,673 at their caps), 9 probes; MEMORY peak 896 MB |
+| 2026-10-16 | `02-integration.py --sanitizers` | PASS 144 standalone and aggregate headers (each header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,763 MB |
+| 2026-10-16 | `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/04-Graphs/17-treeisomorphism_tester.py' --mode quick
@@ -175,18 +169,20 @@ Fetched 2026-10-16; the ledger is [00-sources.md](00-sources.md#pages-fetched-on
 | [ei1333 tree-isomorphism](https://ei1333.github.io/library/graph/tree/tree-isomorphism.hpp), [hitonanode tree_isomorphism](https://hitonanode.github.io/cplib-cpp/tree/tree_isomorphism.hpp), [Koosaga tree_isomorphism](https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/tree_isomorphism.cpp), [maspypy subtree_hash](https://maspypy.github.io/library/graph/tree_dp/subtree_hash.hpp) | Catalog comparison: sort-based O(n log n) classification and randomized hashes |
 | [NetworkX isomorphism](https://networkx.org/documentation/stable/reference/algorithms/isomorphism.html) | Rooted and unrooted tree isomorphism return a mapping |
 
-The per-height trie with `mark` sharing is this library's formulation of the linear AHU bound. The catalogs fetched sort per level (O(n log n)) or hash. It was validated only by the tests above.
+The per-height trie with `mark` sharing is this library's formulation of the linear AHU bound; the catalogs fetched sort per level (O(n log n)) or hash. It is validated only by the tests above.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - Forests: join the roots (or the trees' centers) under a new vertex.
 - Vertex colours: no API.
 - Path rolling hashes on trees belong to Strings ([00-notes.md](00-notes.md#p056-omissions)).
 - General graph isomorphism is row 54; centers and centroids as standalone operations are row 14.
+- There is no mutation record yet; the 2026-10-16 planted mutants are the only mutation evidence.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## History
 
 - 2026-10-16: verified (P056); new row; completeness sweep added `allRootsClassification` and `rootedTreeIsomorphism`; independent review: 1 finding fixed (`rootedTreeHash` read past the BFS order under `NDEBUG` on non-trees), BFS reused from row 02; 8 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
-- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph, class H = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph, class H = Graph>`), so `grab` of a function brings that type; quick, full, `CXX=g++-14` full and integration passed; no mutation record, so no campaign.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

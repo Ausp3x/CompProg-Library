@@ -1,6 +1,6 @@
-# 15-segment_tree_2d.hpp — evidence
+# 15-segment_tree_2d.hpp — Evidence
 
-Package P028 (batch DS08). Replaces the unchanged extraction `SegTree2D` (`OLD/algorithms.cpp:2727–2856`). Indices are zero-based, every range is half-open (`[xl, xr) x [yl, yr)`), the first coordinate is the row (x), and preconditions are `assert`s checked once per operation.
+Package P028 (batch DS08). The header replaces the unchanged extraction `SegTree2D` (`OLD/algorithms.cpp:2727–2856`). Indices are zero-based, every range is half-open (`[xl, xr) x [yl, yr)`), the first coordinate is the row (x), and preconditions are `assert`s checked once per operation.
 
 ## Contracts
 
@@ -30,11 +30,11 @@ All four structures combine values with an operation that must be commutative: a
 - `get(i)`, `set(i, s)` O(log k) (push along the leaf's ancestors, then pull); `prod` and `apply` on a rectangle O(sqrt(k)): a node is skipped when its box misses the rectangle, used whole when its box lies inside, and split otherwise. With alternating median splits, a rectangle edge crosses O(sqrt(k)) boxes; equal coordinates do not break this, because two siblings split on y both straddling a horizontal edge would need the median below and above the edge at once. `allProd()` O(1).
 - The Library Checker task `dynamic_point_set_rectangle_affine_rectangle_sum` is `LazyKdTree<RangeAffineRangeSum<mint>>` over every point the input ever inserts (registered at `e()`); inserting or setting point `i` with weight `w` is `set(i, leaf(w))`.
 
-### Legacy mapping
+### Legacy Mapping
 
 `SegTree2D<Mon>` (recursive `4n x 4m` arrays, inclusive ranges, `Mon::init/ope/map/idS`, silent no-op on bad ranges) becomes `SegmentTree2DDense<M>`: `update(i, j, f)` is `set(i, j, mapping(f, get(i, j)))` or `apply` for a combining update, `query(i1, j1, i2, j2)` is `prod(i1, i2 + 1, j1, j2 + 1)`, `queryAll` is `allProd`. The row's `FenwickOfSegmentTrees` is dropped (see Limits).
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.cpp`, entry `15-segment_tree_2d_tester.py` (driver `_00_contest_runner.py`; three builds; 17 assertion probes).
 
@@ -48,29 +48,30 @@ Tester `96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.cpp`, entr
 | Runtime monoid state in all four structures | `statefulRun` | Point adds modulo a member modulus (7 and 10^9+7) in the dense and sparse trees, rectangle adds through `MonoidAction{Monoid}` with a capturing lambda in the dual tree, and rectangle affine maps through a stateful acted struct in `LazyKdTree`, on random grids up to 6 x 6 against brute arrays |
 | Preconditions | `invalid` | Negative and oversize grids, ragged rows, out-of-range cells and rectangles, reversed rectangles, weight-count mismatches, unregistered points, kd indices |
 
-Mutation check (2026-10-10, quick mode, temporary copies): 7 of 8 injected faults detected (column path skipped in `set`, skipped root-row propagation in `values`, sparse position ignoring index ties, wrong `firstX` bound, closed rectangle edge in `cover`, kd tag overwrite, missing root push); the survivor (`rowProd(xr - 1)` without decrementing `xr`) is equivalent, because the next `xr >>= 1` discards the low bit.
+A hand mutation check (2026-10-10, quick mode, temporary copies): 7 of 8 injected faults detected (column path skipped in `set`, skipped root-row propagation in `values`, sparse position ignoring index ties, wrong `firstX` bound, closed rectangle edge in `cover`, kd tag overwrite, missing root push); the survivor (`rowProd(xr - 1)` without decrementing `xr`) is equivalent, because the next `xr >>= 1` discards the low bit.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 873 MB; optimized 0.1 s compile + 0.3 s run, checked 24.8 s compile + 1.3 s run, ASan-UBSan 28.2 s compile + 3.2 s run; MEMORY peak 1094 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 935 MB; optimized 0.3 s compile + 0.5 s run, checked 29.8 s compile + 1.6 s run, ASan-UBSan 35.5 s compile + 3.2 s run; MEMORY peak 1051 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 34.8 s compile + 0.0 s run, checked 29.3 s compile + 0.4 s run; MEMORY peak 879 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 879 MB; optimized 0.1 s compile + 0.7 s run, checked 10.4 s compile + 3.4 s run, ASan-UBSan 11.8 s compile + 7.0 s run; MEMORY peak 574 MB. Dated rows below stay those commands' latest results.
+Machine: Linux x86-64, Intel Core i9-11900H, GNU++20, CPython 3.14.7; the runner's optimized, checked and ASan/UBSan builds.
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
+Library-wide runs of 2026-11-10 (P274; seed 42, beside the other suites, build cache emptied before each cold run), all passed. Times are compile + run seconds for this suite.
+
+| Command | Pre-flight quick peak | Optimized | Checked | ASan-UBSan | MEMORY peak |
+|---|---|---|---|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | 873 MB | 0.1 + 0.3 | 24.8 + 1.3 | 28.2 + 3.2 | 1094 MB |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | 935 MB | 0.3 + 0.5 | 29.8 + 1.6 | 35.5 + 3.2 | 1051 MB |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | | 34.8 + 0.0 | 29.3 + 0.4 | | 879 MB |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 879 MB | 0.1 + 0.7 | 10.4 + 3.4 | 11.8 + 7.0 | 574 MB |
+
+Package runs of 2026-10-17 (P027 monoid pass):
 
 | Command | Result |
 |---|---|
-| `15-segment_tree_2d_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 308,032 checks per configuration, 17 assertion probes, MEMORY peak 553 MB |
-| `CXX=g++-14 15-segment_tree_2d_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 308,032 checks per configuration, MEMORY peak 542 MB |
-| `15-segment_tree_2d_tester.py --mode stress --seed 7` | PASS, 1,369,924 checks per configuration, MEMORY peak 552 MB |
-| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
-| `03-consistency.py` | No errors |
-
-```bash
-python3 '96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.py' --mode full --seed 20261017
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.py' --mode full --seed 20261017
-python3 '96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/02-integration.py' --sanitizers
-python3 '96-Local Testing/03-consistency.py'
-```
+| `python3 '96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.py' --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 308,032 checks per configuration, 17 assertion probes, MEMORY peak 553 MB |
+| `CXX=g++-14 python3 '96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.py' --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 308,032 checks per configuration, MEMORY peak 542 MB |
+| `python3 '96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.py' --mode stress --seed 7` | PASS, 1,369,924 checks per configuration, MEMORY peak 552 MB |
+| `python3 '96-Local Testing/02-integration.py' --sanitizers` | PASS: 156 standalone and aggregate headers, scalar and available-AVX2 multi-TU, workspace, sanitizer self-tests; MEMORY peak 1834 MB |
+| `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
 ## Sources
 
@@ -82,11 +83,13 @@ python3 '96-Local Testing/03-consistency.py'
 
 Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); the implementation was written from the contract.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - `FenwickOfSegmentTrees` is dropped: `SegmentTree2DSparse::prod` answers the same prefix-in-x, range-in-y queries at the same O(log^2 k) bound, and `CompressedFenwick2D` (row 11) is the group-valued Fenwick of Fenwicks.
-- Left out with reasons in [00-notes.md](00-notes.md#p028-omissions): sparse `maxUp`/`minDown` searches, online rectangle-apply/point-get on registered points, fully online 2D trees, k-dimensional compressed trees, a pluggable range tree.
+- Row 15 is partial: `SegmentTree2DSparse::maxUp`, `SegmentTree2DSparse::minDown`, `DynamicSegmentTree2D`, `HybridSegmentTree2D` and `DynamicKdTree` are listed under `missing:` in the inventory row.
+- Pluggable range trees stay out, with the reason in [00-notes.md](00-notes.md#p028-omissions); row 43 owns range trees, including the k-dimensional `RangeTreeK`.
 - Geometry `28-spatial_index.hpp` keeps point-facing kd-tree queries (nearest, kNearest, radius, box reporting); `LazyKdTree` is the rectangle fold/apply engine.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## Aliases
 
@@ -97,6 +100,6 @@ Search aliases (P263, grab --find): 2D segment tree, segment tree of segment tre
 - 2026-10-10: P028 first verification; legacy `SegTree2D` replaced by `SegmentTree2DDense`, dual dense, sparse and lazy kd-tree added.
 - 2026-10-10: independent review (P028): no wrong answers; replaced two `size_t` loop counters; the reviewer's kd scaling probe on a 64 x 64 grid with heavy duplicates took 448, 1022 and 2245 ms for k = 2^16, 2^18, 2^20, about 2.2x per 4x, consistent with O(sqrt(k)).
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 553/542/552 MB.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-07: P263 added the search aliases (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

@@ -1,14 +1,6 @@
-# 24-transform_algorithms.hpp — evidence
+# 24-transform_algorithms.hpp — Evidence
 
-`24-transform_algorithms.hpp` covers scalar set and index transforms over any ring type `T`:
-
-- Subset, superset and Walsh–Hadamard transforms on `2^n` arrays, with the bitwise convolutions they diagonalize.
-- Divisor and multiple zeta/Möbius on index arrays `[1, n]`, with gcd and lcm convolutions.
-- Ranked (popcount-graded) transforms with subset and q-operand disjoint-union convolution.
-- Kronecker powers of any `D x D` kernel.
-- The legacy `FastConv` gcd/lcm transforms in place, over a caller's `LinearSieve` or by harmonic loops.
-
-It depends on `01-template.hpp` and `04-sieve_algorithms.hpp` (Eratosthenes primes, and `LinearSieve` for the legacy sieve overloads). Set power series (exp/log/composition) belong to row 66.
+`24-transform_algorithms.hpp` covers scalar set and index transforms over any ring type `T`: subset, superset and Walsh–Hadamard transforms on `2^n` arrays with the bitwise convolutions they diagonalize; divisor and multiple zeta/Möbius on index arrays `[1, n]` with gcd and lcm convolutions; ranked (popcount-graded) transforms with subset and q-operand disjoint-union convolution; Kronecker powers of any `D x D` kernel; and the legacy `FastConv` gcd/lcm transforms in place, over a caller's `LinearSieve` or by harmonic loops. It depends on `01-template.hpp` and `04-sieve_algorithms.hpp` (Eratosthenes primes, and `LinearSieve` for the legacy sieve overloads). Set power series (exp/log/composition) belong to row 66.
 
 ## Contracts
 
@@ -86,14 +78,12 @@ The rank product overwrites `f[k] = sum over i of f[i] g[k - i]` in descending `
 
 ### FastConv
 
-These are the legacy static in-place methods with their original names and signatures:
+The legacy static in-place methods, with their original signatures:
 
-- `fctGcd`/`fctLcm` are the multiple/divisor transforms using the primes of a caller's `LinearSieve`, asserted to cover `a.size() - 1`.
+- `fctGcd`/`fctLcm` are the multiple/divisor transforms using the primes of a caller's `LinearSieve`, asserted to cover `a.size() - 1` (the legacy forms had no such assertion, and a smaller sieve silently gave wrong answers);
 - `fctGcdSimple`/`fctLcmSimple` are the sieve-free harmonic loops in `O(n log(n))`.
 
-The legacy forms had no assertion on the sieve size; a smaller sieve silently gave wrong answers.
-
-### Legacy mapping
+### Legacy Mapping
 
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
@@ -103,7 +93,7 @@ The legacy forms had no assertion on the sieve size; a smaller sieve silently ga
 | `fctGcdSlow` (P276 rename, 2026-11-10) | `fctGcdSimple` |
 | `fctLcmSlow` (P276 rename, 2026-11-10) | `fctLcmSimple` |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`24-transform_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py>), with C++ cases in `24-transform_algorithms_tester.cpp`.
 
@@ -131,26 +121,36 @@ The types are `lng` (values ±30), 998244353 and 1e9+7, plus double, `__int128` 
 | `FastConv` (`fctGcd`, `fctLcm`, `fctGcdSimple`, `fctLcmSimple`) | The divisor-scan definitions and round trips for every `n` above; `fctGcd`/`fctLcm` with an exactly fitting `LinearSieve`, including `n = 0`. |
 | Preconditions | 14 checked-build probes: non-power-of-two and empty sizes; size mismatches in or/xor/subset/disjoint-union; non-square, empty and non-power kernels; ranked size and rank-count mismatch; no operands; a sieve smaller than the array for `fctGcd` and `fctLcm`. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 880 MB; optimized 0.2 s compile + 1.5 s run, checked 23.7 s compile + 2.6 s run, ASan-UBSan 26.0 s compile + 5.1 s run; MEMORY peak 1031 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 951 MB; optimized 0.2 s compile + 1.8 s run, checked 30.1 s compile + 2.8 s run, ASan-UBSan 34.1 s compile + 4.3 s run; MEMORY peak 1040 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.1 s compile + 0.0 s run, checked 27.4 s compile + 0.6 s run; MEMORY peak 881 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 881 MB; optimized 0.1 s compile + 6.2 s run, checked 9.4 s compile + 11.9 s run, ASan-UBSan 10.4 s compile + 17.6 s run; MEMORY peak 565 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, Linux x86-64, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`). Every command passed; times are compile + run.
 
-P055 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [13-convolution.md](13-convolution.md#commands-and-results).
+- 2026-11-10, P276 rename: the tester's full mode on g++ and g++-14, stress mode and extraction passed (counts not recorded).
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-```bash
-python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode full --seed 20261013
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode full --seed 20261013
-g++ -std=gnu++20 -Wall -Wextra -Wshadow -Wconversion -pedantic <configuration flags> -c '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.cpp' -o /dev/null  # each configuration, g++ and g++-14, memory-capped
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/03-consistency.py' --braces '05-Mathematics/24-transform_algorithms.hpp' '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.cpp'
-```
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 1.5 s | 23.7 + 2.6 s | 26.0 + 5.1 s | 1031 MB | 880 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 1.8 s | 30.1 + 2.8 s | 34.1 + 4.3 s | 1040 MB | 951 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 37.1 + 0.0 s | 27.4 + 0.6 s | — | 881 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 6.2 s | 9.4 + 11.9 s | 10.4 + 17.6 s | 565 MB | 881 MB |
 
-Full, seed 20261013: PASS in all three configurations with all 14 assertion probes, 28,167 checks per configuration; peak 501 MB on g++ and 547 MB on g++-14 (quick pre-flights 482 MB and 546 MB). The warning build reports no warnings in any configuration on either compiler. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
+- 2026-10-13, P055 prune, the latest run with check counts (GCC 16.2.1 20260810, GCC 14.4.1 20260915, Python 3.14.7; configurations as in [13-convolution.md](13-convolution.md#commands-and-results)):
+
+  ```bash
+  python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode full --seed 20261013
+  CXX=g++-14 python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode full --seed 20261013
+  g++ -std=gnu++20 -Wall -Wextra -Wshadow -Wconversion -pedantic <configuration flags> -c '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.cpp' -o /dev/null  # each configuration, g++ and g++-14, memory-capped
+  python3 '96-Local Testing/02-integration.py'
+  python3 '96-Local Testing/03-consistency.py'
+  python3 '96-Local Testing/03-consistency.py' --braces '05-Mathematics/24-transform_algorithms.hpp' '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.cpp'
+  ```
+
+  The full runs passed in all three configurations with all 14 assertion probes, 28,167 checks per configuration; peak 501 MB on g++ and 547 MB on g++-14 (quick pre-flights 482 MB and 546 MB). The warning build reported no warnings in any configuration on either compiler. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reported no errors, and `--braces` no closing-brace, comment-cap or free-function violations.
 
 ## Benchmarks
 
-Measured 2026-10-09 with the row 13 driver (`13-convolution_benchmark.py 5`): i9-11900H, GCC 16.2.1, `-O2` without `-march`, one warmup, median of 5, machine shared with a concurrent test run (±15%).
+`13-convolution_benchmark.py 5` (row 13's driver), 2026-10-09: i9-11900H, GCC 16.2.1, `-O2` without `-march`, one warmup, median of 5, machine shared with a concurrent test run (±15%).
 
 | Workload | Median |
 |---|---|
@@ -162,15 +162,19 @@ The subset product runs every `(k, i)` rank pair over all sets, about `n^2 N / 2
 
 ## Sources
 
-[00-sources.md](00-sources.md), P055 sweep: Library Checker set-power-series problems, maspypy `ranked_zeta`/`nt/zeta`, hitonanode zeta/Möbius and subset convolution, suisen `kronecker_power`, noshi91 transforms, OI Wiki FWT. Written independently. Legacy: `OLD/algorithms.cpp:3823-3933` (`FastConv`); its local excerpt was removed once this row was verified. The four gcd/lcm names keep their signatures and the sieve size is now asserted; `fctOr`, `fctAnd` and `fctXor` map to the transforms in the Legacy mapping, with the `fctXor` integer inverse fixed in `walshHadamard`.
+From [00-sources.md](00-sources.md), P055 sweep: Library Checker set-power-series problems, maspypy `ranked_zeta`/`nt/zeta`, hitonanode zeta/Möbius and subset convolution, suisen `kronecker_power`, noshi91 transforms, OI Wiki FWT. The code was written independently.
 
-Adopted by the P055 sweep: `kroneckerPowerTransform` widened from a 2 x 2 to any D x D kernel, and `disjointUnionConvolution` defined as the q-operand ranked product.
+The P055 sweep widened `kroneckerPowerTransform` from a 2 x 2 to any D x D kernel and defined `disjointUnionConvolution` as the q-operand ranked product.
 
-## Limits and handoffs
+Legacy: `OLD/algorithms.cpp:3823-3933` (`FastConv`); its local excerpt was removed once this row was verified. The four gcd/lcm names keep their signatures; `fctOr`, `fctAnd` and `fctXor` map to the transforms in Legacy Mapping.
 
+## Limits and Handoffs
+
+- The row is `partial`: `transformPolynomialEval` is missing.
 - Index transforms ignore index 0. Callers needing `gcd(0, x) = x` handle 0 separately.
 - Möbius transforms and inverses need additive inverses. Max/min (semigroup) zeta is a call-site loop or a Kronecker kernel over a semiring type; see the rejected candidates in [00-notes.md](00-notes.md).
 - Set power series (exp, log, composition, power projection) are row 66. Online subset transforms were handed off there or to row 52.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## Aliases
 
@@ -180,9 +184,9 @@ Search aliases (P263, grab --find): FWT (fast Walsh transform), FWHT (fast Walsh
 
 ## History
 
-- 2026-10-09: P055 initial implementation and verification, legacy `FastConv` migrated to wrappers, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
-- 2026-10-13: prune, removed `FastConv::fctOr`, `fctAnd` and `fctXor` (cases already covered by the zeta/Möbius and Walsh–Hadamard checks; explicit `inverse = false` forward check added); full suite passed on g++ and g++-14.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-09: P055 implementation and verification, legacy `FastConv` migrated to wrappers; `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune removed `FastConv::fctOr`, `fctAnd` and `fctXor` (their cases were already covered by the zeta/Möbius and Walsh–Hadamard checks; an explicit `inverse = false` forward check added); full passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases; no code or test change.
+- 2026-11-07: P263 follow-up added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.
 - 2026-11-10: P276 rename (`fctGcdSlow`, `fctLcmSlow` → `fctGcdSimple`, `fctLcmSimple`); full on g++ and g++-14, stress and extraction passed.

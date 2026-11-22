@@ -1,28 +1,28 @@
-# 19-treap.hpp — evidence
+# 19-treap.hpp — Evidence
 
-Package P029 (batch DS10). New header; the legacy reference `OLD/Team Notebook/src/ds/impltreap.cpp` informed `ImplicitTreap` (no `97-Legacy` excerpt existed). Indices are zero-based, ranges `[l, r)` half-open, `kth` 0-based; preconditions are `assert`s checked once per operation, with the recursive helpers (`join`, `cut`) left unchecked.
+Package P029 (batch DS10). New header; the legacy `OLD/Team Notebook/src/ds/impltreap.cpp` informed `ImplicitTreap` (no `97-Legacy` excerpt existed). Indices are zero-based, ranges `[l, r)` half-open and `kth` 0-based. Each operation asserts its preconditions once; the recursive helpers `join` and `cut` check nothing.
 
 ## Contracts
 
-Both structures keep every node in one pool `t`; node 0 is the empty tree (size 0), and a tree is the id of its root. Operations that can change a root take `int &v`; `split`, `merge`, `unite` and `build` take and return roots, and the trees passed in stop existing as separate trees. Nodes are never reused, so memory is O(nodes created); copying the struct copies the pool, giving an independent snapshot. Priorities are the high 32 bits of `CustomHash::splitMix64(seed++)`. `seed` defaults to `CustomHash::rnd` (clock ticks mixed with an address, the library's seeding policy), and the same seed with the same operation sequence reproduces the pool exactly. Randomization is Las Vegas: results never depend on the seed, and expected depth is O(log n) for every input order; equal 32-bit priorities only perturb balance. Recursion depth is the tree height, expected O(log n).
+Both structures keep every node in one pool `t`. Node 0 is the empty tree (size 0), and a tree is the id of its root. Operations that can change a root take `int &v`; `split`, `merge`, `unite` and `build` take and return roots, and the trees passed in stop existing separately. Nodes are never reused, so memory is O(nodes created), and copying the struct copies the pool as an independent snapshot. Priorities are the high 32 bits of `CustomHash::splitMix64(seed++)`. `seed` defaults to `CustomHash::rnd` (clock ticks mixed with an address, the library's seeding policy); the same seed with the same operations reproduces the pool exactly. Randomization is Las Vegas: results never depend on the seed, expected depth is O(log n) for every input order, and equal priorities only perturb balance. Recursion depth is the tree height.
 
 ### Treap<T>
 
-- `T` is totally ordered by `<` (a strict weak order) and default-constructible (the sentinel's key). A tree is a multiset: the search-tree order is non-strict on both sides, `insert` always adds a copy and `erase(v, x)` removes one copy, returning whether one existed.
-- `build(a)` asserts `a` is sorted (O(n) check) and builds in O(n) with a Cartesian stack over the priorities. `size(v)` O(1); `values(v)` in-order, O(n).
-- `split(v, x)` returns the keys `< x` and the keys `>= x`. `merge(a, b)` asserts that no key of `b` is below a key of `a`, walking the right spine of `a` and the left spine of `b` (expected O(log n), the same as the join), then joins. `unite(a, b)` is the multiset union of two arbitrary trees: the root with the higher priority splits the other tree by its key, and the halves are united recursively, expected O(m log(n / m + 1)) for sizes `m <= n`.
-- Arguments may reference the pool (`insert(s, kth(r, 0))`): `insert` splits before it allocates the new node. Under `NDEBUG` an out-of-range `kth` stops at the empty node and returns its key.
-- `insert`, `erase` and the read-only queries are expected O(log n): `find(v, x)` returns a node holding `x` or 0; `kth(v, k)` asserts `0 <= k < size(v)`; `rank` counts keys `< x` and `upperRank` keys `<= x`; `lowerBound` and `upperBound` return the node of the first key `>= x` or `> x`, or 0. A returned node id stays valid, with `t[id].key` readable, until that copy is erased.
+- `T` is totally ordered by `<` (a strict weak order) and default-constructible (the sentinel's key). A tree is a multiset: the order is non-strict on both sides, `insert` always adds a copy, and `erase(v, x)` removes one copy and returns whether one existed.
+- `build(a)` asserts `a` is sorted (O(n) check) and builds in O(n) with a Cartesian stack over the priorities. `size(v)` is O(1); `values(v)` lists keys in order in O(n).
+- `split(v, x)` returns the keys `< x` and the keys `>= x`. `merge(a, b)` asserts that no key of `b` is below a key of `a` by walking the right spine of `a` and the left spine of `b` (expected O(log n), as the join), then joins. `unite(a, b)` is the multiset union of two arbitrary trees: the root with the higher priority splits the other tree by its key and the halves are united recursively, expected O(m log(n / m + 1)) for sizes `m <= n`.
+- `insert`, `erase` and the queries are expected O(log n). `find(v, x)` returns a node holding `x` or 0; `kth(v, k)` asserts `0 <= k < size(v)`; `rank` counts keys `< x` and `upperRank` keys `<= x`; `lowerBound` and `upperBound` return the node of the first key `>= x` or `> x`, or 0. A returned node id stays valid, with `t[id].key` readable, until that copy is erased.
+- Arguments may reference the pool (`insert(s, kth(r, 0))`), because `insert` splits before it allocates. Under `NDEBUG` an out-of-range `kth` stops at the empty node and returns its key.
 
 ### ImplicitTreap<A>
 
-- `A` is an acted monoid as in `00-monoids.hpp` (`S`, `F`, `op`, `e`, `mapping`, `composition(f, g)` applying `f` after `g`, `id`), stored as `m` and passed last (`ImplicitTreap(seed = CustomHash::rnd, mon = {})`, stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract)). `all` applies an action to a node's own value and product at once and keeps it in `lz` for the children; the `act` flag makes equality on `F` unnecessary.
-- Reversal: `flip` swaps a node's children at once and toggles `rev` (its children's subtrees still to flip). It replaces the product by `m.reverse(sum)` when `A` declares `reverse(const S &)` (static or a `const` member; the product of the reversed sequence; `Reversible<M>` supplies it for any monoid), so a noncommutative `op` stays exact if `S` carries both directions. Without the hook, `op` must be commutative for products after a reversal to be exact. A one-element `S` must equal its own reverse. Pending reversals and actions commute because actions act elementwise.
-- `build(a)` O(n); `size(v)` O(1); `values(v)` pushes every tag, O(n); `at(v, i)` pushes along its path and returns the value (under `NDEBUG` an out-of-range `i` stops at the empty node and returns `e()`). A value referencing the pool may be inserted, because a new node copies it before the pool grows.
-- `split(v, k)` (asserts `0 <= k <= size(v)`) returns the first `k` elements and the rest; `merge(a, b)` concatenates. `insert(v, i, x)` (`0 <= i <= size`), `erase(v, i)`, `set(v, i, x)`, `reverse(v, l, r)`, `apply(v, l, r, f)` and `prod(v, l, r)` (`e()` on an empty range) cut out the range, act on it and merge it back, expected O(log n) each. `prod`, `maxRight` and `minLeft` therefore also take `int &v`.
-- `maxRight(v, l, pred)` returns the largest `r` with `pred(prod(l, r))`, and `minLeft(v, r, pred)` the smallest `l` with `pred(prod(l, r))`. Both assert `pred(e())`; the predicate must stay false once it fails as the range grows. Each descends one cut part, expected O(log n).
+- `A` is an acted monoid as in `00-monoids.hpp` (`S`, `F`, `op`, `e`, `mapping`, `composition(f, g)` applying `f` after `g`, `id`), stored as `m` and passed last: `ImplicitTreap(seed = CustomHash::rnd, mon = {})`, under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract). `all` applies an action to a node's value and product at once and keeps it in `lz` for the children; an `act` flag removes the need for equality on `F`.
+- Reversal: `flip` swaps a node's children and toggles `rev`, which marks its children's subtrees as still to flip. When `A` declares `reverse(const S &)` (static or a `const` member, giving the product of the reversed sequence; `Reversible<M>` supplies it for any monoid), `flip` replaces the product by `m.reverse(sum)`, so a noncommutative `op` stays exact if `S` carries both directions. Without the hook, `op` must be commutative for products after a reversal to be exact. A one-element `S` must equal its own reverse. Pending reversals and actions commute because actions act elementwise.
+- `build(a)` is O(n); `size(v)` O(1); `values(v)` pushes every tag in O(n). `at(v, i)` pushes along its path and returns the value; under `NDEBUG` an out-of-range `i` stops at the empty node and returns `e()`. A value referencing the pool may be inserted, because the new node copies it before the pool grows.
+- `split(v, k)` asserts `0 <= k <= size(v)` and returns the first `k` elements and the rest; `merge(a, b)` concatenates. `insert(v, i, x)` (`0 <= i <= size`), `erase(v, i)`, `set(v, i, x)`, `reverse(v, l, r)`, `apply(v, l, r, f)` and `prod(v, l, r)` (`e()` on an empty range) cut out the range, act on it and merge it back, expected O(log n) each. `prod`, `maxRight` and `minLeft` therefore also take `int &v`.
+- `maxRight(v, l, pred)` returns the largest `r` with `pred(prod(l, r))`, and `minLeft(v, r, pred)` the smallest `l` with `pred(prod(l, r))`. Both assert `pred(e())`, and the predicate must stay false once it fails as the range grows. Each descends one cut part in expected O(log n).
 
-### Legacy mapping
+### Legacy Mapping
 
 | Legacy (`impltreap.cpp`) | New |
 |---|---|
@@ -34,29 +34,36 @@ Both structures keep every node in one pool `t`; node 0 is the empty tree (size 
 | `split(i, k, l, r)` out-parameters, `merge` | `split(v, k)` returning a pair, `merge(a, b)` |
 | static clock-seeded `mt19937`, `reserve(500000)` | `seed` parameter (default `CustomHash::rnd`), no fixed reserve |
 
-The legacy tree compared lazy tags with `!=` (equality on `F` required) and silently ignored invalid ranges.
+The legacy tree compared lazy tags with `!=`, which needed equality on `F`, and silently ignored invalid ranges.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/19-treap_tester.cpp`, entry `19-treap_tester.py` (driver `_00_contest_runner.py`; three builds; 18 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
 | Treap `insert`, `erase` (present and absent), `find`, `kth`, `rank`, `upperRank`, `lowerBound`, `upperBound`, `size`, `values`, `split`, `merge`, `unite`, `build`; four trees in one pool; `lng` keys from `[-30, 30]` and the full range, `string` keys | `keyRandom` | `std::multiset` per tree: bounds, `std::distance` ranks, `std::next` order statistics, split halves; merges of halves taken from different trees |
-| Empty trees, `INT64_MIN`/`INT64_MAX` keys, duplicates, merge of built trees, copy independence, seed reproducibility and seed sensitivity, height under sorted inserts and small-to-large unions (`4 * bit_width(n) + 20`), keys passed by reference into a growing pool | `keyEdges` | Direct values; heights by an explicit traversal; `std::multiset` for the aliasing loop |
+| Empty trees, `INT64_MIN`/`INT64_MAX` keys, duplicates, merge of built trees, copy independence, seed reproducibility and sensitivity, height under sorted inserts and small-to-large unions (`4 * bit_width(n) + 20`), keys passed by reference into a growing pool | `keyEdges` | Direct values; heights by an explicit traversal; `std::multiset` for the aliasing loop |
 | ImplicitTreap `insert`, `erase`, `at`, `set`, `reverse`, `apply`, `prod`, `split`/`merge` (rotation and moving a prefix to another sequence), `build`, `values`, `size`, `maxRight`, `minLeft`; three sequences in one pool | `implicitRandom` with a reversible affine composite under range assignment (noncommutative, tester-written `reverse`), the same through the library's `Reversible<RangeAssignRangeComposite>` adapter, reversible strings under case actions, affine maps on sums (commutative, no hook), range add with range max, and a stateful affine sum modulo a member modulus (7 and 998244353) | `vector` of values: `std::reverse`, elementwise `mapping`, left-to-right fold, `std::rotate`, linear predicate scans |
-| Seed reproducibility and seed sensitivity, values passed by reference into a growing pool, empty sequences, nested reversals with actions, empty-range updates, copy independence, searches at the ends | `implicitEdges` | Direct values; pools compared node by node |
+| Seed reproducibility and sensitivity, values passed by reference into a growing pool, empty sequences, nested reversals with actions, empty-range updates, copy independence, searches at the ends | `implicitEdges` | Direct values; pools compared node by node |
 | Preconditions | `invalid` | `kth` ranks and empty tree, unordered `merge`, unsorted `build`, position and range bounds of every sequence operation, a predicate false on `e()` |
 
-Mutation check (2026-10-13, quick mode, temporary copies): 10 of 10 injected faults detected. They covered equal keys sent left by `split`, a missing `pull` in `erase`, swapped `unite` halves, a strict `upperRank`, a skipped reverse hook, a `push` that flips one child, the composition order, `maxRight` skipping a left subtree, `minLeft` keeping its boundary and a strict `lowerBound`.
+A hand mutation check on 2026-10-13 (quick mode, temporary copies) detected 10 of 10 injected faults: equal keys sent left by `split`, a missing `pull` in `erase`, swapped `unite` halves, a strict `upperRank`, a skipped reverse hook, a `push` that flips one child, the composition order, `maxRight` skipping a left subtree, `minLeft` keeping its boundary and a strict `lowerBound`.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1089 MB; optimized 0.1 s compile + 5.8 s run, checked 40.7 s compile + 8.4 s run, ASan-UBSan 53.2 s compile + 59.9 s run; MEMORY peak 1538 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1108 MB; optimized 0.3 s compile + 11.3 s run, checked 54.5 s compile + 12.2 s run, ASan-UBSan 64.5 s compile + 53.2 s run; MEMORY peak 1559 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 49.4 s compile + 0.4 s run, checked 41.2 s compile + 2.8 s run; MEMORY peak 1096 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1086 MB; optimized 0.1 s compile + 18.2 s run, checked 18.1 s compile + 23.3 s run, ASan-UBSan 25.5 s compile + 167.2 s run; MEMORY peak 849 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 1089 MB; optimized 0.1 + 5.8 s, checked 40.7 + 8.4 s, ASan-UBSan 53.2 + 59.9 s; MEMORY peak 1538 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 1108 MB; optimized 0.3 + 11.3 s, checked 54.5 + 12.2 s, ASan-UBSan 64.5 + 53.2 s; MEMORY peak 1559 MB |
+| `01-run.py --mode quick` | Optimized 49.4 + 0.4 s, checked 41.2 + 2.8 s; MEMORY peak 1096 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 1086 MB; optimized 0.1 + 18.2 s, checked 18.1 + 23.3 s, ASan-UBSan 25.5 + 167.2 s; MEMORY peak 849 MB |
 
-| Command | Result |
+Latest per-header run 2026-10-17 (P027 monoid pass) on the same machine with CPython 3.14.7, in the optimized, checked and ASan/UBSan builds:
+
+| Command (2026-10-17) | Result |
 |---|---|
 | `19-treap_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 1,085,373 checks per configuration, 18 assertion probes, MEMORY peak 740 MB |
 | `CXX=g++-14 19-treap_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 1,085,373 checks per configuration, MEMORY peak 749 MB |
@@ -82,11 +89,11 @@ python3 '96-Local Testing/03-consistency.py'
 
 Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-13-p029-sweep)); the implementation was written from the contract.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p029-omissions): `prev`/`next` keys, `count`, `intersect`, split by count, key-range products, `rotate` and end pushes.
+- Row 19 is partial; its `missing:` list names the operations P275 returned. Left out with reasons in [00-notes.md](00-notes.md#p029-omissions): Treap `next` and difference. Key-range monoid products are row 20 `OrderedMonoidMap`.
 - Persistent treaps belong to row 58, splay trees and RBSTs to row 20; ordered maps with order statistics without split/merge are row 07.
-- Bounds are expected; a caller who fixes the seed and lets an adversary see it loses the expected-depth guarantee.
+- Bounds are expected: a caller who fixes the seed and lets an adversary see it loses the expected-depth guarantee.
 
 ## Aliases
 
@@ -94,8 +101,8 @@ Search aliases (P263, grab --find): implicit treap, Cartesian tree with implicit
 
 ## History
 
-- 2026-10-13: P029 first verification. The independent review led to three fixes, each with a regression test: `insert` with a key referencing the growing pool, `kth`/`at` loops that were unbounded under `NDEBUG`, and the missing `ImplicitTreap` seed test.
-- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 740/749/781 MB.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-13: P029 first verification. The independent review led to three fixes, each with a regression test: `insert` with a key referencing the growing pool, `kth`/`at` loops unbounded under `NDEBUG`, and the missing `ImplicitTreap` seed test.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract, `prod`/`allProd` names, stateful-monoid tests); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 added the search aliases (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added the Chinese aliases (OI Wiki page titles and common names, Simplified with Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

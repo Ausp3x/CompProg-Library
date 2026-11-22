@@ -1,13 +1,6 @@
-# 20-continued_fraction.hpp — evidence
+# 20-continued_fraction.hpp — Evidence
 
-`20-continued_fraction.hpp` covers:
-
-- continued fractions of rationals and quadratic irrationals, with convergents and semiconvergents;
-- one- and two-sided rational approximation, and binary search over fractions;
-- the Stern–Brocot tree;
-- Farey sequences, including the k-th term and rational counting.
-
-It depends on `01-mod_arithmetic.hpp` (`floorDiv`, `modNorm`, `extendedGcd`), on `04-sieve_algorithms.hpp` (`LinearSieve::mobiusTable`) and on `18-floorsum.hpp` (`floorSum`, `forEachQuotientBlock`). Fractions are `pair<lng, lng>` `{p, q}`. `1/0` stands for `+infinity` where stated.
+`20-continued_fraction.hpp` covers continued fractions of rationals and quadratic irrationals with convergents and semiconvergents; one- and two-sided rational approximation and binary search over fractions; the Stern–Brocot tree; and Farey sequences, including the k-th term and rational counting. It depends on `01-mod_arithmetic.hpp` (`floorDiv`, `modNorm`, `extendedGcd`), `04-sieve_algorithms.hpp` (`LinearSieve::mobiusTable`) and `18-floorsum.hpp` (`floorSum`, `forEachQuotientBlock`). Fractions are `pair<lng, lng>` `{p, q}`; `1/0` stands for `+infinity` where stated.
 
 ## Contracts
 
@@ -82,15 +75,11 @@ Algorithm: let `L(v)` count the pairs `(r, s)` with `1 <= s <= v`, `r >= 0` and 
 
 `continued_fraction_detail::Mertens` sieves `mu` with `LinearSieve` up to `n^(2/3)`. It gets the larger quotient values from `M(v) = 1 - sum over g >= 2 of M(floor(v / g))`, in increasing order, in `O(n^(2/3))` time and memory. `fareyKth` builds it once and runs `fractionBinarySearch` with the predicate `#{terms <= p/q} > k`, using `O(log(n))` counts.
 
-### Legacy mapping
+### Legacy Mapping
 
-No archived implementation existed. Before implementation, the planned row's `SternBrocot: encode, decode, lca, ancestor, child, range` became the free functions `sternBrocotEncode` … `sternBrocotChildren`, because `03-cpp.md` keeps algorithm headers free of holder structs. `child` became `sternBrocotChildren`, which returns both children, since a direction flag would choose between operations.
+No archived implementation existed. Before implementation, the planned row's `SternBrocot: encode, decode, lca, ancestor, child, range` became the free functions `sternBrocotEncode` … `sternBrocotChildren`, because algorithm headers hold no holder structs (`03-cpp.md`, API Contracts). `child` became `sternBrocotChildren`, which returns both children, since a direction flag would choose between operations.
 
-Aliases: KACTL `fracBS`, maspypy `rational_binary_search`, Nyaan `binary_search_on_stern_brocot_tree` (`fractionBinarySearch`); cp-algorithms `middle` (`rationalInInterval`); Nyaan `go_parent`, suisen `move_up` (`sternBrocotAncestor`); Library Checker `rational_approximation` (`bestRationalApproximation`); maspypy `range_rational_count` count and kth (`countRationalsInRange`, `fareyKth`); the rank in `F_n` (`countRationalsInRange(n, 0, 1, p, q)`).
-
-Search aliases (P263, grab --find): 连分数, Stern–Brocot 树与 Farey 序列, 最佳有理逼近, 法里数列, 法里序列, 渐近分数, 循环连分数.
-
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`20-continued_fraction_tester.py`](<../../96-Local Testing/05-Mathematics/20-continued_fraction_tester.py>).
 
@@ -106,21 +95,31 @@ Entry: [`20-continued_fraction_tester.py`](<../../96-Local Testing/05-Mathematic
 | `fareySequence`, `fareyNext`, `fareyKth`, `countRationalsInRange` | Enumeration for every `n <= 60`: every term, every successor, every k-th term, and counts between sampled terms and below `x/y` up to 20/1. Counts against an `O(n log(n))` divisor-sieve recurrence that does not use Mertens, up to `n = 200000`. k-th terms with exactly `k` smaller terms, and successor certificates. At `n = 10^9` and `999999937`, ranks and successors agree. Python enumeration with `Fraction` for `n <= 120`. |
 | Preconditions | Seventeen checked-build death probes: `q = 0`; quadratic `Q = 0` and `D < 0`; a zero term and an overflowing convergent; a negative semiconvergent term; `y = 0`; a reversed interval; `n = 0` search; a non-coprime node; a bad path character; `k < 0`; a zero node; `fareySequence(0)`; `fareyNext` with `p = q`; `k` past the last term; a reversed count range. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 36 violating calls, including nonpositive nodes, negative `D`, reversed intervals and `n <= 0` searches, terminate. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 823 MB; optimized 0.1 s compile + 51.0 s run, checked 19.0 s compile + 79.6 s run, ASan-UBSan 24.2 s compile + 87.1 s run; MEMORY peak 1030 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 896 MB; optimized 0.2 s compile + 64.6 s run, checked 22.6 s compile + 109.9 s run, ASan-UBSan 28.1 s compile + 128.4 s run; MEMORY peak 1070 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 25.5 s compile + 5.1 s run, checked 17.9 s compile + 22.2 s run; MEMORY peak 821 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 51 MB; optimized 0.0 s compile + 87.9 s run, checked 7.5 s compile + 93.8 s run, ASan-UBSan 9.8 s compile + 112.3 s run; MEMORY peak 1021 MB. Dated rows below stay those commands' latest results.
+Conditions as in [18-floorsum.md](18-floorsum.md#commands-and-results). Every command passed; times are compile + run.
 
-Full runs 2026-10-19 (after the row 18 change, recorded in [18-floorsum.md](18-floorsum.md)), stress 2026-10-18; conditions as in [18-floorsum.md](18-floorsum.md).
+- 2026-11-10, P276 call-site rename of `mobiusTable`: the tester's full mode on g++ and g++-14, stress mode and extraction passed (counts not recorded).
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-| Command | Result |
-|---|---|
-| `20-continued_fraction_tester.py --mode full --seed 1` | PASS, 3,805,206 C++ checks and 3000 Python rows per configuration, 17 assertion probes, `MEMORY peak=818MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=817MB` |
-| `20-continued_fraction_tester.py --mode stress --seed 7` | PASS, 25,257,307 C++ checks and 20,000 Python rows per configuration, 17 assertion probes, `MEMORY peak=1063MB` |
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 51.0 s | 19.0 + 79.6 s | 24.2 + 87.1 s | 1030 MB | 823 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 64.6 s | 22.6 + 109.9 s | 28.1 + 128.4 s | 1070 MB | 896 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 25.5 + 5.1 s | 17.9 + 22.2 s | — | 821 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.0 + 87.9 s | 7.5 + 93.8 s | 9.8 + 112.3 s | 1021 MB | 51 MB |
+
+- The latest runs with check counts: full on 2026-10-19 (P037 round 3, after the row 18 change), stress on 2026-10-18 (P060).
+
+  | Command | Result |
+  |---|---|
+  | `20-continued_fraction_tester.py --mode full --seed 1` | PASS, 3,805,206 C++ checks and 3000 Python rows per configuration, 17 assertion probes, `MEMORY peak=818MB` |
+  | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=817MB` |
+  | `20-continued_fraction_tester.py --mode stress --seed 7` | PASS, 25,257,307 C++ checks and 20,000 Python rows per configuration, 17 assertion probes, `MEMORY peak=1063MB` |
 
 ## Benchmarks
 
-From `18-floorsum_benchmark.py` (2026-10-18: GCC 16.2.1, `-O2` without `-march`, i9-11900H, one warmup, median of 5), `k = n / 3`, with the rank of the result verified:
+From `18-floorsum_benchmark.py`, 2026-10-18: GCC 16.2.1, `-O2` without `-march`, i9-11900H, one warmup, median of 5; `k = n / 3`, with the rank of the result verified.
 
 | `n` | `fareyKth` | `countRationalsInRange(n, 0, 1, p, q)` |
 |---|---|---|
@@ -129,25 +128,34 @@ From `18-floorsum_benchmark.py` (2026-10-18: GCC 16.2.1, `-O2` without `-march`,
 
 ## Sources
 
-Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep). Implemented from the stated identities, with no external code copied.
+Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep). The code was implemented from the stated identities; no external code was copied.
 
 - Library Checker `stern_brocot_tree` and `rational_approximation`: query set, `-1` convention, open ranges, and bounds on both numerator and denominator.
 - cp-algorithms "Continued fractions" and "Stern–Brocot tree and Farey sequences": quadratic irrationals, convergents and semiconvergents, `middle`, and Farey neighbours.
 - KACTL `FracBinarySearch.h` and `ContinuedFractions.h`, maspypy `nt/` and Nyaan `math/`: the binary-search contract and the Farey k-th term.
 - OI Wiki 连分数 and Stern–Brocot 树与 Farey 序列: Farey rank and the multi-dimensional quotient sums behind the count.
 
-## Limits and handoffs
+## Limits and Handoffs
 
+- The row is `partial`: `PeriodicContinuedFraction::convergent`, `compareContinuedFractions`, `bestRationalApproximationReal`, `sternBrocotDepth`, `sternBrocotDistance`, `sternBrocotIsAncestor`, `sternBrocotMove`, `sternBrocotComparePreOrder`, `sternBrocotComparePostOrder`, `fareySequenceCount`, `calkinWilfParent`, `calkinWilfChildren` and `sternDiatomic` are missing.
 - Memory for the Farey count is about 9 n^(2/3) bytes (the sieve's smallest-prime-factor and `mu` tables plus the Mertens prefix), so `n = 10^9` uses about 9 MB and `n = 10^13` about 4 GB.
-- `continued_fraction_detail::Mertens` is local. Row 31 `mobiusSum` (planned) would own Mertens values on quotient blocks; when it is verified, `fareyKth` and `countRationalsInRange` can call it.
-- `continued_fraction_detail::isqrt` (128-bit floor square root) duplicates the planned row 21 `isqrt`; call row 21 once it is verified, as [34-quadratic_congruence.md](34-quadratic_congruence.md) records for its own helper.
+- `continued_fraction_detail::Mertens` is local. Row 31 `mobiusSum` (planned) would own Mertens values on quotient blocks; once it is verified, `fareyKth` and `countRationalsInRange` can call it.
+- `continued_fraction_detail::isqrt` (128-bit floor square root) duplicates row 21 `isqrt128`; migrating to it is this package's follow-up ([21-integer_roots.md](21-integer_roots.md#limits-and-handoffs)).
 - Period lengths of quadratic irrationals grow like `sqrt(D Q^2)`. The output size is the caller's bound, as in row 34 `pellFundamental`.
 - Pell equations (row 34), rational reconstruction (row 43) and convex lattice hulls (row 55) stay in their rows.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+Catalog aliases: KACTL `fracBS`, maspypy `rational_binary_search`, Nyaan `binary_search_on_stern_brocot_tree` (`fractionBinarySearch`); cp-algorithms `middle` (`rationalInInterval`); Nyaan `go_parent`, suisen `move_up` (`sternBrocotAncestor`); Library Checker `rational_approximation` (`bestRationalApproximation`); maspypy `range_rational_count` count and kth (`countRationalsInRange`, `fareyKth`); the rank in `F_n` (`countRationalsInRange(n, 0, 1, p, q)`).
+
+Search aliases (P263, grab --find): 连分数, Stern–Brocot 树与 Farey 序列, 最佳有理逼近, 法里数列, 法里序列, 渐近分数, 循环连分数.
+
 
 ## History
 
-- 2026-10-18: P060 initial implementation; `@reviewer` found 8 issues, all fixed (precondition checks, `-DNDEBUG` termination, complexity statements, the `n <= 10^13` bound); full suite passed on g++ and g++-14, stress seed 7 passed.
-- 2026-10-19: P037 round-3 rerun (included `18-floorsum.hpp` changed), header unchanged; full passed on g++ and g++-14.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-18: P060 implementation; `@reviewer` found 8 issues, all fixed (precondition checks, `-DNDEBUG` termination, complexity statements, the `n <= 10^13` bound); full passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19: P037 round-3 rerun after `18-floorsum.hpp` changed, header unchanged; full passed on g++ and g++-14.
+- 2026-11-07: P263 added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.
 - 2026-11-10: P276 rename (call site of `mobiusTable`); full on g++ and g++-14, stress and extraction passed.

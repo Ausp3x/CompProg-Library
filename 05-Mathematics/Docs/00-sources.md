@@ -1,6 +1,6 @@
-# 05 Mathematics — sources
+# 05 Mathematics — Sources
 
-## Catalog sweep (fetched 2026-10-06)
+## Catalog Sweep (Fetched 2026-10-06)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -35,11 +35,11 @@
 | FLINT documentation index | https://flintlib.org/doc/ | 2026-10-06 | module families: ulong_extras, fmpz_lll, aprcl, ecpp, qsieve, arith, qfb, dirichlet, dlog, nf, qqbar, arb/acb, ca, fq, padic, perm, partitions |
 | NTL module tour | https://libntl.org/doc/tour-modules.html | 2026-10-06 | HNF, LLL, ZZXFactoring, GF2E/GF2EX, RR, quad_float, mat_poly characteristic polynomial |
 
-## Source keys
+## Source Keys
 
 Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys); a row's keys name the catalogs above whose Used-for entry names that row or one of its operations.
 
-## P012 re-audit sweep (fetched 2026-10-07)
+## P012 Re-Audit Sweep (Fetched 2026-10-07)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -50,9 +50,9 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 | Nyaan `modulo/binomial.hpp` | https://nyaannyaan.github.io/library/modulo/binomial.hpp | 2026-10-07 | `combiLarge` (large n, small r) |
 | Nyaan `modulo/binomial-table.hpp`, cp-algorithms binomial coefficients | https://nyaannyaan.github.io/library/modulo/binomial-table.hpp, https://cp-algorithms.com/combinatorics/binomial-coefficients.html | 2026-10-07 | `binomialTable` (Pascal, any modulus) |
 | ei1333 `montmort.hpp`; Library Checker `montmort_number_mod` statement | https://ei1333.github.io/library/math/combinatorics/montmort.hpp, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/montmort_number_mod/task.md | 2026-10-07 | `derangementTable` (any modulus) |
-| Sources checked with nothing adopted | ACL `internal_math.hpp`, KACTL number-theory and numerical, Nyaan `misc/int_div.hpp`, maspypy `my_template.hpp`, hitonanode `binary_gcd.hpp`, `sieve.hpp`, `bs_sieve.hpp`, maspypy `nt/all_lcm.hpp`, `mod/modint_common.hpp`, `mod/first_mod_range_of_linear.hpp`, PyRival numerical and combinatorics, OI Wiki sieve | 2026-10-07 | reasons in [00-notes.md](00-notes.md) |
+| Sources checked with nothing adopted | ACL `internal_math.hpp`, KACTL number-theory and numerical, Nyaan `misc/int_div.hpp`, maspypy `my_template.hpp`, hitonanode `binary_gcd.hpp`, `sieve.hpp`, `bs_sieve.hpp`, maspypy `nt/all_lcm.hpp`, `mod/modint_common.hpp`, `mod/first_mod_range_of_linear.hpp`, PyRival numerical and combinatorics, OI Wiki sieve | 2026-10-07 | reasons in [00-notes.md](00-notes.md); P275 later returned `bs_sieve` as row 04 `primeCount`, `all_lcm` as row 07 `lcmMod` |
 
-## P012 MA01 sweep (fetched 2026-11-12)
+## P012 MA01 Sweep (Fetched 2026-11-12)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -73,7 +73,7 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 | The number of solutions to ax + by = n, Corollary 12 | https://arxiv.org/pdf/1910.03079 | 2026-11-12 | row 18 `countRepresentableSylvester` (planned): at most one representation below `a * b` |
 | Böcker and Lipták, The Money Changing Problem Revisited: Computing the Frobenius Number in Time O(ka1), COCOON 2005, LNCS 3595, pp. 965–974 (journal version Algorithmica 48 (2007) 413–432 not reachable: Springer login) | https://www.yumpu.com/en/document/view/37799071/the-money-changing-problem-revisited-universitat-bielefeld | 2026-11-13 | row 03 `residueShortestPath`: Theorem 1 (Θ(k a1) time, O(1) extra memory), Section 3 (cycles from a minimal entry); earlier Dijkstra methods O(k a1 log a1) |
 
-## P012 MA02 sweep (fetched 2026-11-14, `@researcher`)
+## P012 MA02 Sweep (Fetched 2026-11-14, `@researcher`)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -93,7 +93,7 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 | hitonanode `big_combination_logarithm.hpp` | https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/number/big_combination_logarithm.hpp | 2026-11-14 | row 05 `LogCombinatorics` (a `double` running-sum table; no `lgamma`) |
 | OI Wiki, 排列组合 (圆排列, 不相邻的排列) | https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/combinatorics/combination.md | 2026-11-14 | row 05 `circularPermutation`, `combiNonAdjacent` (user decision 2026-11-14) |
 
-## P052 sweep (fetched 2026-10-09)
+## P052 Sweep (Fetched 2026-10-09)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -106,11 +106,11 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 | maspypy `nt/crt.hpp` | https://maspypy.github.io/library/nt/crt.hpp | 2026-10-09 | `crtMod` (non-coprime moduli via coprime base and Garner, row 10) |
 | maspypy `mod/power_table.hpp` | https://maspypy.github.io/library/mod/power_table.hpp | 2026-10-09 | `powerTable` as i^k with one exponentiation per prime (row 09) |
 | cp-algorithms modular inverse and CRT; ACL `inv_mod`, `crt`; KACTL `ModInverse.h`, `CRT.h` | https://cp-algorithms.com/algebra/module-inverse.html, https://cp-algorithms.com/algebra/chinese-remainder-theorem.html | 2026-10-09 | contracts of rows 09 and 10; nothing new adopted |
-| Sources checked with nothing adopted | Nyaan `math-fast/inv-o1.hpp`, maspypy `mod/O1_inverse.hpp`, `mod/crt3.hpp`, `nt/count_by_factor_type.hpp`, Nyaan `math/bigint-garner.hpp`, CSES Divisor Analysis | 2026-10-09 | reasons in [00-notes.md](00-notes.md) |
+| Sources checked with nothing adopted | Nyaan `math-fast/inv-o1.hpp`, maspypy `mod/O1_inverse.hpp`, `mod/crt3.hpp`, `nt/count_by_factor_type.hpp`, Nyaan `math/bigint-garner.hpp`, CSES Divisor Analysis | 2026-10-09 | reasons in [00-notes.md](00-notes.md); later adopted: `inverseO1` (row 09, 2026-11-08), `garnerExact` (row 10) and `divisorProductMod` (row 07) by P275; `countByFactorType` is row 31 |
 
 Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 1795265022} (Jim Sinclair, verified against Feitsma's list of base-2 pseudoprimes below 2^64) and {2, 7, 61} below 4759123141 (Jaeschke) are listed at https://miller-rabin.appspot.com/; that page and the paper below are cited from memory and were not fetched in the P052 sweep (2026-10-09). The full-range claim rests on that published verification. Bernstein, "Factoring into coprimes in essentially linear time" (J. Algorithms 54, 2005) defines the natural coprime base used in row 07's contract.
 
-## P055 sweep (fetched 2026-10-09, `@researcher`)
+## P055 Sweep (Fetched 2026-10-09, `@researcher`)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -118,13 +118,13 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | KACTL `FastFourierTransform.h`, `FastFourierTransformMod.h`, `NumberTheoreticTransform.h` | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | 2026-10-09 | long-double root halving, two-for-one real product, rounding bound (sum a^2 + sum b^2) log2(N) < 9e14 (row 13) |
 | cp-algorithms FFT; OI Wiki FFT/NTT | https://cp-algorithms.com/algebra/fft.html, https://oi-wiki.org/math/poly/ntt/ | 2026-10-09 | split-FFT alternative (not adopted), NTT conventions (row 13) |
 | Nyaan `ntt/ntt.hpp`, `ntt/arbitrary-ntt.hpp` | https://nyaannyaan.github.io/library/ntt/ntt.hpp, https://nyaannyaan.github.io/library/ntt/arbitrary-ntt.hpp | 2026-10-09 | `nttDoubling`, squaring by aliasing, exact unsigned 128-bit CRT product `convolutionU128` (row 13) |
-| maspypy `poly/convolution.hpp`, `ntt_doubling.hpp`, `convolution_leq.hpp`, `convolution_all.hpp` | https://maspypy.github.io/library/poly/convolution.hpp | 2026-10-09 | `convolution` dispatcher, `nttDoubling`; `convolution_leq`/`convolution_all` not adopted (row 13) |
+| maspypy `poly/convolution.hpp`, `ntt_doubling.hpp`, `convolution_leq.hpp`, `convolution_all.hpp` | https://maspypy.github.io/library/poly/convolution.hpp | 2026-10-09 | `convolution` dispatcher, `nttDoubling`; `convolution_all` not adopted (row 13); `convolution_leq` is row 65 `convolutionLeq` (P275) |
 | hitonanode `convolution/ntt.hpp`; suisen `convolution/convolution.hpp` | https://hitonanode.github.io/cplib-cpp/convolution/ntt.hpp, https://suisen-cp.github.io/cp-library-cpp/library/convolution/convolution.hpp | 2026-10-09 | dispatcher cutoffs, many-operand pointwise product (implementation detail) |
 | Library Checker `convolution`, `set_power_series` directories | https://github.com/yosupo06/library-checker-problems/tree/master/convolution | 2026-10-09 | convolution_mod, _1000000007, _large; bitwise and/xor, gcd/lcm, subset convolution (rows 13, 24) |
-| suisen `transform/kronecker_power.hpp`, `transform/subset.hpp`, `convolution/polynomial_eval.hpp` | https://suisen-cp.github.io/cp-library-cpp/library/transform/kronecker_power.hpp | 2026-10-09 | `kroneckerPowerTransform` with a D x D kernel; custom-operator zeta and polynomial eval not adopted (row 24) |
-| maspypy `setfunc/ranked_zeta.hpp`, `setfunc/online/*`, `nt/zeta.hpp`; hitonanode `zeta_moebius_transform.hpp`, `subset_convolution.hpp`; noshi91 index; OI Wiki FWT | https://maspypy.github.io/library/setfunc/ranked_zeta.hpp, https://oi-wiki.org/math/poly/fwt/ | 2026-10-09 | ranked layout, subset convolution, divisor/multiple transforms; online and sparse variants not adopted (row 24) |
+| suisen `transform/kronecker_power.hpp`, `transform/subset.hpp`, `convolution/polynomial_eval.hpp` | https://suisen-cp.github.io/cp-library-cpp/library/transform/kronecker_power.hpp | 2026-10-09 | `kroneckerPowerTransform` with a D x D kernel; custom-operator zeta not adopted; polynomial eval is row 24 `transformPolynomialEval` (P275) |
+| maspypy `setfunc/ranked_zeta.hpp`, `setfunc/online/*`, `nt/zeta.hpp`; hitonanode `zeta_moebius_transform.hpp`, `subset_convolution.hpp`; noshi91 index; OI Wiki FWT | https://maspypy.github.io/library/setfunc/ranked_zeta.hpp, https://oi-wiki.org/math/poly/fwt/ | 2026-10-09 | ranked layout, subset convolution, divisor/multiple transforms (row 24); the online and sparse variants are row 52 `orConvolutionOnline` and row 65 `divisorMobiusSparse` (P275) |
 
-## P057 sweep (fetched 2026-10-10, `@researcher`)
+## P057 Sweep (Fetched 2026-10-10, `@researcher`)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -138,7 +138,7 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | KACTL `numerical/` (`BerlekampMassey.h`, `LinearRecurrence.h`, `PolyRoots.h`) | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | 2026-10-10 | Berlekamp–Massey layout, O(d^2 log k) Kitamasa (row 15) |
 | FLINT `nmod_poly` | https://flintlib.org/doc/nmod_poly.html | 2026-10-10 | power sums to polynomial, `compose_mod_brent_kung` (row 14) |
 
-## P053 sweep (fetched 2026-10-16, `@researcher`)
+## P053 Sweep (Fetched 2026-10-16, `@researcher`)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -150,7 +150,7 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | suisen `number/order_Z_mZ.hpp`, `discrete_logarithm.hpp`, `primitive_root.hpp`; Nyaan `modulo/mod-log.hpp`; KACTL `ModLog.h`; PyRival `discrete_log.py`, `primitive_root.py` | https://github.com/suisen-cp/cp-library-cpp/tree/main/library/number | 2026-10-16 | completeness cross-check; KACTL and PyRival return the least x > 0 (row 11) |
 | FLINT `ulong_extras` | https://flintlib.org/doc/ulong_extras.html | 2026-10-16 | `n_jacobi` with signed x, `n_discrete_log_bsgs`, square roots modulo prime powers left to row 33 (row 11) |
 
-## P178 sweep (fetched 2026-10-17, `@researcher`)
+## P178 Sweep (Fetched 2026-10-17, `@researcher`)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -164,7 +164,7 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | SymPy diophantine module | https://docs.sympy.org/latest/modules/solvers/diophantine.html | 2026-10-17 | LMM `diop_DN`, `diop_bf_DN`, Cornacchia returning primitive solutions, ternary and general quadratic solvers (row 34) |
 | Wikipedia, binary quadratic form | https://en.wikipedia.org/wiki/Binary_quadratic_form | 2026-10-17 | class number as the count of reduced forms (row 34) |
 
-## P060 sweep (fetched 2026-10-18, `@researcher`)
+## P060 Sweep (Fetched 2026-10-18, `@researcher`)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -180,14 +180,14 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | Halbeisen and Hungerbühler, The Josephus problem (JTNB 9, 1997), pp. 303–307, 316–317 | https://www.numdam.org/item/JTNB_1997__9_2_303_0.pdf | 2026-10-18 | j(n + 1, k, i + 1) = (k + j(n, k, i)) mod (n + 1) (row 19 `josephusKth`) |
 | Wikipedia, Josephus problem; Shahjalal Shohag code library; CSES Josephus I, II, Queries | https://en.wikipedia.org/wiki/Josephus_problem | 2026-10-18 | k log n bounds, m-th removal skip-ahead, k = 2 queries (row 19) |
 
-## P054 sweep (fetched 2026-10-19, `@researcher` and the package session)
+## P054 Sweep (Fetched 2026-10-19, `@researcher` and the Package Session)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
 | Library Checker `enumerative_combinatorics` and `number_theory` tasks: binomial_coefficient, binomial_coefficient_prime_mod, q_binomial_coefficient_prime_mod, stirling_number_of_the_first_kind (fixed_k, small_p_large_n), stirling_number_of_the_second_kind_small_p_large_n, number_of_increasing_sequences_between_two_sequences, partition_function, bell_number, sharp_p_subset_sum, tetration_mod | https://github.com/yosupo06/library-checker-problems/tree/master/enumerative_combinatorics | 2026-10-19 | signed s(n, k), fixed p per test, arbitrary (non-monotone) bounds with x_i < b_i, 0^0 = 1 in tetration (rows 12, 30, 67) |
 | maspypy `mod/q_analogue.hpp`, `mod/prefix_sum_of_binom.hpp`, `seq/famous/stirling_number_query.hpp`, `bell_number_large.hpp`, `simple_permutations.hpp`, `seq/count_grid_path.hpp`, `seq/famous/catalan_convolution.hpp`, `mod/tetration.hpp` | https://github.com/maspypy/library | 2026-10-19 | q-Lucas split, block prefix sums, small-prime Stirling struct, Touchard, monotone-boundary paths, catalanConvolution, tower contract (rows 12, 30, 67) |
 | suisen `sequence/binomial_coefficitnt_enumeration.hpp`, `math/binomial_coefficient_sum.hpp`, `number/tetration_mod.hpp` (`saturation_pow`) | https://suisen-cp.github.io/cp-library-cpp/ | 2026-10-19 | binomial rows modulo any m, weighted prefix sums, capped towers (rows 12, 30) |
-| Nyaan `fps/fps-famous-series.hpp`, `fps/stirling-matrix.hpp`, `modulo/tetration.hpp`; ei1333 `math/fps/binomial-prefix-sum.hpp`, `math/combinatorics/mod-tetration.hpp` | https://nyaannyaan.github.io/library/ | 2026-10-19 | sign conventions, Stirling transforms, multipoint prefix sums (left out), tower edge cases (rows 12, 30) |
+| Nyaan `fps/fps-famous-series.hpp`, `fps/stirling-matrix.hpp`, `modulo/tetration.hpp`; ei1333 `math/fps/binomial-prefix-sum.hpp`, `math/combinatorics/mod-tetration.hpp` | https://nyaannyaan.github.io/library/ | 2026-10-19 | sign conventions, Stirling transforms, multipoint prefix sums (general form: row 51 `multipointPrefixProductEval`), tower edge cases (rows 12, 30) |
 | hitonanode `other_algorithms/north_east_lattice_paths.hpp` | https://hitonanode.github.io/cplib-cpp/ | 2026-10-19 | rectangle boundary transfer and bounded north-east paths (row 67) |
 | OI Wiki 划分数, 第一类和第二类斯特林数, 排列组合 (bounded stars and bars), 欧拉定理 (extended Euler theorem) | https://github.com/OI-wiki/OI-wiki/tree/master/docs/math | 2026-10-19 | partition recurrences, bounded tuples, threshold form of Euler's theorem (rows 12, 30) |
 | cp-algorithms Binomial coefficients, Catalan numbers, Inclusion-exclusion, Euler's totient (generalization) | https://cp-algorithms.com/combinatorics/binomial-coefficients.html | 2026-10-19 | Granville prime-power method, obstacle DP, exponent reduction (rows 12, 30, 67) |
@@ -195,52 +195,49 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | Bizley's formula, arXiv 1606.08412 | https://arxiv.org/abs/1606.08412 | 2026-10-19 | exp generating function of paths under a rational line (row 67 `bizleyPaths`) |
 | OEIS A006318, A001003, A001850, A111111; Project Euler 188; SPOJ POWTOW, Codeforces 906D (search results only) | https://oeis.org/A006318 | 2026-10-19 | Schroeder and Delannoy recurrences, tower problems (rows 30, 67) |
 
-## Earlier source record (condensed from the previous index and evidence documents)
+## Earlier Source Record (Condensed from the Previous Index and Evidence Documents)
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../../95-Resources/06-kactl.pdf) `Tridiagonal.h` contract.
 - Package evidence documents record their own inspected sources with dates: [01-mod_arithmetic.md](01-mod_arithmetic.md) (cp-algorithms extended Euclid, OI Wiki gcd, `OLD/5-Mathematics/01-exgcdandmodpow.hpp`), [02-search_algorithms.md](02-search_algorithms.md) (cp-algorithms binary/ternary search, KACTL GoldenSectionSearch, cppreference midpoint, `OLD/5-Mathematics/02-search.hpp`), [03-equation_solvers.md](03-equation_solvers.md) (cp-algorithms linear Diophantine, KACTL euclid.h, OI Wiki linear congruence), [04-sieve_algorithms.md](04-sieve_algorithms.md) (cp-algorithms sieve and linear sieve, OI Wiki sieve, KACTL Eratosthenes, `OLD/5-Mathematics/04-sieves.hpp`), [05-combinatorics.md](05-combinatorics.md) (cp-algorithms binomials, stars and bars, Fibonacci; OI Wiki combinations, Catalan, derangements; Bertrand ballot; `OLD/5-Mathematics/12-combinatorics.hpp`), [06-segmentedsieve.md](06-segmentedsieve.md) (cp-algorithms sieve, OI Wiki sieve, primesieve EratSmall).
 
-## Not adopted
+## Not Adopted
 
 - Library Checker `number_of_subsequences` (distinct subsequence count): Strings/DP family, not arithmetic.
 - Library Checker `intersection_of_f2_vector_spaces`, maspypy `linalg/xor`, ei1333 `binary-basis`, suisen `xor_base`, Nyaan `sweep`: XOR basis is Data Structures `62-xorbasis.hpp`; Core `12-bitmatrix.hpp` owns packed GF(2) subspaces.
-- Library Checker `matrix_product`, `pow_of_matrix`, `*_mod_2` variants: Core `10-matrix.hpp` and `12-bitmatrix.hpp` own the full types; row 16 keeps only scalar power.
+- Library Checker `*_mod_2` matrix variants: Core `12-bitmatrix.hpp` owns packed GF(2) matrices, as Core `10-matrix.hpp` owns the full matrix type.
 - cp-algorithms Balanced Ternary, Gray code, bit manipulation, submask enumeration, arbitrary precision, Montgomery: Miscellaneous bit operations/enumeration and Core InfInt/Montgomery.
 - cp-algorithms Simulated Annealing, KACTL HillClimbing: heuristic search belongs to Miscellaneous randomness/search.
-- cp-algorithms placing bishops, balanced bracket sequences: bracket sequences are Catalan/ballot applications already in rows 05 and 67.
+- cp-algorithms balanced bracket sequences: Catalan and ballot applications already in rows 05 and 67.
 - KACTL IntPerm, maspypy `kth_next_permutation`, `factorial_digit_system`: Miscellaneous `07-permutation.hpp`.
 - maspypy `digit_sum`, `digit_frequency`: Miscellaneous `31-digitdp.hpp`.
 - maspypy `de_bruijn`, `longest_increasing_subsequence`, `cartesian_tree`, `common_interval_decomposition`: Strings and sequence structures.
-- maspypy `all_lcm`, `find_coprime_pair`, `three_triangular` as separate rows: folded into rows 08 and 34 or trivial compositions of listed operations.
 - noshi91 Axiotis–Tzamos knapsack: Miscellaneous `29-knapsack_advanced.hpp`.
 - hitonanode matroid intersection/union/parity, linear sum assignment, base polyhedron: Graphs optimization families.
 - hitonanode `convolution_on_tree`: Graphs tree family.
 - Nyaan `sat-solver`, `two-sat`, `gray-code`, `bigint*`, `rational`: Graphs 2-SAT, Miscellaneous and Core types.
 - OI Wiki concentration inequalities, abstract algebra, order theory, matroids, Jordan normal form: theory pages or Core/Graphs owners.
 - OI Wiki/cp-algorithms Vandermonde convolution identity: an identity, not an operation.
-- FLINT `partitions` (Hardy–Ramanujan–Rademacher exact p(n)): row 12 uses the pentagonal recurrence and FPS; HRR floating evaluation is out of contest scope.
 - FLINT `acb_modular`, `acb_theta`, `arb_calc`, Calcium symbolic expressions: beyond rows 39, 61, 62 scope.
-- NTL `xdouble`: extended exponent range only; `DoubleDouble` in row 63 covers the compact alternative.
 - GMP radix conversion and assembly chapters: Core InfInt and performance material.
 
-## P037 round-3 sources, fetched 2026-10-19
+## P037 Round-3 Sources, Fetched 2026-10-19
 
 | Source | URL | Used for |
 |---|---|---|
 | GMP manual, Basecase Division | https://gmplib.org/manual/Basecase-Division | Row 18 `divStep` (Knuth D word step) |
 | Möller, Granlund, division draft | https://www.lysator.liu.se/~nisse/archive/draft-division-paper.pdf (pp. 5–8) | Row 18 `divStep` |
 
-## P058 sources, fetched 2026-10-28
+## P058 Sources, Fetched 2026-10-28
 
 | Source | URL | Used for |
 |---|---|---|
 | Library Checker, linear_algebra | https://github.com/yosupo06/library-checker-problems/tree/master/linear_algebra | Row 16 problem set (determinant, arbitrary-mod determinant, inverse, system of linear equations, matrix product, power, rank, adjugate) |
-| KACTL numerical | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | Row 16 `solveLinearApprox`, `tridiagonalSolve`, `determinantMod` contracts; `SolveLinear2` left out |
+| KACTL numerical | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | Row 16 `solveLinearApprox`, `tridiagonalSolve`, `determinantMod` contracts; `SolveLinear2` is `solveLinearDetermined` (P275) |
 | maspypy linalg | https://maspypy.github.io/library/linalg/solve_linear_lower.hpp, https://maspypy.github.io/library/linalg/basis.hpp | Row 16 `luSolve`, `FieldBasis` |
 | OI Wiki linear algebra | https://oi-wiki.org/math/linear-algebra/basis/, https://oi-wiki.org/math/linear-algebra/matrix/ | Row 16 `FieldBasis` over a field, matrix product and power |
 | hitonanode Hessenberg system | https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/hessenberg_system.hpp | Left out of row 16; adopted 2026-11-08 as row 44 `hessenbergSolve` |
 
-## P059 sweep (fetched 2026-11-03, `@researcher`)
+## P059 Sweep (Fetched 2026-11-03, `@researcher`)
 
 | Source | URL | Used for |
 |---|---|---|
@@ -256,9 +253,9 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | maspypy `definite_integral` | https://maspypy.github.io/library/geo/definite_integral.hpp | Row 17 fixed Simpson (no further operation) |
 | hitonanode dual number | https://hitonanode.github.io/cplib-cpp/ | Row 17 `DualNumber` |
 
-## Fetched 2026-11-08 (omission sweep)
+## Fetched 2026-11-08 (Omission Sweep)
 
-Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission Sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
 
 | URL | Used for |
 |---|---|
@@ -313,8 +310,8 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://hitonanode.github.io/cplib-cpp/ | 27: `minConvexSumUnderLinearConstraint`; 44: `hessenbergSolve` |
 | https://oi-wiki.org/math/simplex/ | 28: `revisedSimplex` |
 | https://oi-wiki.org/math/number-theory/prime-counting/ | 31: `primeCountTable`, `lmoPrimeCount`, `delegliseRivatPrimeCount` |
-| https://flintlib.org/doc/dirichlet/index.html | 32: `DirichletCharacter`, `ctor`, `DirichletCharacter`, `order`, `DirichletCharacter`, `DirichletCharacter`, `lower`, `characterValues`, `enumerateCharacters`, `primitiveCharacterCount` |
-| https://flintlib.org/doc/qfb/index.html | 34: `BinaryQuadraticForm`, `BinaryQuadraticForm`, `principal`, `BinaryQuadraticForm`, `primeForm`, `BinaryQuadraticForm`, `order`, `BinaryQuadraticForm`, `compose` |
+| https://flintlib.org/doc/dirichlet/index.html | 32: `DirichletCharacter`, `ctor`, `order`, `lower`, `characterValues`, `enumerateCharacters`, `primitiveCharacterCount` |
+| https://flintlib.org/doc/qfb/index.html | 34: `BinaryQuadraticForm`, `principal`, `primeForm`, `order`, `compose` |
 | https://libntl.org/doc/LLL.cpp.html | 35: `gramSchmidt`, `lllReduceExact` |
 | https://flintlib.org/doc/fmpz_lll/index.html | 35: `isLllReduced`, `lllReduceWithRemoval` |
 | https://flintlib.org/doc/qsieve/index.html | 36: `siqs` |
@@ -392,11 +389,11 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://maspypy.github.io/library/seq/sidon_sequence.hpp | 59: `SidonSequence`, `ctor` |
 | https://maspypy.github.io/library/seq/rsk_correspondence.hpp | 60 |
 | https://github.com/maspypy/library/tree/main/seq | 60 |
-| https://flintlib.org/doc/qqbar/index.html | 61: `AlgebraicNumber`, `floor`, `AlgebraicNumber`, `conj`, `AlgebraicNumber`, `root`, `AlgebraicNumber`, `isRational`, `conjugates`, `algebraicRoots`, `rootOfUnity`, `cosPi`, `algebraicGuess` |
+| https://flintlib.org/doc/qqbar/index.html | 61: `AlgebraicNumber`, `floor`, `conj`, `root`, `isRational`, `conjugates`, `algebraicRoots`, `rootOfUnity`, `cosPi`, `algebraicGuess` |
 | https://flintlib.org/doc/nf_elem/index.html | 61: `NumberFieldElement`, `representationMatrix` |
 | https://flintlib.org/doc/double_interval/index.html | 62: `RealInterval`, `atan`, `toBall`, `toRealInterval` |
-| https://libntl.org/doc/RR.cpp.html | 63: `BigFloat`, `floor`, `fromInfInt`, `fromRational`, `BigFloat`, `mul2exp`, `bigPowInt`, `bigRoot` |
-| https://flintlib.org/doc/arf/index.html | 63: `BigFloat`, `floor`, `fromInfInt`, `fromRational`, `BigFloat`, `mul2exp`, `bigPowInt`, `bigRoot`, `bigSum` |
+| https://libntl.org/doc/RR.cpp.html | 63: `BigFloat`, `floor`, `fromInfInt`, `fromRational`, `mul2exp`, `bigPowInt`, `bigRoot` |
+| https://flintlib.org/doc/arf/index.html | 63: `BigFloat`, `floor`, `fromInfInt`, `fromRational`, `mul2exp`, `bigPowInt`, `bigRoot`, `bigSum` |
 | https://libntl.org/doc/quad_float.cpp.html | 63: `DoubleDouble`, `compare` |
 | https://oi-wiki.org/math/algebra/schreier-sims/ | 64: `PermutationGroup`, `schreierSims`, `permutationGroupBasis` |
 | https://maspypy.github.io/library/seq/permutation_group_basis.hpp | 64: `permutationGroupBasis` |
@@ -410,9 +407,9 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://maspypy.github.io/library/setfunc/sps_exp.hpp | 66: `spsExpDivideConquer` |
 | https://en.wikipedia.org/wiki/Counting_points_on_elliptic_curves | 71: `EllipticCurve`, `isOnCurve` |
 
-## Fetched 2026-11-10 (P275 re-review)
+## Fetched 2026-11-10 (P275 Re-Review)
 
-Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+Pages the P275 re-review agents read to confirm the returns (`Docs/00-notes.md`, P275 Re-Review 2026-11-10).
 
 - <https://raw.githubusercontent.com/maspypy/library/main/nt/all_lcm.hpp>
 - <https://raw.githubusercontent.com/maspypy/library/main/nt/find_coprime_pair.hpp>

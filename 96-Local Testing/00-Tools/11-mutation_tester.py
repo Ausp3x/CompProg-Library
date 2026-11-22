@@ -226,7 +226,7 @@ def o_overlap(intervals):
 
 def record_doc(hexblob, before='', after='', untested=0):
     count = '' if untested is None else f', {untested} untested'
-    return f'# Evidence\n\n{before}## Mutation testing\n\nRecord: mewt 4.0.0 on blob `{hexblob}` (test): 3 mutants{count}.\n\n{after}'
+    return f'# Evidence\n\n{before}## Mutation Testing\n\nRecord: mewt 4.0.0 on blob `{hexblob}` (test): 3 mutants{count}.\n\n{after}'
 
 
 def o_time(text):
@@ -619,16 +619,16 @@ class Pure(Base):
         cases = [
             (None, None),
             ('# x\n', None),
-            ('# x\n## Mutation testing\n\nno token\n', None),
+            ('# x\n## Mutation Testing\n\nno token\n', None),
             (record_doc(a), a),
-            (f'# x\n## Mutation testing \t\nRecord: blob `{b}`.\n', b),
-            (f'# x\n## Mutation testing\n\n### Sub\n\nblob `{a}`\n', a),
-            (f'# x\n## Mutation testing\n\ntext\n## Next\n\nblob `{a}`\n', None),
-            (f'# x\n\nblob `{a}`\n\n## Mutation testing\n\nnone\n', None),
-            (f'# x\n## Mutation testing results\nblob `{a}`\n', None),
-            (f'# x\n## Mutation testing\nblob `{a.upper()}` blob `{a[:39]}` blob {a}\n', None),
-            (f'# x\n## Mutation testing\nblob `{a}` and blob `{b}`\n## Mutation testing\nblob `{b}`\n', a),
-            (f'## Mutation testing\nblob `{b}`', b),
+            (f'# x\n## Mutation Testing \t\nRecord: blob `{b}`.\n', b),
+            (f'# x\n## Mutation Testing\n\n### Sub\n\nblob `{a}`\n', a),
+            (f'# x\n## Mutation Testing\n\ntext\n## Next\n\nblob `{a}`\n', None),
+            (f'# x\n\nblob `{a}`\n\n## Mutation Testing\n\nnone\n', None),
+            (f'# x\n## Mutation Testing results\nblob `{a}`\n', None),
+            (f'# x\n## Mutation Testing\nblob `{a.upper()}` blob `{a[:39]}` blob {a}\n', None),
+            (f'# x\n## Mutation Testing\nblob `{a}` and blob `{b}`\n## Mutation Testing\nblob `{b}`\n', a),
+            (f'## Mutation Testing\nblob `{b}`', b),
         ]
         for text, want in cases:
             self.eq(self.recorded(text), want, doc=text)
@@ -638,14 +638,14 @@ class Pure(Base):
         a, b = 'a' * 40, 'b' * 40
         cases = [
             (None, None),
-            ('# x\n## Mutation testing\n\n0 untested\n', None),
+            ('# x\n## Mutation Testing\n\n0 untested\n', None),
             (record_doc(a), (a, 0)),
             (record_doc(a, untested=12), (a, 12)),
             (record_doc(a, untested=None), (a, None)),
-            (f'## Mutation testing\n\n7 untested before\nRecord: blob `{a}`: 9 mutants.\n0 untested after\n', (a, None)),
-            (f'## Mutation testing\nStage times.\nRecord: blob `{a}` (x): 1 mutant, 3 untested.\nRecord: blob `{b}`: 0 untested.\n', (a, 3)),
-            (f'## Mutation testing\nRecord: blob `{a}`: 10 caught, 0 untested.\n## Next\nblob `{b}` 5 untested\n', (a, 0)),
-            (f'## Mutation testing\nRecord: blob `{a}`: untested 4.\n', (a, None)),
+            (f'## Mutation Testing\n\n7 untested before\nRecord: blob `{a}`: 9 mutants.\n0 untested after\n', (a, None)),
+            (f'## Mutation Testing\nStage times.\nRecord: blob `{a}` (x): 1 mutant, 3 untested.\nRecord: blob `{b}`: 0 untested.\n', (a, 3)),
+            (f'## Mutation Testing\nRecord: blob `{a}`: 10 caught, 0 untested.\n## Next\nblob `{b}` 5 untested\n', (a, 0)),
+            (f'## Mutation Testing\nRecord: blob `{a}`: untested 4.\n', (a, None)),
         ]
         for text, want in cases:
             (self.tmp / '04-Graphs/Docs/03-x.md').unlink(missing_ok=True)
@@ -677,14 +677,14 @@ class Pure(Base):
         rest = [(h2, f'02-Data Structures/Docs/02-b.md records blob {"f" * 12}, the header is {cur2[:12]}'),
                 (h4, 'the record in 02-Data Structures/Docs/04-d.md is incomplete (5 untested count)'),
                 (h5, 'the record in 02-Data Structures/Docs/05-e.md is incomplete (no untested count)')]
-        self.eq(M.stale(self.tmp, [h1, h2, h3, h4, h5]), [(h1, 'no `## Mutation testing` record with a blob in 02-Data Structures/Docs/01-a.md')] + rest)
+        self.eq(M.stale(self.tmp, [h1, h2, h3, h4, h5]), [(h1, 'no `## Mutation Testing` record with a blob in 02-Data Structures/Docs/01-a.md')] + rest)
         self.eq(M.stale(self.tmp, [h1, h2, h3, h4, h5], existing=True), rest)
 
     def test_check_cli(self):
         h1, h2 = '02-Data Structures/01-a.hpp', '04-Graphs/02-b.hpp'
         put(self.tmp, {h1: b'one\n', h2: b'two\n', '04-Graphs/Docs/02-b.md': record_doc(o_blob(b'two\n')), 'README.md': 'x'})
         code, out, err = self.main('check', h2, h1, h2, root=self.tmp)
-        self.eq((code, out.splitlines()), (1, [f'FAIL {h1}: no `## Mutation testing` record with a blob in 02-Data Structures/Docs/01-a.md',
+        self.eq((code, out.splitlines()), (1, [f'FAIL {h1}: no `## Mutation Testing` record with a blob in 02-Data Structures/Docs/01-a.md',
                                                'FAIL: 1 of 2 mutation records current']), err=err)
         self.eq(self.main('check', h2, root=self.tmp)[:2], (0, 'PASS: 1 of 1 mutation records current\n'))
         self.eq(self.main('check', root=self.tmp)[:2], (0, 'PASS: 0 of 0 mutation records current\n'))
@@ -710,7 +710,7 @@ class Pure(Base):
                 put(root, {h: data})
                 cur, other, kind, untested = o_blob(data), self.rng.randbytes(20).hex(), self.rng.choice(kinds), self.rng.randint(1, 99)
                 noise = self.rng.choice(['', f'## Notes\n\nblob `{other}`\n\n', '## Tests\n\n### Sub\n\n'])
-                heading = '## Mutation testing' + self.rng.choice(['', ' ', '\t', ' \t '])
+                heading = '## Mutation Testing' + self.rng.choice(['', ' ', '\t', ' \t '])
                 doc = {'nosection': f'# E\n\n{noise}## Other\n\nblob `{cur}`\n',
                        'notoken': f'# E\n\n{noise}{heading}\n\nblob `{cur[:39]}` and blob {cur}\n',
                        'after': f'# E\n\n{heading}\n\nnone\n\n## Later\n\nblob `{cur}`\n',
@@ -721,7 +721,7 @@ class Pure(Base):
                 if doc is not None:
                     put(root, {M.evidence(h): doc})
                 d = M.evidence(h)
-                missing = None if existing else f'no `## Mutation testing` record with a blob in {d}'
+                missing = None if existing else f'no `## Mutation Testing` record with a blob in {d}'
                 want[h] = {'current': None, 'other': f'{d} records blob {other[:12]}, the header is {cur[:12]}',
                            'incomplete': f'the record in {d} is incomplete ({untested} untested count)',
                            'nocount': f'the record in {d} is incomplete (no untested count)'}.get(kind, missing)
@@ -1553,7 +1553,7 @@ class Fake(Base):
         record = self.record_line(out)
         self.true(f'on blob `{new}`' in record and f'1 lines changed since blob `{old[:12]}`): {len(on5)} mutants' in record and 'sample' not in record
                   and record.endswith(f'{len(on5) - 1} caught (0 by timeout), 1 survived, 0 untested.'), record=record)
-        put(root, {M.evidence(self.H): f'# toy\n\n## Mutation testing\n\n{record}\n'})
+        put(root, {M.evidence(self.H): f'# toy\n\n## Mutation Testing\n\n{record}\n'})
         self.eq(self.main('check', self.H, root=root)[:2], (0, 'PASS: 1 of 1 mutation records current\n'))
         for other in (self.tmp / 'w-other', None):
             tmpdir = self.tmp / 'tmpdir'
@@ -1785,7 +1785,7 @@ class E2E(Base):
         # the reviewer's scenario: the Record (1 survivor, 0 untested) goes into the evidence document, so the record is current
         record = re.search(r'^Record: .*$', out, re.M)[0]
         self.true(record.endswith(f': {len(every)} mutants, {len(every) - 1} caught (0 by timeout), 1 survived, 0 untested.'), record=record)
-        put(root, {'02-Data Structures/Docs/01-toy.md': f'# toy\n\n## Mutation testing\n\n{record}\n'})
+        put(root, {'02-Data Structures/Docs/01-toy.md': f'# toy\n\n## Mutation Testing\n\n{record}\n'})
         self.eq(self.main('check', header, root=root)[:2], (0, 'PASS: 1 of 1 mutation records current\n'))
         tmpdir = self.tmp / 'tmpdir'
         tmpdir.mkdir()
@@ -1803,7 +1803,7 @@ class E2E(Base):
         record = re.search(r'^Record: .*$', out3, re.M)[0]
         self.true('PASS' not in out3 and record.endswith(f': {len(every)} mutants, {len(every)} caught (0 by timeout), 0 survived, 0 untested.'),
                   out=out3)
-        put(root, {'02-Data Structures/Docs/01-toy.md': f'# toy\n\n## Mutation testing\n\n{record}\n'})
+        put(root, {'02-Data Structures/Docs/01-toy.md': f'# toy\n\n## Mutation Testing\n\n{record}\n'})
         self.eq(self.main('check', header, root=root)[:2], (0, 'PASS: 1 of 1 mutation records current\n'))
         self.eq(self.stage_ids(work / 's0', 'quick'), survivors, what='survivor retested from the first stage')
         self.eq({s for s, _, _ in self.statuses(work).values()}, {'TestFail'})

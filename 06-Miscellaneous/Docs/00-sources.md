@@ -1,8 +1,8 @@
-# 06 Miscellaneous — sources
+# 06 Miscellaneous — Sources
 
-Rows `03` (fast I/O) and planned `17` (advanced fast I/O) moved to `01-Core/19-fastio.hpp` on 2026-11-01 (P018); the `03` uses below are historical, and the fast I/O sources continue in [01-Core/Docs/00-sources.md](../../01-Core/Docs/00-sources.md).
+Rows `03` (fast I/O) and planned `17` (advanced fast I/O) moved to `01-Core/19-fastio.hpp` on 2026-11-01 (P018). The `03` uses below are historical; the fast I/O sources continue in [01-Core/Docs/00-sources.md](../../01-Core/Docs/00-sources.md).
 
-## Catalog pages fetched on 2026-10-06
+## Catalog Pages Fetched on 2026-10-06
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -26,7 +26,7 @@ Rows `03` (fast I/O) and planned `17` (advanced fast I/O) moved to `01-Core/19-f
 | OI Wiki 基础 / 搜索 | https://oi-wiki.org/basic/ | 2026-10-06 | Sorting family (`11`), prefix/difference, binary search/doubling (Mathematics/Graphs), DFS/BFS, bidirectional, A*/IDA*, backtracking, dancing links, alpha-beta |
 | Nyaan library index | https://nyaannyaan.github.io/library/ | 2026-10-06 | misc: base64 (`28`), compress, fastio, interval-union, mo, rng, timer (`49`), vector-pool (`23`); dp: branch-and-bound, knapsack01, LIS, inversion counting, maximal rectangle (Data Structures); hashmap (Data Structures `61`) |
 | maspypy `other` | https://github.com/maspypy/library/tree/main/other | 2026-10-06 | timer, dice (`51`), knight_distance (`51`), mex (`08`), io_mmap (`17`), sliding_puzzle_solver (`35`), connected_dp (`33`), reduce_intervals (`09`), exp/fibonacci/golden search (Mathematics), optimize_1d_beam (`38`) |
-| maspypy `knapsack` | https://github.com/maspypy/library/tree/main/knapsack | 2026-10-06 | knapsack01, branch-and-bound, subset_sum, subset_sum_count (`29`/`22`/`30`); ancestor-closed/connected/independent-set knapsack not adopted |
+| maspypy `knapsack` | https://github.com/maspypy/library/tree/main/knapsack | 2026-10-06 | knapsack01, branch-and-bound, subset_sum, subset_sum_count (`29`/`22`/`30`) |
 | maspypy `random` | https://github.com/maspypy/library/tree/main/random | 2026-10-06 | hash_pair/hash_vector (`19`), shuffle (`01`), random_bracket (`53`), random_real (`01` randDouble); random graph/polygon/matrix/Monge generators are contest-testing generators |
 | maspypy `seq` | https://github.com/maspypy/library/tree/main/seq | 2026-10-06 | cycle_decomposition, kth_next_permutation, factorial_digit_system (`07`), inversion and LIS (`08`); recurrences/tableaux are Mathematics |
 | maspypy index (offline_query, slope_trick, enumerate, game) | https://maspypy.github.io/library/ | 2026-10-06 | Slope trick variants (`34`), enumerate/partition and product (`12`), parallel_binary_search (`20`), mo/rollback_mo (Data Structures), game directory (Mathematics) |
@@ -40,7 +40,7 @@ Rows `03` (fast I/O) and planned `17` (advanced fast I/O) moved to `01-Core/19-f
 
 Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys).
 
-## P013 re-audit sweep (2026-10-07)
+## P013 Re-Audit Sweep (2026-10-07)
 
 Fetched by `@researcher` for rows `01`–`07`; per-header use is recorded in the evidence documents.
 
@@ -55,51 +55,51 @@ Fetched by `@researcher` for rows `01`–`07`; per-header use is recorded in the
 | suisen coordinate_compressor / bit_utils / permutation | https://suisen-cp.github.io/cp-library-cpp/library/util/coordinate_compressor.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/bit_utils.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/permutation.hpp | `04`, `06` parity, `07` |
 | cp-algorithms Gray code / bit manipulation | https://cp-algorithms.com/algebra/gray-code.html, https://cp-algorithms.com/algebra/bit-manipulation.html | `06` |
 
-## P014 re-audit sweep (2026-10-08)
+## P014 Re-Audit Sweep (2026-10-08)
 
-Fetched by `@researcher` for rows `08`–`11`; adoption decisions are in the "Limits and handoffs" sections of [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md) and [11-sorting_selection.md](11-sorting_selection.md), with reasons in [00-notes.md](00-notes.md).
+Fetched by `@researcher` for rows `08`–`11`. Adoption decisions are in the Limits and Handoffs sections of [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md) and [11-sorting_selection.md](11-sorting_selection.md), with reasons in [00-notes.md](00-notes.md).
 
 | Source | URL | Used for |
 |---|---|---|
-| CSES problem set | https://cses.fi/problemset/ | `08` Increasing Subsequence II (`countIncreasingSubsequences`), Towers (dual cover of `increasingSubsequenceLengths`); `09` Nested Ranges Check/Count (`removeNestedIntervals`, `nestedIntervalCounts`); not adopted: Subarray Sums II, Sum of Three/Four Values, Movie Festival II/Queries |
+| CSES problem set | https://cses.fi/problemset/ | `08` Increasing Subsequence II (`countIncreasingSubsequences`), Towers (dual cover of `increasingSubsequenceLengths`); `09` Nested Ranges Check/Count (`removeNestedIntervals`, `nestedIntervalCounts`) |
 | cp-algorithms LIS | https://cp-algorithms.com/dynamic_programming/longest_increasing_subsequence.html | `08` per-index lengths and the minimum non-increasing cover |
-| maspypy `seq/inversion.hpp`, `seq/longest_increasing_subsequence.hpp` | https://github.com/maspypy/library/blob/main/seq/inversion.hpp, https://github.com/maspypy/library/blob/main/seq/longest_increasing_subsequence.hpp | `08` `adjacentSwapDistance` (inversion_between), LIS dp array; not adopted: inversion of every rotation, all-range inversion table |
+| maspypy `seq/inversion.hpp`, `seq/longest_increasing_subsequence.hpp` | https://github.com/maspypy/library/blob/main/seq/inversion.hpp, https://github.com/maspypy/library/blob/main/seq/longest_increasing_subsequence.hpp | `08` `adjacentSwapDistance` (inversion_between), LIS dp array; the all-range inversion table is not adopted |
 | KACTL `content/various` (IntervalCover.h, ConstantIntervals.h) | https://github.com/kth-competitive-programming/kactl/tree/main/content/various | `09` `intervalCover`; ConstantIntervals not adopted |
 | OI Wiki 快速排序 | https://oi-wiki.org/basic/quick-sort/ | `11` three-way partition and linear-time selection |
-| maspypy offline set intersection, ei1333 offline RMQ, hitonanode offline range kth / sum of linear | https://maspypy.github.io/library/ds/offline_query/offline_set_intersection.hpp, https://ei1333.github.io/library/other/offline-rmq.hpp, https://hitonanode.github.io/cplib-cpp/data_structure/range_kth_smallest_offline.hpp, https://hitonanode.github.io/cplib-cpp/utilities/offline_sum_of_linear.hpp | `10` candidates, none adopted (owners recorded) |
+| maspypy offline set intersection, ei1333 offline RMQ, hitonanode offline range kth / sum of linear | https://maspypy.github.io/library/ds/offline_query/offline_set_intersection.hpp, https://ei1333.github.io/library/other/offline-rmq.hpp, https://hitonanode.github.io/cplib-cpp/data_structure/range_kth_smallest_offline.hpp, https://hitonanode.github.io/cplib-cpp/utilities/offline_sum_of_linear.hpp | `10` candidates, owned elsewhere (folder notes); offline set intersection was adopted on 2026-11-08 into row `22` as `setIntersectionOffline` |
 
-## P015 re-audit sweep (2026-10-08)
+## P015 Re-Audit Sweep (2026-10-08)
 
-Fetched by `@researcher` for rows `12`–`14`; adoption decisions are in [00-notes.md](00-notes.md) and the "Limits and handoffs" sections of [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md). OI Wiki combinatorics and cycle-detection pages failed (403/404).
+Fetched by `@researcher` for rows `12`–`14`. Adoption decisions are in [00-notes.md](00-notes.md) and the Limits and Handoffs sections of [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md). OI Wiki combinatorics and cycle-detection pages failed (403/404).
 
 | Source | URL | Used for |
 |---|---|---|
-| maspypy `enumerate` (partition, bits, multiset, xor_range, labeled_tree) | https://maspypy.github.io/library/enumerate/partition.hpp, https://maspypy.github.io/library/enumerate/bits.hpp, https://maspypy.github.io/library/enumerate/multiset.hpp | `12` partition order and part cap, set-partition practicality; set bits, compositions and trees not adopted; xor ranges adopted on 2026-11-08 into `06` (`xorRangeBlocks`) |
-| suisen `util/subset_iterator` | https://suisen-cp.github.io/cp-library-cpp/library/util/subset_iterator.hpp | `12` set-bit and fixed-popcount submask iteration, not adopted |
+| maspypy `enumerate` (partition, bits, multiset, xor_range, labeled_tree) | https://maspypy.github.io/library/enumerate/partition.hpp, https://maspypy.github.io/library/enumerate/bits.hpp, https://maspypy.github.io/library/enumerate/multiset.hpp | `12` partition order and part cap, set-partition practicality; compositions not adopted; xor ranges adopted on 2026-11-08 into `06` (`xorRangeBlocks`) |
+| suisen `util/subset_iterator` | https://suisen-cp.github.io/cp-library-cpp/library/util/subset_iterator.hpp | `12` `forEachSetBit`, `forEachCombinationSubmask` |
 | Nyaan `set-function/enumerate-set` | https://nyaannyaan.github.io/library/set-function/enumerate-set.hpp | `12` `forEachSupermask` |
 | hitonanode `number/enumerate_partitions` | https://hitonanode.github.io/cplib-cpp/number/enumerate_partitions.hpp | `12` alternative partition interface (all `m <= N`), not adopted |
-| cp-algorithms combinations, submasks | https://cp-algorithms.com/combinatorics/generating_combinations.html, https://cp-algorithms.com/algebra/all-submasks.html | `12` revolving-door order and (mask, submask) pairs, not adopted |
+| cp-algorithms combinations, submasks | https://cp-algorithms.com/combinatorics/generating_combinations.html, https://cp-algorithms.com/algebra/all-submasks.html | `12` `forEachGrayCombination` (revolving door), `forEachSubmaskPair` |
 | KACTL FastKnapsack, maspypy `knapsack/subset_sum`, Nyaan `dp/knapsack01` | https://github.com/kth-competitive-programming/kactl/blob/main/content/various/FastKnapsack.h, https://maspypy.github.io/library/knapsack/subset_sum.hpp, https://nyaannyaan.github.io/library/dp/knapsack01.hpp | `13` Pisinger subset sum and adaptive 0/1 dispatch, handed to `29` |
-| CSES problem set (1634, 1635) | https://cses.fi/problemset/ | `13` minimum coins and ordered ways, reductions recorded |
+| CSES problem set (1634, 1635) | https://cses.fi/problemset/ | `13` `minimumCoins`, `compositionCountTable` (ordered ways) |
 | Wikipedia cycle detection, Nivasch stack algorithm, cp-algorithms tortoise and hare | https://en.wikipedia.org/wiki/Cycle_detection, https://www.gabrielnivasch.org/fun/cycle-detection, https://cp-algorithms.com/others/tortoise_and_hare.html | `14` algorithm survey; hashing, Gosper, stack and trade-off methods not adopted |
 | oraclesqlpuzzle library index §032 | https://oraclesqlpuzzle.ninja-web.net/kyoupro/02-library/index.html | `14` `orbitTerm` (ABC167 D, ABC179 E, ABC258 E, Typical90 058 uses) |
 
-## P229 sweep (2026-10-08)
+## P229 Sweep (2026-10-08)
 
 Fetched by `@researcher` for rows `49`–`51`; per-header use is recorded in the evidence documents.
 
 | Source | URL | Used for |
 |---|---|---|
-| Nyaan / ei1333 / suisen / hitonanode / tko919 timers | https://nyaannyaan.github.io/library/misc/timer.hpp, https://ei1333.github.io/library/other/chrono-timer.hpp, https://ei1333.github.io/library/other/timer.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/timer.hpp, https://hitonanode.github.io/cplib-cpp/utilities/timer.hpp, https://tko919.github.io/library/Utility/timer.hpp | `49` reading surface; `rdtsc` and `measure(f)` not adopted |
+| Nyaan / ei1333 / suisen / hitonanode / tko919 timers | https://nyaannyaan.github.io/library/misc/timer.hpp, https://ei1333.github.io/library/other/chrono-timer.hpp, https://ei1333.github.io/library/other/timer.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/timer.hpp, https://hitonanode.github.io/cplib-cpp/utilities/timer.hpp, https://tko919.github.io/library/Utility/timer.hpp | `49` reading surface, `Timer::measure`; `rdtsc` not adopted |
 | shindannin AHC template, thun-c TimeKeeper | https://shindannin.hatenadiary.com/entry/2021/03/06/115415, https://qiita.com/thun-c/items/ecd438fde4d237b1f7bc | `49` progress; throttled check not adopted |
 | CSES 3139 / 3305, AtCoder practice_2 | https://cses.fi/problemset/task/3139, https://cses.fi/problemset/task/3305, https://atcoder.jp/contests/language-test-202001/tasks/practice_2 | `50` prefix tokens, range answers, comparison replies |
 | Codeforces blog 45307, problem 1999G1 (search snippets only; fetches returned 403) | https://codeforces.com/blog/entry/45307, https://codeforces.com/problemset/problem/1999/G1 | `50` flush, `-1` exit, per-test budget, verdict after answer |
-| maspypy dice / knight_distance / manhattan_walk, ei1333 dice | https://maspypy.github.io/library/other/dice.hpp, https://maspypy.github.io/library/other/knight_distance.hpp, https://maspypy.github.io/library/other/manhattan_walk.hpp, https://ei1333.github.io/library/other/dice.hpp | `51` orientations, canonical, knight formula; walk not adopted |
+| maspypy dice / knight_distance / manhattan_walk, ei1333 dice | https://maspypy.github.io/library/other/dice.hpp, https://maspypy.github.io/library/other/knight_distance.hpp, https://maspypy.github.io/library/other/manhattan_walk.hpp, https://ei1333.github.io/library/other/dice.hpp | `51` orientations, canonical, knight formula; row `57` `manhattanWalk` |
 | hitonanode rotate90 / multidim_index / grid_graph, suisen rot90 / grid_utils | https://hitonanode.github.io/cplib-cpp/utilities/rotate90.hpp, https://hitonanode.github.io/cplib-cpp/utilities/multidim_index.hpp, https://hitonanode.github.io/cplib-cpp/graph/grid_graph_template.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/rot90.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/grid_utils.hpp | `51` rotation direction, bounds and neighbours; multidim index and grid graph not adopted |
 
-## P075 sweep (2026-10-13)
+## P075 Sweep (2026-10-13)
 
-Fetched by `@researcher` for row `34`; adoption decisions are in [34-slope_trick.md](34-slope_trick.md) and the omissions in [00-notes.md](00-notes.md).
+Fetched by `@researcher` for row `34`. Adoption decisions are in [34-slope_trick.md](34-slope_trick.md) and the omissions in [00-notes.md](00-notes.md).
 
 | Source | URL | Used for |
 |---|---|---|
@@ -112,24 +112,24 @@ Fetched by `@researcher` for row `34`; adoption decisions are in [34-slope_trick
 | USACO Guide slope trick | https://usaco.guide/adv/slope-trick | Fireworks and tree-merge applications |
 | yukicoder 2114, 1077, 1467 | https://yukicoder.me/problems/no/2114, https://yukicoder.me/problems/no/1077, https://yukicoder.me/problems/no/1467 | Verification problems named by HIT, MAS and NYA (statements only) |
 
-KACTL and cp-algorithms have no slope-trick article. maspy's article (2), zscoder's Codeforces tutorial (blog 47821) and ei1333's documentation page returned HTTP 404/403 and were not read.
+KACTL and cp-algorithms have no slope-trick article. maspy's article (2), zscoder's Codeforces tutorial (blog 47821) and ei1333's documentation page returned HTTP 404 or 403 and were not read.
 
-## P072 sweep (2026-10-23)
+## P072 Sweep (2026-10-23)
 
-Fetched by `@researcher` for rows `29`, `54` and `55`; adoption decisions are in [00-notes.md](00-notes.md) and the evidence documents [29-knapsack_advanced.md](29-knapsack_advanced.md), [54-kbest_enumeration.md](54-kbest_enumeration.md) and [55-fractional_programming.md](55-fractional_programming.md).
+Fetched by `@researcher` for rows `29`, `54` and `55`. Adoption decisions are in [00-notes.md](00-notes.md) and the evidence documents [29-knapsack_advanced.md](29-knapsack_advanced.md), [54-kbest_enumeration.md](54-kbest_enumeration.md) and [55-fractional_programming.md](55-fractional_programming.md).
 
 | Source | URL | Used for |
 |---|---|---|
 | OI Wiki 背包 DP (mirror) and 背包 DP 进阶 | https://next.oi-wiki.org/dp/knapsack/, https://oi-wiki.org/dp/knapsack/advanced/ | `29` group, two-dimensional, dependency, undo (counting only), kth-best (strict, HDU 2639) and optimal-count variants |
 | cp-algorithms knapsack | https://cp-algorithms.com/dynamic_programming/knapsack.html | `29` monotone-queue bounded knapsack |
 | KACTL FastKnapsack | https://github.com/kth-competitive-programming/kactl/blob/main/content/various/FastKnapsack.h | `29` `pisingerSubsetSum` |
-| maspypy `knapsack/` (knapsack01, knapsack_branch_bound, subset_sum, subset_sum_count, ancestor_closed_set_knapsack, connected_set_knapsack, independent_set_knapsack), `mod/modular_subset_sum` | https://maspypy.github.io/library/ | `29` branch and bound, Pisinger witness, tree knapsack; connected/independent-set and modular subset sum not adopted |
+| maspypy `knapsack/` (knapsack01, knapsack_branch_bound, subset_sum, subset_sum_count, ancestor_closed_set_knapsack, connected_set_knapsack, independent_set_knapsack), `mod/modular_subset_sum` | https://maspypy.github.io/library/ | `29` branch and bound, Pisinger witness, tree knapsack, `connectedSetKnapsack`, `modularSubsetSum`; row `57` `independentSetKnapsack` |
 | Nyaan `dp/knapsack01`, `dp/branch-and-bound` | https://nyaannyaan.github.io/library/ | `29` adaptive 0/1 dispatch (not adopted), branch and bound |
 | ei1333 `dp/knapsack`, `dp/knapsack-limitations`, `dp/knapsack-limitations-2` | https://ei1333.github.io/library/ | `29` monotone queue; `boundedKnapsackSmallValue` (AOJ DPL_1_I) |
 | hitonanode `other_algorithms/bounded_knapsack` | https://hitonanode.github.io/cplib-cpp/ | `29` Pisinger bounded form |
 | noshi91 `algorithm/axiotis_tzamos_knapsack`, `axiotis_tzamos_unbounded_knapsack` | https://noshi91.github.io/Library/ | `29` `smallWeightKnapsack` (concave max-plus per weight class), `unboundedKnapsackLargeCapacity` |
 | Library Checker problem repository | https://github.com/yosupo06/library-checker-problems | `sharp_p_subset_sum` is Mathematics `12` `subsetSumCount`; `29` keeps only the multiplicity form |
-| maspypy `convex/nth_element_from_sorted_lists`, `convex/nth_element_from_sorted_matrix` | https://maspypy.github.io/library/convex/nth_element_from_sorted_lists.hpp, https://maspypy.github.io/library/convex/nth_element_from_sorted_matrix.hpp | `54` sorted-matrix selection, not adopted |
+| maspypy `convex/nth_element_from_sorted_lists`, `convex/nth_element_from_sorted_matrix` | https://maspypy.github.io/library/convex/nth_element_from_sorted_lists.hpp, https://maspypy.github.io/library/convex/nth_element_from_sorted_matrix.hpp | `54` `kSmallestSortedMatrix`, `kSmallestSortedLists` |
 | OI Wiki 堆, 可持久化可并堆 | https://oi-wiki.org/ds/heap/, https://oi-wiki.org/ds/persistent-heap/ | `54` frontier heaps; persistent-heap k-best paths are Graphs `32` |
 | cnblogs autoint (NOI 2010 超级钢琴) | https://www.cnblogs.com/autoint/p/10671934.html | `54` `kSmallestSubarraySums` range split with an argmin table |
 | Qiita tsukasa\_\_diary (Lawler k-best) | https://qiita.com/tsukasa__diary/items/8bc2947d1f65d1451bb3 | `54` `lawlerKBest` |
@@ -138,13 +138,13 @@ Fetched by `@researcher` for rows `29`, `54` and `55`; adoption decisions are in
 | OI Wiki 分数规划 | https://oi-wiki.org/misc/frac-programming/ | `55` Dinkelbach, exactly-k selection, ratio applications |
 | USACO 2018 Open Gold "Talent Show" solution, USACO forum thread 212 | https://usaco.org/current/data/sol_talent_gold_open18.html, https://forum.usaco.guide/t/talent-show-fake-solve/212 | `55` `ratioKnapsack`; the search-free variant is not adopted |
 | cp-algorithms binary search, Nyaan Stern–Brocot binary search, maspypy `nt/rational_binary_search` | https://cp-algorithms.com/num_methods/binary_search.html, https://nyaannyaan.github.io/library/math/stern-brocot-tree-binary-search.hpp.html, https://maspypy.github.io/library/nt/rational_binary_search.hpp | `55` real bisection and exact rational search, owned by Mathematics `02` and `20` |
-| Wikipedia parametric search, linear-fractional programming, fractional programming | https://en.wikipedia.org/wiki/Parametric_search, https://en.wikipedia.org/wiki/Linear-fractional_programming, https://en.wikipedia.org/wiki/Fractional_programming | `55` Megiddo and Charnes–Cooper, not adopted |
+| Wikipedia parametric search, linear-fractional programming, fractional programming | https://en.wikipedia.org/wiki/Parametric_search, https://en.wikipedia.org/wiki/Linear-fractional_programming, https://en.wikipedia.org/wiki/Fractional_programming | `55` `linearFractionalProgramming` (Charnes–Cooper); Megiddo not adopted |
 
-Codeforces blogs 61211, 146040 and 4190 (HTTP 403), the Luogu CCO 2020 "Shopping Plans" article (HTTP 523), poj.org and usaco.guide fractional programming (unreachable) were not read; `kSmallestFixedSizeSubsetSums` is derived and proved in its evidence document, not taken from them.
+Codeforces blogs 61211, 146040 and 4190 (HTTP 403), the Luogu CCO 2020 "Shopping Plans" article (HTTP 523), and the poj.org and usaco.guide fractional-programming pages (unreachable) were not read. `kSmallestFixedSizeSubsetSums` is derived and proved in its evidence document, not taken from them.
 
-## Fetched 2026-11-08 (omission sweep)
+## Fetched 2026-11-08 (Omission Sweep)
 
-Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+Scope `02`–`07` (P254). Decisions are in the rows, the folder notes (Omission Sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
 
 | URL | Used for |
 |---|---|
@@ -156,7 +156,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://www.luogu.com.cn/problem/P5367 | 07: `permutationRankMod` |
 | https://cses.fi/problemset/ | 08: `maximumAverageSubarrayLengths`; 32: `binPackingDP`; 35: `nQueensCount`; 39: `kMachineIntervalSchedule` |
 | https://cses.fi/problemset/task/3301 | 08: `maximumAverageSubarrayLengths` |
-| https://cp-algorithms.com/schedules/schedule-with-completion-duration.html | 09: `intervalPartitionMachines` |
+| https://cp-algorithms.com/schedules/schedule-with-completion-duration.html | 09: `intervalPartitionMachines` (left out; row 09 `intervalPartitionAssignment` owns it) |
 | https://github.com/yosupo06/library-checker-problems/tree/master/data_structure | 10: `rangeSumOffline` |
 | https://github.com/yosupo06/library-checker-problems/blob/master/data_structure/static_range_sum_with_upper_bound/task.md | 10: `rangeSumOffline` |
 | https://oi-wiki.org/basic/bucket-sort/ | 11: `bucketSort` |
@@ -185,7 +185,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://oi-wiki.org/dp/state/ | 33: `rowMaskDP` |
 | https://oi-wiki.org/dp/plug/ | 33: `dominoTilingCount`, `brokenProfileTiling`, `PlugDP`, `bestCycle`, `ColoredGridStates`, `encode` |
 | https://maspypy.github.io/library/other/connected_dp.hpp | 33: `PolygonGridStates` |
-| https://oi-wiki.org/search/astar/ | 35: `aStar` |
+| https://oi-wiki.org/search/astar/ | 35: `aStar` (left out; Graphs row 13 owns it) |
 | https://oi-wiki.org/search/ | 35: `aStar` |
 | https://maspypy.github.io/library/other/sliding_puzzle_solver.hpp | 35: `slidingPuzzleConstruct` |
 | https://cses.fi/problemset/task/1624 | 35: `nQueensCount` |
@@ -230,11 +230,11 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://maspypy.github.io/library/graph/bracket_graph.hpp | 53: `bracketForest`, `spans` |
 | https://maspypy.github.io/library/other/greedy_coin_counter_example.hpp | 56: `greedyChange`, `greedyCounterexample` |
 
-## 2026-09 audit
+## 2026-09 Audit
 
-The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (contract for `48` in [00-notes.md](00-notes.md)). Per-package source inspections with dates, page revisions and read scopes are recorded in the per-header documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [19-fastio.md](../../01-Core/Docs/19-fastio.md) (row `03` until 2026-11-01), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
+The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (the `48` contract in [00-notes.md](00-notes.md)). Per-package source inspections, with dates, page revisions and read scopes, are in the evidence documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [19-fastio.md](../../01-Core/Docs/19-fastio.md) (row `03` until 2026-11-01), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
 
-## Not adopted
+## Not Adopted
 
 - Library Checker `number_of_subsequences` (distinct subsequence count): Strings rows `19`/`20` provide `countDistinctSubsequences`.
 - Library Checker `find_linear_recurrence`, `kth_term_of_linearly_recurrent_sequence`, `sum_of_exponential_times_polynomial`: Mathematics `15-linear_recurrence.hpp` and generating functions.
@@ -244,7 +244,7 @@ The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, 
 - KACTL DivideAndConquerDP, KnuthDP, TernarySearch: Mathematics `27`/`02`. KACTL SIMD, Unrolling, FastMod: Core profile.
 - OI Wiki Mo variants, 珂朵莉树, 悬线法: Data Structures. 有限状态自动机, 计算理论基础, 字节顺序, 空间优化简介: expository, no API. Kahan summation: Mathematics numerics.
 - OI Wiki 倍增 (doubling) and Nyaan/hitonanode doubling/binary_lifting: Graphs `11-functionalgraph.hpp`.
-- maspypy ancestor-closed/connected/independent-set knapsack, anulus_scheduling, magic_square, poker, hukumenzan, manhattan path/walk: problem-specific, no reusable family.
+- maspypy anulus_scheduling: problem-specific, no reusable family.
 - maspypy exp_search, fibonacci_search, golden_search, binary_search_real_abs_rel: Mathematics `02-search_algorithms.hpp`.
 - maspypy/ei1333/suisen/hitonanode monotone minima, SMAWK, LARSCH, Monge shortest path, min/max-plus convolutions: Mathematics `27`/`53`.
 - maspypy random_graph/random_polygon/random_matrix/random_monge: test generators for `09-Contest Testing`.
@@ -255,9 +255,9 @@ The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, 
 - noshi91 monoid/action adapters: Data Structures segment-tree policies.
 - Algorithmica SIMD argmin, prefix sum, matrix multiplication, Montgomery: Core full profile.
 
-## Fetched 2026-11-10 (P275 re-review)
+## Fetched 2026-11-10 (P275 Re-Review)
 
-Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+Pages the P275 re-review agents read to confirm the returns recorded in [00-notes.md](00-notes.md) (P275 Re-Review 2026-11-10).
 
 - <https://raw.githubusercontent.com/maspypy/library/main/convex/slope_trick/slope_trick_super.hpp>
 - <https://raw.githubusercontent.com/maspypy/library/main/knapsack/knapsack01.hpp>
@@ -273,9 +273,9 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 - <https://www.luogu.com.cn/problem/P5283>
 - <https://en.wikipedia.org/wiki/Linear-fractional_programming>
 
-## P013 MI02 sweep (2026-11-16)
+## P013 MI02 Sweep (2026-11-16)
 
-Pages the batch's `@researcher` sweeps read for rows `04`, `06` and `07`; decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions, 2026-11-16) and [00-notes.md](00-notes.md).
+Pages the batch's `@researcher` sweeps read for rows `04`, `06` and `07`. Decisions are in `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions, 2026-11-16) and [00-notes.md](00-notes.md).
 
 | URL | Used for |
 |---|---|
@@ -292,9 +292,9 @@ Pages the batch's `@researcher` sweeps read for rows `04`, `06` and `07`; decisi
 | https://github.com/kth-competitive-programming/kactl/tree/main/content/combinatorial | 07: used-value bitmask technique (`IntPerm.h`) behind `permutationRank` |
 | https://oi-wiki.org/math/permutation/ | 07: `distinctPermutationCount` (多重集的排列数); the cycle-type count, adopted into row 07 on 2026-11-17 (`cycleTypeCount`) |
 
-## P013 MI02 `/finish` sweep (2026-11-17)
+## P013 MI02 `/finish` Sweep (2026-11-17)
 
-Pages the three `@researcher` sweeps of the MI02 `/finish` fetched for rows `04`, `06`, `07` and `SortedVector`, plus the Trotter-Johnson page this session read; decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions, 2026-11-17). Indexes read in part are marked.
+Pages the three `@researcher` sweeps of the MI02 `/finish` fetched for rows `04`, `06`, `07` and `SortedVector`, plus the Trotter–Johnson page that session read. Decisions are in `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions, 2026-11-17). Indexes read in part are marked.
 
 | URL | Used for |
 |---|---|

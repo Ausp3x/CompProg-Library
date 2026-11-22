@@ -1,4 +1,4 @@
-# 17-polymini.hpp — evidence
+# 17-polymini.hpp — Evidence
 
 `17-polymini.hpp` provides `PolyMini<T>`, the independently copyable polynomial and formal-power-series mini of C12 (package P026). It is a documented reduction of [`16-poly.hpp`](16-poly.md): the operations it shares with `Poly<T>` return the same coefficients and the same sizes on the shared domain. It includes only `01-template.hpp` and depends on no sibling, full type or detail namespace; every helper is a member of the struct. It has 182 non-blank lines and 7 comment lines.
 
@@ -34,15 +34,15 @@
 
 `facts`, `tree` and `evalTree` are implementation helpers, public only because the mini has no detail namespace: `facts(n)` returns factorials and inverse factorials up to `n` (`p > n`), `tree(xs)` the subproduct tree in heap layout over `4|xs|` nodes, `evalTree(t, xs, a)` the remainder descent.
 
-### Boundedness without assertions
+### Boundedness without Assertions
 
 Every loop whose termination rests on a precondition has a hard bound: the non-residue search stops after 1024 candidates, the transform loops run while `2 * len <= n` and `i + 2 * len <= n`, so a length that is not a power of two (asserted) neither writes past the root table nor takes a zero stride; `divMod` by zero returns `{0, a}`; `inv` reads the constant term through `a.empty() ? 0 : a[0]`; `interpolate` resizes `ys` to `|xs|`; `linearRecurrenceKth` returns 0 for `k < 0` and copies only the available prefix of a short `a`. A negative precision reaches `vector` as a size above `max_size()` and throws `std::length_error`. Divisions by a nonunit follow the residue type (the minis return 0).
 
-### Correctness argument
+### Correctness Argument
 
 The NTT is the radix-2 decimation-in-frequency network with stage roots `w_{2len}^j`, `w_{2len} = z^((p - 1) / (2 len))`, which is a primitive `2len`-th root because `z` is a non-residue (`z^((p-1)/2) = -1`). The inverse runs the decimation-in-time stages in the opposite order with the inverse roots `z^(p - 1 - (p - 1) / (2 len))`, obtained without a division since `z^(p-1) = 1`; each stage maps `(x, y)` to `(x + w^{-j} y, x - w^{-j} y)`, twice the inverse of the forward stage, hence the final `1/n`. Since the forward map, its root and its output order coincide with `Poly<T>::ntt`, and every other shared operation computes a uniquely determined exact result (products, quotients, truncated series, interpolants, shifts, recurrence terms) with the same size convention, mini and full agree coefficient by coefficient; Berlekamp–Massey agrees because both run the identical discrepancy updates. Newton iterations double the precision per round, so `inv`, `log`, `exp` and `pow` cost `O(n log n)`; the subproduct tree has `O(log n)` levels of `O(n log n)` products and divisions; Bostan–Mori halves `k` with two products of size `O(d)` per round.
 
-### Independent copy
+### Independent Copy
 
 The struct needs `<bits/stdc++.h>`, `<cassert>` (GCC 16's `bits/stdc++.h` no longer pulls it in; `01-template.hpp` gets it through the PBDS headers), `using namespace std;` and the aliases `uint`, `lng`, `ulng`, plus a residue type. The tester extracts `PolyMini` and `ModIntMini` from the headers, compiles them with exactly that preamble (plus `lll`/`ulll` for `ModIntMini`) under `-Wall -Wextra -Wshadow -Wconversion -Werror`, and runs a fixed program over every operation.
 
@@ -50,13 +50,13 @@ The struct needs `<bits/stdc++.h>`, `<cassert>` (GCC 16's `bits/stdc++.h` no lon
 
 Not in the mini, with reasons recorded in [00-notes.md](00-notes.md): the transform-limit block product, composite and arbitrary moduli, every ring and approximate coefficient type, `sqrt`, `powMod`, chirp-z, gcd/resultant, composition, sparse series, online products and the other full-only families. The mini's constant factors are larger for `exp` (Newton through `log` instead of the fused inverse), `evalMulti` and `interpolate` (remainder tree instead of the transposed tree); asymptotic bounds are the same.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
 | `convolution(a, b)` | `a * b` (the product body is `operator*`) |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 The [test entry](<../../96-Local Testing/01-Core/17-polymini_tester.py>) drives [the C++ oracle](<../../96-Local Testing/01-Core/17-polymini_tester.cpp>) and [a second translation unit](<../../96-Local Testing/01-Core/17-polymini_tester_tu.cpp>). Every operation runs over `ModIntMini` with 998244353, 7340033, 257, 97 and 17 (transform limits 2^23 down to 16, so the cap boundaries and small-field characteristic edges are exercised), `ModInt64Mini<29 * 2^57 + 1>`, the full `mint` as the coefficient type, and `DynModIntMini` set to 469762049 and then reset to 65537. Sizes cover 0, 1, powers of two and their neighbours, the 32/33 schoolbook and Horner cutoffs, and each modulus's largest allowed `N`. Every operation the full type shares except `+`, `-`, scalar `*`, `deg` and `trim` (whose oracles are direct loops) is also compared with `Poly<T>` for exact coefficient and size agreement, which is supporting evidence, never the only oracle.
 
@@ -80,11 +80,20 @@ The [test entry](<../../96-Local Testing/01-Core/17-polymini_tester.py>) drives 
 
 Quick runs every operation with sizes up to 65 (series) and 1100 (large identities), the brute recurrences to length 6 in GF(2) and 4 in GF(3), and the optimized, checked and AVX2 builds. Full extends sizes to 513 and 2^16 + 3, adds GF(5) and the sanitizer build. Stress extends to 1000 and 2^19 - 1 and evaluation/interpolation identities to 2^17.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1457 MB; optimized-scalar 0.2 s compile + 32.2 s run, checked-scalar 0.6 s compile + 42.4 s run, optimized-avx2 0.2 s compile + 25.3 s run, sanitized-scalar 229.6 s compile + 246.4 s run; MEMORY peak 1796 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1421 MB; optimized-scalar 0.4 s compile + 49.4 s run, checked-scalar 0.8 s compile + 75.5 s run, optimized-avx2 0.3 s compile + 46.1 s run, sanitized-scalar 410.4 s compile + 326.0 s run; MEMORY peak 1879 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized-scalar 173.9 s compile + 0.8 s run, checked-scalar 167.2 s compile + 1.0 s run, optimized-avx2 61.3 s compile + 0.7 s run; MEMORY peak 2373 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1458 MB; optimized-scalar 0.1 s compile + 51.0 s run, checked-scalar 0.3 s compile + 77.0 s run, optimized-avx2 0.1 s compile + 50.9 s run, sanitized-scalar 135.8 s compile + 146.3 s run; MEMORY peak 1803 MB. Compile limit 1200 s instead of 400 or 600 s: `16-poly`'s sanitized compile passed 400 s on a cold full run beside the other suites (about 100 s alone). Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run; compile limits in `96-Local Testing/Docs/00-parallel.md`), all PASS. Times are compile + run in seconds; peaks in MB.
 
-Run 2026-10-13 on the pruned header (`### Legacy mapping`; GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Intel Core i9-11900H); the two full runs, the integration run and the review ran concurrently. The stress row is the 2026-10-10 run of the header before the prune, which differed only in carrying `convolution` with `operator*` forwarding to it; the product body and every other operation are unchanged, so it was not rerun.
+| Command | Optimized scalar | Checked scalar | Optimized AVX2 | Sanitized scalar | Pre-flight quick peak | Peak |
+|---|---|---|---|---|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | 0.2 + 32.2 | 0.6 + 42.4 | 0.2 + 25.3 | 229.6 + 246.4 | 1457 | 1796 |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | 0.4 + 49.4 | 0.8 + 75.5 | 0.3 + 46.1 | 410.4 + 326.0 | 1421 | 1879 |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | 173.9 + 0.8 | 167.2 + 1.0 | 61.3 + 0.7 | — | — | 2373 |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 51.0 | 0.3 + 77.0 | 0.1 + 50.9 | 135.8 + 146.3 | 1458 | 1803 |
+
+2026-11-22 (`/finish C03`, consumer run on the committed `05-modint.hpp`, [05-modint.md](05-modint.md#commands-and-results)): `python3 '96-Local Testing/01-Core/17-polymini_tester.py' --mode quick --seed 1` passed, 3 configurations, 95 s, peak 2402 MB (counts not recorded).
+
+Runs of 2026-10-13 on the pruned header (Legacy Mapping; GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Intel Core i9-11900H); the two full runs, the integration run and the review ran concurrently. The stress row is the 2026-10-10 run of the header before the prune, which differed only in carrying `convolution` with `operator*` forwarding to it; since the product body and every other operation are unchanged, it was not rerun.
 
 ```bash
 python3 '96-Local Testing/01-Core/17-polymini_tester.py' --mode quick --seed 1
@@ -98,14 +107,14 @@ python3 '96-Local Testing/03-consistency.py'
 
 | Run | Result | Checks per configuration | MEMORY peak |
 |---|---|---|---|
-| quick, g++ | PASS, 3 configurations (no sanitizer in quick) in 149.9 s, 15 precondition deaths, header-alone/aggregates/extracted copy | 25,682 | 1,433 MB |
+| quick, g++ (2026-10-13) | PASS, 3 configurations (no sanitizer in quick) in 149.9 s, 15 precondition deaths, header-alone/aggregates/extracted copy | 25,682 | 1,433 MB |
 | full, g++ | PASS, pre-flight quick (peak 1,432 MB), 4 configurations in 502.3 s (optimized 16.4 s, checked 21.8 s, AVX2 12.7 s, ASan/UBSan 130.5 s) | 127,762 | 1,749 MB |
 | full, g++-14 (floor check) | PASS, pre-flight quick (peak 1,400 MB), 4 configurations in 484.0 s (optimized 16.5 s, checked 24.1 s, AVX2 13.1 s, ASan/UBSan 111.5 s) | 127,762 | 1,823 MB |
 | stress, 1 round, g++ (2026-10-10, previous header) | PASS, 4 configurations in 1,030.0 s (sanitized build on the full lists) | 138,461 (sanitized 133,763) | 1,747 MB |
 | integration | PASS, 135 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, 303 s | | 650 MB |
-| review differential (`/tmp/p026_review/diff.cpp`, scratch program, not kept): HEAD's header with the struct renamed against the pruned header; static assertions that both resolve `*` alike (compiles or not, result type) for 27 operand kinds on each side over five coefficient types; products over every size pair 0..70 and sampled sizes up to 4097 with lvalue, `const`, rvalue, moved and aliased operands, and every internal caller (`divMod`, `inv`, `log`, `exp`, `pow`, `evalMulti`, `interpolate`, `taylorShift`, `linearRecurrenceKth` up to `k = 2^62 + 5`); `g++ -O2 -D_GLIBCXX_ASSERTIONS`, `g++-14 -O2`, ASan/UBSan | 459,215 comparisons identical in every build; sanitizers clean | | 700 MB |
+| review differential (scratch program, not kept): the header before the prune, with the struct renamed, against the pruned header; static assertions that both resolve `*` alike (compiles or not, result type) for 27 operand kinds on each side over five coefficient types; products over every size pair 0..70 and sampled sizes up to 4097 with lvalue, `const`, rvalue, moved and aliased operands, and every internal caller (`divMod`, `inv`, `log`, `exp`, `pow`, `evalMulti`, `interpolate`, `taylorShift`, `linearRecurrenceKth` up to `k = 2^62 + 5`); `g++ -O2 -D_GLIBCXX_ASSERTIONS`, `g++-14 -O2`, ASan/UBSan | 459,215 comparisons identical in every build; sanitizers clean | | 700 MB |
 
-The memory peaks are the compiler on the tester translation unit, which instantiates the full `Poly<T>` for nine coefficient types; the test programs themselves stay below 40 MB (1.3 GB under ASan). Brace, comment-cap and type-header checks report no violation; consistency reports no errors.
+The memory peaks are the compiler's on the tester translation unit, which instantiates the full `Poly<T>` for nine coefficient types; the test programs stay below 40 MB (1.3 GB under ASan). The brace, comment-cap and type-header checks report no violation, and consistency reports no errors.
 
 ## Benchmarks
 
@@ -115,7 +124,7 @@ The memory peaks are the compiler on the tester translation unit, which instanti
 python3 '96-Local Testing/01-Core/17-polymini_benchmark.py' --config baseline --output '96-Local Testing/01-Core/17-polymini_benchmark.jsonl'
 ```
 
-Conditions (2026-10-10, header before the prune; `a * b` runs the body it then reached through `convolution`, so the table was not remeasured): GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG -march=x86-64 -mno-avx -mno-avx2 -mno-fma -mno-bmi2 -mno-pclmul` (the mini has no ISA path; the full type runs its scalar fallback), seed 20261010, uniform random residues modulo 998244353, warmup doubling to 3 ms, median of 5 repetitions, every measured result checked against `Poly<mint>` before timing; host not frequency-isolated (the constant full-type reference in the cutoff rows moved between 64 and 103 ms). Peak memory 445 MB. Medians in milliseconds:
+Conditions: 2026-10-10, on the header before the prune (`a * b` runs the body it then reached through `convolution`, so the table was not remeasured); GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG -march=x86-64 -mno-avx -mno-avx2 -mno-fma -mno-bmi2 -mno-pclmul` (the mini has no ISA path; the full type runs its scalar fallback), seed 20261010, uniform random residues modulo 998244353, warmup doubling to 3 ms, median of 5 repetitions, every measured result checked against `Poly<mint>` before timing; host not frequency-isolated (the constant full-type reference in the cutoff rows moved between 64 and 103 ms). Peak memory 445 MB. Medians in milliseconds:
 
 | Operation | n | PolyMini | Poly | Ratio |
 |---|---|---|---|---|
@@ -132,17 +141,21 @@ Conditions (2026-10-10, header before the prune; `a * b` runs the body it then r
 | findLinearRecurrence | 16384 | 308.18 | 314.30 | 0.98 |
 | linearRecurrenceKth, d = n/2, k = 10^18 | 16384 | 261.65 | 254.99 | 1.03 |
 
-At 1024 terms the mini is 1.3 to 2.5 times slower (per-call root tables and allocations dominate). The larger factors for `exp`, `pow`, `evalMulti` and `interpolate` are the accepted cost of the shorter algorithms (Newton through `log`, remainder tree); the bounds are unchanged.
+At 1024 terms the mini is 1.3 to 2.5 times slower, because per-call root tables and allocations dominate. The larger factors for `exp`, `pow`, `evalMulti` and `interpolate` are the accepted cost of the shorter algorithms (Newton through `log`, the remainder tree); the bounds are unchanged.
 
-Thresholds. The schoolbook cutoff `min(|a|, |b|) <= 32` comes from the balanced crossover (schoolbook versus a three-transform product: 0.005 against 0.009 ms at 32, 0.010 against 0.016 at 48, 0.017 against 0.016 at 64) lowered to 32 because an unbalanced product with a 33-to-64-term factor pays the schoolbook cost on every term of the long factor; it equals the full type's scalar `SCHOOLBOOK`. The Horner leaf of the remainder descent at 32 points: `evalMulti` with 16384 points took 309, 242, 225, 132, 128 and 127 ms at leaf sizes 1, 8, 16, 32, 64 and 128, so 32 sits at the start of the plateau.
+Thresholds:
+
+- Schoolbook when `min(|a|, |b|) <= 32`. The balanced crossover (schoolbook against a three-transform product: 0.005 against 0.009 ms at 32, 0.010 against 0.016 at 48, 0.017 against 0.016 at 64) is lowered to 32 because an unbalanced product with a 33-to-64-term factor pays the schoolbook cost on every term of the long factor. It equals the full type's scalar `SCHOOLBOOK`.
+- Horner leaf of the remainder descent at 32 points: `evalMulti` with 16384 points took 309, 242, 225, 132, 128 and 127 ms at leaf sizes 1, 8, 16, 32, 64 and 128, so 32 sits at the start of the plateau.
 
 ## Sources
 
 Independently written from the algorithms in the cited references; no code copied. The completeness sweep of 2026-10-10 is recorded in [00-sources.md](00-sources.md) (KACTL numerical chapter, Benq cp-notebook polynomials, cp-algorithms, OI Wiki, ei1333 and Nyaan FPS, the Library Checker polynomial tree); its rejected operations and reasons are in [00-notes.md](00-notes.md). The algorithms are the ones the full type documents in [16-poly.md](16-poly.md) (Newton iteration, subproduct tree, Bostan–Mori, Berlekamp–Massey), which serves as a reference implementation, not as a dependency.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-The mini has no transform-limit fallback: products beyond `2^v` terms for `2^v || p - 1` assert, where the full type switches to its block product.
+- The mini has no transform-limit fallback: products beyond `2^v` terms for `2^v || p - 1` assert, where the full type switches to its block product.
+- Verified before the mutation rule of 2026-11-03; no record yet.
 
 ## Aliases
 
@@ -150,7 +163,8 @@ Search aliases (P263, grab --find): Berlekamp–Massey 算法, 快速数论变�
 
 ## History
 
-- 2026-10-10: P026 implementation and verification: quick (seed 1, 26,591 checks), full (seed 20261010, 133,760 checks, 4 configurations, 589.6 s on GCC 16.2.1 and 684.0 s on GCC 14.4.1), integration (126 headers), plus the stress and benchmark runs still listed above.
-- 2026-10-13: prune (`/prune P026`): `convolution(a, b)` removed (`### Legacy mapping`), its body is now `operator*`; its two tester checks repeated `a * b` checks on the same inputs and were deleted; review found no defect; quick, full, floor check, integration and consistency as recorded above.
+- 2026-10-10: P026 implementation and verification: quick (seed 1, 26,591 checks), full (seed 20261010, 133,760 checks, 4 configurations, 589.6 s on GCC 16.2.1 and 684.0 s on GCC 14.4.1), integration (126 headers), stress and benchmark passed.
+- 2026-10-13: prune (`/prune P026`): `convolution(a, b)` removed (Legacy Mapping), its body is now `operator*`; its two tester checks repeated `a * b` checks on the same inputs and were deleted; the review found no defect; quick, full, floor check, integration and consistency passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, with the 10 s quick bound and the raised compile limit; full and stress inputs and checks unchanged; the library-wide runs above passed.
+- 2026-11-22: `/finish C03` reran the quick suite as a consumer of the committed `05-modint.hpp`; passed.

@@ -14,10 +14,10 @@ def main():
     text = FILE.read_text()
     section = re.search(rf'^## {pid} .*?(?=^## |\Z)', text, re.M | re.S)
     print(section.group(0).rstrip() if section else f'No package section for {pid}.')
-    decisions = re.search(r'^## Recorded decisions\n(.*?)(?=^## |\Z)', text, re.M | re.S)
+    decisions = re.search(r'^## Recorded Decisions\n(.*?)(?=^## |\Z)', text, re.M | re.S)
     blocks = re.findall(r'^- .*?(?=^- |^#|^\||\Z)|^\|[^\n]*', decisions.group(1), re.M | re.S) if decisions else []
     named = [b.rstrip() for b in blocks if re.search(rf'\b{pid}\b', b)]
-    print(f'\nRecorded decisions naming {pid}:')
+    print(f'\nRecorded Decisions naming {pid}:')
     print('\n'.join(named) if named else 'none')
 
 

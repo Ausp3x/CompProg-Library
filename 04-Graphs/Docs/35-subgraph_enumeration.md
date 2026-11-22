@@ -1,39 +1,40 @@
-# 35-subgraph_enumeration.hpp — evidence
+# 35-subgraph_enumeration.hpp — Evidence
 
-Owned by package P048 / GR32; omissions are in [00-notes.md](00-notes.md#p048-gr32-omissions). Contest profile: degeneracy-ordered enumeration and counting of triangles, 4-cycles, 4-cliques and short paths, the clustering coefficients built on them, and the directed triad census. `countTriangles` and `countK4` use `std::popcount` over 64-bit words; there is no handwritten SIMD and no Barrett or Montgomery reduction, so the header has no `Compact` twins. No legacy code covers this row.
+Owned by package P048 / GR32; omissions are in [00-notes.md](00-notes.md#p048-gr32-omissions). Contest profile: degeneracy-ordered enumeration and counting of triangles, 4-cycles, 4-cliques and short paths, the clustering coefficients built on them, and the directed triad census. `countTriangles` and `countK4` use `std::popcount` over 64-bit words; there is no handwritten SIMD and no Barrett or Montgomery reduction, so the header has no `Compact` twins. No legacy code covers the row.
 
 ## Contracts
 
-### Common domain
+### Common Domain
 
 - `G` is `Graph` or `CsrGraph` (only `n`, `directed`, `edges` and `arcs` are read). `triadicCensus`, `directedClustering` and `directedClusteringWeighted` assert a directed graph, `averageClustering` takes either, and every other operation asserts an undirected one. Loops are ignored everywhere. `n = 0`, isolated vertices and disconnected graphs are allowed.
-- Two semantics, fixed per operation:
+- Each operation has one of two fixed semantics:
   - **Simple graph** (every operation not listed below): parallel edges collapse, so a subgraph is a set of vertices with the required adjacencies. A triangle is 3 pairwise adjacent vertices, a 4-cycle is 4 distinct vertices with a cyclic order of 4 adjacencies (K4 contains 3), and a 4-clique is 4 pairwise adjacent vertices.
   - **Multigraph** (`enumerateTriangleEdges`, `countTrianglesPerEdge`, `countC4PerEdge`): a subgraph is a set of edges of g. Parallel copies are distinct, so a triangle through edge `e = {u, v}` is a choice of one edge for each of the pairs `{v, w}` and `{w, u}`. Each copy of a pair gets the same count, and loops get 0. On simple graphs both semantics agree.
-- Counts are exact in `lng`. An undirected `m` is at most 2^30 because `arcs.size() <= INT_MAX`. `Ranked` lists a directed arc at both ends, so it asserts `arcs.size() <= INT_MAX / 2` for directed graphs. That bound, about 32 GB of arcs, is out of reach in practice.
+- Counts are exact in `lng`. An undirected `m` is at most 2^30 because `arcs.size() <= INT_MAX`. `Ranked` lists a directed arc at both ends, so it asserts `arcs.size() <= INT_MAX / 2` for directed graphs, a bound (about 32 GB of arcs) out of reach in practice.
   - Triangles: at most `C(m, 2)`. Per-edge triangles: at most `C(m − 1, 2)`.
   - 4-cycles: at most `C(m, 2)`. Each 4-cycle has 2 pairs of opposite edges, and each pair of disjoint edges lies in at most 2 four-cycles.
-  - Per-edge 4-cycles: for an edge `uv`, the count is `Aᵀ B C`, where `A`, `B`, `C` hold the multiplicities of the pairs at `v`, between the middles, and at `u`. Their entries sum to at most `m − 1`, so the count is at most `(ΣA)(ΣB)(ΣC) <= ((m − 1) / 3)^3`. That is below 2^63 for `m <= 6 * 10^6`. On a simple graph every per-edge count is at most `deg(u) deg(v) <= 2^60`. `countC4PerEdge` accumulates in `ulng`, so it is exact on both domains, and beyond them each count is its value mod 2^64 without undefined behaviour (user decision 2026-10-29).
+  - Per-edge 4-cycles: for an edge `uv` the count is `Aᵀ B C`, where `A`, `B`, `C` hold the multiplicities of the pairs at `v`, between the middles, and at `u`. Their entries sum to at most `m − 1`, so the count is at most `(ΣA)(ΣB)(ΣC) <= ((m − 1) / 3)^3`, below 2^63 for `m <= 6 * 10^6`. On a simple graph every per-edge count is at most `deg(u) deg(v) <= 2^60`. `countC4PerEdge` accumulates in `ulng`, so it is exact on both domains, and beyond them each count is its value mod 2^64 without undefined behaviour (user decision 2026-10-29).
   - Paths: at most `4 m^2` (below).
 - Every function is pure: it builds its own workspace from g and keeps no state between calls. Callbacks run during the call and must not modify g.
 
-### Degeneracy order (`subgraph_enumeration_detail::Ranked`)
+### Degeneracy Order (`subgraph_enumeration_detail::Ranked`)
 
 `Ranked(g)` builds the underlying simple graph in O(n + m) time and memory:
+
 1. A raw adjacency of the non-loop arcs. A directed arc is listed at both ends, with direction bits relative to the list owner.
 2. Duplicates are removed with a stamp array. Each simple pair gets a `pid`, and `pair_of[e]` maps every edge to its pair. `mult[pid]` is the pair's multiplicity, and `dir` ORs the directions of its arcs.
-3. Vertices are relabelled by the Batagelj–Zaversnik core order (bucket queue, O(n + m)). Its `deg` ends as the core number, which is an upper bound on the number of neighbours of v that come later. So `out(v)`, the later neighbours, has at most `d` entries, where `d` is the degeneracy. A d-core needs at least `d + 1` vertices of degree at least `d`, so `d (d + 1) / 2 <= m`, that is `d <= sqrt(2m)`.
+3. Vertices are relabelled by the Batagelj–Zaversnik core order (bucket queue, O(n + m)). Its `deg` ends as the core number, an upper bound on the number of later neighbours of v, so `out(v)`, the later neighbours, has at most `d` entries for the degeneracy `d`. A d-core needs at least `d + 1` vertices of degree at least `d`, so `d (d + 1) / 2 <= m`, that is `d <= sqrt(2m)`.
 4. Each list is filled in increasing rank, so it is sorted. `out(u)` is the suffix `[split[u], start[u + 1])`.
 
-Only `Ranked(g, true)` builds the payload: arc, pair ID, multiplicity and direction per entry, and `pair_of` per edge. The multigraph operations, `findC4`, `generalizedDegree`, the directed and weighted clusterings and `triadicCensus` use it; entry `p` of list `x` stores an arc from `to[p]` into `x`. The other operations skip it: `Ranked(g, true)` takes 1.6–4.7 times as long as `Ranked(g)` (Benchmarks). The wedge scans of `countC4`, `countC4PerEdge`, `countC3C4PerVertex`, `findC4` and `enumerateC4` share `subgraph_enumeration_detail::wedges`. The 4-clique rows of `countK4` and `enumerateK4` share `subgraph_enumeration_detail::k4`.
+Only `Ranked(g, true)` builds the payload: arc, pair ID, multiplicity and direction per entry, and `pair_of` per edge. The multigraph operations, `findC4`, `generalizedDegree`, the directed and weighted clusterings and `triadicCensus` use it; entry `p` of list `x` stores an arc from `to[p]` into `x`. The other operations skip it, since `Ranked(g, true)` takes 1.6–4.7 times as long as `Ranked(g)` (Benchmarks). The wedge scans of `countC4`, `countC4PerEdge`, `countC3C4PerVertex`, `findC4` and `enumerateC4` share `subgraph_enumeration_detail::wedges`, and the 4-clique rows of `countK4` and `enumerateK4` share `subgraph_enumeration_detail::k4`.
 
-Every bound below in `m * d` is therefore at most `m * sqrt(2m)`. It is linear on graphs of bounded degeneracy (planar graphs, forests, grids).
+Every bound below in `m * d` is therefore at most `m * sqrt(2m)`, and linear on graphs of bounded degeneracy (planar graphs, forests, grids).
 
 ### enumerateTriangles
 
 `enumerateTriangles(g, f)` calls `f(a, b, c)` once per triangle with distinct original vertices in unspecified order. Time O(n + m · d + out), memory O(n + m).
 
-A triangle with ranks `u < v < w` is reported only from `u`: `v ∈ out(u)`, and `w ∈ out(v)` is found by a stamp. The stamp stores the position of `w` in `u`'s list, and it is valid exactly when that position is at least `split[u]`, because earlier lists occupy smaller positions. The work is `Σ_{u→v} |out(v)| <= m · d`.
+A triangle with ranks `u < v < w` is reported only from `u`: `v ∈ out(u)`, and `w ∈ out(v)` is found by a stamp. The stamp stores the position of `w` in `u`'s list and is valid exactly when that position is at least `split[u]`, since earlier lists occupy smaller positions. The work is `Σ_{u→v} |out(v)| <= m · d`.
 
 ### enumerateTriangleEdges
 
@@ -43,13 +44,13 @@ A triangle with ranks `u < v < w` is reported only from `u`: `v ∈ out(u)`, and
 
 `countTriangles(g)` is the simple-graph count, kept beside the enumeration and the per-vertex and per-edge sums for its dense kernel and single pass (user decisions 2026-10-29). `subgraph_enumeration_detail::triangleCount` counts the triangles whose lowest rank is below `r0` with the sparse loop and the rest with `bitsetTriangles(h, r0)`, which works on the rank suffix `[r0, n)`. That split is exact, because a triangle whose lowest rank is at least `r0` lies inside the suffix.
 
-`denseStart(h)` picks `r0` in O(n + m). It minimizes `probes(u < r0) + DENSE_RATIO · (Σ_{u ≥ r0, u→v} ((n − v) / 64 + 1) + k · ceil(k / 64))` with `k = n − r0`, among the suffixes with `k · ceil(k / 64) <= DENSE_WORDS`. It returns `n` when no suffix beats the all-sparse cost. The degeneracy order puts the dense cores last, so the suffix holds them. Each kernel sets one row of `out(u)` bits per suffix vertex and adds `popcount(row[u] & row[v])` for every arc `u → v`, from the word of `v` onward. Every common later neighbour is counted once.
+`denseStart(h)` picks `r0` in O(n + m). It minimizes `probes(u < r0) + DENSE_RATIO · (Σ_{u ≥ r0, u→v} ((n − v) / 64 + 1) + k · ceil(k / 64))` with `k = n − r0`, among the suffixes with `k · ceil(k / 64) <= DENSE_WORDS`. It returns `n` when no suffix beats the all-sparse cost. The degeneracy order puts the dense cores last, so the suffix holds them. The kernel sets one row of `out(u)` bits per suffix vertex and adds `popcount(row[u] & row[v])` for every arc `u → v`, from the word of `v` onward, counting every common later neighbour once.
 
 The rule picks the bitset only when the model says it is cheaper than the sparse loop, so the time stays O(n + m · d). Memory is O(n + m) plus the rows, at most 32 MB. Threshold measurements: [Benchmarks](#benchmarks).
 
 ### triangleProductSum
 
-`triangleProductSum(g, x)` returns `Σ x[a] · x[b] · x[c]` over the triangles `{a, b, c}` (Library Checker `enumerate_triangles`; renamed from `triangleAggregate` and kept by the user on 2026-10-29). `T` needs `T{}` equal to zero, `+=` and `*`. It works with wrapping `ulng`, modular types and `lng`; for a signed `T`, every product and partial sum must fit, otherwise the overflow is undefined behaviour. It asserts `x.size() == n`. `x` is copied into rank order first for locality. Under `NDEBUG`, a short `x` reads only its existing entries and treats the rest as zero, so a violated precondition stays bounded. Time O(n + m · d), memory O(n + m).
+`triangleProductSum(g, x)` returns `Σ x[a] · x[b] · x[c]` over the triangles `{a, b, c}` (Library Checker `enumerate_triangles`; renamed from `triangleAggregate` and kept by the user on 2026-10-29). `T` needs `T{}` equal to zero, `+=` and `*`. It works with wrapping `ulng`, modular types and `lng`; for a signed `T` every product and partial sum must fit, or the overflow is undefined behaviour. It asserts `x.size() == n` and copies `x` into rank order first for locality. Under `NDEBUG` a short `x` reads only its existing entries and treats the rest as zero, so a violated precondition stays bounded. Time O(n + m · d), memory O(n + m).
 
 ### countTrianglesPerEdge
 
@@ -57,15 +58,15 @@ The rule picks the bitset only when the model says it is cheaper than the sparse
 
 ### countC4
 
-`countC4(g)` returns the number of simple-graph 4-cycles. For each `u` it counts the wedges `u − v − w` with `v, w` earlier than `u` in `cnt[w]`, and adds `C(cnt[w], 2)` incrementally. Each 4-cycle is counted once: from its latest vertex `u`, with `w` the vertex opposite `u` and the two middles as the pair. The sorted lists stop each scan at `u`. A pair `(v, u)` with `u ∈ out(v)` scans at most `deg(v)` entries, so the work is `Σ_v deg(v) · |out(v)| <= 2 m · d`. It is kept beside `countC4PerEdge` for its single pass (user decision 2026-10-29). Time O(n + m · d), memory O(n + m).
+`countC4(g)` returns the number of simple-graph 4-cycles. For each `u` it counts the wedges `u − v − w` with `v, w` earlier than `u` in `cnt[w]` and adds `C(cnt[w], 2)` incrementally. Each 4-cycle is counted once, from its latest vertex `u`, with `w` the vertex opposite `u` and the two middles as the pair. The sorted lists stop each scan at `u`; a pair `(v, u)` with `u ∈ out(v)` scans at most `deg(v)` entries, so the work is `Σ_v deg(v) · |out(v)| <= 2 m · d`. It is kept beside `countC4PerEdge` for its single pass (user decision 2026-10-29). Time O(n + m · d), memory O(n + m).
 
 ### countC4PerEdge
 
-`countC4PerEdge(g)[e]` uses multigraph semantics and matches Library Checker `counting_c4`. For each `u`, a first pass sets `S[w] = Σ_v μ_uv · μ_vw` over the wedges `u − v − w` above. A second pass adds `μ_vw · (S[w] − μ_uv μ_vw)` to the pair `uv` and `μ_uv · (S[w] − μ_uv μ_vw)` to the pair `vw`. Those are the weighted counts of the other wedges `u − v' − w` with `v' ≠ v` that close a cycle through the edge. Each cycle is reached once from its latest vertex, and every one of its four pairs is credited from the wedge that contains it. Time O(n + m · d), memory O(n + m); exact for simple graphs and `m <= 6 * 10^6`, otherwise mod 2^64 (Common domain).
+`countC4PerEdge(g)[e]` uses multigraph semantics and matches Library Checker `counting_c4`. For each `u`, a first pass sets `S[w] = Σ_v μ_uv · μ_vw` over the wedges `u − v − w` above. A second pass adds `μ_vw · (S[w] − μ_uv μ_vw)` to the pair `uv` and `μ_uv · (S[w] − μ_uv μ_vw)` to the pair `vw`. These are the weighted counts of the other wedges `u − v' − w` with `v' ≠ v` that close a cycle through the edge. Each cycle is reached once from its latest vertex, and each of its four pairs is credited from the wedge containing it. Time O(n + m · d), memory O(n + m); exact for simple graphs and `m <= 6 * 10^6`, otherwise mod 2^64 (Common Domain).
 
 ### countC3C4PerVertex
 
-`countC3C4PerVertex(g)` returns `{c3, c4}`: per vertex, the simple-graph triangles and 4-cycles containing it (maspypy `count_C3_C4_pointwise`). Every triangle adds 1 to its three vertices. In the C4 scan, `u` and `w` get `C(cnt[w], 2)` and each middle `v` gets `cnt[w] − 1`. So `Σ c3 = 3 T` and `Σ c4 = 4 C4`. Time O(n + m · d), memory O(n + m).
+`countC3C4PerVertex(g)` returns `{c3, c4}`: per vertex, the simple-graph triangles and 4-cycles containing it (maspypy `count_C3_C4_pointwise`). Every triangle adds 1 to its three vertices; in the C4 scan `u` and `w` get `C(cnt[w], 2)` and each middle `v` gets `cnt[w] − 1`, so `Σ c3 = 3 T` and `Σ c4 = 4 C4`. Time O(n + m · d), memory O(n + m).
 
 ### findC4
 
@@ -73,7 +74,7 @@ The rule picks the bitset only when the model says it is cheaper than the sparse
 
 ### countK4
 
-`countK4(g)` counts 4-cliques (maspypy `count_K4` structure, with the degeneracy order). For each `u` it builds the subgraph induced on `out(u)` (at most `d` vertices) as bitset rows. Building costs the triangle bound `Σ |out(v)|`. For every induced edge `a < b` it adds `popcount(row[a] & row[b])`, the common later neighbours. Each 4-clique `u < v < w < x` is counted once, at `u`, edge `(v, w)`. The rows cost `Σ k_u · ceil(k_u / 64) <= m + m · d / 64`. The counting costs at most one row scan of `ceil(d / 64)` words per triangle, that is `m · d · ceil(d / 64)`. Time O(n + m · d + m · d^2 / w), memory O(n + m), workspace O(d^2 / w) words.
+`countK4(g)` counts 4-cliques (maspypy `count_K4` structure, with the degeneracy order). For each `u` it builds the subgraph induced on `out(u)` (at most `d` vertices) as bitset rows, at the triangle bound `Σ |out(v)|`, and for every induced edge `a < b` adds `popcount(row[a] & row[b])`, the common later neighbours. Each 4-clique `u < v < w < x` is counted once, at `u`, edge `(v, w)`. The rows cost `Σ k_u · ceil(k_u / 64) <= m + m · d / 64`, and the counting at most one row scan of `ceil(d / 64)` words per triangle, `m · d · ceil(d / 64)`. Time O(n + m · d + m · d^2 / w), memory O(n + m), workspace O(d^2 / w) words.
 
 ### enumerateK4
 
@@ -81,11 +82,12 @@ The rule picks the bitset only when the model says it is cheaper than the sparse
 
 ### enumerateC4
 
-`enumerateC4(g, f)` calls `f(a, b, c, e)` once per 4-cycle, in its cyclic order `a − b − c − e − a`. For each `u` it buckets the wedges `u − v − w` by `w` and reports every pair of middles of a bucket. That is exactly the `countC4` scan, so each cycle appears once. Time O(n + m · d + out), memory O(n + m).
+`enumerateC4(g, f)` calls `f(a, b, c, e)` once per 4-cycle, in its cyclic order `a − b − c − e − a`. For each `u` it buckets the wedges `u − v − w` by `w` and reports every pair of middles of a bucket; this is exactly the `countC4` scan, so each cycle appears once. Time O(n + m · d + out), memory O(n + m).
 
 ### countPathsP3P4P5
 
 `countPathsP3P4P5(g)[k][v]` is the number of simple paths with `k + 3` vertices that start at `v` (maspypy `count_P3_P4_P5` pointwise). The unordered totals are the sums divided by 2. With `d(v)` the simple degree, `t(v)` and `q(v)` the per-vertex triangle and 4-cycle counts, and `N(v)` the neighbours:
+
 - `P3(v) = Σ_{a∈N(v)} (d(a) − 1)`.
 - `P4(v) = Σ_{a∈N(v)} P3(a) − d(v)(d(v) − 1) − 2 t(v)`. `P3(a)` includes the walks that return to `v` (`d(v) − 1` per `a`) and the closed walks `v − a − b − v` (two per triangle).
 - `P5(v) = Σ_{a∈N(v)} P4(a) − (d(v) − 1) P3(v) − 2 t(v)(d(v) − 3) − 2 q(v)`. The paths `a − b − c − e` from `a ∈ N(v)` that hit `v` are removed:
@@ -104,20 +106,22 @@ Bound: `P3(b) <= 2m`, `P4(a) <= d(a) · 2m` and `P5(v) <= Σ_a d(a) · 2m <= 4m^
 ### localClustering, transitivity, squareClustering, averageClustering
 
 These are NetworkX `clustering`, `transitivity`, `square_clustering` and `average_clustering` on the simple graph, as defined in the current `cluster.py` code (user decision 2026-10-29). Each value is the `double` quotient of two exact `lng` counts, so it is correctly rounded while both counts are below 2^53.
+
 - `localClustering(g)[v] = 2 t(v) / (d(v)(d(v) − 1))`, and 0 when `t(v) = 0`.
 - `transitivity(g) = 3T / Σ_v C(d(v), 2)`, and 0 without triangles. It reuses the `countTriangles` dispatch.
-- `squareClustering(g)[v] = q(v) / ((d(v) − 1) P3(v) − 2 t(v) − q(v))`, and 0 when the denominator is ≤ 0. NetworkX computes `uw_degrees − uw_count − triangles − squares`; here `uw_degrees − uw_count = (d − 1) P3(v)`, `triangles = 2 t(v)` and `squares = q(v)`, the 4-cycles through `v`. The documented formula with `a_v(u, w)` differs from that code, and the code is followed.
-- `averageClustering(g, count_zeros = true)` is the mean of `localClustering`, or of `directedClustering` when g is directed. With `count_zeros` false it averages only the nonzero values. It returns 0 when nothing is averaged, where NetworkX divides by zero. A weighted average would need a flag choosing between operations; it is the mean of `localClusteringWeighted`.
+- `squareClustering(g)[v] = q(v) / ((d(v) − 1) P3(v) − 2 t(v) − q(v))`, and 0 when the denominator is ≤ 0. NetworkX computes `uw_degrees − uw_count − triangles − squares`; here `uw_degrees − uw_count = (d − 1) P3(v)`, `triangles = 2 t(v)` and `squares = q(v)`, the 4-cycles through `v`. The documented formula with `a_v(u, w)` differs from that code; the code is followed.
+- `averageClustering(g, count_zeros = true)` is the mean of `localClustering`, or of `directedClustering` when g is directed. With `count_zeros` false it averages only the nonzero values. It returns 0 when nothing is averaged, where NetworkX divides by zero. The weighted average is the row's `averageClusteringWeighted` (missing).
 
 Each is O(n + m · d) time and O(n + m) memory, averageClustering included.
 
 ### directedClustering
 
-`directedClustering(g)[v] = T(v) / (2 (dt(dt − 1) − 2 db))`, and 0 when `T(v) = 0` (NetworkX unweighted directed clustering). Here `dt` is the in-degree plus the out-degree and `db` is the number of reciprocal neighbours, all on the simple digraph. NetworkX's `T(v)` sums `(a_vj + a_jv)(a_vk + a_kv)(a_jk + a_kj)` over ordered pairs `(j, k)`. That equals `2 Σ` over the triangles at `v` of the product of the three dyad arc counts, which the direction bits give. Time O(n + m · d), memory O(n + m).
+`directedClustering(g)[v] = T(v) / (2 (dt(dt − 1) − 2 db))`, and 0 when `T(v) = 0` (NetworkX unweighted directed clustering). Here `dt` is the in-degree plus the out-degree and `db` is the number of reciprocal neighbours, all on the simple digraph. NetworkX's `T(v)` sums `(a_vj + a_jv)(a_vk + a_kv)(a_jk + a_kj)` over ordered pairs `(j, k)`, which equals `2 Σ` over the triangles at `v` of the product of the three dyad arc counts given by the direction bits. Time O(n + m · d), memory O(n + m).
 
 ### localClusteringWeighted, directedClusteringWeighted
 
 These are NetworkX weighted clustering (Saramäki et al.), undirected and directed.
+
 - Weights are normalized as `ŵ = w / max w`, where `max w` is taken over every edge, loops included, and is 1 without edges. The maximum must be nonzero (asserted). Negative weights are allowed, and their cube roots are negative.
 - The real cube root is multiplicative, so NetworkX's `cbrt(ŵ_ij ŵ_jk ŵ_ki)` equals the product of per-pair values `S`. For a directed graph, `S` of a pair is the sum of `cbrt(ŵ)` over its arcs, which reproduces NetworkX's eight direction terms. `subgraph_enumeration_detail::cubeRoots` computes `S` per pair.
 - Values: `localClusteringWeighted(g)[v] = 2 Σ_{triangles at v} S S S / (d(d − 1))`, and `directedClusteringWeighted` divides the same sum by `2 (dt(dt − 1) − 2 db)`. Both give 0 when the sum is 0.
@@ -129,6 +133,7 @@ Time O(n + m · d), memory O(n + m).
 ### triadicCensus
 
 `triadicCensus(g)` counts the 16 isomorphism types of 3-vertex induced subdigraphs, in NetworkX order 003, 012, 102, 021D, 021U, 021C, 111D, 111U, 030T, 030C, 201, 120D, 120U, 120C, 210, 300. Loops and parallel arcs are ignored. It asserts `C(n, 3) <= 2^63 − 1`. Seen from a centre, a dyad is out, in or mutual.
+
 - Open wedges: centre `c` with `o`, `i` and `μ` out, in and mutual dyads gives `C(o, 2)` 021D, `C(i, 2)` 021U, `o · i` 021C, `μ · i` 111D (A<->B<-C), `μ · o` 111U and `C(μ, 2)` 201. Every enumerated triangle then removes its three closed wedges.
 - One-dyad triads: a pair `{u, v}` with `t(uv)` common neighbours has `n − d(u) − d(v) + t(uv)` third vertices adjacent to neither. That count goes to 012 if the dyad is asymmetric and to 102 if it is mutual; the triangles supply the `t(uv)` terms.
 - Triangles are classified by their number of mutual dyads: 0 gives 030C if every vertex has out-degree 1 inside the triad and 030T otherwise; 1 gives 120D, 120U or 120C as the remaining vertex sends 2, 0 or 1 arcs; 2 gives 210; 3 gives 300.
@@ -136,7 +141,7 @@ Time O(n + m · d), memory O(n + m).
 
 Time O(n + m · d), memory O(n + m). No fetched contest catalog has a triad census; the decomposition above was derived for this header and is checked against the NetworkX code table.
 
-### Legacy mapping
+### Legacy Mapping
 
 - P276 rename, 2026-11-10: `weightedClustering` → `localClusteringWeighted`; `weightedDirectedClustering` → `directedClusteringWeighted`.
 
@@ -155,11 +160,12 @@ Renamed aliases (P276, 2026-11-10): `weightedClustering`, `weightedDirectedClust
 
 Search aliases (P263, grab --find): cycle counting (OI Wiki: 环计数问题, rings count), triangle counting, 4-cycle counting, 三角形计数, 聚类系数, 子图计数.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 `96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py` (`.cpp` beside it) uses the shared contest runner with three builds: optimized `-O2 -DNDEBUG`, checked (`-D_GLIBCXX_DEBUG`, `-O0` in quick and `-O1` in full and stress, with 32 assertion probes) and, outside quick, ASan/UBSan. All builds use `-Wall -Wextra -Wconversion -Werror`. Every operation runs on both `Graph` and `CsrGraph`.
 
 Oracles, each validated before use:
+
 - Brute force: an adjacency-matrix count over vertex triples and over quadruples in their three cyclic orders. Per-edge values are multiplicity products over distinct vertices, and paths come from DFS enumeration.
 - Edge-subset check: every 3- and 4-edge subset is tested for being a cycle (k non-loop edges on k vertices, all of degree 2, connected). It validates the brute force on 13 hand graphs worked out on paper and on every tiny random multigraph. The hand graphs are K4, doubled K4, C4, a triangle and a square with a doubled edge, two digons joined by a bridge, K2,3, a bowtie, Petersen, loops only, and n = 0, 1, 2.
 - Codegree oracle for large graphs, O(Σ deg² · log): weighted two-paths per vertex give the per-vertex and per-edge counts, K4 comes from common neighbours, and paths are counted by DFS at 201 sampled starts. It is cross-checked against the brute force on every medium graph.
@@ -190,6 +196,7 @@ Oracles, each validated before use:
 | Purity | Every operation is called twice | Identical results |
 
 Modes (optimized build):
+
 - quick: exhaustive simple graphs with n ≤ 5 and digraphs with n ≤ 3; 100 tiny and 15 medium random rounds; K_n up to 25; dense graphs to n = 300 plus the 16384/16385 boundary and the dispatch cores; large shapes and census at n = 1200.
 - full: exhaustive n ≤ 6 and digraphs n ≤ 4; 3000 and 400 rounds; K_n up to 200 (all operations); K300, K1000, K2000 and random dense n = 1000 and 3000; closed forms at n = 2 · 10^5 and K2,50000; large shapes at n = 2 · 10^5 and m = 5 · 10^5 (uniform multigraph, dense blocks, a hub adjacent to every vertex); the census boundary.
 - stress: 20000 and 2000 rounds; K2,100000 and closed forms at n = 3 · 10^5; n = m = 3 · 10^5 and n = 2 · 10^5, m = 10^6; census at m = 10^6.
@@ -200,28 +207,42 @@ Inclusion through `99-all.hpp` and two translation units are covered by `02-inte
 
 Moved from quick to full and stress by the 10 s quick bound (P274), in the optimized build: K_n at n = 40, 63..66 and 127..130, the bipartite shape 40 × 60, and the domain edge at unscaled weights (`w^3` past 2^63); quick checks the same edge at weights scaled by 1000, as the checked build always has.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 670 MB; optimized 0.1 s compile + 179.6 s run, checked 31.2 s compile + 62.7 s run, ASan-UBSan 61.2 s compile + 449.3 s run; MEMORY peak 1726 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 685 MB; optimized 0.2 s compile + 201.0 s run, checked 52.0 s compile + 137.4 s run, ASan-UBSan 91.0 s compile + 537.0 s run; MEMORY peak 1692 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 51.3 s compile + 20.2 s run, checked 34.1 s compile + 28.0 s run; MEMORY peak 668 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 237 MB; optimized 0.1 s compile + 169.9 s run, checked 18.8 s compile + 35.5 s run, ASan-UBSan 29.6 s compile + 183.6 s run; MEMORY peak 1798 MB. Command limit 2400 s instead of the shared runner's 720 s: its ASan-UBSan full run passed 720 s on a cold full run beside the other suites. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, GCC 16.2 (`g++`) and GCC 14.4.1 (`g++-14`). The 2026-11-10 library-wide runs used GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. This suite's command limit is 2400 s instead of the shared runner's 720 s, because its ASan-UBSan full run passed 720 s on a cold full run beside the other suites.
 
-Run 2026-10-29 on the local machine (GCC 16.2 `g++`, GCC 14.4.1 `g++-14`), after the last header change:
-
-| Command | Result | Memory peak |
+| Date | Command | Result |
 |---|---|---|
-| `python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py' --mode quick` | PASS, 2 configurations, 32 probes; optimized 3720 cases, 138,721,251 checks; checked 3686 cases | 1048 MB |
-| `python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py' --mode full --seed 371` | PASS, 3 configurations, 32 probes; optimized 82,992 cases, 161,880,851 checks; checked 17,414; ASan/UBSan 17,443 | 1795 MB |
-| `CXX=g++-14 python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py' --mode full --seed 372` | PASS, 3 configurations, 32 probes | 1727 MB |
-| `python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py' --mode stress --seed 373` | PASS, 3 configurations, 32 probes; optimized 140,794 cases, 169,935,464 checks | 1710 MB |
-| `python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_benchmark.py'` | PASS, every count checked, 3 variants (Benchmarks) | 2162 MB |
-| `python3 '96-Local Testing/02-integration.py'` | PASS, 183 standalone and aggregate headers, multi-TU, workspace | 1311 MB |
+| 2026-11-10 | `01-run.py --mode full` (P274, library-wide) | PASS (counts not recorded): pre-flight quick peak 670 MB; optimized 0.1 s compile + 179.6 s run, checked 31.2 + 62.7 s, ASan-UBSan 61.2 + 449.3 s; MEMORY peak 1726 MB |
+| 2026-11-10 | `CXX=g++-14 01-run.py --mode full` (P274) | PASS (counts not recorded): pre-flight quick peak 685 MB; optimized 0.2 + 201.0 s, checked 52.0 + 137.4 s, ASan-UBSan 91.0 + 537.0 s; MEMORY peak 1692 MB |
+| 2026-11-10 | `01-run.py --mode quick` (P274) | PASS (counts not recorded): optimized 51.3 + 20.2 s, checked 34.1 + 28.0 s; MEMORY peak 668 MB |
+| 2026-11-10 | `01-run.py --mode stress --rounds 1` (P274) | PASS (counts not recorded): pre-flight quick peak 237 MB; optimized 0.1 + 169.9 s, checked 18.8 + 35.5 s, ASan-UBSan 29.6 + 183.6 s; MEMORY peak 1798 MB |
+| 2026-11-10 | P276 rename: tester full on g++ and g++-14, stress, `05-extraction.py` | PASS (counts not recorded) |
+| 2026-11-06 | P253: `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full; `02-integration.py` | PASS (counts not recorded) |
+| 2026-10-29 | `35-subgraph_enumeration_tester.py --mode quick` | PASS, 2 configurations, 32 probes; optimized 3720 cases, 138,721,251 checks; checked 3686 cases; memory peak 1048 MB |
+| 2026-10-29 | `35-subgraph_enumeration_tester.py --mode full --seed 371` | PASS, 3 configurations, 32 probes; optimized 82,992 cases, 161,880,851 checks; checked 17,414; ASan/UBSan 17,443; memory peak 1795 MB |
+| 2026-10-29 | `CXX=g++-14 35-subgraph_enumeration_tester.py --mode full --seed 372` | PASS, 3 configurations, 32 probes; memory peak 1727 MB |
+| 2026-10-29 | `35-subgraph_enumeration_tester.py --mode stress --seed 373` | PASS, 3 configurations, 32 probes; optimized 140,794 cases, 169,935,464 checks; memory peak 1710 MB |
+| 2026-10-29 | `35-subgraph_enumeration_benchmark.py` | PASS, every count checked, 3 variants (Benchmarks); memory peak 2162 MB |
+| 2026-10-29 | `02-integration.py` | PASS, 183 standalone and aggregate headers, multi-TU, workspace; memory peak 1311 MB |
 
 The m = 6 · 10^6 domain-edge multigraphs set the tester peak.
 
+```bash
+python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py' --mode quick
+python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py' --mode full --seed 371
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py' --mode full --seed 372
+python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py' --mode stress --seed 373
+python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_benchmark.py'
+python3 '96-Local Testing/02-integration.py'
+```
+
 ## Benchmarks
 
-`python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_benchmark.py'` (variants `O2`, `popcnt`, `native`; `--quick`, `--variants`), run 2026-10-29 with `DENSE_RATIO = 2`, the array-free `denseStart` and the payload-free `Ranked`. The raw log is the git-ignored `35-subgraph_enumeration_benchmark.json`. The one later header change stores the arc index instead of `2a + flip` in `Ranked(g, true)` and touches only `build_full`. A `--quick` rerun on the final header measured `build_full` equal or lower: G(1000, 0.02) 0.32 ms, K1000 25.9 ms against 34.8, and random n = m = 10^5 7.65 ms against 7.99. Its counts are all checked (`PASS`, peak 1229 MB).
+`python3 '96-Local Testing/04-Graphs/35-subgraph_enumeration_benchmark.py'` (variants `O2`, `popcnt`, `native`; `--quick`, `--variants`), run 2026-10-29 with `DENSE_RATIO = 2`, the array-free `denseStart` and the payload-free `Ranked`; the raw log is the git-ignored `35-subgraph_enumeration_benchmark.json`. The one later header change stores the arc index instead of `2a + flip` in `Ranked(g, true)` and touches only `build_full`; a `--quick` rerun on the final header measured `build_full` equal or lower (G(1000, 0.02) 0.32 ms, K1000 25.9 ms against 34.8, random n = m = 10^5 7.65 ms against 7.99), with every count checked (`PASS`, peak 1229 MB).
 
 **Conditions.**
+
 - Intel i9-11900H, GCC 16.2.1.
 - Builds: `-std=gnu++20 -O2 -DNDEBUG`, then the same plus `-mpopcnt`, then plus `-march=native`. `std::popcount` compiles to the libgcc call `__popcountdi2`, to scalar `popcnt` and to `vpopcntq` respectively.
 - Seed 20261029 + case index. One checked warmup, then the median of 5 samples, each repeating the section `clamp(4e6 / (n + m), 1, 200)` times.
@@ -261,6 +282,7 @@ At `-O2`, the values 1.5, 2 and 3 give the same total. Among the other values th
 **Choice of `DENSE_WORDS = 2^22`.** That is 32 MB of rows, k ≤ 16384 suffix vertices. Near the cap the bitset still wins on dense graphs: G(16000, 0.1) runs 2.1x, 6.2x and 11x faster than the sparse loop. The suffix dispatch keeps the dense core of graphs above the cap. In every clique-plus-tail case, `r0` is the first clique rank, including n = 16385 and n = 103000. With a 100,000-vertex tail, the whole-graph bitset alone (build excluded) is 2.55–9.87 times the whole `countTriangles` call, because it allocates up to 1.3 GB of rows.
 
 **End to end.** `countTriangles` against build plus sparse count:
+
 - K4000: 12.6x / 21.2x / 24.8x.
 - G(8000, 0.5): 7.7x / 15.8x / 20.2x.
 - K3000 suffix cases: 11.3–11.4x / 19.7–20.8x / 22.4–22.9x.
@@ -269,20 +291,23 @@ On graphs where the sparse loop runs alone (`r0 = n`), `denseStart` costs 0.2–
 
 ## Sources
 
-[00-sources.md](00-sources.md#pages-fetched-on-2026-10-29-p048-gr32): Library Checker `enumerate_triangles` and `counting_c4`, maspypy `count_C3_C4`, `count_P3_P4_P5`, `count_K4` and `find_C4`, Koosaga `count_4_cycles`, OI Wiki 环计数, the ei1333, suisen, hitonanode and tko919 enumerators, and the NetworkX `triads.py` and `cluster.py` code. Written independently from these descriptions; no catalog code was copied.
+[00-sources.md](00-sources.md#pages-fetched-on-2026-10-29-p048-gr32): Library Checker `enumerate_triangles` and `counting_c4`, maspypy `count_C3_C4`, `count_P3_P4_P5`, `count_K4` and `find_C4`, Koosaga `count_4_cycles`, OI Wiki 环计数, the ei1333, suisen, hitonanode and tko919 enumerators, and the NetworkX `triads.py` and `cluster.py` code. The code was written independently from these descriptions; no catalog code was copied.
 
-## Limits and handoffs
+## Limits and Handoffs
 
+- The row is `partial`: `averageClusteringWeighted` is missing.
 - The per-edge operations use multigraph semantics; everything else counts the simple graph (user decision 2026-10-29).
 - Recorded keeps in `00-Guidelines/23-Sweep Ledgers/duplicates.md`: `countTriangles` beside `enumerateTriangles` and the sums of the per-vertex and per-edge counts, and `countC4` beside the sums of `countC4PerEdge` and `countC3C4PerVertex`.
-- `Ranked` contains its own Batagelj–Zaversnik core order. It is to migrate to planned row 42 (`degeneracyOrdering`, `coreNumbers`) when that row is verified, as long as the shared order still yields sorted rank lists without an extra pass.
+- `Ranked` contains its own Batagelj–Zaversnik core order. It migrates to planned row 42 (`degeneracyOrdering`, `coreNumbers`) once that row is verified, provided the shared order still yields sorted rank lists without an extra pass.
+- There is no mutation record yet.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## History
 
-- 2026-10-29 (`/finish GR32`): dense kernel moved to a rank suffix chosen by an array-free `denseStart`; `countC4PerEdge` accumulates in `ulng` (user decision); directed `Ranked` bound asserted; 11 operations added (user decisions): `enumerateTriangleEdges`, `enumerateC4`, `enumerateK4`, `generalizedDegree`, the six clusterings and `transitivity`; tester extended to them (32 probes); benchmark rerun.
 - 2026-10-29: new row (P048 / GR32); review: 2 medium and 9 low findings fixed (payload-free `Ranked` for seven operations, undefined `d`, shared wedge scan, provenance row, extended keeps, row 42 handoff, signed-`T` contract, bounded `NDEBUG` read, domain-edge tests at m = 6 · 10^6, bound wording, `swap`); full suite passed on g++ and g++-14, stress passed, benchmark rerun.
-- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-10-29 (`/finish GR32`): dense kernel moved to a rank suffix chosen by an array-free `denseStart`; `countC4PerEdge` accumulates in `ulng` (user decision); directed `Ranked` bound asserted; 11 operations added (user decisions): `enumerateTriangleEdges`, `enumerateC4`, `enumerateK4`, `generalizedDegree`, the six clusterings and `transitivity`; tester extended to them (32 probes); benchmark rerun.
+- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; quick, full, `CXX=g++-14` full and integration passed; no mutation record, so no campaign.
+- 2026-11-07: P263 added the search aliases (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound, a raised limit (Commands and Results); full and stress inputs and checks unchanged; the library-wide runs above passed.
 - 2026-11-10: P276 rename (`weightedClustering`, `weightedDirectedClustering` → `localClusteringWeighted`, `directedClusteringWeighted`); full on g++ and g++-14, stress and extraction passed.

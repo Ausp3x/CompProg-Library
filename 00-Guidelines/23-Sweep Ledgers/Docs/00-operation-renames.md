@@ -1,22 +1,22 @@
-# Operation-name renames (P276, SUP27)
+# Operation-Name Renames (P276, SUP27)
 
-Evidence of the scoped renames that bring existing names in line with `02-structure.md` (Operation names). User decisions of 2026-11-10 are in `10-decisions.md` (2026-11-10 P276 operation renames).
+Evidence of the scoped renames that brought existing names in line with `02-structure.md` (Operation Names). The user decisions of 2026-11-10 are in `10-decisions.md` (2026-11-10 P276 Operation Renames).
 
 ## Scope
 
-- **Inputs.** The brief's list, the P254 note (variant word first, `phiTrial`, `primitiveRoot`) and the P275 handoff (`Docs/00-duplicate-rereview.md`, Limits and handoffs).
+- **Inputs.** The brief's list, the P254 note (variant word first, `phiTrial`, `primitiveRoot`) and the P275 handoff (`Docs/00-duplicate-rereview.md`, Limits and Handoffs).
 - **Own scan.** Every Operations cell of the `01`–`08` inventories, checked for a `get` prefix, a trailing `Real`, `Brute`, `Slow` or `Fast`, a variant word placed first, `Int`/`Arithmetic` suffixes and `Trial`. The scan script lived in the session scratchpad.
 - **Per rename.** Each one updated, together:
   - the row and the code;
   - the testers and benchmarks;
   - the call sites;
   - the folder notes and source ledgers;
-  - the evidence documents, with a `Legacy mapping` entry and a `Renamed aliases (P276, …)` line so that `grab --find` still reaches the row by its old name;
+  - the evidence documents, with a `Legacy Mapping` entry and a `Renamed aliases (P276, …)` line so that `grab --find` still reaches the row by its old name;
   - the pending `23-Sweep Ledgers/duplicates.md` rows;
   - the notes of open packages.
 - **Not touched.** No judge source, notebook selection or `08-Python` module used a renamed name. History lines and lines that cite `OLD` names keep the name they record.
 
-## Renames in code
+## Renames in Code
 
 | Old | New | Headers (call sites) |
 |---|---|---|
@@ -36,7 +36,7 @@ Evidence of the scoped renames that bring existing names in line with `02-struct
 | `offlineRangeCount` | `rangeCountOffline` | Misc 10 |
 | `fpsSparseInverse`, `fpsSparseLog`, `fpsSparseExp`, `fpsSparsePow`, `fpsSparseSqrt` | `fpsInverseSparse`, `fpsLogSparse`, `fpsExpSparse`, `fpsPowSparse`, `fpsSqrtSparse` | Math 14 (found by the review) |
 
-## Renames in rows only
+## Renames in Rows Only
 
 - **Geometry.**
   - `reportIntersectionsBrute` → `reportIntersectionsNaive`;
@@ -73,7 +73,7 @@ Evidence of the scoped renames that bring existing names in line with `02-struct
   - `squares (all occurrences)` → `squaresAll`;
   - the Eulerian `deBruijnSequence` → `deBruijnSequenceEulerian`;
   - row 27 `primitiveRoot` → `wordRoot`.
-- **Python.** The `04-python.md` mirror rule (user decision 2026-11-10) governs these; all 61 rows were audited against the C++ inventories, and every row is planned.
+- **Python.** The `04-python.md` mirror rule (user decision 2026-11-10) governs these; all 61 rows were audited against the C++ inventories, and every row is planned. The table records P276's renames; the 2026-11-22 `/tidy` renamed and merged further modules (user decision 2026-11-22), and `08-Python/Docs/00-notes.md` (Names) holds the current names.
 
 | Module | Renames |
 |---|---|
@@ -132,7 +132,7 @@ Evidence of the scoped renames that bring existing names in line with `02-struct
 | `_60` | `pointUpdate` → `set`; `rangeApply` → `apply` |
 | `_61` | `rangeApply` → `apply`; `intervals` → `enumerate` |
 
-## Kept, with reasons
+## Kept, with Reasons
 
 - `phiTrial`, `isPrimeTrial`, `factorizeTrial`: `Trial` is the short name of trial division (user decision).
 - **Catalog phrases** (user decision):
@@ -156,7 +156,7 @@ Evidence of the scoped renames that bring existing names in line with `02-struct
   - P023: `sparseGauss`;
   - P020: `rref<1>` beside `BitMatrix::ref`; Core `invReal`, `rankReal` and `solveReal` stay P020's remove (row only) items.
 
-## Commands and results
+## Commands and Results
 
 - `python3 '96-Local Testing/01-run.py' --mode quick` (2026-11-11, after the `/finish` fixes): PASS, 186 suites; its NOTE lists quick builds over 10 s timed beside other suites, as in every mode.
 - Full on g++ (2026-11-10): the 23 affected testers in `96-Local Testing` passed, `--mode full --seed 1`:
@@ -174,11 +174,10 @@ Evidence of the scoped renames that bring existing names in line with `02-struct
   - `14-tree_algorithms.hpp`: 23 of 25 caught, 2 equivalent (`lca` symmetry);
   - `15-hld.hpp`: 21 of 23 caught, 2 equivalent.
 
-  `check` passes for all three. As with `/prune` (`05-testing.md`, Mutation testing), the changed headers without a record need no campaign for a rename.
+  `check` passes for all three. As with `/prune` (`05-testing.md`, Mutation Testing), the changed headers without a record need no campaign for a rename.
 - `python3 '96-Local Testing/03-consistency.py'` (2026-11-10): no errors. The `primitiveRoot` entry left `name_collisions`, and the four others remain.
-
-- Search corpus (`/finish P276`, 2026-11-10): `14-search_tester.py` `test_repo_corpus` failed on `simple`, MRR 0.877 against a floor of 0.88, and HEAD gave the same. Rows from P254 (`matchingStatistics`) and P275 had outranked `matching`, `convex hull trick`, `modular exponentiation` and `longest common subsequence`. Alias lines in Graphs 21, Data Structures 22, Mathematics 01 and Strings 19 brought `simple` to 0.919 with every source above its floor, and `python3 '96-Local Testing/00-Tools/14-search_tester.py' --mode quick` passed. No weights changed. After the Python fixes of the `/finish` review, which had taken `py` to recall 0.900 (`python dinic`, `python binomial`, `python lis`), the qualifiers `flow (Dinic)`, `(LIS)` and `combiNR (binomial)` gave `py` 1.000 / 0.811 (after the step 5 fixes) against floors 0.94 / 0.78 and `simple` 1.000 / 0.917; quick passed (2026-11-11).
-- Python audit (`/finish P276`, 2026-11-10): a subagent compared all 61 rows with the C++ inventories and found 186 renames, 82 ambiguous items and 36 owner removals. Every proposed name not in a C++ row was checked as a vocabulary-built variant. The ambiguous items were settled by the mirror rule, and two unintended member renames (`CountMinSketch::add`, `RunningMedian::remove`) were reverted. The `/finish` review then found nine gaps in this pass; they were mirrored the same way (table above; `10-decisions.md`, 2026-11-10 P276), and `03-consistency.py` now rejects a Python type in two modules, as `02-structure.md` (Operation names) states. `03-consistency.py` reports no errors.
+- Search corpus (`/finish P276`, 2026-11-10): `14-search_tester.py` `test_repo_corpus` failed on `simple`, MRR 0.877 against a floor of 0.88, and HEAD gave the same. Rows from P254 (`matchingStatistics`) and P275 had outranked `matching`, `convex hull trick`, `modular exponentiation` and `longest common subsequence`. Alias lines in Graphs 21, Data Structures 22, Mathematics 01 and Strings 19 restored the floors without changing weights. The Python fixes of the `/finish` review then took `py` recall to 0.900 (`python dinic`, `python binomial`, `python lis`); the qualifiers `flow (Dinic)`, `(LIS)` and `combiNR (binomial)` fixed it. Latest (2026-11-11, after the step 5 fixes): `py` 1.000 / 0.811 against floors 0.94 / 0.78, `simple` 1.000 / 0.917, and `python3 '96-Local Testing/00-Tools/14-search_tester.py' --mode quick` passed.
+- Python audit (`/finish P276`, 2026-11-10): a subagent compared all 61 rows with the C++ inventories and found 186 renames, 82 ambiguous items and 36 owner removals. Every proposed name not in a C++ row was checked as a vocabulary-built variant. The ambiguous items were settled by the mirror rule, and two unintended member renames (`CountMinSketch::add`, `RunningMedian::remove`) were reverted. The `/finish` review then found nine gaps in this pass; they were mirrored the same way (table above; `10-decisions.md`, 2026-11-10 P276 Operation Renames), and `03-consistency.py` now rejects a Python type in two modules, as `02-structure.md` (Operation Names) states. `03-consistency.py` reports no errors.
 
 ## History
 

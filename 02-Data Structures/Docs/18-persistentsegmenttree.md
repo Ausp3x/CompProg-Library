@@ -1,6 +1,6 @@
-# 18-persistentsegmenttree.hpp — evidence
+# 18-persistentsegmenttree.hpp — Evidence
 
-Package P030 (batch DS23). Replaces the unchanged extractions `PerSegTree` (`OLD/algorithms.cpp:2445–2725`) and `KSPerSegTree` (`OLD/algorithms.cpp:3461–3649`; the notebook copies `OLD/Team Notebook/src/ds/persegtree.cpp` and `kspersegtree.cpp` hold the same code). Indices are zero-based and ranges `[l, r)` half-open, value ranges `[lo, hi)` too; `k`-th counts from 0. Preconditions are `assert`s checked once per operation. Every struct owns its node pool; copies are independent snapshots.
+Package P030 (batch DS23). The header replaces the unchanged extractions `PerSegTree` (`OLD/algorithms.cpp:2445–2725`) and `KSPerSegTree` (`OLD/algorithms.cpp:3461–3649`; the notebook copies `OLD/Team Notebook/src/ds/persegtree.cpp` and `kspersegtree.cpp` hold the same code). Indices are zero-based and ranges `[l, r)` half-open, value ranges `[lo, hi)` too; `k`-th counts from 0. Preconditions are `assert`s checked once per operation. Every struct owns its node pool; copies are independent snapshots.
 
 ## Contracts
 
@@ -36,11 +36,11 @@ Uses `F`, `composition` and `id` of the stored `m` (`MonoidAction<M>` turns a mo
 
 `T` needs `operator<` whose equivalence is equality. `previous(a)` gives each position the previous position with an equal value, or -1, by a stable sort. The struct keeps a `PersistentValueTree<int, int>` over that array. `countDistinct(l, r)` counts the positions `j` in `[l, r)` with `previous(a)[j] < l`. Each distinct value of `a[l, r)` has exactly one such position, its first occurrence, so the count is the number of distinct values. Online, O(log(n)) per query, O(n log(n)) build and memory; the value tree's bound `n * (ceil(log2(n)) + 1) < 2^31` applies.
 
-### Violated preconditions
+### Violated Preconditions
 
 Under `NDEBUG` a bad version id reads `roots` out of range (undefined, as with `vector::operator[]`). A negative size is clamped to 0, so every node range is nonempty and halves per level, and an out-of-range index or range only steers the recursion: `point` and `meld` stop at length `<= 1`, `act`, `copy`, `fold` and the descents stop at covered or disjoint nodes, which every length-1 node is. No call runs past depth `ceil(log2(n)) + 1`. The value trees build from vector sizes and walk at most `ceil(log2(n))` levels, but read out of range on a bad index (`roots[r]` for `r > n`), on `rangeKth`, `kthMax`, `maxLeq` or `minGeq` of an empty range (`vals`), and on a short weight vector (`w[i]`).
 
-### Legacy mapping
+### Legacy Mapping
 
 | Legacy | Replacement |
 |---|---|
@@ -57,7 +57,7 @@ Under `NDEBUG` a bad version id reads `roots` out of range (undefined, as with `
 
 Catalog forms of the same operations (aliases): maspypy `multiply`, ei1333 `apply(t, k, x)` and Nyaan `add` are `set(v, i, op(get(v, i), x))`; suisen `apply_all` is `apply(v, 0, n, f)`; maspypy `copy_interval` (with its action) and tko919 `copy` are `copyRange`; suisen `clear_pool` and maspypy `reset` are `reset`; suisen and tko919 `dump` are `toVector`; Nyaan `update(t, k, x)` is `set`.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.cpp`, entry `18-persistentsegmenttree_tester.py` (driver `_00_contest_runner.py`; optimized, checked and ASan/UBSan builds; 60 assertion probes).
 
@@ -74,36 +74,33 @@ Tester `96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.cpp`
 | `PersistentDistinctCount` `countDistinct` | `distinctCount` (all-equal, all-distinct, random, `string`) | `std::set` |
 | Preconditions | `invalid` | 60 probes: version ids (also in `copyRange` with an action, dual `apply`, dual `toVector` and `minLeft`), indices and reversed ranges (`set` at `n`, `copyRange` past `n` in both forms, `split` below 0, also at `n = INT64_MAX`), predicates false on `e()`, value-tree `l < 0`, `rangeKth` and `kthMax` with `k` out of range, `kthSum` and `sumLess` unweighted, `kthSum` with `k > r - l`, reversed `sumLess` ranges, negative sizes, weight size mismatch, dual `get` out of range |
 
-Quick: segment-tree sizes {0, 1, 2, 3, 5, 8, 13} with 30 steps, n = 200 with 15 steps per build, the huge universes `INT_MAX` and `INT64_MAX` with 25 steps; dual sizes {0, 1, 2, 3, 5, 8, 13} and the four huge universes with 40 steps. Full: 22 sizes up to 100 with 100 steps, n = 1000 with 60 steps per build, the four huge universes with 120 steps, 21 dual sizes {0–13, 16, 17, 31, 33, 64, 100, 1000} with 200 steps, value tree n = 4000, distinct count n = 5000. Stress: the full sizes plus 6 random sizes up to 200 with 200 steps, n = 1500 with 100 steps per build, 600 huge-universe steps, the 21 dual sizes plus 8 random sizes in [1, 2000] and the four huge universes with 500 steps, value tree n = 20000, distinct count n = 10000. Mutation check (2026-10-27, by the tester's author on scratch copies under `/tmp`; the patches were not kept, as with the sibling testers): 21 of 21 injected faults detected in quick mode (an `int` midpoint in `fold` and in the dual `get`, caught at `n = INT64_MAX`; composition order in `act`, skipped retagging of disjoint children, `merge` operand order, `split` boundary, `below` boundary, missing left sums in `kthSum`, dual `get`, `act` and `toVector` composition order, `COMMUTATIVE` dropping in-place tags, `copy` with the wrong pending action, the copy action composed in the wrong order, `minLeft` result, `tagged` copying null nodes, `countDistinct` bound, `minGeq` absence test, `kthMax` counting from the bottom, `sumLess` counting values `<= x`, `reset` keeping the old root).
+Quick: segment-tree sizes {0, 1, 2, 3, 5, 8, 13} with 30 steps, n = 200 with 15 steps per build, the huge universes `INT_MAX` and `INT64_MAX` with 25 steps; dual sizes {0, 1, 2, 3, 5, 8, 13} and the four huge universes with 40 steps. Full: 22 sizes up to 100 with 100 steps, n = 1000 with 60 steps per build, the four huge universes with 120 steps, 21 dual sizes {0–13, 16, 17, 31, 33, 64, 100, 1000} with 200 steps, value tree n = 4000, distinct count n = 5000. Stress: the full sizes plus 6 random sizes up to 200 with 200 steps, n = 1500 with 100 steps per build, 600 huge-universe steps, the 21 dual sizes plus 8 random sizes in [1, 2000] and the four huge universes with 500 steps, value tree n = 20000, distinct count n = 10000. A hand mutation check (2026-10-27, by the tester's author on scratch copies; the patches were not kept): 21 of 21 injected faults detected in quick mode (an `int` midpoint in `fold` and in the dual `get`, caught at `n = INT64_MAX`; composition order in `act`, skipped retagging of disjoint children, `merge` operand order, `split` boundary, `below` boundary, missing left sums in `kthSum`, dual `get`, `act` and `toVector` composition order, `COMMUTATIVE` dropping in-place tags, `copy` with the wrong pending action, the copy action composed in the wrong order, `minLeft` result, `tagged` copying null nodes, `countDistinct` bound, `minGeq` absence test, `kthMax` counting from the bottom, `sumLess` counting values `<= x`, `reset` keeping the old root).
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1118 MB; optimized 0.1 s compile + 2.5 s run, checked 98.6 s compile + 21.2 s run, ASan-UBSan 174.1 s compile + 31.2 s run; MEMORY peak 2056 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1166 MB; optimized 0.4 s compile + 3.6 s run, checked 52.8 s compile + 10.2 s run, ASan-UBSan 161.2 s compile + 17.0 s run; MEMORY peak 2009 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 244.8 s compile + 0.5 s run, checked 98.5 s compile + 10.2 s run; MEMORY peak 1113 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1120 MB; optimized 0.1 s compile + 5.1 s run, checked 62.3 s compile + 42.1 s run, ASan-UBSan 89.7 s compile + 56.2 s run; MEMORY peak 2134 MB. Dated rows below stay those commands' latest results.
+Machine: Linux x86-64, Intel Core i9-11900H, GNU++20, CPython 3.14.8; the runner's optimized, checked and ASan/UBSan builds. The memory peaks are the compilers' (the ASan build); the test binary alone stays under 20 MB, as the tester's author measured.
 
-Latest run 2026-10-27 (`/finish` pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.8, in the runner's optimized, checked and ASan/UBSan builds:
+Library-wide runs of 2026-11-10 (P274; seed 42, beside the other suites, build cache emptied before each cold run), all passed. Times are compile + run seconds for this suite.
+
+| Command | Pre-flight quick peak | Optimized | Checked | ASan-UBSan | MEMORY peak |
+|---|---|---|---|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | 1118 MB | 0.1 + 2.5 | 98.6 + 21.2 | 174.1 + 31.2 | 2056 MB |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | 1166 MB | 0.4 + 3.6 | 52.8 + 10.2 | 161.2 + 17.0 | 2009 MB |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | | 244.8 + 0.5 | 98.5 + 10.2 | | 1113 MB |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 1120 MB | 0.1 + 5.1 | 62.3 + 42.1 | 89.7 + 56.2 | 2134 MB |
+
+Package runs of 2026-10-27 (`/finish` pass):
 
 | Command | Result |
 |---|---|
-| `18-persistentsegmenttree_tester.py --mode quick` | PASS, 2 configurations, 1,173,022 checks, 60 assertion probes, MEMORY peak 1091 MB |
-| `18-persistentsegmenttree_tester.py --mode full --seed 20261027` (GCC 16.2.1) | PASS, 3 configurations, 18,665,748 checks per configuration, 60 assertion probes, MEMORY peak 2047 MB |
-| `CXX=g++-14 18-persistentsegmenttree_tester.py --mode full --seed 20261027` (GCC 14.4.1, floor) | PASS, 18,665,748 checks per configuration, MEMORY peak 2002 MB |
-| `18-persistentsegmenttree_tester.py --mode stress --seed 7` | PASS, 47,957,359 checks per configuration, MEMORY peak 2048 MB |
-| `01-run.py --mode quick --filter '02-Data Structures' --no-integration` (after the `00-monoids.hpp` change) | PASS, 35 suites |
-| `00-monoids_tester.py`, `12-lazysegmenttree_tester.py --mode full --seed 20261027` on g++ and g++-14 | PASS, MEMORY peak 1366/1384 and 678/716 MB |
-| `02-integration.py` | PASS: 177 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, MEMORY peak 2759 MB |
-| `03-consistency.py` | No errors |
-
-The memory peaks are the compilers' (the ASan build); the test binary alone stays under 20 MB, as the tester's author measured.
-
-```bash
-python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.py' --mode quick
-python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.py' --mode full --seed 20261027
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.py' --mode full --seed 20261027
-python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_benchmark.py'
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
+| `python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.py' --mode quick` | PASS, 2 configurations, 1,173,022 checks, 60 assertion probes, MEMORY peak 1091 MB |
+| `python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.py' --mode full --seed 20261027` (GCC 16.2.1) | PASS, 3 configurations, 18,665,748 checks per configuration, 60 assertion probes, MEMORY peak 2047 MB |
+| `CXX=g++-14 python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.py' --mode full --seed 20261027` (GCC 14.4.1, floor) | PASS, 18,665,748 checks per configuration, MEMORY peak 2002 MB |
+| `python3 '96-Local Testing/02-Data Structures/18-persistentsegmenttree_tester.py' --mode stress --seed 7` | PASS, 47,957,359 checks per configuration, MEMORY peak 2048 MB |
+| `python3 '96-Local Testing/01-run.py' --mode quick --filter '02-Data Structures' --no-integration` (after the `00-monoids.hpp` change) | PASS, 35 suites |
+| `python3 '96-Local Testing/02-Data Structures/00-monoids_tester.py'` and `python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py'`, `--mode full --seed 20261027` on g++ and g++-14 | PASS, MEMORY peak 1366/1384 and 678/716 MB |
+| `python3 '96-Local Testing/02-integration.py'` | PASS: 177 standalone and aggregate headers, scalar and available-AVX2 multi-TU, workspace; MEMORY peak 2759 MB |
+| `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
 ## Benchmarks
 
@@ -134,13 +131,14 @@ Static trees, n = q = 2 * 10^5, values in `[0, 10^9)`: `PersistentValueTree` bui
 
 References fetched 2026-10-27 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-27-p030-sweep)).
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out by user decision with reasons in [00-notes.md](00-notes.md#p030-omissions): a persistent Fenwick tree and position-dependent defaults on huge universes. k-th smallest on a tree path is filed as P248 (Graphs row 88).
+- Position-dependent defaults on huge universes stay out by user decision, with the reason in [00-notes.md](00-notes.md#p030-omissions). k-th smallest on a tree path is filed as P248 (Graphs row 88).
 - Nodes are never reclaimed except by `reset`; a long history needs `O(q log n)` nodes, and reclaiming unreachable versions is Miscellaneous row 43.
 - Size the pool with `reserve` when memory is tight: a vector that doubles needs up to three times its final size while it copies. `apply` and `copyRange` make at most `4 * (ceil(log2(n)) + 1)` nodes each, `set` at most `2 * (ceil(log2(n)) + 1)`. The finish audit (2026-10-27, scratch probe, not a recorded suite) measured the `persistent_range_affine_range_sum` shape at N = Q = 5 * 10^5 with `RangeAffineRangeSum<mint>` (24-byte nodes): 68.8 nodes per `apply` and a 1475 MB peak without `reserve`, 821 MB with `reserve(4e7)`; a third each of `apply`, `copyRange` and `prod` made 24.0M nodes, 743 MB. That shape's memory limit was not read (its statement has placeholders).
 - `merge` on two dense versions (vector-built or fill-built) costs O(n): only null subtrees short-circuit it.
 - Destructive meld and split stay with row 13; row 35 is the k-ary persistent array.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## Aliases
 
@@ -148,10 +146,10 @@ Search aliases (P263, grab --find): persistent seg, chairman tree (主席树), p
 
 ## History
 
-- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `PersistentSegmentTree` `build` renamed `ctor` (the empty, fill and vector constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-10-27: P030 rewrite and first verification; legacy `PerSegTree` and `KSPerSegTree` replaced.
 - 2026-10-27: independent review (P030), 6 findings fixed (`NDEBUG` termination, `lng` positions by user decision, cost and memory wording, loop index type, ledger records); full (seed 20261027) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1559/1586/1556 MB.
 - 2026-10-27: `/finish` pass: audit (4 defects, 4 decisions) and diff review (5 findings) fixed; by user decision added `reset`, `copyRange` with an action, dual `toVector`, `countLess`, `sumLess`, `kthMax` and `AffineComposite` `operator==`, filed P248; full (seed 20261027) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 2047/2002/2048 MB.
+- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `PersistentSegmentTree` `build` renamed `ctor` (the empty, fill and vector constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `划分树` names a related structure answering the same queries, kept as a search synonym (user decision 2026-11-07).
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

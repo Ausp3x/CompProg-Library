@@ -1,13 +1,8 @@
-# 14-polynomial_algorithms.hpp — evidence
+# 14-polynomial_algorithms.hpp — Evidence
 
-`14-polynomial_algorithms.hpp` is the contest polynomial and formal-power-series family. Its functions are free and generic over a Core modint `M`, and polynomials are plain `vector<M>` with coefficient `i` of `x^i`. It covers four groups:
+`14-polynomial_algorithms.hpp` is the contest polynomial and formal-power-series family: arithmetic, Euclidean algorithms (half-GCD, resultant, discriminant) and modular arithmetic; dense and sparse power-series elementary functions; compositions; and classic constructions (Taylor shift, product trees, the EGF product, cyclotomic polynomials, power sums, prefix sums). Its functions are free and generic over a Core modint `M`; a polynomial is a plain `vector<M>` with coefficient `i` of `x^i`.
 
-- Arithmetic, Euclidean algorithms (half-GCD, resultant, discriminant) and modular arithmetic.
-- Dense and sparse power-series elementary functions.
-- Compositions.
-- Classic constructions: Taylor shift, product trees, the EGF product, cyclotomic polynomials, power sums and prefix sums.
-
-It depends on Core `01-template.hpp` and `05-modint.hpp` and on `13-convolution.hpp`. It uses no Barrett/Montgomery and no ISA-specific code. Core `16-poly.hpp` owns the accelerated `Poly<T>` type. To avoid that name, this row's polynomial operations are `poly*` free functions rather than a struct, and every operation is free (03-cpp.md: Mathematics keeps free functions).
+It depends on Core `01-template.hpp` and `05-modint.hpp` and on `13-convolution.hpp`, and uses no Barrett/Montgomery and no ISA-specific code. Core `16-poly.hpp` owns the accelerated `Poly<T>` type, so this row's operations are `poly*` and `fps*` free functions rather than a struct (`03-cpp.md`, API Contracts).
 
 ## Contracts
 
@@ -152,7 +147,7 @@ These run the O(n k) recurrences over the `k` nonzero coefficients below `x^n`, 
 - **`prefixSumOfPolynomial(f)`** returns `g` with `g(x) = sum_{i < x} f(i)` for every `x`, `deg g = deg f + 1` and `g(0) = 0`. It requires `|f| < mod`, prime field.
   - Method: `D g = B(D) f`, with `B(z) = z / (e^z - 1)` from one series inverse, then one correlation with factorials and one integration.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
@@ -163,7 +158,7 @@ These run the O(n k) recurrences over the `k` nonzero coefficients below `x^n`, 
 | `fpsSparsePow` (P276 rename, 2026-11-10) | `fpsPowSparse` |
 | `fpsSparseSqrt` (P276 rename, 2026-11-10) | `fpsSqrtSparse` |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`14-polynomial_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py>), with C++ cases in `14-polynomial_algorithms_tester.cpp`.
 
@@ -203,49 +198,53 @@ Moduli: 998244353, 1e9+7, dynamic 1000003, the 64-bit NTT prime `29 * 2^57 + 1`,
 | prefixSumOfPolynomial | `miscSuite` and `p = 7`: `g(x)` equals the running sum of `f(i)` for `x <= deg f + 2` |
 | assertion probes | 28 checked-build probes: zero constants, non-unit `q`, long lengths over `p = 7`, even modulus, zero divisor or modulus, degree preconditions, negative sizes |
 
-Moved from quick to full and stress by the 10 s quick bound (P274): the `1e9+7` instances of `powSuite`, `sqrtSuite`, `gcdSuite`, `modSuite`, `compositionSuite` and `miscSuite`, and `n = 1700` (and `n = 4000` in the optimized build) in `compositeSuite`; by `/finish` P274 (checked quick 10.0 s alone) `n = 500` of `fpsSuite` and `n = 90090` of `cyclotomicSuite`. Every suite with a 998244353 instance keeps it in quick.
+Modes: quick runs every suite at small sizes. Full adds the schoolbook identity checks to `n = 2049`, every cutoff neighbour (the large-modulus ones, the `cut(GCD)` brute and the `n = 4000` composites in the optimized build only), the resultant above `cut(GCD)`, transform-checked FPS identities at `2^18` (optimized) or `2^14` (checked builds), and cyclotomic polynomials for every `n <= 3000`. Stress adds `2^20` FPS sizes and `Phi_255255`. The checked builds use the smaller sizes so that each run stays below the runner's former 180 s limit; it takes about 100 s unloaded.
 
-## Commands and results
+The 10 s quick bound (P274) moved these cases from quick to full and stress: the `1e9+7` instances of `powSuite`, `sqrtSuite`, `gcdSuite`, `modSuite`, `compositionSuite` and `miscSuite`; `n = 1700` (and `n = 4000` in the optimized build) in `compositeSuite`; and, in P274's `/finish` (checked quick took 10.0 s alone), `n = 500` of `fpsSuite` and `n = 90090` of `cyclotomicSuite`. Every suite keeps its 998244353 instance in quick.
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1818 MB; optimized 0.1 s compile + 62.3 s run, checked 65.3 s compile + 13.5 s run, ASan-UBSan 78.2 s compile + 28.1 s run; MEMORY peak 2864 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1730 MB; optimized 0.2 s compile + 176.7 s run, checked 149.0 s compile + 24.4 s run, ASan-UBSan 183.4 s compile + 88.5 s run; MEMORY peak 2730 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 106.1 s compile + 4.4 s run, checked 59.6 s compile + 41.3 s run; MEMORY peak 1811 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 99 MB; optimized 0.1 s compile + 55.8 s run, checked 45.7 s compile + 13.7 s run, ASan-UBSan 51.5 s compile + 27.9 s run; MEMORY peak 1754 MB. After `/finish` cut its quick inputs (above), alone: `python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 42` PASS: pre-flight quick peak 1816 MB; optimized 0.1 s compile + 42.3 s run, checked 41.3 s compile + 8.7 s run, ASan-UBSan 45.5 s compile + 22.1 s run; MEMORY peak 2889 MB; pre-flight quick runs optimized 1.2 s, checked 8.9 s; with `CXX=g++-14` PASS: pre-flight quick peak 1749 MB; optimized 0.1 s compile + 47.3 s run, checked 38.9 s compile + 6.9 s run, ASan-UBSan 46.2 s compile + 20.0 s run; MEMORY peak 2736 MB; pre-flight quick runs optimized 1.2 s, checked 8.7 s. Dated rows below stay those commands' latest results.
+## Commands and Results
 
-P057 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
+Machine: Intel Core i9-11900H, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`). Every command passed. Since P274 the builds are the shared contest runner's optimized, checked and ASan-UBSan builds; times are compile + run.
 
-```bash
-python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 20261013             # PASS, 3 configurations, 28 probes: 2,810,627 / 2,809,236 / 2,809,236 checks; MEMORY peak=1084MB
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 20261013  # PASS, 3 configurations, 28 probes: 2,810,627 / 2,809,236 / 2,809,236 checks; MEMORY peak=1108MB
-python3 '96-Local Testing/02-integration.py'                                                                          # PASS: 135 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py' --braces '05-Mathematics/14-polynomial_algorithms.hpp' '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.cpp'  # no violations
-python3 '96-Local Testing/03-consistency.py'                                                                          # no errors
-```
+- 2026-11-10, P276 rename: the tester's full mode on g++ and g++-14, stress mode and extraction passed (counts not recorded).
+- 2026-11-10, P274, alone after `/finish` cut the quick inputs, seed 42:
 
-- Row 15, which includes this header, passed its full suite in the same run ([15-linear_recurrence.md](15-linear_recurrence.md#commands-and-results)).
-- 2026-10-19 rerun after the row 13 change: full PASS ([13-convolution.md](13-convolution.md#commands-and-results)); counts not recorded.
-- Pre-flight quick peaks were 949 MB (g++) and 876 MB (g++-14) under the 2048 MB cap, mostly the compiler on the `_GLIBCXX_DEBUG` build. Test programs peak below 100 MB.
-- Mode coverage:
-  - Quick uses small sizes and every suite.
-  - Full adds:
-    - schoolbook identity checks to `n = 2049`;
-    - every cutoff neighbour (the large-modulus ones, `cut(GCD)` brute and `n = 4000` composites in the optimized build only);
-    - the resultant above `cut(GCD)`;
-    - transform-checked FPS identities at `2^18` (optimized) or `2^14` (checked builds);
-    - cyclotomic polynomials for every `n <= 3000`.
-  - Stress adds `2^20` FPS sizes and `Phi_255255`.
-  - The checked builds use the smaller sizes so that each run stays below the runner's former 180 s limit; it takes about 100 s unloaded.
-- The headers build with `-Wall -Wextra -Wconversion` without warnings, alone and through `99-all.hpp`.
+  ```bash
+  python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 42
+  CXX=g++-14 python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 42
+  ```
+
+  | Compiler | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick |
+  |---|---|---|---|---|---|
+  | g++ | 0.1 + 42.3 s | 41.3 + 8.7 s | 45.5 + 22.1 s | 2889 MB | peak 1816 MB; runs optimized 1.2 s, checked 8.9 s |
+  | g++-14 | 0.1 + 47.3 s | 38.9 + 6.9 s | 46.2 + 20.0 s | 2736 MB | peak 1749 MB; runs optimized 1.2 s, checked 8.7 s |
+
+- 2026-11-10, P274 library-wide runs, seed 42, beside the other suites, build cache emptied before each cold run (before `/finish` cut the quick inputs):
+
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 62.3 s | 65.3 + 13.5 s | 78.2 + 28.1 s | 2864 MB | 1818 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 176.7 s | 149.0 + 24.4 s | 183.4 + 88.5 s | 2730 MB | 1730 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 106.1 + 4.4 s | 59.6 + 41.3 s | — | 1811 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 55.8 s | 45.7 + 13.7 s | 51.5 + 27.9 s | 1754 MB | 99 MB |
+
+- 2026-10-13, P057 prune, the latest run with check counts (optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`). The peaks are mostly the compiler on the checked build; the test programs peak below 100 MB. Row 15, which includes this header, passed its full suite in the same run ([15-linear_recurrence.md](15-linear_recurrence.md#commands-and-results)).
+
+  ```bash
+  python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 20261013             # PASS, 3 configurations, 28 probes: 2,810,627 / 2,809,236 / 2,809,236 checks; MEMORY peak=1084MB
+  CXX=g++-14 python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 20261013  # PASS, 3 configurations, 28 probes: 2,810,627 / 2,809,236 / 2,809,236 checks; MEMORY peak=1108MB
+  python3 '96-Local Testing/02-integration.py'                                                                          # PASS: 135 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace
+  python3 '96-Local Testing/03-consistency.py' --braces '05-Mathematics/14-polynomial_algorithms.hpp' '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.cpp'  # no violations
+  python3 '96-Local Testing/03-consistency.py'                                                                          # no errors
+  ```
+
+The header builds with `-Wall -Wextra -Wconversion` without warnings, alone and through `99-all.hpp`.
 
 ## Benchmarks
 
-`python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_benchmark.py' 5` (the driver covers both headers). Conditions:
+`python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_benchmark.py' 5` covers this header and row 15. Conditions: Intel i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2` (no `-march`), otherwise idle machine; one warmup and 5 timed repetitions, medians shown; both compared paths' outputs checked equal; seed 20261010, uniform random inputs; MEMORY peak 478 MB. Threshold rows repeat each call `8192 / n` times (`4096 / m` for division) and report the total. Single runs vary by about ±15% between sessions.
 
-- CPU: Intel i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2` (no `-march`), on an otherwise idle machine.
-- One warmup and 5 timed repetitions; the tables show medians.
-- The outputs of both compared paths are checked equal.
-- Seed 20261010, uniform random inputs.
-- Benchmark MEMORY peak was 478 MB.
-- Threshold rows repeat each call `8192 / n` times (`4096 / m` for division) and report the total. Single runs vary by about ±15% between sessions.
-
-Cutoffs (`polynomial_detail::cut`, `{NTT primes, other moduli}`). In the table, "naive" is the `O(n^2)` recurrence or long division and "fast" is the Newton or transform branch.
+Cutoffs are `polynomial_detail::cut` pairs `{NTT primes, other moduli}`. "Naive" is the `O(n^2)` recurrence or long division and "fast" the Newton or transform branch.
 
 | Cutoff | Value | Evidence (998244353 naive / fast ms; 1e9+7 naive / fast ms) |
 |---|---|---|
@@ -277,24 +276,24 @@ Headline timings (998244353):
 
 ## Sources
 
-[00-sources.md](00-sources.md), P057 sweep:
+From [00-sources.md](00-sources.md), P057 sweep:
 
-- cp-algorithms "Operations on polynomials and series" and the half-GCD article (adamant): divmod by reversal, Newton inverse/log/exp, half-GCD recursion and the resultant via Euclid.
+- cp-algorithms "Operations on polynomials and series" and the half-GCD article (adamant): divmod by reversal, Newton inverse, log and exp, the half-GCD recursion and the resultant via Euclid.
 - OI Wiki polynomial pages: Newton sqrt, power with valuation, composition.
-- Nyaan `fps/` and maspypy `poly/` (sparse recurrences, Taylor shift, prefix sum of polynomial, composition and inverse), Library Checker `polynomial` problems, FLINT `nmod_poly` (power sums to polynomial, `compose_mod_brent_kung`).
+- Nyaan `fps/` and maspypy `poly/` (sparse recurrences, Taylor shift, prefix sum of a polynomial, composition and inverse), Library Checker `polynomial` problems, FLINT `nmod_poly` (power sums to polynomial, `compose_mod_brent_kung`).
 
-Adopted by the P057 sweep: `fpsDiv`, `polyDivLinear`, `polyFromPowerSums`, `polyComposeMod` (Brent–Kung block Horner sharing the `fpsComposition` kernel) and `prefixSumOfPolynomial`.
+The P057 sweep adopted `fpsDiv`, `polyDivLinear`, `polyFromPowerSums`, `polyComposeMod` (Brent–Kung block Horner sharing the `fpsComposition` kernel) and `prefixSumOfPolynomial`. The code was written independently.
 
-The code was written independently.
+## Limits and Handoffs
 
-## Limits and handoffs
-
-- The dense Newton paths use `cyclicConvolution` from row 13, which takes three transforms per product and does not reuse transforms between products. Per doubling that is 6 length-`2m` transforms for the inverse and about 21 length-`m`-equivalent transforms for exp. Hand-tuned versions that reuse transforms need about 5 and 17. The constant-factor gap was not measured here; Core Poly owns the accelerated engine.
-- `fpsComposition` and `fpsCompositionalInverse` are the scalar `O(n^2)`-type duplicates. The `O(n log^2 n)` Kinoshita–Li composition and power projection belong to Core Poly and row 52.
-- `fpsPow` with a rational exponent requires lowest coefficient 1. General constants need a `q`-th root from row 11.
-- `cyclotomicPolynomial` does not detect `lng` overflow (see the contract).
-- The other-moduli cutoffs were measured before row 13's 2026-10-19 change (prime count chosen from the coefficient bound, aliased squares); re-measure them at the next P057 run.
-- Rejected candidates are in [00-notes.md](00-notes.md), under P057 research decisions.
+- The row is `partial`: `fpsNewton` and `mobiusSubstitution` are missing.
+- The dense Newton paths use row 13's `cyclicConvolution`, which takes three transforms per product and reuses none between products: per doubling, 6 length-`2m` transforms for the inverse and about 21 length-`m`-equivalent transforms for exp, where hand-tuned versions need about 5 and 17. The gap was not measured; Core Poly owns the accelerated engine.
+- `fpsComposition` and `fpsCompositionalInverse` are the scalar duplicates. The `O(n log^2 n)` Kinoshita–Li composition and power projection belong to Core Poly and row 52.
+- `fpsPow` with a rational exponent requires lowest coefficient 1; a general constant needs a `q`-th root from row 11.
+- `cyclotomicPolynomial` does not detect `lng` overflow.
+- The other-moduli cutoffs were measured before row 13's 2026-10-19 change (prime count chosen from the coefficient bound, aliased squares); the next P057 run re-measures them.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+- Rejected candidates are in [00-notes.md](00-notes.md), P057 Research Decisions.
 
 ## Aliases
 
@@ -304,10 +303,10 @@ Search aliases (P263, grab --find): 多项式牛顿迭代, 多项式初等函数
 
 ## History
 
-- 2026-10-10: P057 initial implementation and verification, `@reviewer` found 4 defects and 2 minor issues, all fixed.
-- 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
-- 2026-10-13: prune, removed `polyMod` (Legacy mapping; its cases are covered by the `divSuite` identity); full suite passed on g++ and g++-14.
-- 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged, quick inputs cut in `/finish` (above); every run above passed.
+- 2026-10-10: P057 implementation and verification; `@reviewer` found 4 defects and 2 minor issues, all fixed.
+- 2026-10-11: verification run; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune removed `polyMod` (its cases are covered by the `divSuite` identity); full passed on g++ and g++-14.
+- 2026-10-19: P054 rerun after `13-convolution.hpp` changed, header unchanged; full passed.
+- 2026-11-07: P263 added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound, cut quick inputs only; every run passed.
 - 2026-11-10: P276 rename (`fpsSparse…` → `fps…Sparse`); full on g++ and g++-14, stress and extraction passed.

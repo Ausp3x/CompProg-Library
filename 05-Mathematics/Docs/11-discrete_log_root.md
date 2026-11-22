@@ -1,4 +1,4 @@
-# 11-discrete_log_root.hpp — evidence
+# 11-discrete_log_root.hpp — Evidence
 
 `11-discrete_log_root.hpp` covers multiplicative structure modulo `m`: discrete logarithms (extended baby-step giant-step with a multiplier, and a generic form over monoid actions), multiplicative orders, primitive roots, the Kronecker and Legendre symbols, and square, k-th and unit roots modulo a prime.
 
@@ -10,7 +10,7 @@ Moduli are `lng` values of at least 1 (asserted; prime moduli at least 2). Resid
 - `sqrtModPrimeCipolla` checks `isPrime(p)` once, only after 64 fruitless candidates, and then returns -1. Without that check a perfect square `p` would scan about `p` candidates.
 - Each BSGS is bounded by its table.
 
-Violated `m >= 1` and `0 <= lb <= ub` are clamped after the assertion (`m = max(m, 1)`, `lb = max(lb, 0)`, `lb >= ub` gives -1). Ad hoc `-DNDEBUG` probes confirmed that each case returns in about 0.1 s: `discreteLogMonoid` with `lb > ub` and `lb < 0`, `discreteLogEx` with `m = -59, -5, 0`, and `sqrtModPrimeCipolla` with `p = 10007^2`, `(1e9 + 7)^2` and 41041. The header performs no Barrett or Montgomery arithmetic itself, so it needs no Compact twins. It calls `07` `factorize`, `isPrime` and `isPrimePower` and `08` `phi` and `carmichaelLambda`, which are built on Core `Montgomery64`.
+Violated `m >= 1` and `0 <= lb <= ub` are clamped after the assertion (`m = max(m, 1)`, `lb = max(lb, 0)`, `lb >= ub` gives -1). Ad hoc `-DNDEBUG` probes returned in about 0.1 s for each case: `discreteLogMonoid` with `lb > ub` and `lb < 0`, `discreteLogEx` with `m = -59, -5, 0`, and `sqrtModPrimeCipolla` with `p = 10007^2`, `(1e9 + 7)^2` and 41041. The header performs no Barrett or Montgomery arithmetic itself; it calls `07` `factorize`, `isPrime` and `isPrimePower` and `08` `phi` and `carmichaelLambda`, which are built on Core `Montgomery64`.
 
 `discrete_log_detail` holds four helpers:
 
@@ -63,7 +63,7 @@ A block holding a solution `n` always hits, with `j = (k + 1) K - n`. A non-inje
 
 The algorithm is Cohen's 1.4.10: remove the 2-part and the sign of `n` (an arithmetic shift handles `n = LLONG_MIN`), reduce `a` modulo the odd part, then run the binary Jacobi loop with quadratic reciprocity on unsigned values. Cost: `O(log(|a| + |n| + 2))` divisions.
 
-`legendreSymbol(a, p)` is Euler's criterion `a^((p - 1) / 2) mod p` mapped to -1, 0 or 1 for an odd prime `p` (asserted `p >= 3` and odd), in `O(log(p))` products. It is kept beside `kroneckerSymbol` by decision (Euler's criterion, a different algorithm). The narrow `jacobiSymbol` is `kroneckerSymbol` (Legacy mapping).
+`legendreSymbol(a, p)` is Euler's criterion `a^((p - 1) / 2) mod p` mapped to -1, 0 or 1 for an odd prime `p` (asserted `p >= 3` and odd), in `O(log(p))` products. It is kept beside `kroneckerSymbol` by decision (Euler's criterion, a different algorithm). The narrow `jacobiSymbol` is `kroneckerSymbol` (Legacy Mapping).
 
 ### sqrtModPrimeCipolla
 
@@ -99,31 +99,21 @@ The other code names are `hq` for `H`, `ex` for the digit exponent and `qt = q^(
 
 `unitRootModPrime(n, p)` returns an element of order exactly `n` modulo a prime `p` (asserted `n >= 1`, `p >= 2`), or -1 when `n` does not divide `p - 1`. The element is the first `c^((p - 1) / n)` of order `n` over `c = 1, 2, ...`, checked against the primes of `factorize(n)`, so `n = 1` gives 1. `p - 1` is not factored. The expected number of candidates is at most `n / phi(n) = O(log(log(n)))`. Cost: `O(n^(1/4) * log(n) + c * |f| * log(p))` expected.
 
-### Aliases
-
-`bsgs`, `exBsgs`, `modLog`, `mod_log`, `discrete_log` (`discreteLogEx`); `discrete_log_acted`, `discrete_log_monoid`, `DiscreteLogarithm` (`discreteLogMonoid`); `order`, `ord` (`multiplicativeOrder`); `primitive_root`, `getPrimRoot` (`primitiveRoot`); `jacobi` (`kroneckerSymbol`); `sqrt_mod`, `mod_sqrt` (`sqrtModPrimeCipolla`); `kth_root`, `mod_kth_root`, `discreteRoot` (`kthRootModPrime`); `primitive nth root of unity` (`unitRootModPrime`).
-
-Search aliases (P263, grab --find): baby-step giant-step, quadratic residue (Legendre symbol, Cipolla), k-th residue, k-th root mod p; 二次剩余, 阶 & 原根, 离散对数, 高次剩余 & 单位根, 大步小步算法, 乘法阶, 勒让德符号, 雅可比符号, 欧拉判别法.
-
-### Legacy mapping
+### Legacy Mapping
 
 | Legacy or removed name | Replacement |
 |---|---|
 | `modLog(a, b, mod, k)` (`OLD/5-Mathematics/08-modlogandmodroot.hpp`) | `discreteLogEx(a, b, mod, k)`, same least-`x` semantics; `mod >= 1` is asserted |
 | `getPrimRoot(mod, opt)` | `primitiveRoot(m)`; the trial/Pollard `opt` flag is gone (factorization is always Pollard–Brent), and `mod <= 0` is asserted instead of returning -1 |
-| `modRoot(a, b, mod, opt)` with prime `mod` | One root `kthRootModPrime(b, a, mod)`; all roots, sorted at the call site, are that root times the powers of `unitRootModPrime(gcd(a, mod - 1), mod)` |
+| `modRoot(a, b, mod, opt)` with prime `mod` | One root `kthRootModPrime(b, a, mod)`; until `kthRootModPrimeAll` lands, all roots, sorted at the call site, are that root times the powers of `unitRootModPrime(gcd(a, mod - 1), mod)` |
 | `modRoot` with `mod = p^k`, `2 p^k`, or `b = 0` and composite `mod` | Row 33 (`kthRootModPrimePower`, `kthRootModComposite`) |
 | `discreteLog` (prime modulus; row only, decided 2026-10-16) | `discreteLogEx` |
 | `sqrtModPrime` (Tonelli–Shanks; row only, decided 2026-10-16) | Core `trySqrt` on `DynModInt`/`DynModInt64`, `kthRootModPrime(a, 2, p)` or `sqrtModPrimeCipolla` |
 | `jacobiSymbol` (row only, decided 2026-10-16) | `kroneckerSymbol` |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Entry: [`11-discrete_log_root_tester.py`](<../../96-Local Testing/05-Mathematics/11-discrete_log_root_tester.py>).
-
-The C++ oracles are iteration, brute order tables, square enumeration and definitions. The Python oracle uses constructed primes below `2^63` with known `p - 1` factorizations: smooth, `2 Q r`, `2^s r`, `q^s r` for `q` up to 1009, `Q^2 r` with `Q` up to `2^28`, the NTT primes, `2^61 - 1` and `1e18 + 3`. It checks its index formula, Kronecker definition and order characterization against brute force on primes below 200 before every run. Ten header mutants (least-`j` table, reduction recheck, reciprocity, AMM correction, monoid failure count, smaller root, `m = 4`, order loop, unit-root test, root exponent) were each caught by the C++ suite in quick mode. The Python oracle caught the nine in its scope: six in quick mode and three more in full; the monoid is C++ only.
-
-Limits below are given as quick / full / stress.
+Entry: [`11-discrete_log_root_tester.py`](<../../96-Local Testing/05-Mathematics/11-discrete_log_root_tester.py>). The C++ oracles are iteration, brute order tables, square enumeration and definitions. The Python oracle uses constructed primes below `2^63` with known `p - 1` factorizations: smooth, `2 Q r`, `2^s r`, `q^s r` for `q` up to 1009, `Q^2 r` with `Q` up to `2^28`, the NTT primes, `2^61 - 1` and `1e18 + 3`. It checks its index formula, Kronecker definition and order characterization against brute force on primes below 200 before every run. Ten hand-made header mutants (least-`j` table, reduction recheck, reciprocity, AMM correction, monoid failure count, smaller root, `m = 4`, order loop, unit-root test, root exponent) were each caught by the C++ suite in quick mode; the Python oracle caught the nine in its scope, six in quick mode and three more in full (the monoid is C++ only). Limits below are given as quick / full / stress.
 
 | Feature | Oracle and edge classes |
 |---|---|
@@ -138,19 +128,21 @@ Limits below are given as quick / full / stress.
 | `unitRootModPrime` | Every `n <= p + 1` for primes below 150 / 500 / 1000, giving order exactly `n` or -1. `p - 1` for three large primes gives a primitive root; `2^23` for 998244353. Python: random divisors and non-divisors of `p - 1` for constructed primes. |
 | Preconditions | 14 checked-build probes: `m = 0` (order, `discreteLogEx`, existence, `isPrimitiveRoot`), `m = -5` (`primitiveRoot`), `lb > ub`, `lb < 0`, Legendre with `p = 2` and `p = 4`, `p = 1` (Cipolla, `kthRootExists`, `unitRootModPrime`), `k < 0`, `n = 0`. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 776 MB; optimized 0.1 s compile + 22.7 s run, checked 16.5 s compile + 23.4 s run, ASan-UBSan 17.7 s compile + 49.0 s run; MEMORY peak 951 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 826 MB; optimized 0.2 s compile + 26.5 s run, checked 18.5 s compile + 29.2 s run, ASan-UBSan 20.7 s compile + 56.0 s run; MEMORY peak 985 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 29.8 s compile + 8.4 s run, checked 24.8 s compile + 15.1 s run; MEMORY peak 765 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 777 MB; optimized 0.1 s compile + 24.9 s run, checked 6.5 s compile + 31.2 s run, ASan-UBSan 6.7 s compile + 77.2 s run; MEMORY peak 697 MB. Dated rows below stay those commands' latest results.
+Conditions: i9-11900H, Arch Linux, GCC 16.2 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with probes, and ASan/UBSan (full and stress). Counts are per configuration and equal on both compilers. The 2026-10-16 rows are the latest with recorded counts.
 
-2026-10-16, i9-11900H, Arch Linux, GCC 16.2 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with probes, and ASan/UBSan (full and stress). Counts are per configuration and equal on both compilers.
-
-| Command | Result |
-|---|---|
-| `11-discrete_log_root_tester.py --mode quick --seed 1` | PASS 2 configurations, 377,089 C++ checks and 320 Python cases, 14 probes; 15 s; MEMORY peak 415 MB |
-| `11-discrete_log_root_tester.py --mode full --seed 1` | PASS 3 configurations, 1,543,801 C++ checks and 2,400 Python cases (71 constructed primes), 14 probes; 67 s; MEMORY peak 559 MB |
-| same with `CXX=g++-14` | PASS, same counts; 77 s; MEMORY peak 576 MB |
-| `11-discrete_log_root_tester.py --mode stress --seed 1` | PASS 3 configurations, 5,005,397 C++ checks and 9,600 Python cases (161 constructed primes), 14 probes; 212 s; MEMORY peak 689 MB |
-| `02-integration.py`, `03-consistency.py` and `--braces` | PASS: 145 standalone and aggregate headers, multi-TU and workspace in 397 s, MEMORY peak 651 MB; consistency no errors |
+| Date, package | Command | Result |
+|---|---|---|
+| 2026-10-16 P053 | `11-discrete_log_root_tester.py --mode quick --seed 1` | PASS, 2 configurations, 377,089 C++ checks and 320 Python cases, 14 probes; 15 s; MEMORY peak 415 MB |
+| 2026-10-16 P053 | `11-discrete_log_root_tester.py --mode full --seed 1` | PASS, 3 configurations, 1,543,801 C++ checks and 2,400 Python cases (71 constructed primes), 14 probes; 67 s; MEMORY peak 559 MB |
+| 2026-10-16 P053 | same with `CXX=g++-14` | PASS, same counts; 77 s; MEMORY peak 576 MB |
+| 2026-10-16 P053 | `11-discrete_log_root_tester.py --mode stress --seed 1` | PASS, 3 configurations, 5,005,397 C++ checks and 9,600 Python cases (161 constructed primes), 14 probes; 212 s; MEMORY peak 689 MB |
+| 2026-10-16 P053 | `02-integration.py`, `03-consistency.py` and `--braces` | PASS: 145 standalone and aggregate headers, multi-TU and workspace in 397 s, MEMORY peak 651 MB; consistency no errors |
+| 2026-11-10 P274 (GNU++20, seed 42, beside the other suites, build cache emptied before each cold run) | `01-run.py --mode full` (GCC 16.2.1) | PASS; pre-flight quick peak 776 MB; optimized 0.1 s compile + 22.7 s run, checked 16.5 s + 23.4 s, ASan-UBSan 17.7 s + 49.0 s; MEMORY peak 951 MB |
+| 2026-11-10 P274 | `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | PASS; pre-flight quick peak 826 MB; optimized 0.2 s + 26.5 s, checked 18.5 s + 29.2 s, ASan-UBSan 20.7 s + 56.0 s; MEMORY peak 985 MB |
+| 2026-11-10 P274 | `01-run.py --mode quick` | PASS; optimized 29.8 s + 8.4 s, checked 24.8 s + 15.1 s; MEMORY peak 765 MB |
+| 2026-11-10 P274 | `01-run.py --mode stress --rounds 1` | PASS; pre-flight quick peak 777 MB; optimized 0.1 s + 24.9 s, checked 6.5 s + 31.2 s, ASan-UBSan 6.7 s + 77.2 s; MEMORY peak 697 MB; check counts not recorded |
 
 ```bash
 python3 '96-Local Testing/05-Mathematics/11-discrete_log_root_tester.py' --mode full --seed 1
@@ -158,11 +150,11 @@ CXX=g++-14 python3 '96-Local Testing/05-Mathematics/11-discrete_log_root_tester.
 python3 '96-Local Testing/05-Mathematics/11-discrete_log_root_tester.py' --mode stress --seed 1
 ```
 
-The header and tester build with no warnings under `-Wall -Wextra -Wconversion -Werror` on both compilers. That includes two translation units with the header alone; with `99-all.hpp` beside it, the only warning comes from `06-segmentedsieve.hpp:151`, outside this package.
+The header and tester build without warnings under `-Wall -Wextra -Wconversion -Werror` on both compilers, including two translation units.
 
 ## Benchmarks
 
-None are required: there is no Barrett, Montgomery or ISA-specific code. An ad hoc timing probe ran at Library Checker scale: `g++ -O2`, seed 1, three runs, median, with every result used. It measured:
+None are required: there is no Barrett, Montgomery or ISA-specific code. An ad hoc timing probe at Library Checker scale (`g++ -O2`, seed 1, median of three runs, every result used) measured:
 
 - 100 `discreteLogEx` with random moduli in `[9e8, 1e9)`, half of them prime: 30 ms;
 - 5000 `kthRootModPrime` modulo 67 primes below `1e9` (including 998244353 and 469762049) with planted powers and random `k < 1e9`: 7.2 ms;
@@ -171,20 +163,26 @@ None are required: there is no Barrett, Montgomery or ISA-specific code. An ad h
 
 ## Sources
 
-[00-sources.md](00-sources.md), P053 sweep: Library Checker `discrete_logarithm_mod`, `kth_root_mod`, `primitive_root` and `sqrt_mod`; cp-algorithms discrete log, primitive root and discrete root; OI Wiki residue pages; hitonanode, maspypy, suisen, Nyaan, KACTL and PyRival discrete-log and root files; FLINT `ulong_extras`. Cohen, *A Course in Computational Algebraic Number Theory*, Algorithm 1.4.10 (Kronecker), is cited from the standard statement. Everything was written independently. Legacy: `OLD/5-Mathematics/08-modlogandmodroot.hpp` (Legacy mapping).
+[00-sources.md](00-sources.md), P053 sweep: Library Checker `discrete_logarithm_mod`, `kth_root_mod`, `primitive_root` and `sqrt_mod`; cp-algorithms discrete log, primitive root and discrete root; OI Wiki residue pages; hitonanode, maspypy, suisen, Nyaan, KACTL and PyRival discrete-log and root files; FLINT `ulong_extras`. Cohen, *A Course in Computational Algebraic Number Theory*, Algorithm 1.4.10 (Kronecker), is cited from the standard statement. Everything was written independently. Legacy: `OLD/5-Mathematics/08-modlogandmodroot.hpp` (Legacy Mapping).
 
 Adopted by the P053 sweep: `discreteLogMonoid`. Rejected candidates are in [00-notes.md](00-notes.md).
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - BSGS memory is `O(sqrt(ord))`, so a prime modulus near `1e18` with a large-order base is out of reach: a table of about `1e9` entries. Pohlig–Hellman, Pollard rho and many-query fixed-modulus logs are row 54.
-- Roots modulo prime powers and composite moduli, all-root enumeration and root counts are row 33.
+- All roots modulo a prime are `kthRootModPrimeAll`, in this row under `missing:` (P275 re-review, 2026-11-10), so the row is `partial`. Roots modulo prime powers and composite moduli, their enumeration and root counts are row 33.
 - `kthRootModPrime` returns one root, deterministic but not the smallest.
 - `discreteLogMonoid` honours the range literally: its time and table are `O(sqrt(ub - lb))` even when the orbit is short, so pass the tightest `ub`.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+`bsgs`, `exBsgs`, `modLog`, `mod_log`, `discrete_log` (`discreteLogEx`); `discrete_log_acted`, `discrete_log_monoid`, `DiscreteLogarithm` (`discreteLogMonoid`); `order`, `ord` (`multiplicativeOrder`); `primitive_root`, `getPrimRoot` (`primitiveRoot`); `jacobi` (`kroneckerSymbol`); `sqrt_mod`, `mod_sqrt` (`sqrtModPrimeCipolla`); `kth_root`, `mod_kth_root`, `discreteRoot` (`kthRootModPrime`); `primitive nth root of unity` (`unitRootModPrime`).
+
+Search aliases (P263, grab --find): baby-step giant-step, quadratic residue (Legendre symbol, Cipolla), k-th residue, k-th root mod p; 二次剩余, 阶 & 原根, 离散对数, 高次剩余 & 单位根, 大步小步算法, 乘法阶, 勒让德符号, 雅可比符号, 欧拉判别法.
 
 ## History
 
-- 2026-10-16: P053 initial implementation, duplicates settled with the user (Legacy mapping), `discreteLogMonoid` adopted from the sweep, review found 6 issues, all fixed; full passed on g++ and g++-14, stress on g++.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-16: P053 initial implementation; duplicates settled with the user (Legacy Mapping); `discreteLogMonoid` adopted from the sweep; review found 6 issues, all fixed; full passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 added the search aliases, then Chinese names from OI Wiki's page titles and common names of the row's operations (Simplified, plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; library-wide full (g++ and g++-14), quick and stress runs passed.

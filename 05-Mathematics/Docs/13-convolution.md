@@ -1,4 +1,4 @@
-# 13-convolution.hpp — evidence
+# 13-convolution.hpp — Evidence
 
 `13-convolution.hpp` is the standalone contest convolution family, independent of Core Poly. It has three groups:
 
@@ -142,11 +142,9 @@ Both require `|a| = |b| = n`, asserted; `b` is resized defensively. They compute
 - Rank 0 is the scalar product.
 - `convolution2d` flattens rectangular `vector<vector<M>>` operands (raggedness is asserted) and calls the tensor form with rank 2. It is empty when any dimension is 0.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Entry: [`13-convolution_tester.py`](<../../96-Local Testing/05-Mathematics/13-convolution_tester.py>), with C++ cases in `13-convolution_tester.cpp`.
-
-Oracles:
+Entry: [`13-convolution_tester.py`](<../../96-Local Testing/05-Mathematics/13-convolution_tester.py>), with C++ cases in `13-convolution_tester.cpp`. Oracles:
 
 - The tester's own naive products over the same ring.
 - Brute bit-reversed DFTs, using a primitive root found independently from a hand-supplied factorization of `p - 1` and checked in Python.
@@ -179,28 +177,35 @@ Oracles:
 | `convolution2d` | Brute double sum for random shapes including empty ones; `40 x 90` by `30 x 70` shape. |
 | Preconditions | 17 checked-build probes: `p = 1`; root table and `ntt` beyond the rank; non-power-of-two `ntt`, `intt`, `transposedNtt`, `fft`, `ifft`; doubling beyond the rank; `middleProduct` with `m = 0`; cyclic and negacyclic size mismatch; negative `k`; tensor rank mismatch, size mismatch and negative extent; ragged 2-D input. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 912 MB; optimized 0.1 s compile + 57.0 s run, checked 46.9 s compile + 10.6 s run, ASan-UBSan 40.4 s compile + 12.3 s run; MEMORY peak 2550 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 875 MB; optimized 0.2 s compile + 72.2 s run, checked 73.3 s compile + 7.6 s run, ASan-UBSan 51.8 s compile + 12.8 s run; MEMORY peak 2882 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 79.7 s compile + 2.1 s run, checked 53.5 s compile + 34.9 s run; MEMORY peak 1402 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 86 MB; optimized 0.1 s compile + 46.4 s run, checked 36.2 s compile + 11.0 s run, ASan-UBSan 35.7 s compile + 18.0 s run; MEMORY peak 1588 MB. Dated rows below stay those commands' latest results.
+Conditions: Intel Core i9-11900H, GNU++20, GCC 16.2.1 and GCC 14.4.1; configurations optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`. The 2026-10-19 rows (P054 follow-up) are the latest with recorded counts.
 
-Latest run 2026-10-19 (P054 follow-up), GCC 16.2.1 and GCC 14.4.1, configurations optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
+| Date, package | Command | Result |
+|---|---|---|
+| 2026-10-19 P054 follow-up | `13-convolution_tester.py --mode full --seed 1` | PASS, 3 configurations, 17 probes: 2,223,046 (optimized) / 256,909 (checked, ASan) C++ checks, 1,800 Python cases each; `MEMORY peak=1579MB` |
+| 2026-10-19 P054 follow-up | same with `CXX=g++-14` | PASS, 3 configurations, same counts; `MEMORY peak=1579MB` |
+| 2026-10-19 P054 follow-up | `13-convolution_tester.py --mode stress --seed 2` | PASS, 3 configurations: 9,563,126 (optimized) / 256,909 C++ checks, 9,000 Python cases each; `MEMORY peak=1607MB` |
+| 2026-10-19 P054 follow-up | dependents in full mode: Mathematics rows 12, 14, 15 and 67, Graphs row 16 (`convolutionLong`), Strings row 21; `02-integration.py` | PASS (integration: 165 headers) |
+| 2026-11-10 P274 (seed 42, beside the other suites, build cache emptied before each cold run) | `01-run.py --mode full` (GCC 16.2.1) | PASS; pre-flight quick peak 912 MB; optimized 0.1 s compile + 57.0 s run, checked 46.9 s + 10.6 s, ASan-UBSan 40.4 s + 12.3 s; MEMORY peak 2550 MB |
+| 2026-11-10 P274 | `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | PASS; pre-flight quick peak 875 MB; optimized 0.2 s + 72.2 s, checked 73.3 s + 7.6 s, ASan-UBSan 51.8 s + 12.8 s; MEMORY peak 2882 MB |
+| 2026-11-10 P274 | `01-run.py --mode quick` | PASS; optimized 79.7 s + 2.1 s, checked 53.5 s + 34.9 s; MEMORY peak 1402 MB |
+| 2026-11-10 P274 | `01-run.py --mode stress --rounds 1` | PASS; pre-flight quick peak 86 MB; optimized 0.1 s + 46.4 s, checked 36.2 s + 11.0 s, ASan-UBSan 35.7 s + 18.0 s; MEMORY peak 1588 MB; check counts not recorded |
 
 ```bash
-python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode full --seed 1            # PASS, 3 configurations, 17 probes: 2,223,046 (optimized) / 256,909 (checked, ASan) C++ checks, 1,800 Python cases each; MEMORY peak=1579MB
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode full --seed 1 # PASS, 3 configurations: same counts as full; MEMORY peak=1579MB
-python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode stress --seed 2          # PASS, 3 configurations: 9,563,126 (optimized) / 256,909 C++ checks, 9,000 Python cases each; MEMORY peak=1607MB
+python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode full --seed 1
+CXX=g++-14 python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode full --seed 1
+python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode stress --seed 2
 ```
 
-- Dependents rerun on the same code, all PASS in full mode: Mathematics rows 12, 14, 15 and 67, Graphs row 16 (`convolutionLong`) and Strings row 21; `02-integration.py` PASS (165 headers).
-- What each mode adds:
-  - Full adds the 6000-prime root sweep, transform lengths up to `2^20` (optimized) or `2^16` (checked builds), and `2^21`-length CRT runs; the optimized build also runs the six-prime closed forms and the products beyond `2^24`.
-  - Stress (optimized build) reaches `2^23` transforms, `2^24` CRT lengths and a `2^25` mint product. The checked builds repeat the full sizes with a new seed.
+- Full mode adds the 6000-prime root sweep, transform lengths up to `2^20` (optimized) or `2^16` (checked builds) and `2^21`-length CRT runs; the optimized build also runs the six-prime closed forms and the products beyond `2^24`.
+- Stress (optimized build) reaches `2^23` transforms, `2^24` CRT lengths and a `2^25` mint product; the checked builds repeat the full sizes with a new seed.
 - `convolutionFft` worst rounding error at the bound: 0.0078 to 0.0156.
-- The header builds alone, with `05-Mathematics/99-all.hpp`, and with every folder's `99-all.hpp` in two translation units, with no warnings under `-Wall -Wextra -Wconversion`. The only aggregate warning is pre-existing, in `06-segmentedsieve.hpp`.
+- The header builds without warnings under `-Wall -Wextra -Wconversion` alone, with `05-Mathematics/99-all.hpp`, and with every folder's `99-all.hpp` in two translation units.
 
 ## Benchmarks
 
-`python3 '96-Local Testing/05-Mathematics/13-convolution_benchmark.py' 5`, rerun 2026-10-19 on the final P054 follow-up code. Conditions:
+`python3 '96-Local Testing/05-Mathematics/13-convolution_benchmark.py' 5`, run 2026-10-19 on the final P054 follow-up code. Conditions:
 
 - CPU: Intel i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2` (no `-march`).
 - One warmup and 5 timed repetitions; the table shows medians.
@@ -221,14 +226,14 @@ python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode stress
 | `ulng 10^5 x 10^5` | Karatsuba 303.5 ms | |
 | mint `2^24 x 2^24` | `convolutionLarge` 3778.8 ms | `convolution` 3814.8 ms |
 
-Benchmark MEMORY peak was 843 MB. Selecting the prime count keeps the three-prime case at parity and saves a third whenever fewer primes suffice; aliasing saves a further third for squares.
+The benchmark's MEMORY peak was 843 MB. Choosing the prime count keeps the three-prime case at parity and saves a third whenever fewer primes suffice; aliasing saves a further third for squares.
 
 Thresholds:
 
 - **NAIVE = 60.** Naive beats the bare transform up to about 64 on the short side, with a 2^16 long side. At 96 the transform wins.
 - **KARATSUBA = 32.** At 32 the two are level; Karatsuba gains from 64 on.
 
-The radix-2 kernel is generic over `M`. A separate probe timed one length-`2^20` `ntt` at 20–22 ms, against 19–21 ms for the same loop on raw `uint` words. The modint wrapper therefore costs about 10%, and the rest is the `%` reduction. Radix-4 with lazy reduction on raw words (ACL) would trade genericity for a further constant. Core Poly owns that accelerated engine.
+The radix-2 kernel is generic over `M`. A separate probe timed one length-`2^20` `ntt` at 20–22 ms against 19–21 ms for the same loop on raw `uint` words, so the modint wrapper costs about 10% and the rest is the `%` reduction. Radix-4 with lazy reduction on raw words (ACL) would trade genericity for a further constant; Core Poly owns that accelerated engine.
 
 ## Sources
 
@@ -236,7 +241,7 @@ The radix-2 kernel is generic over `M`. A separate probe timed one length-`2^20`
 
 Adopted by the P055 sweep: `convolution` (dispatcher), `nttDoubling` and `convolutionU128`.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - `fft`/`ntt` spectra are bit-reversed. A natural-order DFT is a bit-reversal permutation away and is not provided.
 - Karatsuba and the naive product need a commutative ring: the swap of operands reorders products.
@@ -244,6 +249,7 @@ Adopted by the P055 sweep: `convolution` (dispatcher), `nttDoubling` and `convol
 - `convolutionLarge` memory is about `(n/B + m/B + 1) * 2B` words of `M` plus the result; with 998244353 and `2^24 x 2^24` that is about 550 MB.
 - Root tables are static and grow monotonically; they are not thread-safe. The CRT path keeps one pair per prime it used, sized by its largest transform (up to `2^27` entries for 2013265921 when `n + m - 1` exceeds `2^24`).
 - Rejected candidates are in [00-notes.md](00-notes.md), P055 research decisions. Core Poly owns FPS operations; rows 14, 52, 53 and 65 own product trees, relaxed, semiring and specialized convolutions.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## Aliases
 
@@ -251,8 +257,7 @@ Search aliases (P263, grab --find): FFT (fast Fourier transform), NTT (number-th
 
 ## History
 
-- 2026-10-09: P055 initial implementation and verification, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-09: P055 initial implementation and verification; `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-19: P054 follow-up: CRT over one to six primes chosen from the coefficient bound (every 64-bit modulus; `convolutionLong` modulo 2^64 and `convolutionU128` modulo 2^128 for any inputs), every length below 2^31 through `convolutionLarge`, aliased squares with one transform per prime, naive wrapping paths for short Long and U128 products; `@reviewer` found no defect, a missing six-prime test and stale texts, fixed; full and stress passed on g++, full on g++-14.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-07: P263 added the search aliases, then Chinese names from OI Wiki's page titles and common names of the row's operations (Simplified, plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; library-wide full (g++ and g++-14), quick and stress runs passed.

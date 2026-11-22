@@ -1,15 +1,15 @@
-# 14-minimumenclosingcircle.hpp — evidence
+# 14-minimumenclosingcircle.hpp — Evidence
 
-Owned by package P037 / GE05, together with [13-segment_union.md](13-segment_union.md) and [15-convex_polygon_query.md](15-convex_polygon_query.md). Every operation in the row has a test.
+Package P037 / GE05 owns this header together with [13-segment_union.md](13-segment_union.md) and [15-convex_polygon_query.md](15-convex_polygon_query.md). Every operation in the row has a test.
 
 ## Contracts
 
-### Numeric policy
+### Numeric Policy
 
 `minimumEnclosingCircle` takes integral points with `|coordinate| <= 10^9`, asserted. Every decision is an exact integer predicate:
 
 - the diametral test `dot(a − q, b − q)`, below `8 * 10^18`;
-- the incircle determinant `Σ |a'|^2 * cross(b', c')` with `x' = x − q`. Each of its three products is below `8 * 10^18 * 8 * 10^18 = 6.4 * 10^37`, so the sum of two fits `lll`. The sign of the full sum is the comparison of that partial sum with the negated third product.
+- the incircle determinant `Σ |a'|^2 * cross(b', c')` with `x' = x − q`. Each of its three products is below `8 * 10^18 * 8 * 10^18 = 6.4 * 10^37`, so the sum of two fits `lll`, and the sign of the full sum is the comparison of that partial sum with the negated third product.
 
 The exact centre has numerators below `5 * 10^28` and denominator `2 * cross(b − a, c − a)`, below `1.6 * 10^19`.
 
@@ -30,11 +30,11 @@ The exact squared radius of three support points is `|u|^2 |v|^2 |u − v|^2 / (
 
 `locate`, `center` and `radius2` assert a nonempty support; `locate` also asserts query coordinates within `10^9`. Under `NDEBUG` an empty support gives the origin, radius 0, and `locate` 1 (outside). Each is `O(1)`.
 
-The support determines the circle, but it need not be minimal. When four or more input points are cocircular, three support points can form an obtuse triangle while other boundary points certify optimality. The optimality certificate is that the centre lies in the convex hull of all input points on the circle; the tests check it.
+The support determines the circle but need not be minimal: when four or more input points are cocircular, three support points can form an obtuse triangle while other boundary points certify optimality. The optimality certificate, which the tests check, is that the centre lies in the convex hull of all input points on the circle.
 
 ### minimumEnclosingCircle
 
-Input: `1 <= n < INT_MAX` integral points (the linked list holds `n + 1` entries), duplicates allowed (asserted nonempty; under `NDEBUG` an empty input returns an empty `EnclosingCircle`). The indices are shuffled with SplitMix64 from `seed`, a Fisher–Yates pass, so the run is reproducible.
+Input: `1 <= n < INT_MAX` integral points (the linked list holds `n + 1` entries), duplicates allowed (asserted nonempty; under `NDEBUG` an empty input returns an empty `EnclosingCircle`). The indices are shuffled by a Fisher–Yates pass with SplitMix64 from `seed`, so the run is reproducible.
 
 The algorithm is Welzl's, as three nested scans in which the points `i` and `j` of the outer scans stay on the boundary, over a linked list of the shuffled positions (`enclosing_detail::welzl`, driven by `enclosing_detail::run`):
 
@@ -45,37 +45,37 @@ The algorithm is Welzl's, as three nested scans in which the points `i` and `j` 
 
 With exact predicates the inner circle never needs three collinear points: Welzl's lemma guarantees that the constrained circle exists and passes through both fixed points, and a collinear third point outside would contradict it. An `assert` guards this.
 
-The algorithm is Las Vegas: the result is the unique minimum enclosing circle for every seed, and the seed affects only time and which support is reported. The support is reproducible for a fixed seed. Memory `O(n)`. The default seed is `CustomHash::rnd`, which varies by run so that a fixed shuffle cannot be attacked; pass a fixed seed to reproduce support indices.
+The algorithm is Las Vegas: the result is the unique minimum enclosing circle for every seed, and the seed affects only time and which support is reported, which is reproducible for a fixed seed. Memory `O(n)`. The default seed is `CustomHash::rnd`, which varies by run so that a fixed shuffle cannot be attacked; pass a fixed seed to reproduce support indices.
 
 ### minimumEnclosingCircleApprox
 
-Input: `vector<Point2<T>>` with floating `T` (`float`, `double`, `long double`), finite coordinates (asserted in `O(n)`), `1 <= n < INT_MAX` (asserted; under `NDEBUG` an empty input returns a default `CircleApprox`). It returns the `CircleApprox` (centre and radius) of the minimum enclosing circle. Floating problems ask for the centre and radius, so no support is returned.
+Input: `vector<Point2<T>>` with floating `T` (`float`, `double`, `long double`), finite coordinates (asserted in `O(n)`), `1 <= n < INT_MAX` (asserted; under `NDEBUG` an empty input returns a default `CircleApprox`). It returns the `CircleApprox` (centre and radius) of the minimum enclosing circle; floating problems ask for the centre and radius, so no support is returned.
 
 - **Algorithm.** The same seeding, passes and budget as `minimumEnclosingCircle`, in `long double` with ordinary rounding and no epsilon. The circle through 1, 2 or 3 support points is the point, the midpoint, or the circumcentre `a + (v.y |u|^2 − u.y |v|^2, u.x |v|^2 − v.x |u|^2) / (2 cross(u, v))`.
 - **Radius.** The squared radius is the largest rounded squared distance from the rounded centre to the support points. A support point and its exact duplicates therefore always test inside, so rounding never makes a scan pick them again.
-- **Domain.** As the numeric policy states, every decision must survive rounding. Out of domain: points a few double ulps apart and nearly tangent to the current circle lie inside or outside by about `δ^2 / R`, below `long double` rounding, so a decision can flip and pin two near-duplicates to the boundary. In 300,000 sets of collinear doubles moved by up to 3 ulps, one returned a circle `4.9 * 10^-4` too large; no point was left outside. `long double` inputs that differ only in their last bits can also round a three-point support to collinear; its centre is then not finite and `CircleApprox` asserts.
+- **Domain.** Every decision must survive rounding (numeric policy). Out of domain: points a few double ulps apart and nearly tangent to the current circle lie inside or outside by about `δ^2 / R`, below `long double` rounding, so a decision can flip and pin two near-duplicates to the boundary. In 300,000 sets of collinear doubles moved by up to 3 ulps, one returned a circle `4.9 * 10^-4` too large; no point was left outside. `long double` inputs that differ only in their last bits can also round a three-point support to collinear; its centre is then not finite and `CircleApprox` asserts.
 - **Accuracy measured in domain.** Worst centre or radius error `1.7 * 10^-18` of the coordinate scale on integer sets up to `10^9` (against the exact circle); `6.8 * 10^-19` on random doubles at scales `10^-3` to `10^15` (against the Python exact oracle).
 
-Kept beside `minimumEnclosingCircle` (`03-cpp.md`, One API per operation): floating inputs are a domain the exact version rejects.
+It is kept beside `minimumEnclosingCircle` (`03-cpp.md`, One API per Operation) because floating inputs are a domain the exact version rejects.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Old name | Replacement |
 |---|---|
 | `WelzlMEC::getMEC(vector<complex<double>>)` (`OLD/Team Notebook/src/geometry/welzlmec.cpp`; double coordinates, clock seed, `variant` of two or three points) | `minimumEnclosingCircleApprox(points, seed)` on floating points; `minimumEnclosingCircle(points, seed)` on integral points with exact predicates, where `EnclosingCircle::points` holds the defining points |
 | `WelzlMEC::isInside`, `indicator` | `EnclosingCircle::contains`, `locate`; `CircleApprox::locate` for the floating circle |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 `96-Local Testing/03-Geometry/14-minimumenclosingcircle_tester.py` runs quick, full and stress modes in three configurations, with six assertion probes: empty input, a coordinate of `2 * 10^9`, `locate` on an empty support, `radius2` on an empty support, empty floating input, and a NaN among ten floating points with a fixed seed. A NaN that the shuffle does not place first is never selected by the tests, so only the entry check rejects it.
 
 **Oracles.**
-- Small coordinates: every circle through 1, 2 or 3 input points (non-collinear), with exact rational squared radius and centre, the smallest enclosing one chosen by exact rational comparison.
-- Medium (`10^8`) and full (`10^9`) coordinates: the optimality criterion, checked with exact rational orientation tests that compare products instead of subtracting them: the centre lies in the closed hull of the points on the circle.
+- Small coordinates: every circle through 1, 2 or 3 non-collinear input points, with exact rational squared radius and centre; the smallest enclosing one is chosen by exact rational comparison.
+- Medium (`10^8`) and full (`10^9`) coordinates: the optimality criterion (the centre lies in the closed hull of the points on the circle), checked with exact rational orientation tests that compare products instead of subtracting them.
 - At `10^9`, an independent 256-bit side test, `|q d − N|^2` against `|s d − N|^2` for the exact centre `N / d` and a support point `s`, checks `locate` on every point.
-- `radius2` at every scale: `|s d − N|^2 / d^2` in `InfInt` from the exact centre, for every support point; a different derivation from the side lengths.
-- The rounded circle on integer sets, as `double`, `long double` and (below `2^24`) `float`: the three agree bit for bit, and they match the exact centre and `sqrt(radius2)` within `10^-9` of the scale.
-- A Python oracle, an exact `Fraction` brute force over every 1-, 2- and 3-point candidate with the textbook circumcentre formula. It checks `radius2` and `center` exactly on integer sets up to `10^9`, a quarter of them cocircular lattice sets on `x^2 + y^2 = 1105^2` scaled by 900,000. It checks the rounded circle within `10^-12` of the scale on random doubles at scales `10^-3` to `10^15`. Quick 80, full 800, stress 8,000 rows. The binary runs both versions with the run's `--seed`, so any floating discrepancy reproduces from the printed seed.
+- `radius2` at every scale: `|s d − N|^2 / d^2` in `InfInt` from the exact centre for every support point, a different derivation from the side lengths.
+- The rounded circle on integer sets, as `double`, `long double` and (below `2^24`) `float`: the three agree bit for bit and match the exact centre and `sqrt(radius2)` within `10^-9` of the scale.
+- A Python oracle, an exact `Fraction` brute force over every 1-, 2- and 3-point candidate with the textbook circumcentre formula. It checks `radius2` and `center` exactly on integer sets up to `10^9`, a quarter of them cocircular lattice sets on `x^2 + y^2 = 1105^2` scaled by 900,000, and the rounded circle within `10^-12` of the scale on random doubles at scales `10^-3` to `10^15`. Quick 80, full 800, stress 8,000 rows. The binary runs both versions with the run's `--seed`, so any floating discrepancy reproduces from the printed seed.
 - Forced budgets: `enclosing_detail::run` with budgets from 0 to `2n` on small sets and `n` on the large set, against the public result; `welzl` with budget 0 reports exhaustion.
 
 | Operation | Test | Oracle |
@@ -90,37 +90,46 @@ Kept beside `minimumEnclosingCircle` (`03-cpp.md`, One API per operation): float
 | `minimumEnclosingCircleApprox` | Every integer case above as `double`, `long double` and `float`; 1–40 random dyadic doubles of mixed exponents; all-equal points; Python random doubles; the 400,000-point disk, duplicates and collinear run | The exact circle within `10^-9` of the scale; enclosure; seed independence; bit equality across input types; `Fraction` brute force within `10^-12` |
 | Seed | Seeds 7 and 8 on random sets | Same circle for every seed; the same support when the seed repeats |
 
-Mutation checks (2026-10-19, quick, optimized and checked builds, on a copy of the tree): 26 mutants, 22 caught.
-- Caught: the diametral sign, the single-point test, the incircle orientation and tie direction; support indices left as positions; a forgotten second support point; the third scan's bound; both move-to-front pointer updates; a budget never spent; a fallback that keeps the budget (timeout); loading the points before the shuffle or not at all; three `radius2` formula errors; the centre of one point; the floating circumcentre sign, diametral centre and one-point radius; a non-strict floating outside test; the floating finiteness check (the NaN probe).
-- Not caught, equivalent or runtime only: removing the collinear assertion (unreachable in exact arithmetic); a biased shuffle (the circle is unique; only time and the reported support move); no move-to-front for the second support point; move-to-front left on in the fallback (only the `O(n)` proof is lost).
+## Commands and Results
 
-## Commands and results
-
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 929 MB; optimized 0.2 s compile + 6.3 s run, checked 27.6 s compile + 9.1 s run, ASan-UBSan 38.4 s compile + 17.8 s run; MEMORY peak 1160 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 981 MB; optimized 0.2 s compile + 6.3 s run, checked 30.9 s compile + 9.8 s run, ASan-UBSan 43.3 s compile + 16.3 s run; MEMORY peak 1153 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 50.4 s compile + 0.7 s run, checked 32.8 s compile + 1.9 s run; MEMORY peak 938 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 930 MB; optimized 0.1 s compile + 19.6 s run, checked 12.4 s compile + 24.9 s run, ASan-UBSan 17.5 s compile + 37.1 s run; MEMORY peak 885 MB. Dated rows below stay those commands' latest results.
-
-2026-10-19, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
+Package runs 2026-10-19: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
 | Command | Result |
 |---|---|
-| `14-minimumenclosingcircle_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 6 probes) | PASS, 1,890,454 checks and 800 Python rows per configuration, 6 probes, `MEMORY peak=600MB` |
+| `14-minimumenclosingcircle_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 1,890,454 checks and 800 Python rows per configuration, 6 probes, `MEMORY peak=600MB` |
 | same with `CXX=g++-14` | PASS, same counts, 6 probes, `MEMORY peak=613MB` |
 | `14-minimumenclosingcircle_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 10,452,444 checks and 8,000 Python rows, `MEMORY peak=445MB` |
 | `-Wall -Wextra -Wconversion` build of the tester and benchmark with `g++` and `g++-14` | No warnings |
 | `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
 | `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
-| `03-consistency.py` | No errors |
-| `03-consistency.py --braces` on the header, tester and benchmark | No violations |
+| `03-consistency.py`; `--braces` on the header, tester and benchmark | No errors; no violations |
+| `01-run.py --mode full`, library-wide, 2026-11-10 (P274, seed 42, build cache emptied before each cold run) | PASS; GCC 16.2.1: optimized 0.2 s compile + 6.3 s run, checked 27.6 s + 9.1 s, ASan/UBSan 38.4 s + 17.8 s, peak 1160 MB (pre-flight quick 929 MB); GCC 14.4.1: optimized 0.2 s + 6.3 s, checked 30.9 s + 9.8 s, ASan/UBSan 43.3 s + 16.3 s, peak 1153 MB (pre-flight quick 981 MB) |
+| `01-run.py --mode quick`, library-wide, 2026-11-10 | PASS; optimized 50.4 s compile + 0.7 s run, checked 32.8 s + 1.9 s; peak 938 MB |
+| `01-run.py --mode stress --rounds 1`, library-wide, 2026-11-10 | PASS; optimized 0.1 s compile + 19.6 s run, checked 12.4 s + 24.9 s, ASan/UBSan 17.5 s + 37.1 s; peak 885 MB (pre-flight quick 930 MB) |
 
 ```bash
 python3 '96-Local Testing/03-Geometry/14-minimumenclosingcircle_tester.py' --mode full --seed 20260927
 CXX=g++-14 python3 '96-Local Testing/03-Geometry/14-minimumenclosingcircle_tester.py' --mode full --seed 20260927
 python3 '96-Local Testing/03-Geometry/14-minimumenclosingcircle_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/03-Geometry/14-minimumenclosingcircle_benchmark.py' --seed 20260927
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/14-minimumenclosingcircle.hpp
 ```
+
+## Mutation Testing
+
+No mewt campaign has run on this header yet; P037's `/finish` records one. The hand-made mutation check of 2026-10-19 (quick, optimized and checked builds, on a copy of the tree) caught 22 of 26 mutants. The four not caught are equivalent or runtime only:
+
+| Mutant | Why not caught |
+|---|---|
+| Collinear assertion removed | Unreachable in exact arithmetic (Welzl's lemma, Contracts) |
+| Biased shuffle | The circle is unique; only time and the reported support move |
+| No move-to-front for the second support point | Runtime only |
+| Move-to-front left on in the fallback | Runtime only; only the `O(n)` proof is lost |
 
 ## Benchmarks
 
-`14-minimumenclosingcircle_benchmark.py --seed 20260927` (2026-10-19; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five, shuffle included). Run serially on the final code; other sessions kept the load average near 2.2 on the 8-core CPU. Both exact versions must return the same centre and `radius2`, and the floating radius must agree within `10^-9` of the scale. Coordinates are within `10^9`: uniform in the square, uniform in the disk of radius `9 * 10^8`, on that circle (rounded), and Gaussian with deviation `2 * 10^8`.
+`14-minimumenclosingcircle_benchmark.py --seed 20260927` (2026-10-19; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five, shuffle included), run serially on the final code while other sessions kept the load average near 2.2 on the 8-core CPU. Both exact versions must return the same centre and `radius2`, and the floating radius must agree within `10^-9` of the scale. Coordinates are within `10^9`: uniform in the square, uniform in the disk of radius `9 * 10^8`, on that circle (rounded), and Gaussian with deviation `2 * 10^8`.
 
 | Points | n | `minimumEnclosingCircle` (µs) | plain three scans, no move-to-front (µs) | `minimumEnclosingCircleApprox` (µs) |
 |---|---|---|---|---|
@@ -131,22 +140,23 @@ python3 '96-Local Testing/03-Geometry/14-minimumenclosingcircle_benchmark.py' --
 
 Budgeted move-to-front is faster in every row, by 1.07–2.4×. The floating version is 1.1–2.2× faster than the exact one: one squared distance per test instead of an exact incircle determinant.
 
-A scratch comparison (not kept as a driver) also seeded the shuffle with the four axis-extreme points. Alone it helped only Gaussian inputs (2.3× at `10^6`) and was neutral or slower elsewhere; with move-to-front it gave no consistent gain, so it was not adopted.
+Seeding the shuffle with the four axis-extreme points was not adopted. In a scratch comparison (not kept as a driver) it helped only Gaussian inputs alone (2.3× at `10^6`), was neutral or slower elsewhere, and gave no consistent gain together with move-to-front.
 
 ## Sources
 
 The implementation was written independently. Sources of the completeness sweep are in [00-sources.md](00-sources.md#p037-completeness-sweep-fetched-2026-10-18).
 
-- Library Checker `minimum_enclosing_circle` ([task](https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/minimum_enclosing_circle/task.md) and [reference solution](https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/minimum_enclosing_circle/sol/correct.cpp)): it uses exact `long long` predicates and asks for every point on the circle, which `locate` provides.
+- Library Checker `minimum_enclosing_circle` ([task](https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/minimum_enclosing_circle/task.md) and [reference solution](https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/minimum_enclosing_circle/sol/correct.cpp)): exact `long long` predicates; it asks for every point on the circle, which `locate` provides.
 - [KACTL MinimumEnclosingCircle.h](https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/MinimumEnclosingCircle.h), [cp-algorithms enclosing circle](https://cp-algorithms.com/geometry/enclosing-circle.html), [OI Wiki 最小圆覆盖](https://oi-wiki.org/geometry/random-incremental/), [maspypy minimum_enclosing_circle](https://maspypy.github.io/library/geo/minimum_enclosing_circle.hpp) and [tko919 Enclosing.hpp](https://tko919.github.io/library/Geometry/Enclosing.hpp): the three-loop form, with epsilon predicates in KACTL and OI Wiki and exact ones in maspypy.
 - [CGAL Min_circle_2](https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Min__circle__2.html): exact bounded-side queries and support sets.
 - [Welzl 1991, Smallest enclosing disks (balls and ellipsoids)](https://www.stsci.edu/~RAB/Backup%20Oct%2022%202011/f_3_CalculationForWFIRSTML/Bob1.pdf), read 2026-10-19: the expected-linear analysis, the move-to-front heuristic, its measured gains (Table 1) and the absence of an analysis for it.
-- `OLD/Team Notebook/src/geometry/welzlmec.cpp`: legacy, superseded. It used double arithmetic.
+- `OLD/Team Notebook/src/geometry/welzlmec.cpp`: legacy, double arithmetic, superseded.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - `circle` is rounded because the radius is irrational in general; `center` and `radius2` are exact.
 - `minimumEnclosingCircleApprox` is exact only up to rounding, and only where every decision survives rounding (see its contract).
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 - Megiddo's deterministic linear algorithm, the enclosing circle of circles and the smallest circle covering `k` points are planned as row 57 `minimumEnclosingCircleDeterministic` and `minimumEnclosingCircleOfCircles` (P234) and row 56 `smallestDiskCoveringK` (P233). Incremental insertion and the rectangular p-centre (row 21) stay not adopted. The 3D ball belongs to row 42.
 
 ## Aliases
@@ -157,6 +167,6 @@ Search aliases (P263, grab --find): 最小圆覆盖, 随机增量法, 最小覆�
 
 - 2026-10-18: first implementation (P037). Independent review: the comment share was reduced, empty input under `NDEBUG` returns an empty result, and `10^9` sets gained the hull criterion and a 256-bit side oracle. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit rerun, header unchanged; full suite passed on g++ and g++-14, stress passed.
-- 2026-10-19 (round 3): exact `radius2` as `Rational<InfInt>`; `minimumEnclosingCircleApprox`; budgeted move-to-front (1.07–2.4× faster in the serial benchmark); `center` defined on an empty support under `NDEBUG`; six probes, a Python exact oracle and 26 mutants (22 caught, 4 equivalent or runtime only). Full suite passed on g++ and g++-14, stress passed. Independent review: `locate` on an empty support returns 1 under `NDEBUG`, `n < INT_MAX` stated and asserted, the Python oracle seeded from `--seed`, benchmark ratios corrected. Final full suite passed on g++ and g++-14, stress passed.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-19 (round 3): exact `radius2` as `Rational<InfInt>`; `minimumEnclosingCircleApprox`; budgeted move-to-front (1.07–2.4× faster in the serial benchmark); `center` defined on an empty support under `NDEBUG`; six probes, a Python exact oracle and 26 hand-made mutants (22 caught, 4 equivalent or runtime only). Independent review: `locate` on an empty support returns 1 under `NDEBUG`, `n < INT_MAX` stated and asserted, the Python oracle seeded from `--seed`, benchmark ratios corrected. Final full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases: OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; library-wide full, quick and stress passed.

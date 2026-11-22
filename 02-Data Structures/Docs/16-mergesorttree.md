@@ -1,12 +1,12 @@
-# 16-mergesorttree.hpp — evidence
+# 16-mergesorttree.hpp — Evidence
 
-Package P028 (batch DS08). Replaces the unchanged extraction `DynMergeSortTree` (`OLD/algorithms.cpp:3185–3459`) and absorbs the older `MergeSortTree` reference (`OLD/[1] algorithms.cpp:695–799`). Indices are zero-based, index ranges `[l, r)` and value ranges `[lo, hi)` are half-open, `kth` is 0-based, and preconditions are `assert`s checked once per operation.
+Package P028 (batch DS08). The header replaces the unchanged extraction `DynMergeSortTree` (`OLD/algorithms.cpp:3185–3459`) and absorbs the older `MergeSortTree` reference (`OLD/[1] algorithms.cpp:695–799`). Indices are zero-based, index ranges `[l, r)` and value ranges `[lo, hi)` are half-open, `kth` is 0-based, and preconditions are `assert`s checked once per operation.
 
 ## Contracts
 
 All three structures need only `T`'s `operator<` (a strict weak order whose equivalence is equality); equal values are counted with multiplicity. `maxLeq(l, r, x, res)` and `minGeq(l, r, x, res)` return `false` and leave `res` untouched when no value qualifies; `countRange` with `!(lo < hi)` returns 0 after its index-range assert, so an invalid `[l, r)` fails even then.
 
-### MergeSortTree<T> (static, fractional cascading)
+### MergeSortTree<T> (Static, Fractional Cascading)
 
 - `0 <= n <= 2^29`. Values are ranked by a stable sort (ties by index), so ranks are a permutation. Level `d` of `rk` stores each midpoint-split node's ranks sorted in place, and `lc[d][a + p]` counts the left-child ranks among the node's first `p`; a count of ranks below a root bound therefore descends to both children in O(1) (`p == len` uses `m - a`). Memory: `vals` plus `2 (ceil(log2 n) + 1) n` ints; build O(n log n).
 - `countLess`, `countRange`, `countEqual`: one or two root binary searches, then O(log n) cascaded nodes.
@@ -24,7 +24,7 @@ All three structures need only `T`'s `operator<` (a strict weak order whose equi
 
 - `0 <= n <= 2^29`; `std::map` from value to the order-statistic set of its positions; empty sets are erased so memory stays O(n). `get(i)` O(1), `set(i, x)` and `count(l, r, x)` O(log n).
 
-### Legacy mapping
+### Legacy Mapping
 
 | Legacy | New |
 |---|---|
@@ -39,9 +39,9 @@ All three structures need only `T`'s `operator<` (a strict weak order whose equi
 
 The legacy dynamic tree reserved 2.5 million nodes up front, searched `kth` over the whole `lng` range (64 probes of O(log^2) each) and took online `lng` x coordinates in a dynamic segment tree; the replacement needs x compressed to slots (a documented reduction; online huge coordinates belong to row 13 or row 33's offline sweeps). The older static reference read exhausted merge sides before its guards.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry `16-mergesorttree_tester.py` (driver `_00_contest_runner.py`; three builds; 18 assertion probes; the checked build uses `-D_GLIBCXX_ASSERTIONS` because GCC's PBDS debug mode validates whole trees on every operation and the full corpus exceeded the runner's former 180 s limit, while assertions alone finish in about 1 s).
+Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry `16-mergesorttree_tester.py` (driver `_00_contest_runner.py`, three builds, 18 assertion probes). The checked build uses `-D_GLIBCXX_ASSERTIONS` because GCC's PBDS debug mode validates whole trees on every operation and the full corpus exceeded the runner's former 180 s limit, while assertions alone finish in about 1 s.
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -52,23 +52,31 @@ Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry 
 | Empty structures, untouched `res`, extreme values, duplicates in one slot, erase of one copy, copy independence, erasing emptied position sets | `edges` | Direct values |
 | Preconditions | `invalid` | Reversed and out-of-range windows (including `countRange` with `lo >= hi` on both trees: `static-countrange-end`, `dynamic-countrange-reversed`), `kth` with `k` out of range or an empty window, negative size, slot out of range, `set` on a multi-valued or empty slot |
 
-Sizes 0–129 (plus 513 and 1000 in stress) with value spans 0, 3 and 10^12. Mutation check (2026-10-10, quick mode, temporary copies): 9 of 9 injected faults detected (cascade at a full node, cascade counter, `kth` bound, `maxLeq` rank bound, erase of a different value, `countEqual` bound, frequency window end, `minGeq` bound, dynamic `kth` bound).
+Sizes 0–129 (plus 513 and 1000 in stress) with value spans 0, 3 and 10^12. A hand mutation check (2026-10-10, quick mode, temporary copies): 9 of 9 injected faults detected (cascade at a full node, cascade counter, `kth` bound, `maxLeq` rank bound, erase of a different value, `countEqual` bound, frequency window end, `minGeq` bound, dynamic `kth` bound).
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 806 MB; optimized 0.2 s compile + 1.3 s run, checked 20.8 s compile + 0.9 s run, ASan-UBSan 39.9 s compile + 10.0 s run; MEMORY peak 1001 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 804 MB; optimized 0.3 s compile + 1.2 s run, checked 31.2 s compile + 1.3 s run, ASan-UBSan 53.9 s compile + 8.5 s run; MEMORY peak 998 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 31.7 s compile + 0.1 s run, checked 21.9 s compile + 0.4 s run; MEMORY peak 812 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 807 MB; optimized 0.1 s compile + 2.9 s run, checked 8.8 s compile + 3.1 s run, ASan-UBSan 17.2 s compile + 25.3 s run; MEMORY peak 727 MB. Dated rows below stay those commands' latest results.
+Machine: Linux x86-64, Intel Core i9-11900H, GNU++20, CPython 3.14; the runner's optimized, checked (`_GLIBCXX_ASSERTIONS`, see above) and ASan/UBSan builds. MEMORY peaks are dominated by compilation.
 
-```bash
-python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode quick --seed 1
-python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 1
-python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/16-mergesorttree.hpp' '96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp'
-python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/01-run.py' --mode stress --seed 3 --rounds 1 --filter '02-Data Structures/16' --no-integration
-python3 '96-Local Testing/02-integration.py' --sanitizers
-```
+Library-wide runs of 2026-11-10 (P274; seed 42, beside the other suites, build cache emptied before each cold run), all passed. Times are compile + run seconds for this suite.
 
-Latest run 2026-10-12 (after the `countRange` assert fix): quick mode seed 1 passed (2 configurations, 55,529 checks, 18 assertion probes); full mode seed 1 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 960,253 checks per configuration and 18 assertion probes, MEMORY peak 632 MB and 596 MB; `--braces` and `03-consistency.py` reported no errors. Stress (`--mode stress --seed 3`) passed with 4,683,876 checks per configuration, peak 645 MB, and `python3 '96-Local Testing/02-integration.py' --sanitizers` passed (136 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests, peak 2677 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, in the runner's optimized, checked (`_GLIBCXX_ASSERTIONS`, see above) and ASan/UBSan builds; MEMORY peaks are dominated by compilation.
+| Command | Pre-flight quick peak | Optimized | Checked | ASan-UBSan | MEMORY peak |
+|---|---|---|---|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | 806 MB | 0.2 + 1.3 | 20.8 + 0.9 | 39.9 + 10.0 | 1001 MB |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | 804 MB | 0.3 + 1.2 | 31.2 + 1.3 | 53.9 + 8.5 | 998 MB |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | | 31.7 + 0.1 | 21.9 + 0.4 | | 812 MB |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 807 MB | 0.1 + 2.9 | 8.8 + 3.1 | 17.2 + 25.3 | 727 MB |
+
+Package runs of 2026-10-12 (after the `countRange` assert fix):
+
+| Command | Result |
+|---|---|
+| `python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode quick --seed 1` | PASS, 2 configurations, 55,529 checks, 18 assertion probes |
+| `python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 1` (GCC 16.2) | PASS, 960,253 checks per configuration, 18 assertion probes, MEMORY peak 632 MB |
+| `CXX=g++-14 python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 1` (GCC 14.4.1) | PASS, 960,253 checks per configuration, 18 assertion probes, MEMORY peak 596 MB |
+| `python3 '96-Local Testing/01-run.py' --mode stress --seed 3 --rounds 1 --filter '02-Data Structures/16' --no-integration` | PASS, 4,683,876 checks per configuration, MEMORY peak 645 MB |
+| `python3 '96-Local Testing/02-integration.py' --sanitizers` | PASS: 136 standalone and aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests; MEMORY peak 2677 MB |
+| `python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/16-mergesorttree.hpp' '96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp'`; `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
 ## Sources
 
@@ -76,14 +84,16 @@ Latest run 2026-10-12 (after the `countRange` assert fix): quick mode seed 1 pas
 |---|---|
 | ei1333 `segment-tree-fractional-cascading`; hitonanode `merge_sort_tree`; cp-algorithms segment tree (merge sort tree, fractional cascading, multiset nodes) | Static layout with cascaded counts and the dynamic multiset variant. |
 | tko919 `pointsetrangefreq`; Library Checker `point_set_range_frequency`, `range_kth_smallest`, `static_range_frequency` | One position set per value; query shapes. |
-| OI Wiki seg-in-bit, balanced-in-seg | O(log^2) dynamic kth via Fenwick of value trees (left out, see Limits). |
+| OI Wiki seg-in-bit, balanced-in-seg | O(log^2) dynamic kth via Fenwick of value trees (planned as `FenwickValueTrees`). |
 
 Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); the implementation was written from the contract.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p028-omissions): `sumLeq`/`countSumLeq` (row 17 `sumLess`), count wrappers `countGreater`/`countGeq`/`countLeq` (`r - l - countLess` and `countLess` of the next value), Fenwick-of-value-trees dynamic kth.
+- Row 16 is partial: `FenwickValueTrees`, `MergeSortTree::countGreater`, `MergeSortTree::countGeq`, `MergeSortTree::countLeq` and `PointSetRangeMajority` are listed under `missing:` in the inventory row.
+- Left out, with reasons in [00-notes.md](00-notes.md#p028-omissions): `sumLeq`/`countSumLeq` (row 17 `sumLess`) and online `lng` x coordinates in `DynamicMergeSortTree` (compress x to slots).
 - `MergeSortTree::countRange` on the points `(i, a_i)` overlaps row 43's `RangeTree.count`; this row covers arrays, row 43 general point sets.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## Aliases
 
@@ -95,4 +105,4 @@ Search aliases (P263, grab --find): 划分树, 线段树套平衡树, 树状数�
 - 2026-10-10: independent review (P028): no wrong answers; guarded `set` on an empty slot under `NDEBUG` and corrected the memory term of the complexity line.
 - 2026-10-12: re-audit fix: `countRange` asserts its index range before the `lo < hi` shortcut in both trees (2 new probes); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `划分树`, `线段树套平衡树` and `树状数组套权值线段树` name related structures answering the same queries, kept as search synonyms (user decision 2026-11-07).
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

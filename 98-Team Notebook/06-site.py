@@ -25,7 +25,7 @@ ROOT = HERE.parent
 SITE = HERE / "site"  # generated and git-ignored: mkdocs.yml, docs/, html/
 ARTICLES = "98-Team Notebook/Articles"
 BRANCH = "master"
-SECTIONS = ("Contracts", "Limits and handoffs", "Sources")  # copied from the evidence document, titles kept
+SECTIONS = ("Contracts", "Limits and Handoffs", "Sources")  # copied from the evidence document, titles kept
 ESCAPED = "\\`*_{}[]()>#+-.!|"  # characters Python-Markdown (with tables) unescapes after a backslash
 LINK = re.compile(r"\[([^\]]+)\]\((<[^>]+>|[^\s)]+)\)")
 TICK = re.compile(r"(?<!\\)((?:\\{2})+)(?=`+)|(?<!\\)`")  # Python-Markdown 3.11: a code span opener
@@ -770,7 +770,7 @@ class Site:
         out += self.document(f"{ARTICLES}/{folder}/00-index.md", True)
         if any(h.startswith(folder + "/") for h in self.graph):
             chart = DEPS.chart(self.graph, folder)
-            out.append(("## Include chart\n\n" + (f"Arrows point from a header to the headers it includes; the template "
+            out.append(("## Include Chart\n\n" + (f"Arrows point from a header to the headers it includes; the template "
                         f"is left out.\n\n```mermaid\n{chart}\n```" if "-->" in chart else
                         "Every header of this folder includes only the template."), None, None))
         tiers = {}
@@ -803,7 +803,7 @@ class Site:
             out.append(("## Complexity\n\n" + "\n".join(f"- {literal(d)}: {literal(c)}" for d, c in bounds), None, None))
         found = sections((self.root / evidence).read_text(encoding="utf-8")) if (self.root / evidence).is_file() else {}
         for title in SECTIONS:
-            if title == "Limits and handoffs" and target in self.graph:
+            if title == "Limits and Handoffs" and target in self.graph:
                 out.append((self.dependencies(target, page), None, None))
             if title in found and found[title][1] != f"## {title}":
                 out.append((found[title][1], evidence, found[title][0]))

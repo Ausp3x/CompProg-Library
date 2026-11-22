@@ -1,13 +1,6 @@
-# 15-linear_recurrence.hpp — evidence
+# 15-linear_recurrence.hpp — Evidence
 
-`15-linear_recurrence.hpp` is the contest linear-recurrence family. It covers:
-
-- Finding a minimal recurrence: Berlekamp–Massey and its half-GCD (Padé) form.
-- Evaluating terms: Kitamasa in any commutative semiring, Fiduccia, Bostan–Mori, consecutive terms, prefix sums and slices of rational series.
-- Interpolating recurrent, periodic and polynomial-times-exponential sequences.
-- `A^k v` through a Krylov annihilator.
-
-The functions are free and generic over a Core modint `M`, except the semiring and periodic ones, which are generic over any value type. The header depends on `13-convolution.hpp` and `14-polynomial_algorithms.hpp`. It uses no Barrett/Montgomery and no ISA-specific code.
+`15-linear_recurrence.hpp` is the contest linear-recurrence family: finding a minimal recurrence (Berlekamp–Massey and its half-GCD, or Padé, form); evaluating terms (Kitamasa in any commutative semiring, Fiduccia, Bostan–Mori, consecutive terms, prefix sums, slices of rational series); interpolating recurrent, periodic and polynomial-times-exponential sequences; and `A^k v` through a Krylov annihilator. The functions are free and generic over a Core modint `M`, except the semiring and periodic ones, which take any value type. The header depends on `13-convolution.hpp` and `14-polynomial_algorithms.hpp` and uses no Barrett/Montgomery and no ISA-specific code.
 
 ## Contracts
 
@@ -89,7 +82,7 @@ Common conventions:
 - Cost `O(d^3 + M(d) log k)`, memory `O(d^2)`.
 - `mu` divides the characteristic polynomial and is deterministic, so this refines the "characteristic polynomial plus Kitamasa" plan without needing row 44's Hessenberg reduction.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`15-linear_recurrence_tester.py`](<../../96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py>), with C++ cases in `15-linear_recurrence_tester.cpp`.
 
@@ -118,30 +111,34 @@ Oracles:
 | matrixPowerVector | `matrixSuite`: random, nilpotent, identity, 0/1, block and rank-1 matrices, zero and one-hot `v`, `d` up to 90, over 998244353 and 5 |
 | assertion probes | 13 checked-build probes |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1510 MB; optimized 0.1 s compile + 20.0 s run, checked 69.1 s compile + 16.4 s run, ASan-UBSan 67.0 s compile + 59.1 s run; MEMORY peak 2328 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1371 MB; optimized 0.3 s compile + 33.5 s run, checked 107.7 s compile + 28.2 s run, ASan-UBSan 124.9 s compile + 93.3 s run; MEMORY peak 2275 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 76.0 s compile + 3.3 s run, checked 55.0 s compile + 25.4 s run; MEMORY peak 1501 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 83 MB; optimized 0.1 s compile + 27.4 s run, checked 33.9 s compile + 11.5 s run, ASan-UBSan 35.1 s compile + 30.7 s run; MEMORY peak 1323 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`). Every command passed; times are compile + run.
 
-P057 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`); this header is unchanged, and the run covers the `polyMod` removal in row 14, which it includes. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-```bash
-python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode full --seed 20261013             # PASS, 3 configurations, 13 probes: 137,440 / 135,712 / 135,712 checks; MEMORY peak=891MB
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode full --seed 20261013  # PASS, 3 configurations, 13 probes: 137,440 / 135,712 / 135,712 checks; MEMORY peak=890MB
-python3 '96-Local Testing/02-integration.py'                                                                      # PASS: 135 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace
-```
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 20.0 s | 69.1 + 16.4 s | 67.0 + 59.1 s | 2328 MB | 1510 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.3 + 33.5 s | 107.7 + 28.2 s | 124.9 + 93.3 s | 2275 MB | 1371 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 76.0 + 3.3 s | 55.0 + 25.4 s | — | 1501 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 27.4 s | 33.9 + 11.5 s | 35.1 + 30.7 s | 1323 MB | 83 MB |
 
-- Mode coverage:
-  - Quick uses GF(2) up to `n = 7`, GF(3) up to `n = 4`, and reduced repetitions.
-  - Full adds the exhaustive GF(2) `n <= 10` and GF(3) `n <= 6` searches, orders up to 1500, and the `cut(BM)` neighbours (the 1e9+7 ones in the optimized build).
-  - Stress repeats every random loop four times in the optimized build. The checked builds rerun the full sizes with a new seed and stay below the former 180 s limit.
-- Test programs peak below 10 MB; the reported peaks are the compiler.
-- 2026-10-19 rerun after the row 13 change: full PASS ([13-convolution.md](13-convolution.md#commands-and-results)); counts not recorded.
+- 2026-10-13, P057 prune, the latest run with check counts (optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`). This header was unchanged; the run covers the `polyMod` removal in row 14, which it includes.
+
+  ```bash
+  python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode full --seed 20261013             # PASS, 3 configurations, 13 probes: 137,440 / 135,712 / 135,712 checks; MEMORY peak=891MB
+  CXX=g++-14 python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode full --seed 20261013  # PASS, 3 configurations, 13 probes: 137,440 / 135,712 / 135,712 checks; MEMORY peak=890MB
+  python3 '96-Local Testing/02-integration.py'                                                                      # PASS: 135 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace
+  ```
+
+The test programs peak below 10 MB; the reported peaks are the compiler.
+
+Modes: quick uses GF(2) up to `n = 7`, GF(3) up to `n = 4` and reduced repetitions. Full adds the exhaustive GF(2) `n <= 10` and GF(3) `n <= 6` searches, orders up to 1500 and the `cut(BM)` neighbours (the 1e9+7 ones in the optimized build). Stress repeats every random loop four times in the optimized build; the checked builds rerun the full sizes with a new seed and stay below the former 180 s limit.
 
 ## Benchmarks
 
-The shared driver `14-polynomial_algorithms_benchmark.py` covers both headers; the full table is in [14-polynomial_algorithms.md](14-polynomial_algorithms.md#benchmarks).
-
-Headline timings, 998244353, with the same conditions as the 14 table:
+The shared driver `14-polynomial_algorithms_benchmark.py` covers both headers; its conditions and the full table, including the `BM` cutoff row, are in [14-polynomial_algorithms.md](14-polynomial_algorithms.md#benchmarks). Headline timings, 998244353:
 
 | Workload | ms |
 |---|---|
@@ -150,22 +147,18 @@ Headline timings, 998244353, with the same conditions as the 14 table:
 | `berlekampMassey` n = 1e4 | 210 |
 | `findLinearRecurrenceHalfGcd` n = 2e5 | 1545 |
 
-- `bostanMori` uses four transforms per halving step for NTT primes. The spectrum of `Q(-x)` is the bit-reversed spectrum of `Q` with slots `i` and `i ^ 1` swapped.
-- `consecutiveTerms` and `sliceRationalFps` spend most of their time in `polyPowMod` (the state at `l`). A Graeffe-based slice could roughly halve that; see Limits.
-- The `BM` cutoff row is in the 14 table.
+`bostanMori` uses four transforms per halving step for NTT primes: the spectrum of `Q(-x)` is the bit-reversed spectrum of `Q` with slots `i` and `i ^ 1` swapped. `consecutiveTerms` and `sliceRationalFps` spend most of their time in `polyPowMod`, computing the state at `l` (Limits and Handoffs).
 
 ## Sources
 
-[00-sources.md](00-sources.md), P057 sweep: KACTL `BerlekampMassey.h`/`LinearRecurrence.h`, maspypy `seq/find_linear_rec.hpp` (half-GCD form), hitonanode `linear_recurrence.hpp` and `coeff_of_rational_function.hpp`, Nyaan `fps/nth-term.hpp`, OI Wiki linear recurrence (slice coefficients), Library Checker `find_linear_recurrence`, `kth_term_of_linearly_recurrent_sequence`, `consecutive_terms_of_linear_recurrent_sequence`. The code was written independently.
+From [00-sources.md](00-sources.md), P057 sweep: KACTL `BerlekampMassey.h`/`LinearRecurrence.h`, maspypy `seq/find_linear_rec.hpp` (half-GCD form), hitonanode `linear_recurrence.hpp` and `coeff_of_rational_function.hpp`, Nyaan `fps/nth-term.hpp`, OI Wiki linear recurrence (slice coefficients), Library Checker `find_linear_recurrence`, `kth_term_of_linearly_recurrent_sequence`, `consecutive_terms_of_linear_recurrent_sequence`. The P057 sweep adopted `findLinearRecurrenceHalfGcd`. The code was written independently.
 
-Adopted by the P057 sweep: `findLinearRecurrenceHalfGcd`.
+## Limits and Handoffs
 
-## Limits and handoffs
-
-- Composite-modulus minimal recurrences (Reeds–Sloane) and P-recursive sequences are row 51. Black-box minimal polynomials and Wiedemann are row 44. Polynomial-times-exponential prefix sums are row 38.
-- `matrixPowerVector` is cubic in `d`. Sparse or black-box matrices belong to row 44.
-- The state at a large index `l` (`sliceRationalFps`, `consecutiveTerms`) comes from `polyPowMod` with a precomputed reversed inverse, which is optimal at `O(M(d) log l)`. A Graeffe-based slice (Bostan–Mori on `1 / Q`, OI Wiki "slice coefficients") would have a smaller constant and is the natural next optimization.
-- Rejected candidates are in [00-notes.md](00-notes.md), under P057 research decisions.
+- Composite-modulus minimal recurrences (Reeds–Sloane) and P-recursive sequences are row 51; black-box minimal polynomials, Wiedemann and sparse or black-box matrices are row 44 (`matrixPowerVector` is cubic in `d`); polynomial-times-exponential prefix sums are row 38.
+- The state at a large index `l` (`sliceRationalFps`, `consecutiveTerms`) comes from `polyPowMod` with a precomputed reversed inverse, optimal at `O(M(d) log l)`. A Graeffe-based slice (Bostan–Mori on `1 / Q`, OI Wiki "slice coefficients") would have a smaller constant, roughly halving that time, and is the natural next optimization.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+- Rejected candidates are in [00-notes.md](00-notes.md), P057 Research Decisions.
 
 ## Aliases
 
@@ -173,9 +166,9 @@ Search aliases (P263, grab --find): Berlekamp–Massey 算法, 常系数齐次�
 
 ## History
 
-- 2026-10-10: P057 initial implementation and verification, `@reviewer` found 2 defects in this header, fixed.
-- 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
-- 2026-10-13: P057 prune rerun (row 14 `polyMod` removed), header and tests unchanged; full suite passed on g++ and g++-14.
-- 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-10: P057 implementation and verification; `@reviewer` found 2 defects in this header, fixed.
+- 2026-10-11: verification run; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: P057 prune rerun after row 14 removed `polyMod`, header and tests unchanged; full passed on g++ and g++-14.
+- 2026-10-19: P054 rerun after `13-convolution.hpp` changed, header unchanged; full passed.
+- 2026-11-07: P263 added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.

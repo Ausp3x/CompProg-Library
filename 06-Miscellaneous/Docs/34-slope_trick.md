@@ -1,121 +1,100 @@
-# 34-slope_trick.hpp — evidence
+# 34-slope_trick.hpp — Evidence
 
-`34-slope_trick.hpp` (batch MI23, package P075) maintains convex piecewise-linear functions under the slope-trick operations. It has three structures. `SlopeTrick` stores unit breakpoints in two binary heaps. `WeightedSlopeTrick` stores weighted breakpoints in a treap with an exact `+INF` domain, which adds domain restriction, slope clamping and infimal convolution. `DualSlopeTrick` stores the convex conjugate of a finite-domain integer function. Dependencies: the C01 template (P002) and `01-random.hpp` (treap priorities). The code is independently implemented and adapts no external code.
+`34-slope_trick.hpp` (batch MI23, package P075) maintains convex piecewise-linear functions under the slope-trick operations with three structures: `SlopeTrick` keeps unit breakpoints in two binary heaps; `WeightedSlopeTrick` keeps weighted breakpoints in a treap with an exact `+INF` domain and adds domain restriction, slope clamping and infimal convolution; `DualSlopeTrick` keeps the convex conjugate of a finite-domain integer function. Dependencies: the C01 template (P002) and `01-random.hpp` (treap priorities). The code is an independent implementation that adapts no external code.
 
 ## Contracts
 
-All three structures represent a convex function `f`. `INF = numeric_limits<T>::max()` is the sentinel: an unbounded end of `argminRange()` or `domain()` is `-INF` or `INF`, and `WeightedSlopeTrick::evaluate` and `DualSlopeTrick::atZero` return `INF` outside the domain. Positions, shifts and query points must stay strictly inside `(-INF/2, INF/2)`, and every queried function value must lie in `(-INF, INF)`, since `INF` means outside the domain. `slide(a, b)` requires `a <= b` (asserted) and sets `f(x) <- min over y in [x - b, x - a] of f(y)`. `shift(d)` sets `f(x) <- f(x - d)`. Copies are independent values. `merge` and `minPlusConvolution` take their operand by value, so pass `std::move(g)` to keep the stated bound; a self-merge copies first and is valid. A moved-from `WeightedSlopeTrick` is the zero function on `(-INF, INF)`. A moved-from `SlopeTrick` or `DualSlopeTrick` is valid but unspecified, so every operation on it is safe.
+All three structures represent a convex function `f`. The sentinel is `INF = numeric_limits<T>::max()`: an unbounded end of `argminRange()` or `domain()` is `-INF` or `INF`, and `WeightedSlopeTrick::evaluate` and `DualSlopeTrick::atZero` return `INF` outside the domain. Positions, shifts and query points must lie strictly inside `(-INF/2, INF/2)`, and every queried function value inside `(-INF, INF)`. `slide(a, b)` requires `a <= b` (asserted) and sets `f(x) <- min over y in [x - b, x - a] of f(y)`; `shift(d)` sets `f(x) <- f(x - d)`. Copies are independent values. `merge` and `minPlusConvolution` take their operand by value, so pass `std::move(g)` to keep the stated bound; a self-merge copies first and is valid. A moved-from `WeightedSlopeTrick` is the zero function on `(-INF, INF)`; a moved-from `SlopeTrick` or `DualSlopeTrick` is valid but unspecified, and every operation on it is safe.
 
 ### SlopeTrick
 
-`f(x) = mn + sum over l in L of (l - x)^+ + sum over r in R of (x - r)^+`, with `max L <= min R`. `L` is stored in the max-heap `left` and `R` in the min-heap `right`, as raw values with lazy offsets `addl` and `addr`. `T` is any signed integral or floating type; slopes change by one unit per breakpoint. The default function is `0`. Positions and the cumulative offsets `addl`/`addr` must stay in `(-INF/2, INF/2)`, so raw values fit; `T = double` is exact for dyadic inputs and otherwise subject only to the rounding of additions.
+`f(x) = mn + sum over l in L of (l - x)^+ + sum over r in R of (x - r)^+` with `max L <= min R`. `L` is the max-heap `left` and `R` the min-heap `right`, stored as raw values with lazy offsets `addl` and `addr`. `T` is any signed integral or floating type; each breakpoint changes the slope by one unit. The default function is `0`. Positions and the cumulative offsets must stay in `(-INF/2, INF/2)`; `T = double` is exact for dyadic inputs and otherwise subject only to the rounding of additions.
 
-- `min()` is `mn`. `argminRange()` is `[max L, min R]`, with `-INF` for empty `L` and `INF` for empty `R`. `size()` is `|L| + |R|`, the slope at `+inf` minus the slope at `-inf`. `evaluate(x)` sums every term without mutation in `O(n)`; partial sums are monotone, so they fit whenever `f(x)` does.
-- `addXMinusA(a)` adds `(x - a)^+`. If `a >= max L`, the new term vanishes on the old argmin and `a` joins `R`. Otherwise the minimum rises by `max L - a`, `a` joins `L` and the old `max L` moves to `R`. `addAMinusX(a)` is the mirror image. `addAbs(a)` applies both. `addConst(c)` adds `c` to `mn`.
-- `addLinear(a)` adds `a * x` for an integral `a` in `[-|R|, |L|]` (asserted; outside it `f` has no minimum). Each unit moves the top of `L` to `R` and adds its position to `mn`, which is `f + x` at the new argmin; the mirror case handles negative `a`. Cost `O(|a| log n)`.
-- `prefixMin()` clears `R`, giving `f(x) <- min over y <= x of f(y)`. `suffixMin()` clears `L`. `shift(d)` adds `d` to both offsets. `slide(a, b)` adds `a` to `addl` and `b` to `addr`: the decreasing part moves by `a` and the increasing part by `b`, which is the window minimum.
-- `merge(g)` replaces `f` by `f + g`. It swaps so that `*this` is the larger, then adds each term of the smaller through `addAMinusX`/`addXMinusA`: `O(min(n, m) log(n + m))`, and `O(n log^2 n)` over a merge tree.
+- `min()` is `mn`; `argminRange()` is `[max L, min R]`, with `-INF` for empty `L` and `INF` for empty `R`; `size()` is `|L| + |R|`, the slope at `+inf` minus the slope at `-inf`. `evaluate(x)` sums every term without mutation in `O(n)`; partial sums are monotone, so they fit whenever `f(x)` does.
+- `addXMinusA(a)` adds `(x - a)^+`: if `a >= max L` the term vanishes on the old argmin and `a` joins `R`; otherwise the minimum rises by `max L - a`, `a` joins `L` and the old `max L` moves to `R`. `addAMinusX(a)` is the mirror image, `addAbs(a)` applies both, and `addConst(c)` adds `c` to `mn`.
+- `addLinear(a)` adds `a * x` for an integral `a` in `[-|R|, |L|]` (asserted; outside it `f` has no minimum). Each unit moves the top of `L` to `R` and adds its position to `mn`, which is `f + x` at the new argmin; negative `a` is the mirror case. Cost `O(|a| log n)`.
+- `prefixMin()` clears `R` (`f(x) <- min over y <= x of f(y)`) and `suffixMin()` clears `L`. `shift(d)` adds `d` to both offsets. `slide(a, b)` adds `a` to `addl` and `b` to `addr`, moving the decreasing part by `a` and the increasing part by `b`, which is the window minimum.
+- `merge(g)` replaces `f` by `f + g`: it swaps so that `*this` is the larger and adds each term of the smaller through `addAMinusX`/`addXMinusA`, in `O(min(n, m) log(n + m))` and `O(n log^2 n)` over a merge tree.
 
 ### WeightedSlopeTrick
 
-`f(x) = k - wl * x + sum of w * (x - p)^+` over the stored breakpoints `(p, w)`, on `[lo, hi]`, and `+INF` outside. `k` is `lll`. Invariants:
-- every stored `p` lies in `[lo, hi]`;
-- `wl >= 0` when `lo` is finite;
-- `wl <= W` (total stored weight) when `hi` is finite.
+`f(x) = k - wl * x + sum of w * (x - p)^+` over the stored breakpoints `(p, w)` on `[lo, hi]`, and `+INF` outside; `k` is an `lll`. Invariants: every stored `p` lies in `[lo, hi]`; `wl >= 0` when `lo` is finite; `wl <= W` (total stored weight) when `hi` is finite.
 
-`T` is a signed integral type of at most 64 bits. Requirements:
-- weights `w >= 0` (asserted; zero is a no-op);
-- `W` and `|wl|` within `INF/2`;
-- positions within `INF/2`.
+`T` is a signed integral type of at most 64 bits. Weights are `w >= 0` (asserted; zero is a no-op), and `W`, `|wl|` and positions stay within `INF/2`. Sums of `w * p` stay below `2^126` in `lll`, and returned values are converted to `T`. The default is `0` on `(-INF, INF)`.
 
-All sums of `w * p` stay below `2^126` in `lll`; returned values are converted to `T`. The default is `0` on `(-INF, INF)`. The treap is keyed by position and keeps subtree weight `sw`, `lll` weight-times-position `sx`, size and a lazy position offset. Priorities come from the global `rng` (`01-random.hpp`, clock-seeded; `rng = Random(seed)` replays). Randomness affects only running time (Las Vegas): every result is deterministic. Removed subtrees go to a free list and are reclaimed lazily, so the pool never exceeds the peak live node count by more than the few nodes one operation allocates before discarding. Balance: the in-order position of every node is independent of the priorities. `insert` puts a new key before its duplicates, `unite` puts the first operand's duplicates before the second's, and splits preserve order. The shape is therefore a random treap, with expected depth `O(log n)`. Ordering duplicates by priority would build a chain.
+The treap is keyed by position and keeps the subtree weight `sw`, the `lll` weight-times-position sum `sx`, the size and a lazy position offset. Priorities come from the global `rng` (`01-random.hpp`, clock-seeded; `rng = Random(seed)` replays). Randomness affects only running time (Las Vegas); every result is deterministic. Removed subtrees go to a free list and are reclaimed lazily, so the pool exceeds the peak live node count by at most the few nodes one operation allocates before discarding. Balance: `insert` puts a new key before its duplicates, `unite` puts the first operand's duplicates before the second's, and splits preserve order, so the in-order position of every node is independent of the priorities and the shape is a random treap with expected depth `O(log n)`. Ordering duplicates by priority would build a chain.
 
 - Queries:
-  - `bounded()` is `0 <= wl <= W`: the minimum exists, which is the precondition of `min`, `argminRange`, `clampSlope` and `minPlusConvolution`. `min()` asserts it and returns `k - (sum of the first wl units of p)`, the value at the `wl`-th unit.
+  - `bounded()` is `0 <= wl <= W`: the minimum exists. It is the precondition of `min`, `argminRange`, `clampSlope` and `minPlusConvolution`. `min()` asserts it and returns `k - (sum of the first wl units of p)`, the value at the `wl`-th unit.
   - `argminRange()` asserts it and returns the positions of units `wl` and `wl + 1`, falling back to `lo`/`hi` when `wl = 0` or `wl = W`.
   - `evaluate(x)` is `k - wl * x + x * W(<x) - S(<x)` from one root-to-leaf descent in `O(log n)`, and `INF` outside `[lo, hi]`. `domain()` is `[lo, hi]`.
 - Adds:
-  - `addXMinusA(a, w)` inserts `(a, w)`. When `a < lo` the term is linear on the domain, so `k -= w * a` and `wl -= w`; when `a > hi` it vanishes.
-  - `addAMinusX(a, w)` uses `w * (a - x)^+ = w * (x - a)^+ + w * (a - x)`, which adds `w * a` to `k` and `w` to `wl`. `addAbs(a, w)` inserts `2w` with the same linear part.
-  - `addLinear(a)` subtracts `a` from `wl`; any `a` is allowed, and an unbounded result stays valid for `evaluate`, adds, shifts, `slide` and `merge`.
-  - `addConst(c)` adds to `k`.
-  - After each change `norm()` restores the invariants. With `wl < 0` and finite `lo`, it rewrites `-wl * x` as `|wl| (x - lo)^+ + |wl| lo` on the domain. With `wl > W` and finite `hi`, it adds weight `wl - W` at `hi`, which is zero on the domain.
-- `restrictDomain(l, r)` intersects the domain with `[l, r]`, and `-INF`/`INF` leave a side open. The result must be nonempty (asserted). Breakpoints below `lo` become linear and those above `hi` vanish.
-- `prefixMin()` requires `wl >= 0` (asserted). It keeps the first `wl` units, splitting one node if needed, and opens `hi` to `INF`. `suffixMin()` requires `wl <= W`; it sets `k` to the minimum, drops the first `wl` units and opens `lo`.
+  - `addXMinusA(a, w)` inserts `(a, w)`. When `a < lo` the term is linear on the domain (`k -= w * a`, `wl -= w`); when `a > hi` it vanishes.
+  - `addAMinusX(a, w)` uses `w * (a - x)^+ = w * (x - a)^+ + w * (a - x)`, adding `w * a` to `k` and `w` to `wl`. `addAbs(a, w)` inserts `2w` with the same linear part.
+  - `addLinear(a)` subtracts `a` from `wl`. Any `a` is allowed; an unbounded result stays valid for `evaluate`, adds, shifts, `slide` and `merge`.
+  - `addConst(c)` adds `c` to `k`.
+  - After each change `norm()` restores the invariants: with `wl < 0` and finite `lo` it rewrites `-wl * x` as `|wl| (x - lo)^+ + |wl| lo` on the domain; with `wl > W` and finite `hi` it adds weight `wl - W` at `hi`, which is zero on the domain.
+- `restrictDomain(l, r)` intersects the domain with `[l, r]`, where `-INF`/`INF` leave a side open; the result must be nonempty (asserted). Breakpoints below `lo` become linear and those above `hi` vanish.
+- `prefixMin()` requires `wl >= 0` (asserted): it keeps the first `wl` units, splitting one node if needed, and opens `hi` to `INF`. `suffixMin()` requires `wl <= W`: it sets `k` to the minimum, drops the first `wl` units and opens `lo`.
 - `shift(d)` adds `d` to every position and to the finite ends, with `k += wl * d`.
-- `slide(a, b)` splits at `clamp(wl, 0, W)` units, adds `a` to the left part and `b` to the right, moves `lo` by `a` and `hi` by `b`, and sets `k += wl * (wl < 0 ? b : a)`. Unbounded states are therefore exact too: an increasing `f` moves by `b`, a decreasing one by `a`.
-- `clampSlope(s1, s2)`, with `s1 <= 0 <= s2` and a bounded `f` (both asserted), computes `min over y of f(y) + phi(x - y)` where `phi(t) = s2 * t` for `t >= 0` and `s1 * t` for `t <= 0`; this clamps every slope into `[s1, s2]`. It keeps:
-  - the top `min(wl, -s1)` units of the left part and the first `min(W - wl, s2)` units of the right part;
-  - at a finite domain end, the slopes that the wall contributes up to `s1` or `s2`, as a node at `lo` or `hi`.
-
-  `k` is rebuilt from the unchanged minimum, and the domain becomes `(-INF, INF)`. `clampSlope(-c, c)` is the transition `f(x) <- min over y of f(y) + c * |x - y|`.
-- `merge(g)` replaces `f` by `f + g` on the intersection of the domains, which must be nonempty (asserted). The smaller operand is read in order in `O(m)` and rebuilt in the larger pool with fresh priorities by a stack-based Cartesian-tree build in `O(m)`. Fresh priorities matter: a copy that kept its priorities would chain on self-merges or merges with shifted copies. The two treaps are then united by the Blelloch–Reid-Miller split-and-recurse union, in expected `O(m log(n / m + 1))`, which totals `O(n log n)` over a merge tree. Finally `merge` clips to the new domain and adds `k` and `wl`.
-- `minPlusConvolution(g)` computes `h(z) = min over x of f(x) + g(z - x)` for bounded `f` and `g` (asserted). Proof: `h* = f* + g*` and slopes are integers, so the `r`-th unit of `h` counted outward from the argmin lies at the sum of the `r`-th units of `f` and `g`. A finite domain end acts as infinitely many units at that end, and an infinite end with no units stops the pairing.
-  - The structure keeps the larger operand. For each run of the smaller operand's units, in rank order, it adds the run's position to the matching rank range of the larger, which preserves order because both sequences are sorted. Excess ranks pair with a wall or are dropped.
-  - The minimum is `min f + min g`, and the domain is the Minkowski sum.
-  - Cost: expected `O(m log n)` for an `m`-node smaller operand.
+- `slide(a, b)` splits at `clamp(wl, 0, W)` units, adds `a` to the left part and `b` to the right, moves `lo` by `a` and `hi` by `b`, and sets `k += wl * (wl < 0 ? b : a)`. Unbounded states are exact too: an increasing `f` moves by `b`, a decreasing one by `a`.
+- `clampSlope(s1, s2)`, with `s1 <= 0 <= s2` and a bounded `f` (both asserted), computes `min over y of f(y) + phi(x - y)` with `phi(t) = s2 * t` for `t >= 0` and `s1 * t` for `t <= 0`, which clamps every slope into `[s1, s2]`. It keeps the top `min(wl, -s1)` units of the left part, the first `min(W - wl, s2)` units of the right part and, at a finite domain end, the slopes the wall contributes up to `s1` or `s2` as a node at `lo` or `hi`. `k` is rebuilt from the unchanged minimum and the domain becomes `(-INF, INF)`. `clampSlope(-c, c)` is the transition `f(x) <- min over y of f(y) + c * |x - y|`.
+- `merge(g)` replaces `f` by `f + g` on the intersection of the domains, which must be nonempty (asserted). The smaller operand is read in order in `O(m)` and rebuilt in the larger pool with fresh priorities by a stack-based Cartesian-tree build in `O(m)`; a copy that kept its priorities would chain on self-merges or merges with shifted copies. The two treaps are united by the Blelloch–Reid-Miller split-and-recurse union in expected `O(m log(n / m + 1))`, `O(n log n)` over a merge tree. `merge` then clips to the new domain and adds `k` and `wl`.
+- `minPlusConvolution(g)` computes `h(z) = min over x of f(x) + g(z - x)` for bounded `f` and `g` (asserted). Proof: `h* = f* + g*` and slopes are integers, so the `r`-th unit of `h` counted outward from the argmin lies at the sum of the `r`-th units of `f` and `g`. A finite domain end acts as infinitely many units at that end, and an infinite end with no units stops the pairing. The larger operand is kept; for each run of the smaller operand's units, in rank order, the run's position is added to the matching rank range of the larger, which preserves order because both sequences are sorted. Excess ranks pair with a wall or are dropped. The minimum is `min f + min g` and the domain is the Minkowski sum. Cost: expected `O(m log n)` for an `m`-node smaller operand.
 
 ### DualSlopeTrick
 
-`f` is an integer convex function, finite exactly on an integer interval `domain()`, and `+INF` elsewhere. Initially `f(0) = 0` and `f(x) = +INF` for `x != 0`. Requirements:
-- `T` is signed integral, and weights `w >= 0` (asserted).
-- Slopes of `f` and the products `|a| * |c|`, where `c` is the anchor below, must stay within `INF/2`.
+`f` is an integer convex function, finite exactly on an integer interval `domain()` and `+INF` elsewhere; initially `f(0) = 0` and `f(x) = +INF` for `x != 0`. `T` is signed integral, weights are `w >= 0` (asserted), and the slopes of `f` and the products `|a| * |c|` (with the anchor `c` below) stay within `INF/2`.
 
-The structure keeps an anchor `c = clamp(0, domain())` and a `SlopeTrick<T> g` equal to the convex conjugate of `f(x + c)`. The breakpoints of `g` are the slopes `f(i + 1) - f(i)` of `f`, one unit per integer step. Hence `domain() = [c - |g.L|, c + |g.R|]`, and `f(c) = -min g`.
+The structure keeps an anchor `c = clamp(0, domain())` and a `SlopeTrick<T> g` equal to the convex conjugate of `f(x + c)`. The breakpoints of `g` are the slopes `f(i + 1) - f(i)` of `f`, one unit per integer step, so `domain() = [c - |g.L|, c + |g.R|]` and `f(c) = -min g`.
 
 - `atZero()` is `-g.mn` when `c = 0` and `INF` otherwise, in `O(1)`.
-- `addConst(b)` is `g -= b`.
-- `addLinear(a)` is `g(p) <- g(p - a) - a * c`, in `O(1)`.
-- `shift(d)` moves the domain by `d`, re-anchors at `c' = clamp(0, new domain)` and adds `-e * p` to `g` with `e = c' - d - c`. The precondition of `g.addLinear` follows from `c, c' - d in domain`. Cost `O(min(|d|, n) log n)`.
-- `addXMinusA(a, w)` adds `w * (x - a)^+`. It is linear when `a <= min domain` and a no-op when `a >= max domain`. Otherwise it convolves `g` with the conjugate `a' * p` on `[0, w]` (`a' = a - c`) via `addLinear(-a')`, `slide(0, w)`, `addLinear(a')`, in `O(min(|a|, n) log n)`. The cost does not depend on `w`. `addAMinusX(a, w)` adds `w * (a - x)^+ = w * (x - a)^+ - w * x + w * a` and costs the same.
+- `addConst(b)` is `g -= b`; `addLinear(a)` is `g(p) <- g(p - a) - a * c`, in `O(1)`.
+- `shift(d)` moves the domain by `d`, re-anchors at `c' = clamp(0, new domain)` and adds `-e * p` to `g` with `e = c' - d - c`; the precondition of `g.addLinear` follows from `c, c' - d in domain`. Cost `O(min(|d|, n) log n)`.
+- `addXMinusA(a, w)` adds `w * (x - a)^+`. It is linear when `a <= min domain` and a no-op when `a >= max domain`; otherwise it convolves `g` with the conjugate `a' * p` on `[0, w]` (`a' = a - c`) by `addLinear(-a')`, `slide(0, w)`, `addLinear(a')`, in `O(min(|a|, n) log n)` independent of `w`. `addAMinusX(a, w)` adds `w * (a - x)^+ = w * (x - a)^+ - w * x + w * a` at the same cost.
 - `slide(a, b)` is `shift(a)`, then `b - a` unit relus at `p = 0` in `g` (the support function of `[0, b - a]`), then a re-anchor. Cost `O((min(|a|, n) + b - a) log n)`; the domain widens by `b - a`.
 
-Every operation here is also available on `WeightedSlopeTrick` in expected `O(log n)`, so the dual heaps are the deterministic heap-only choice for small arguments and slopes up to `INF/2`. They are 14x faster on the choose-half benchmark (below). hitonanode documents its `shift` as `O(log n)`, but its loop runs `|d|` times. This header keeps an exact finite domain instead of the `INF/2` sentinel slopes.
+`WeightedSlopeTrick` offers every operation here in expected `O(log n)`; the dual heaps are the deterministic heap-only choice for small arguments and slopes up to `INF/2`, and are 14x faster on the choose-half benchmark below. hitonanode documents its `shift` as `O(log n)`, but its loop runs `|d|` times. This header keeps an exact finite domain instead of hitonanode's `INF/2` sentinel slopes.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 | Public feature | Coverage |
 |---|---|
-| Oracle | Exact `lll` values on the integers of `[-128, 128]` with `+INF` outside the domain, extended linearly. A driver-side breakpoint bound keeps every breakpoint and finite domain end in `[-124, 124]`, which makes each brute operation exact. Validated by hand fixtures (values, both extrapolation directions) and a convexity and extent check after every operation. |
-| `SlopeTrick`: all 14 operations | Random sequences on four maps `p -> s*p + t`: identity; `(2^40, 2^59)`; `(2^20, -2^59)`; `(3, -2^61)`. Plus `int` `(3, 2^28)` and `double` `(0.5, 0.25)`. Each operation is followed by checks of `size`, `min`, `argminRange` (with `-INF`/`INF`) and `evaluate`. Both `merge` forms (moved, copied lvalue) and self-merge are covered. `addLinear` is drawn from `[-min(3, \|R\|), min(3, \|L\|)]`. Fixtures cover the empty function and positions near `2^62`. |
-| `WeightedSlopeTrick`: all 18 operations | Random sequences over every operation, with weights 0–6, on four maps: identity; `(2^20, 2^40, u = 2^10)`; `(2^30, -2^59)`; `u = 2^40`. Plus `int` `(3, 2^20, u = 4)`. Each operation is followed by checks of `domain`, `evaluate` (`INF` outside) and, when the oracle says bounded, `min` and `argminRange` and the `bounded()` state. Unbounded states from `addLinear` are covered. Operands for `merge`/`minPlusConvolution` are random short sequences, moved or copied, with either side larger. `restrictDomain` has open and closed ends. |
-| `DualSlopeTrick`: all 8 operations | Random sequences on three maps `t, u`: identity; `(2^40, 2^20)`; `(-2^59, 1)`. Domains far from 0 are included. Each operation is followed by checks of `domain`, `atZero` and `f(x)` by shift-then-`atZero` on a copy, at the domain ends ±2 and at dense or sampled interior points. Fixtures cover `INF` at zero, slide widening and a `2^50` weight. |
-| Independent end-to-end DPs | Monotone fit (non-decreasing via `prefixMin`, non-increasing via `suffixMin`), unit and weighted, against an `O(n V)` table at every `x`. Bounded-step tracking (`slide`) and linear move cost (`clampSlope`) against `O(n V D)` and `O(n V^2)` tables. APIO 2016 Fireworks (`restrictDomain`, `minPlusConvolution`, `merge`) against a tree DP. Choose exactly K (`DualSlopeTrick` and `WeightedSlopeTrick`) against a sorting closed form with costs up to `5 * 10^14`. |
-| Heavy weights, complexity guards | Ping-pong: `n` unit points plus alternating weight-`10^6` breakpoints at `±10^6`, the pattern that makes heaps of pairs quadratic, checked against a weighted-median oracle. Treap depth is at most `6 * bit_width(n) + 16` after ping-pong, Fireworks and the cross-check; this guard catches a duplicate-key ordering bug at depth 1008 for 4000 nodes. |
-| Balance regressions | Treap depth is checked in four cases: 16000 single-node merges at one key, 16000-leaf equal-edge Fireworks stars, 12 self-merges (262144 nodes) and 12 shifted-copy merges. The value checks are `5n`, `2n`, `2^12 f` and the binomial sum `sum C(12, j) f(x - j)`. Moved-from objects are reused after `merge` and `minPlusConvolution`. |
-| Supporting only | Unit and weighted structures agree on 2·10^5 (full) and 10^6 (stress) random operations. Node reuse holds: the pool stays within peak live nodes + 8. Copies stay independent. |
+| Oracle | Exact `lll` values on the integers of `[-128, 128]`, `+INF` outside the domain, extended linearly. A driver-side bound keeps every breakpoint and finite domain end in `[-124, 124]`, so each brute operation is exact. Validated by hand fixtures (values, both extrapolation directions) and a convexity and extent check after every operation. |
+| `SlopeTrick`: all 14 operations | Random sequences on four maps `p -> s*p + t`: identity, `(2^40, 2^59)`, `(2^20, -2^59)`, `(3, -2^61)`; plus `int` `(3, 2^28)` and `double` `(0.5, 0.25)`. Each operation is followed by checks of `size`, `min`, `argminRange` (with `-INF`/`INF`) and `evaluate`. Both `merge` forms (moved, copied lvalue) and self-merge; `addLinear` drawn from `[-min(3, \|R\|), min(3, \|L\|)]`; fixtures for the empty function and positions near `2^62`. |
+| `WeightedSlopeTrick`: all 18 operations | Random sequences over every operation with weights 0–6 on four maps: identity, `(2^20, 2^40, u = 2^10)`, `(2^30, -2^59)`, `u = 2^40`; plus `int` `(3, 2^20, u = 4)`. Each operation is followed by checks of `domain`, `evaluate` (`INF` outside) and, when the oracle says bounded, `min`, `argminRange` and `bounded()`. Unbounded states from `addLinear`; `merge`/`minPlusConvolution` operands are random short sequences, moved or copied, either side larger; `restrictDomain` with open and closed ends. |
+| `DualSlopeTrick`: all 8 operations | Random sequences on three maps `t, u`: identity, `(2^40, 2^20)`, `(-2^59, 1)`, including domains far from 0. Each operation is followed by checks of `domain`, `atZero` and `f(x)` (shift then `atZero` on a copy) at the domain ends ±2 and at dense or sampled interior points. Fixtures: `INF` at zero, slide widening, a `2^50` weight. |
+| Independent end-to-end DPs | Monotone fit (non-decreasing via `prefixMin`, non-increasing via `suffixMin`), unit and weighted, against an `O(n V)` table at every `x`; bounded-step tracking (`slide`) and linear move cost (`clampSlope`) against `O(n V D)` and `O(n V^2)` tables; APIO 2016 Fireworks (`restrictDomain`, `minPlusConvolution`, `merge`) against a tree DP; choose exactly K (`DualSlopeTrick`, `WeightedSlopeTrick`) against a sorting closed form with costs up to `5 * 10^14`. |
+| Heavy weights, complexity guards | Ping-pong: `n` unit points plus alternating weight-`10^6` breakpoints at `±10^6` (the pattern that makes heaps of pairs quadratic) against a weighted-median oracle. Treap depth is at most `6 * bit_width(n) + 16` after ping-pong, Fireworks and the cross-check; this guard caught a duplicate-key ordering bug at depth 1008 for 4000 nodes. |
+| Balance regressions | Treap depth checked for 16000 single-node merges at one key, 16000-leaf equal-edge Fireworks stars, 12 self-merges (262144 nodes) and 12 shifted-copy merges, with value checks `5n`, `2n`, `2^12 f` and `sum C(12, j) f(x - j)`. Moved-from objects are reused after `merge` and `minPlusConvolution`. |
+| Supporting only | Unit and weighted structures agree on 2·10^5 (full) and 10^6 (stress) random operations; the pool stays within peak live nodes + 8; copies stay independent. |
 | Preconditions | 20 checked-build assertion probes: reversed `slide` (all three), out-of-range `SlopeTrick::addLinear`, negative weights in every weighted add (five), empty domain, disjoint `merge`, `min`/`argminRange`/`prefixMin`/`suffixMin` on unbounded functions, `clampSlope` with `s1 > 0`, with `s2 < 0` and on an unbounded function, `minPlusConvolution` with either operand unbounded. |
 
-Mutation check (2026-10-13): 27 hand mutations of the header ran against quick mode. 26 failed the suite; the survivor (clipping nodes at exactly `hi`) is an equivalent mutant, because those nodes are zero on the domain and `norm()` restores the weight. Three more mutations (duplicates sent right in `insert`, `unite` duplicates ordered by priority, the operand's priorities kept in `merge`) were caught by the depth guards: depths 1008 for 4000 nodes, 4000 for 4000, and 1539 for 16384.
+Modes: quick runs the optimized and checked builds with, per map, 40 unit, 40 weighted and 30 dual sequences of up to 16 operations (20 for the `int`/`double` maps), 10 rounds per classic DP, 4000 balance merges and 8 doublings, ping-pong 2000 and cross-check 20000. Full adds ASan/UBSan, 8x the sequences of up to 48 operations, 80 classic rounds, 16000 merges and 12 doublings, ping-pong 50000 and cross-check 200000. Stress uses full-mode counts with up to 96 operations, ping-pong 200000 and cross-check 10^6. The `_GLIBCXX_DEBUG` build verifies the whole heap on every push and pop, so stress volume comes from more seeds rather than more rounds.
 
-## Commands and results
+Hand mutation check (2026-10-13, quick mode, not a mewt record): 26 of 27 mutations failed the suite; the survivor, clipping nodes at exactly `hi`, is equivalent because those nodes are zero on the domain and `norm()` restores the weight. Three further mutations were caught by the depth guards: duplicates sent right in `insert` (depth 1008 for 4000 nodes), `unite` duplicates ordered by priority (4000 for 4000) and the operand's priorities kept in `merge` (1539 for 16384).
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 888 MB; optimized 0.1 s compile + 3.3 s run, checked 25.6 s compile + 29.1 s run, ASan-UBSan 35.6 s compile + 30.0 s run; MEMORY peak 1115 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 952 MB; optimized 0.3 s compile + 4.2 s run, checked 37.4 s compile + 36.4 s run, ASan-UBSan 50.6 s compile + 35.1 s run; MEMORY peak 1038 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 41.6 s compile + 0.3 s run, checked 25.4 s compile + 4.2 s run; MEMORY peak 881 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 896 MB; optimized 0.1 s compile + 3.1 s run, checked 10.9 s compile + 112.6 s run, ASan-UBSan 14.3 s compile + 23.4 s run; MEMORY peak 704 MB. Dated rows below stay those commands' latest results.
+## Commands and Results
 
-Run 2026-10-13: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14.7. Configurations: optimized, checked (with the probes) and ASan/UBSan (full and stress), as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
+Conditions: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7; optimized, checked (with the probes) and ASan/UBSan builds made by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>). The 2026-11-10 library-wide runs used seed 42, ran beside the other suites and emptied the build cache before each cold run; their times are this tester's. Memory peaks include the compiler; the full-mode test binary alone peaks near 60 MB.
 
-```bash
-python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode quick --seed 1             # PASS, 2 configurations, 20 probes, 156,345 checks, MEMORY peak 489 MB
-python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode full --seed 1              # PASS, 3 configurations, 20 probes, 3,293,364 checks, MEMORY peak 605 MB
-CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode full --seed 2   # PASS, 3 configurations, 20 probes, 3,313,146 checks, MEMORY peak 641 MB
-python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode stress --seed 3            # PASS, 3 configurations, 7,548,614 checks, MEMORY peak 708 MB
-python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_benchmark.py'                                # PASS, 21 rows, answers agree, MEMORY peak 339 MB
-python3 '96-Local Testing/02-integration.py' --sanitizers                                               # PASS, 136 standalone/aggregate headers, multi-TU, workspace, sanitizers, MEMORY peak 2737 MB
-python3 '96-Local Testing/03-consistency.py'                                                            # no errors
-```
-
-The memory peaks are dominated by compiling the tester; the test binary alone peaks near 60 MB (full mode). The stress random section ran 3760 sequences with 241,577 operations, and 15 sequences stopped early at the window bound. Full mode ran 121,049 operations with no early stops.
-
-Modes:
-- **quick:** optimized and checked builds. Per map: 40 unit, 40 weighted and 30 dual sequences of up to 16 operations (20 for the `int`/`double` maps). Classics: 10 rounds each. Balance: 4000 merges and 8 doublings. Ping-pong 2000, cross-check 20000.
-- **full:** adds ASan/UBSan. 8x the sequences, of up to 48 operations. Classics: 80 rounds. Balance: 16000 merges and 12 doublings. Ping-pong 50000, cross-check 200000.
-- **stress:** full-mode counts with up to 96 operations, ping-pong 200000, cross-check 10^6.
-
-The `_GLIBCXX_DEBUG` build verifies the whole heap on every push and pop. Stress volume therefore comes from more seeds, not more rounds, to stay under the runner's former 180 s limit.
+| Date | Command | Result |
+|---|---|---|
+| 2026-11-10 (P274) | `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | PASS; quick preflight peak 888 MB; optimized 0.1 s compile + 3.3 s run, checked 25.6 s + 29.1 s, ASan-UBSan 35.6 s + 30.0 s; peak 1115 MB |
+| 2026-11-10 (P274) | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | PASS; quick preflight peak 952 MB; optimized 0.3 s + 4.2 s, checked 37.4 s + 36.4 s, ASan-UBSan 50.6 s + 35.1 s; peak 1038 MB |
+| 2026-11-10 (P274) | `python3 '96-Local Testing/01-run.py' --mode quick` | PASS; optimized 41.6 s + 0.3 s, checked 25.4 s + 4.2 s; peak 881 MB |
+| 2026-11-10 (P274) | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | PASS; quick preflight peak 896 MB; optimized 0.1 s + 3.1 s, checked 10.9 s + 112.6 s, ASan-UBSan 14.3 s + 23.4 s; peak 704 MB |
+| 2026-10-13 | `python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode quick --seed 1` | PASS, 2 configurations, 20 probes, 156,345 checks, peak 489 MB |
+| 2026-10-13 | `python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode full --seed 1` | PASS, 3 configurations, 20 probes, 3,293,364 checks (121,049 operations, no early stops), peak 605 MB |
+| 2026-10-13 | `CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode full --seed 2` | PASS, 3 configurations, 20 probes, 3,313,146 checks, peak 641 MB |
+| 2026-10-13 | `python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode stress --seed 3` | PASS, 3 configurations, 7,548,614 checks (3760 random sequences, 241,577 operations, 15 sequences stopped early at the window bound), peak 708 MB |
+| 2026-10-13 | `python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_benchmark.py'` | PASS, 21 rows, answers agree, peak 339 MB |
+| 2026-10-13 | `python3 '96-Local Testing/02-integration.py' --sanitizers` | PASS, 136 standalone/aggregate headers, multi-TU, workspace, sanitizers, peak 2737 MB |
+| 2026-10-13 | `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
 ## Benchmarks
 
-The [benchmark driver](<../../96-Local Testing/06-Miscellaneous/34-slope_trick_benchmark.py>) wrote its local, git-ignored `34-slope_trick_benchmark.json` on 2026-10-13: GCC 16.2.1, GNU++20 `-O2 -DNDEBUG`, i9-11900H, shared host. Each row is one warmup plus five repetitions in rotating order. Inputs are seeded uniform draws. Every repetition of every implementation returned the same answer. Medians:
+The [benchmark driver](<../../96-Local Testing/06-Miscellaneous/34-slope_trick_benchmark.py>) ran on 2026-10-13 (GCC 16.2.1, GNU++20 `-O2 -DNDEBUG`, i9-11900H, shared host), writing its git-ignored `34-slope_trick_benchmark.json`. Each row is one warmup plus five repetitions in rotating order on seeded uniform inputs, and every repetition of every implementation returned the same answer. Medians:
 
 | Workload | n | Implementation | Median ms |
 |---|---|---|---|
@@ -129,30 +108,19 @@ The [benchmark driver](<../../96-Local Testing/06-Miscellaneous/34-slope_trick_b
 | tree merge (`prefixMin`, `addAbs`, merge into parent) | 200000 | SlopeTrick small-to-large / treap union | 29.6 / 180 |
 | choose half of `n` items | 200000 | DualSlopeTrick / WeightedSlopeTrick | 18.8 / 262 |
 
-Conclusions:
-- On unit workloads the binary heaps are 6–16x faster than the treap, so both structures stay.
-- With small total weights (1–8), repeating unit operations is 1.9x faster. The treap wins once weights grow, and it is the only bounded choice for weights such as `10^9`.
-- Heaps of `(position, count)` pairs grow quadratically on ping-pong (4x time per doubling of `n`), which is why the weighted variant is a treap.
-- On this shallow random tree, small-to-large heaps beat treap union in practice, despite the `log` factor.
-- No timing gate is used.
-
-Host variance: the shared host varied by up to 2x during the session. The same treap binary took 1047–1349 ms on the 10^6 monotone fit across repeated runs. Ratios between implementations stayed stable.
+On unit workloads the binary heaps are 6–16x faster than the treap, so both structures stay. With small total weights (1–8), repeating unit operations is 1.9x faster; the treap wins once weights grow and is the only bounded choice for weights such as `10^9`. Heaps of `(position, count)` pairs grow quadratically on ping-pong (4x time per doubling of `n`), which is why the weighted variant is a treap. On this shallow random tree, small-to-large heaps beat treap union despite the `log` factor. The shared host varied by up to 2x during the session (the same treap binary took 1047–1349 ms on the 10^6 monotone fit), while the ratios between implementations stayed stable. No timing gate is used.
 
 ## Sources
 
-Fetched on 2026-10-13 by `@researcher` (ledger in [00-sources.md](00-sources.md)). They were read for operation sets, semantics and stated complexities; the implementation, the proofs above and every test are independent.
-
-Adopted from the 2026-10-13 sweep: `addLinear` (all three), `size`, `restrictDomain`/`domain`, `clampSlope`, `minPlusConvolution`, non-destructive `O(log n)` `evaluate`, weighted adds, treap-union `merge`.
+`@researcher` fetched the sources on 2026-10-13 (ledger in [00-sources.md](00-sources.md)). They were read for operation sets, semantics and stated complexities; the implementation, the proofs above and every test are independent. The sweep led to `addLinear` (all three structures), `size`, `restrictDomain`/`domain`, `clampSlope`, `minPlusConvolution`, the non-destructive `O(log n)` `evaluate`, weighted adds and the treap-union `merge`.
 
 - hitonanode `slope_trick` and `dual_slope_trick`: the unit API and the conjugate representation. Its loops make `shift` cost `O(|d| log n)`, not the documented `O(log n)`.
-- maspypy `slope_trick_0`, `slope_trick_1`, `slope_trick_super` and articles (1) and (3): `add_linear`, `restrict_domain`, `convolve`/`convolve_segment`, and the conjugate trick.
+- maspypy `slope_trick_0`, `slope_trick_1`, `slope_trick_super` and articles (1) and (3): `add_linear`, `restrict_domain`, `convolve`/`convolve_segment` and the conjugate trick.
 - ei1333 `slope-trick` and `generalized-slope-trick`; Nyaan `slope-trick-weighted`: weighted adds and BST sums for non-destructive evaluation.
 - OI Wiki Slope Trick and USACO Guide: infimal convolution, mergeable heaps, Fireworks.
-- Treap union: G. E. Blelloch and M. Reid-Miller, *Fast set operations using treaps*, SPAA 1998. The expected `O(m log(n / m + 1))` bound is the published result; the paper itself was not read for this package.
+- G. E. Blelloch and M. Reid-Miller, *Fast set operations using treaps*, SPAA 1998: the expected `O(m log(n / m + 1))` union bound is the published result; the paper was not read for this package.
 
-Aliases in the fetched libraries:
-
-Search aliases (P263, grab --find): Slope Trick 优化, 凸函数优化, 分段线性凸函数, 凸函数维护, 最小加卷积.
+Names in the fetched libraries:
 
 | This header | Other libraries |
 |---|---|
@@ -169,17 +137,23 @@ Search aliases (P263, grab --find): Slope Trick 优化, 凸函数优化, 分段�
 | `restrictDomain`, `domain` | `restrict_domain`, `domain` (MAS) |
 | `DualSlopeTrick::atZero`, `addXMinusA(a, w)`, `slide` | `get_at_zero`, `add_linear_or_zero(w, a)`, `slide_min` (HIT) |
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Not adopted (reasons in [00-notes.md](00-notes.md), P075 record): meldable-heap merge, domain, clamp and convolution operations on the unit heaps, `fromPoints`, `convolveSegment` (a three-call composition), `sumAll`, breakpoint iteration, `slopeAt`, `clear`, floating-point weighted variant, `DualSlopeTrick::evaluate`.
-- `WeightedSlopeTrick` needs signed integral `T`. `SlopeTrick<double>` covers real positions.
-- `DualSlopeTrick::slide` costs `b - a` heap insertions. Use `WeightedSlopeTrick` for wide windows.
-- 08-Python `_30_dp_optimization.py` plans a SlopeTrick reduction (`addLeft`/`addRight`). Its owner should adopt these names (`addAMinusX`/`addXMinusA`).
+- Row 34 is partial: `WeightedSlopeTrick::fromPoints`, `WeightedSlopeTrick::minPlusConvolutionSegment`, `WeightedSlopeTrick::merge (batch)` and `DualSlopeTrick::addAbs` are planned and not implemented.
+- Not adopted (reasons in [00-notes.md](00-notes.md), P075 Package Record (MI23)): meldable-heap merge; domain, clamp and convolution operations on the unit heaps; breakpoint iteration; `slopeAt`; `clear`; a floating-point weighted variant; `DualSlopeTrick::evaluate`.
+- `WeightedSlopeTrick` needs a signed integral `T`; `SlopeTrick<double>` covers real positions.
+- `DualSlopeTrick::slide` costs `b - a` heap insertions; use `WeightedSlopeTrick` for wide windows.
+- 08-Python `_30_dp_optimization.py` plans a SlopeTrick reduction named `addLeft`/`addRight`; its owner should adopt `addAMinusX`/`addXMinusA`.
 - Mathematics `27` owns Monge/Knuth/Aliens and does not re-implement slope trick; array min-plus convolution stays with Mathematics `53`.
 - No legacy excerpt or `OLD` implementation exists for this row.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+Search aliases (P263, grab --find): Slope Trick 优化, 凸函数优化, 分段线性凸函数, 凸函数维护, 最小加卷积.
 
 ## History
 
-- 2026-10-13: implemented and verified (P075), `@reviewer` found 5 defects, fixed before the recorded runs.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-13: P075 implemented and verified; `@reviewer` found 5 defects, fixed before the recorded runs.
+- 2026-11-07: P263 added Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 (SUP25) moved builds to the shared runner `_00_contest_runner.py` with its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; inputs and checks unchanged; the library-wide runs passed.

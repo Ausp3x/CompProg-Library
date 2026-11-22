@@ -1,4 +1,4 @@
-# 07 Strings — inventory
+# 07 Strings — Inventory
 
 Scope: this folder owns string matching, string indexes (prefix/Z, hashes, suffix array/automaton/tree, Aho–Corasick, eertree), string-prefix dictionaries, periodicity, palindromes, subsequence and alignment DP, string compression and the string-specific automata that consume them. Data Structures owns binary integer/XOR tries, sparse tables and succinct rank/select engines; Mathematics owns convolution and combinatorial counting; Miscellaneous owns Huffman coding, digit DP and expression parsing; Graphs owns LCA and Eulerian trails that string adapters reuse. Contracts and ownership rules are in [00-notes.md](Docs/00-notes.md); the source ledger is in [00-sources.md](Docs/00-sources.md).
 
@@ -10,7 +10,7 @@ Scope: this folder owns string matching, string indexes (prefix/Z, hashes, suffi
 | `02-z.hpp` | zFunction; extendedZ; zOccurrences; zBorders; zPeriods; zPeriod; prefixToZ; zToPrefix; DistinctSubstringsDeque: pushBack, pushFront, popBack, popFront, distinctSubstrings | verified; [evidence](Docs/02-z.md) |
 | `03-stringhash.hpp` | StringHash<KIND>: Digest (ordered), defaultBase, randomBase, encode, add, subtract, multiply, build, size, get, reverseGet, hashOf, power, concat, lcp, lcs; StringHash64; StringHash61 (Mersenne 2^61-1 field); longestCommonSubstringHash (two strings, binary search) | verified; [evidence](Docs/03-stringhash.md) |
 | `04-trie.hpp` | BasicTrie as Trie (map transitions) and TrieDense (fixed-alphabet array transitions): Node, clear, size, empty, newNode, step, findNode, count, countPrefix, search, insert, erase, forEach (prefix), forEach (all), forEachPrefixOf, longestPrefix | verified; [evidence](Docs/04-trie.md) |
-| `05-manacher.hpp` | Manacher: odd, even, size, Manacher (predicate), oddInterval, evenInterval, centerEnd, longestEnding, longestStarting | verified; [evidence](Docs/05-manacher.md) |
+| `05-manacher.hpp` | Manacher: odd, even, size, ctor (predicate), oddInterval, evenInterval, centerEnd, longestEnding, longestStarting | verified; [evidence](Docs/05-manacher.md) |
 | `06-aho.hpp` | AhoCorasick: Node (next, ids, link, out, count), terminal, length, order, clear, size, patterns, add, build (sparse), build (dense), fromTrie (failure/output links over an external labelled trie), step, matchCount, forbidden, safeStep, avoids, suffixAggregate, forEachOutput, forEachMatch, stateCounts, countPatterns, firstOccurrences, countPositions, countMatches | verified; [evidence](Docs/06-aho.md) |
 | `07-suffixarray.hpp` | SuffixArray<T>: text, sa, rank, lcp, build (SA-IS), doubling (prefix doubling), buildRmq, size, lce, substringLce, patternRange (vector), patternRange (initializer_list), patternRange (string_view), longestRepeated (at least k occurrences), longestRepeatedDisjoint; longestCommonSubstring (vector); longestCommonSubstring (string_view) | verified; [evidence](Docs/07-suffixarray.md) |
 | `08-palindrome_queries.hpp` | isPalindrome (Manacher); maybePalindrome (hash); longestPalindrome; countPalindromes; countPalindromesByEndpoint; minPalindromePartition (quadratic DP over Manacher); shortestPalindrome (prepend or append) | partial; [evidence](Docs/08-palindrome_queries.md); missing: minPalindromePartition, shortestPalindrome |
@@ -47,8 +47,6 @@ Scope: this folder owns string matching, string indexes (prefix/Z, hashes, suffi
 ## Esoteric
 
 | Header | Operations | Status |
-| `55-suffix_problems.hpp` | nonDominatedSuffixes; suffixLcpChanges; BasicSubstringStructure: build, position, rectangle, blockCount, shape; grayStringOccurrenceCount | planned; MAS, CPA |
-| `56-alignment_advanced.hpp` | concaveGapAlignment; levenshteinAutomaton (w, k) | planned; WIKI |
 |---|---|---|
 | `33-onlinesuffixtree.hpp` | UkkonenSuffixTree: append, popFront, finalize, locate, step, suffixLink, isSubstring, occurrences, leafCount, edgeLabel, implicitLeaves, explicitSuffixes | planned; KACTL, OI |
 | `51-weightedancestor.hpp` | WeightedAncestor (O(1) query, over SuffixTree): build, query | planned; GLN14, BKPR21 |
@@ -67,8 +65,10 @@ Scope: this folder owns string matching, string indexes (prefix/Z, hashes, suffi
 | `46-rindex.hpp` | RlBwt: build, runs, access, rank, select, countLess; MoveStructure: build (balanced), lf, phiInverse; RlFmIndex: backwardStep, count; RIndex: count, locate (O(r) samples), extract, saAccess, isaAccess, lcpAccess, matchingStatistics (thresholds), maximalExactMatches, maximalUniqueMatches | planned; RINDEX |
 | `47-dynamiclce.hpp` | DynamicString (locally consistent parsing): concat, split, equal, lce, compare, substring, occurrences; RecompressionString (deterministic variant): concat, split, equal, lce | planned; DYNAMICSTRINGS |
 | `48-semilocallcs.hpp` | prefixSubstringLcs; SemiLocalLcs (seaweed): build, prefixSubstring, substringPrefix, substringString, permutationMatrix; cyclicLcs; cyclicEditDistance; maxCliqueCircleGraph (seaweed) | planned; SEMILOCAL, MAS, TKO, LC |
+| `55-suffix_problems.hpp` | nonDominatedSuffixes; suffixLcpChanges; BasicSubstringStructure: build, position, rectangle, blockCount, shape; grayStringOccurrenceCount | planned; MAS, CPA |
 | `49-historical_string_matching.hpp` | simon; colussi; galilGiancarlo; apostolicoCrochemore; notSoNaive; turboBoyerMoore; apostolicoGiancarlo; reverseColussi; tunedBoyerMoore; zhuTakaoka; berryRavindran; smith; raita; reverseFactor; turboReverseFactor; forwardDawg; bndm; backwardOracle; orderedAlphabet; optimalMismatch; maximalShift; skipSearch; kmpSkipSearch; alphaSkipSearch | planned; LECROQ |
 | `50-combinatorial_words.hpp` | fibonacciWord; fibonacciBit; thueMorseWord; thueMorseBit; periodDoublingWord; sturmianWord (slope, intercept); standardWord (directive sequence); christoffelWord; isBalancedWord; squareFreeTernaryWord (Thue–Morse differences, Leech morphism); morphismFixedPoint; substringAbundantString | planned; RUNS, OI |
+| `56-alignment_advanced.hpp` | concaveGapAlignment; levenshteinAutomaton (w, k) | planned; WIKI |
 | `52-ternarysearchtree.hpp` | TernarySearchTree: insert, erase, search, countPrefix, forEach, partialMatch (don't-care positions), nearNeighbors (Hamming radius) | planned; WIKI |
 | `53-context_free_grammar.hpp` | Cfg: addRule, toCnf; cyk (membership); cykParse (parse-tree witness); cykWeighted (minimum-cost or most-probable parse) | planned; WIKI, OI |
 | `54-cdawg.hpp` | Cdawg: build (Crochemore–Vérin), size, step, edgeLabel, isSubstring, findNode | planned; WIKI |

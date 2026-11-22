@@ -1,48 +1,57 @@
-# 05-manacher.hpp — evidence
+# 05-manacher.hpp — Evidence
 
-`05-manacher.hpp` (batch ST02, package P016) computes sentinel-free palindrome radii for every character center and every gap, reconstructs maximal and nested intervals, and derives the longest palindrome ending and starting at every position. Contest profile, GNU C++20, no ISA code.
+`05-manacher.hpp` (batch ST02, package P016) computes sentinel-free palindrome radii for every character center and every gap, reconstructs maximal and nested intervals, and gives the longest palindrome ending and starting at every position. Contest profile, GNU C++20, no ISA code.
 
 ## Contracts
 
 ### Manacher
 
-`Manacher(s)` takes any sequence with random access, `.size()` and equality, of length below `INT_MAX` (`string`, `string_view`, integer vectors; pass literals as `string_view`). It stores no reference to the input. `Manacher(n, match)` computes the same radii from a predicate `match(i, j)`, called only with `0 <= i < j < n`, with O(n) calls. The radii are exact when `match(i, j)` equals `key(i) == key(j)` for some key (any custom equality). For an involution relation `match(i, j) = (s[j] == f(s[i]))` such as complement matching, only `even` is exact: an odd palindrome's center would have to satisfy `f(c) = c`, which the reflection argument needs and the algorithm never checks, so `odd`, `centerEnd` of character centers and the per-position arrays are then unspecified. The default constructor represents the empty sequence.
+`Manacher(s)` takes any sequence with random access, `.size()` and equality, of length below `INT_MAX` (`string`, `string_view`, integer vectors; pass literals as `string_view`), and keeps no reference to it. `Manacher(n, match)` computes the same radii from a predicate `match(i, j)`, called only with `0 <= i < j < n`, O(n) times. The radii are exact when `match(i, j)` equals `key(i) == key(j)` for some key. For an involution relation `match(i, j) = (s[j] == f(s[i]))`, such as complement matching, only `even` is exact: an odd center would need `f(c) = c`, which the algorithm never checks, so `odd`, `centerEnd` of character centers and the per-position arrays are unspecified. The default constructor is the empty sequence.
 
 `odd[i]` includes its center and denotes `[i-odd[i]+1, i+odd[i])`; `even[g]` denotes `[g-even[g], g+even[g])` around gap `g`, with `n + 1` gap entries including zero radii at both ends. A singleton has `odd = {1}, even = {0, 0}`; empty input has `odd = {}, even = {0}`. Fields are read-only after construction; assign a moved-from object before querying it.
 
-`oddInterval(i, k = -1)` and `evenInterval(g, k = -1)` return half-open ranges; `k = -1` selects the maximum, an explicit radius must lie in `[1, odd[i]]` or `[0, even[g]]` (asserted). Empty even intervals are `[g, g)`, including `[0, 0)` for empty input; this is the interval convention, not an absence sentinel. Each costs O(1).
+`oddInterval(i, k = -1)` and `evenInterval(g, k = -1)` return half-open ranges in O(1); `k = -1` selects the maximum, and an explicit radius must lie in `[1, odd[i]]` or `[0, even[g]]` (asserted). Empty even intervals are `[g, g)`, including `[0, 0)` for empty input: an interval convention, not an absence sentinel.
 
-`centerEnd(c)` for a doubled center `c` in `[0, 2n-2]` (asserted) (even `c` is character `c/2`, odd `c` is gap `(c+1)/2`) returns the inclusive right end of its maximal palindrome; an empty even palindrome gives `c/2`, below its own start. `longestEnding()[r]` and `longestStarting()[l]` are the lengths of the longest palindromes ending at `r` and starting at `l`, O(n) time and returned storage; empty input gives `[]`. These three methods compute doubled centers up to `2n` in `int`, so they require `n < 2^30` (asserted at entry); the constructor, the radii and the interval methods keep the full `n < INT_MAX` domain.
+`centerEnd(c)` takes a doubled center `c` in `[0, 2n-2]` (asserted; even `c` is character `c/2`, odd `c` is gap `(c+1)/2`) and returns the inclusive right end of its maximal palindrome; an empty even palindrome gives `c/2`, below its own start. `longestEnding()[r]` and `longestStarting()[l]` are the lengths of the longest palindromes ending at `r` and starting at `l`, in O(n) time and returned storage; empty input gives `[]`. These three methods compute doubled centers up to `2n` in `int` and require `n < 2^30` (asserted at entry); the constructor, the radii and the interval methods keep the full `n < INT_MAX` domain.
 
 Construction takes O(n) time and stored space.
 
-Correctness: for each parity the loop keeps the rightmost maximal palindrome found so far; a center inside it starts from its reflected radius clipped at the boundary, and every further successful comparison advances the boundary, so total extension work is O(n). Mirror indices `l + (r - i)` avoid overflowing sums of absolute indices. For `longestEnding`, an end `r` is covered by doubled center `c` iff `c <= 2r` and `centerEnd(c) >= r`, with start `c - r`; the smallest such `c` gives the longest palindrome. Sweeping `c` upward with a pointer at the first unassigned end assigns each end once: every end `e < c/2` was already covered by its own character center `2e`, so the pointer never lags behind the current center. `longestStarting` is the mirrored sweep with `c` downward. Both are O(n).
+Correctness: for each parity the loop keeps the rightmost maximal palindrome found so far. A center inside it starts from its reflected radius clipped at the boundary, and every further successful comparison advances the boundary, so total extension work is O(n). Mirror indices `l + (r - i)` avoid overflowing sums of absolute indices. For `longestEnding`, doubled center `c` covers end `r` iff `c <= 2r` and `centerEnd(c) >= r`, with start `c - r`, and the smallest such `c` gives the longest palindrome. Sweeping `c` upward with a pointer at the first unassigned end assigns each end once: every end `e < c/2` was already covered by its own character center `2e`, so the pointer never lags the current center. `longestStarting` is the mirrored sweep downward. Both are O(n).
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
 | `oddInclusive(i, k)` over inclusive `[l, r]` | `oddInterval(i, k)`, `r - 1` |
 | `evenInclusive(g, k)` over inclusive `[l, r]` | `evenInterval(g, k)`, `r - 1` |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Runner: [`05-manacher_tester.py`](<../../96-Local Testing/07-Strings/05-manacher_tester.py>). The oracle enumerates every interval and tests it directly (no mirrored recurrence).
+Runner: [`05-manacher_tester.py`](<../../96-Local Testing/07-Strings/05-manacher_tester.py>). The oracle enumerates every interval and tests it directly, with no mirrored recurrence.
 
 | Operation | Coverage |
 |---|---|
-| Manacher(s): odd, even, size | Exhaustive ternary strings through length 6/8/9, 300/2000/15000 random byte and extreme-`lng` cases (some forced palindromic), all 256 bytes, unary and alternating lengths 5000/300000/1000000, copy/move/reset/assignment. |
-| Manacher(n, match) | Equality predicate compared array-for-array with the sequence constructor on every case; complement involution `s[j] == (s[i] ^ 1)` checked on even radii against the direct anti-palindrome enumeration. |
-| oddInterval, evenInterval | Maximal and every nested radius on every case, empty and endpoint gaps, default empty object. |
-| centerEnd, longestEnding, longestStarting | Every doubled center: `[c - e, e]` is a palindrome and one step wider is not or leaves the string (direct check, not the index formula); per-position maxima of the enumerated palindromes on every case; closed forms on the large unary and alternating strings; empty object. |
+| Manacher(s): odd, even, size | Exhaustive ternary strings through length 6/8/9, 300/2000/15000 random byte and extreme-`lng` cases (some forced palindromic), all 256 bytes, unary and alternating lengths 5000/300000/1000000, copy, move, reset and assignment. |
+| Manacher(n, match) | The equality predicate matches the sequence constructor array for array on every case; the complement involution `s[j] == (s[i] ^ 1)` is checked on even radii against direct anti-palindrome enumeration. |
+| oddInterval, evenInterval | Maximal and every nested radius on every case, empty and endpoint gaps, the default empty object. |
+| centerEnd, longestEnding, longestStarting | Every doubled center: `[c - e, e]` is a palindrome and one step wider is not or leaves the string (a direct check, not the index formula); per-position maxima of the enumerated palindromes on every case; closed forms on the large unary and alternating strings; the empty object. |
 
-Checked builds run twelve precondition probes: ten center/radius probes on the interval methods and `centerEnd` below and above its range.
+Checked builds run twelve precondition probes: ten center and radius probes on the interval methods, and `centerEnd` below and above its range.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 702 MB; optimized 0.2 s compile + 0.3 s run, checked 13.5 s compile + 0.8 s run, ASan-UBSan 13.6 s compile + 11.5 s run; MEMORY peak 828 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 752 MB; optimized 0.2 s compile + 0.3 s run, checked 20.0 s compile + 0.6 s run, ASan-UBSan 24.5 s compile + 8.0 s run; MEMORY peak 858 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 19.4 s compile + 0.1 s run, checked 14.9 s compile + 0.6 s run; MEMORY peak 706 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 707 MB; optimized 0.0 s compile + 0.6 s run, checked 4.8 s compile + 0.9 s run, ASan-UBSan 5.1 s compile + 20.1 s run; MEMORY peak 606 MB. Dated rows below stay those commands' latest results.
+Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan-UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>), on an Intel Core i9-11900H with GNU++20.
 
-P016 prune follow-up run, 2026-10-13 (after the `n < 2^30` assertions): GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
+Library-wide runs 2026-11-10 (P274; seed 42, beside the other suites, build cache emptied before each cold run), this suite's results:
+
+| Command | Result |
+|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | PASS. Compile + run: optimized 0.2 + 0.3 s, checked 13.5 + 0.8 s, ASan-UBSan 13.6 + 11.5 s. Peak 828 MB, pre-flight quick 702 MB. |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | PASS. Optimized 0.2 + 0.3 s, checked 20.0 + 0.6 s, ASan-UBSan 24.5 + 8.0 s. Peak 858 MB, pre-flight quick 752 MB. |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | PASS. Optimized 19.4 + 0.1 s, checked 14.9 + 0.6 s. Peak 706 MB. |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | PASS. Optimized 0.0 + 0.6 s, checked 4.8 + 0.9 s, ASan-UBSan 5.1 + 20.1 s. Peak 606 MB, pre-flight quick 707 MB. |
+
+Tester runs 2026-10-13 (P016 prune, after the `n < 2^30` assertions; GCC 16.2.1 20260810, GCC 14.4.1 20260915, Python 3.14.7), the latest with check counts:
 
 ```bash
 python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 20261013
@@ -53,7 +62,10 @@ python3 '96-Local Testing/03-consistency.py'
 python3 '96-Local Testing/03-consistency.py' --braces '07-Strings/05-manacher.hpp' '96-Local Testing/07-Strings/05-manacher_tester.cpp'
 ```
 
-Full, seed 20261013: PASS in all three configurations with all 12 assertion probes, 13,842 cases and 4,604,043 checks per configuration; 26 s and peak 391 MB on g++, 26 s and peak 414 MB on g++-14 (each overlapped an integration run, so times are indicative). The quick run of `08-palindrome_queries`, the only header that includes this one, passed both configurations with 719,553 checks each and 6 assertion probes. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
+- Full, both compilers: PASS in all three configurations with the 12 assertion probes, 13,842 cases and 4,604,043 checks per configuration; 26 s and peak 391 MB on g++, 26 s and peak 414 MB on g++-14 (each beside an integration run, so times are indicative).
+- Quick of `08-palindrome_queries`, the only header that includes this one: PASS in both configurations, 719,553 checks each, 6 assertion probes.
+- `02-integration.py`: PASS, 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace.
+- `03-consistency.py`: no errors. `--braces`: no violations.
 
 ## Benchmarks
 
@@ -63,17 +75,18 @@ Linear algorithm with no backend choice; no benchmark is required and no speed c
 
 Code is independently implemented.
 
-- [cp-algorithms, Manacher's Algorithm](https://cp-algorithms.com/string/manacher.html): odd/even definitions, reflection clipping, linear proof; palindromic prefix/suffix applications.
+- [cp-algorithms, Manacher's Algorithm](https://cp-algorithms.com/string/manacher.html): odd and even definitions, reflection clipping, linear proof; palindromic prefix and suffix applications.
 - [KACTL Manacher.h](https://github.com/kth-competitive-programming/kactl/blob/main/content/strings/Manacher.h): compact two-parity form; KACTL's odd half-length excludes the center, this API includes it.
 - [maspypy `string/manacher.hpp`](https://github.com/maspypy/library/blob/main/string/manacher.hpp) (fetched 2026-10-08): predicate form `manacher(n, match)`.
 - [Nyaan `string/manacher.hpp`](https://github.com/NyaanNyaan/library/blob/master/string/manacher.hpp) (fetched 2026-10-08): `enumerate_leftmost_palindromes`, the per-end longest palindrome.
 - Catalog sweep 2026-10-08 and ST02 re-sweep 2026-11-14 in [00-sources.md](00-sources.md#st02-re-sweep-2026-11-14). No legacy Manacher implementation exists in `OLD`.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Not adopted (reasons in [00-notes.md](00-notes.md)): the Library Checker `2n - 1` combined length array (a radius/index conversion), a bulk `enumeratePalindromes` (a loop over the interval methods), the odd-only switch.
-- Exact substring palindrome checks and longest-palindrome extraction stay in `08`; eertree in `13`; inverse Manacher in `31`.
-- The `n < 2^30` assertions of `centerEnd`, `longestEnding` and `longestStarting` have no probe: an object that violates them holds at least 8 GB of radii, above the 4 GB test cap. Their placement rests on the bound above: with `n < 2^30` every doubled center, loop bound and length (`2n - 2`, `2r - c + 1`, `c - 2l + 1`) stays below `2^31`.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+- Not adopted (reasons in [00-notes.md](00-notes.md)): the Library Checker `2n - 1` combined length array (a radius and index conversion), a bulk `enumeratePalindromes` (a loop over the interval methods), the odd-only switch.
+- Exact substring palindrome checks and longest-palindrome extraction stay in `08`, the eertree in `13`, inverse Manacher in `31`.
+- The `n < 2^30` assertions of `centerEnd`, `longestEnding` and `longestStarting` have no probe: an object violating them holds at least 8 GB of radii, above the 4 GB test cap. With `n < 2^30`, every doubled center, loop bound and length (`2n - 2`, `2r - c + 1`, `c - 2l + 1`) stays below `2^31`.
 
 ## Aliases
 
@@ -86,6 +99,6 @@ Search aliases (P263, grab --find): palindromes, longest palindromic substring; 
 - 2026-10-08: re-audit, predicate constructor, `centerEnd`, `longestEnding` and `longestStarting` added, 2 findings and 1 review note fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `oddInclusive` and `evenInclusive` (cases covered by the half-open interval checks), review found 1 defect, fixed; full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-07: P263 added Chinese search aliases: OI Wiki page titles and common names of the row's operations, Simplified plus Taiwan or Hong Kong terms where they differ; no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
 - 2026-11-14: ST02 (P016) re-sweep: no operation added; recorded in `00-sources.md` and `00-notes.md`; no code or test change.

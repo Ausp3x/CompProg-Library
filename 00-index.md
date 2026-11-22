@@ -1,4 +1,4 @@
-# Ultra competitive programming library
+# Ultra Competitive Programming Library
 
 Start with [CLAUDE.md](CLAUDE.md) (Claude Code) or [AGENTS.md](AGENTS.md) (other agents), then the [guideline index](00-Guidelines/00-index.md). Work is scheduled in the [session checklist](01-prompts.md), rendered from the plan manifest in `00-Guidelines/13-Plan/`. People start at [README.md](README.md) and [CONTRIBUTING.md](CONTRIBUTING.md); licensing is in [LICENSE](LICENSE) and [THIRD-PARTY.md](THIRD-PARTY.md).
 

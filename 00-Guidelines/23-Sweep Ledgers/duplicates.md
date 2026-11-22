@@ -1,10 +1,10 @@
 # Duplicates
 
-Same-context forms and second implementations under `00-Guidelines/03-cpp.md`, One API per operation. `/duplicate-sweep` writes the package sections and `/prune Pxxx` consumes them. P275 re-classified every package section and kept entry under the 2026-11-08 rule on 2026-11-10 ([Docs/00-duplicate-rereview.md](Docs/00-duplicate-rereview.md)).
+Same-context forms and second implementations under `00-Guidelines/03-cpp.md`, One API per Operation. `/duplicate-sweep` writes the package sections and `/prune Pxxx` consumes them. P275 re-classified every package section and kept entry under the 2026-11-08 rule on 2026-11-10 ([Docs/00-duplicate-rereview.md](Docs/00-duplicate-rereview.md)).
 
-## Recorded decisions
+## Recorded Decisions
 
-Decided by the user since 2026-10-10; binding, and only the user changes them.
+The user decided these since 2026-10-10. They are binding, and only the user changes them.
 
 ### Changes
 
@@ -18,6 +18,7 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 - **P122** row 54 `LinearRMQ` takes bitmask microblocks instead of Cartesian (Farach-Colton–Bender) ones: the same bound and results with less code (decided 2026-11-08).
 - **P011, P276** Graphs row 07 `getKthAncestor` (clamped negative `k`) merges into `kthAncestor`, which asserts `k >= 0` (user decision 2026-11-10).
 - **P276** `08-Python` mirrors C++ (user decision 2026-11-10, `04-python.md` Style): `_56` drops its public `BitVector` (C++ row 32 keeps it internal; `_45` `SuccinctBitVector` is the public type); `_25` drops the free `numberOfSubstrings` beside `SuffixAutomaton::distinctSubstrings`; `_38` `crtGeneral` folds into `crt`, which takes noncoprime moduli; `_15` `BoundedFlow` becomes the free `feasibleFlow` and `maxFlowWithLowerBounds` of Graphs row 30; `_18` `ParityDSU` drops `findSet` and `isSameSet`, which C++ lacks (`parity(u, v) >= 0` is the same test); `_43` `digitDp` and `digitDpRange` fold into `DigitDP::count` (closed interval).
+- **08-Python** (`/tidy` 2026-11-22; user decision 2026-11-22 to remove standard-library duplicates and doubled operations and to take the C++ names; these items are Claude's own reading of it): `countRange`, `longestIncreasingSubsequenceLength`, `rangeKthSmallest`, `convexHullCollinear`, `SortedList.lt`, `Doubling.jump` and `isBipartite` leave their modules, and the separate `_01` readers and writers merge. The full list of removals with their survivors: `08-Python/Docs/00-notes.md` (Names).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
 ### Keeps
@@ -112,7 +113,7 @@ Items a reader could mistake for duplicates.
 | P037 | `minimumEnclosingCircleApprox` (row 14) beside `minimumEnclosingCircle` | Decided 2026-10-19: larger domain (floating inputs) |
 | P037 | `SortedGrid` (row 54) beside `GridHash` | Decided 2026-10-19 by the user: deterministic variant (radix-sorted cells), a different algorithm |
 | P037 | `maxAreaInscribedTriangle`, `maxAreaInscribedQuadrilateral` (row 15) beside `maxAreaInscribedKgon` | Decided 2026-10-19: named special cases with a linear bound, different algorithms |
-| P037 | `pointDistance2`, `areaLeftOfLine2` (row 15) beside their `Approx` forms | Exact and approximate variants (03-cpp.md, API contracts) |
+| P037 | `pointDistance2`, `areaLeftOfLine2` (row 15) beside their `Approx` forms | Exact and approximate variants (03-cpp.md, API Contracts) |
 | P037 | `rectangleUnionContours` (row 13) beside `rectangleUnionBoundary` | Decided 2026-10-19 by the user: a derived result (closed rings, cycle structure and orientation) that the pieces do not give |
 | P035 | `SparseDSU` (row 65) beside `HashMap<K, int>` plus `DSU::makeSet` | Decided 2026-10-23 by the user: larger key domain (hashable keys) |
 | P035 | `ParityDSU` (row 29) beside `WeightedDSU` over Z/2 | Decided 2026-10-23 by the user: a different algorithm, a 2n-node DSU |
@@ -131,7 +132,7 @@ Items a reader could mistake for duplicates.
 | P011 | `meet(t, a, b, c)` (Graphs row 07) beside `rerootedLCA(a, b, c)` | Decided 2026-11-15 by the user (/package GR03): the same median on every input, kept as a free function over every LCA struct that calls `rerootedLCA` |
 | P121 | `SortableArray` (duplicate keys, no monoid) beside `SortableSegmentTree` (distinct keys) | Decided 2026-11-08 by the user: larger domain |
 | P183 | `coefficientExtraction` beside `bostanMori` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper in another row stays and calls its owner |
-| P183 | `labelledSequence` beside `unlabelledSequence` | Decided 2026-11-08 by the user: labelled and unlabelled constructions are separate contexts (`03-cpp.md`, One API per operation); the labelled form calls the unlabelled one |
+| P183 | `labelledSequence` beside `unlabelledSequence` | Decided 2026-11-08 by the user: labelled and unlabelled constructions are separate contexts (`03-cpp.md`, One API per Operation); the labelled form calls the unlabelled one |
 | P185 | `GF2k::carrylessMultiply` beside row 65 `carrylessMultiply` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper on another type, calling row 65 |
 | P186 | `determinantPolynomialMatrix` (row 44) beside row 51 `PolyMatrix::det` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper in another row, calling row 51 |
 | P013 | `permutationLehmerNaive`, `permutationFromLehmerNaive`, `permutationRankModNaive` (row 07) beside the Fenwick `permutationLehmer`, `permutationFromLehmer`, `permutationRankMod` | Decided 2026-11-16 by the user: O(n^2) scans without the Fenwick dependency, kept as lighter (`01-principles.md`, Priority; `omissions.md`, 2026-11-16) |
@@ -149,7 +150,7 @@ Decided by the user on 2026-10-11 for the sweep's policy questions.
 - A one-vertex overload of a multi-source function (`dijkstra(g, s)` beside `dijkstra(g, sources)`) is an argument shape: remove it; callers write `f(g, {s})`.
 - User decisions 2026-11-10 (P275 `/finish`): a type's member and a free function for the same operation are two contexts, so the one that calls the other is a wrapper and stays (`Plane3::distanceApprox`, the `DirichletSeries` prefix functions, `BitsetDP::shiftOr` under a name of its own); every flag that chooses between two operations (P010's `longest` and `lexicographic`, the MST `maximum` flags, `eulerianTrail`'s `lexicographic`) goes to one P010 ask settled under one ruling.
 
-## Kept by the sweep
+## Kept by the Sweep
 
 Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified rules; a later sweep revalidates them.
 
@@ -767,7 +768,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 |---|---|---|---|---|---|---|
 | three-point branches of `EnclosingCircle::center`, `radius2` | `14-minimumenclosingcircle.hpp:65-66,71-72` | `Triangle2(points[0], points[1], points[2]).circumcenter()`, `.circumradius2<InfInt>()` (row 09, P009 2026-11-15) | remove | body-level second implementation: the same formulas, now public in row 09 | none | none |
 
-## Open questions
+## Open Questions
 
 Every remaining `ask` above, with the fact the user decides. `/package` and `/prune` put a package's `ask` rows to the user before changing anything (user decision 2026-11-10).
 

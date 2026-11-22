@@ -1,10 +1,10 @@
-# 22-convexhulltrick.hpp — evidence
+# 22-convexhulltrick.hpp — Evidence
 
-Package P032 (batch DS11). New header: a deque hull for slopes arriving at either extreme and the KACTL line container for arbitrary slopes, each with one envelope chosen by `MAX`. No ISA code, reduction or dispatch threshold, so no benchmark is required (Contest profile). Preconditions are `assert`s checked once per call.
+Package P032 (batch DS11). New header: a deque hull for slopes arriving at either extreme and the KACTL line container for arbitrary slopes, each keeping one envelope chosen by `MAX`. The header has no ISA code, reduction or dispatch threshold, so the Contest profile requires no benchmark. Each call asserts its preconditions once.
 
 ## Contracts
 
-### Common domain
+### Common Domain
 
 Both structures take a value type `T`: `lng` (the default) or a floating type (`static_assert`).
 
@@ -12,7 +12,7 @@ Both structures take a value type `T`: `lng` (the default) or a floating type (`
 - Floating `T` (user decision 2026-10-28), approximate: `|m|` and `|b|` are 0 or in `[2^-E, 2^E]` with `E = max_exponent / 4` (256 for `double`; asserted by `cht_detail::inDomain`), so differences of slopes and intercepts stay normal and their products in the hull test neither overflow nor underflow; `m * x + b` must be finite and strictly inside the `NONE` limits at every queried `x` for every stored line. The hull test and the breakpoints are rounded, so a line optimal only on an interval about as wide as the rounding error may be dropped; the result is the computed value of a stored line within `8 eps (1 + max(abs(m x) + abs(b)))` of the true optimum (tested; the worst error seen was below `1 eps`).
 - `NONE` is `std::numeric_limits<T>::max()` (min) or `lowest()` (max), returned only when no line is stored; a value never equals it. Both structures keep the lower envelope internally and negate lines and results for the other orientation (`MonotoneCHT` negates when `MAX`, `LineContainer` when not `MAX`), so `d` and `s` hold the negated lines in that case.
 
-### MonotoneCHT<MAX = false, T = lng>
+### MonotoneCHT<MAX = False, T = lng>
 
 - `addLine(m, b)`: the slope must be at least or at most every stored slope (asserted against the hull's extreme slopes; lines that are not on the hull are dominated, so only the hull's extremes matter). Each call gets the next line id (0, 1, …), also when the line is discarded. Equal slopes keep the better intercept (the earlier line on a tie). Amortized O(1): each line is pushed and popped at most once.
 - Hull: `d` holds the internal lower hull with strictly decreasing slopes from front to back; a middle line `g` between `f` and `h` is removed when `(h.b - f.b)(f.m - g.m) <= (g.b - f.b)(f.m - h.m)`, in `lll` for `lng` (exact; a line optimal at one point only is removed, its neighbours tie there). Consecutive breakpoints are then strictly increasing, so for any `x` the values along the hull strictly decrease, tie at most once, then strictly increase.
@@ -21,22 +21,22 @@ Both structures take a value type `T`: `lng` (the default) or a floating type (`
 - `queryMonotone(x)`: moves the pointer `ptr` right while the next line is strictly better and left while the previous line is not worse, then returns as `query`. Correct for any `x` (the strict-then-tie-then-strict shape makes a local optimum global, and the two moves cannot alternate); O(1 + distance moved). For `T = lng` and `x` monotone in either direction across calls, the pointer moves O(n + q) in total: insertions shift it by one per popped line and clamp it into the hull. For floating `T` this amortized bound is not proved (rounding can break unimodality), only the per-call bound.
 - Ties (`T = lng`): when two hull lines are optimal at `x`, both queries return the front-most one, so `query` and `queryMonotone` always give the same `{value, line id}` (user decision 2026-10-28). For floating `T` the rounded neighbour comparisons need not be monotone along the hull, so the two queries may return different lines, each within the approximate contract.
 
-### LineContainer<MAX = false, T = lng>
+### LineContainer<MAX = False, T = lng>
 
 - `addLine(m, b)`: any slope; amortized O(log(n)). `s` is a multiset ordered by slope; `p` is the last `x` where the line is optimal (floor division for `lng`, plain division for floating `T`), `INF` for the last line (`LLONG_MAX`, or infinity), and a line whose `p` reaches its successor's is erased (KACTL `LineContainer`).
 - `query(x)`: the line with the first `p >= max(x, -INF + 1)`; returns the value or `NONE`. O(log(n)). A worse parallel line inserted first is never erased and keeps `p = -INF` (KACTL keeps it too); every integer breakpoint is at least `LLONG_MIN + 2 = -INF + 1`, so the search skips it and finds the first undominated line, optimal on all `x <= p` including `LLONG_MIN`. For floating `T`, `-INF + 1` is minus infinity and the key is `x`.
 
-### Violated preconditions
+### Violated Preconditions
 
 Under `NDEBUG` an out-of-bound slope or intercept can overflow the differences (meaningless breakpoints), and a `MonotoneCHT` slope strictly inside the hull's range is pushed at the front, breaking the hull; every loop still pops at most the stored lines and `queryMonotone` moves within the deque, so all calls terminate.
 
-### Legacy mapping
+### Legacy Mapping
 
 No legacy source (`OLD/[1] algorithms.cpp:661-691`, an unfinished complex-number monotone hull, is accounted for in [21-lichao.md](21-lichao.md#legacy-mapping)). Planned names: `queryWitness`, `query (monotone pointer)`, `query (binary search)` → `query` and `queryMonotone`, both returning `{value, line id}` (user decision 2026-10-28: `query` was the value field of the witness form). Catalog aliases: ei1333 `ConvexHullTrickAddMonotone` `add`, `query`, `query_monotone_inc`, `query_monotone_dec` → `addLine`, `query`, `queryMonotone` (non-destructive, either direction); maspypy `CHT_monotone`, suisen `MonotonicCHT` → `MonotoneCHT`; KACTL, Nyaan `LineContainer`, maspypy `CHT`, suisen `ConvexHullTrick` → `LineContainer`.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Tester `96-Local Testing/02-Data Structures/22-convexhulltrick_tester.cpp`, entry `22-convexhulltrick_tester.py` (driver `_00_contest_runner.py`; three builds; 15 assertion probes). Every group runs for both orientations; for `lng`, every `queryMonotone` is preceded by a const `query` at the same `x` and must return the identical `{value, line id}`, and the returned line must be the front-most optimal one (steepest optimal internal slope, then the earliest identical line).
+Tester `96-Local Testing/02-Data Structures/22-convexhulltrick_tester.cpp`, entry `22-convexhulltrick_tester.py` (driver `_00_contest_runner.py`; three builds; 15 assertion probes). Every group runs for both orientations; for `lng`, every `queryMonotone` is preceded by a const `query` at the same `x` and must return the identical `{value, line id}`, and the returned line must be the front-most optimal one (steepest optimal internal slope, then the earliest identical line). Quick mode runs a box of 2 at depth 3/2, 300 random runs and 3000 lines at scale.
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -47,15 +47,20 @@ Tester `96-Local Testing/02-Data Structures/22-convexhulltrick_tester.cpp`, entr
 | `NONE`, `{NONE, -1}` when empty | `edges`, `floating edges` | Literal values (`max()`, `lowest()` for floating `T`) |
 | Preconditions | `invalid` | `MonotoneCHT` slope and intercept at `±2^62`, slope strictly inside the hull range (min and max), floating slope `1e200` and intercept `1e-200` outside `[2^-256, 2^256]`; `LineContainer` slope and intercept at `±2^62`, `long double` slope `1e1300` |
 
-Quick runs a box of 2 at depth 3/2, 300 random runs and 3000 lines at scale.
+## Commands and Results
 
-## Commands and results
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1026 MB; optimized 0.1 s compile + 25.4 s run, checked 36.0 s compile + 53.5 s run, ASan-UBSan 42.8 s compile + 70.2 s run; MEMORY peak 1526 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1037 MB; optimized 0.1 s compile + 30.3 s run, checked 45.7 s compile + 148.9 s run, ASan-UBSan 62.0 s compile + 125.5 s run; MEMORY peak 1486 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 58.7 s compile + 1.6 s run, checked 47.2 s compile + 14.2 s run; MEMORY peak 1065 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1024 MB; optimized 0.1 s compile + 20.8 s run, checked 17.6 s compile + 58.3 s run, ASan-UBSan 22.9 s compile + 58.1 s run; MEMORY peak 851 MB. Dated rows below stay those commands' latest results.
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 1026 MB; optimized 0.1 + 25.4 s, checked 36.0 + 53.5 s, ASan-UBSan 42.8 + 70.2 s; MEMORY peak 1526 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 1037 MB; optimized 0.1 + 30.3 s, checked 45.7 + 148.9 s, ASan-UBSan 62.0 + 125.5 s; MEMORY peak 1486 MB |
+| `01-run.py --mode quick` | Optimized 58.7 + 1.6 s, checked 47.2 + 14.2 s; MEMORY peak 1065 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 1024 MB; optimized 0.1 + 20.8 s, checked 17.6 + 58.3 s, ASan-UBSan 22.9 + 58.1 s; MEMORY peak 851 MB |
 
-Latest run 2026-10-28, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.8, in the runner's optimized, checked and ASan/UBSan builds:
+Latest per-header run 2026-10-28 on the same machine with CPython 3.14.8, in the optimized, checked and ASan/UBSan builds:
 
-| Command | Result |
+| Command (2026-10-28) | Result |
 |---|---|
 | `22-convexhulltrick_tester.py --mode quick` | PASS, 2 configurations, 1,855,313 checks per configuration, 15 assertion probes, MEMORY peak 579 MB |
 | `22-convexhulltrick_tester.py --mode full --seed 20261028` (GCC 16.2.1) | PASS, 3 configurations, 36,223,679 checks per configuration, 15 assertion probes, MEMORY peak 729 MB |
@@ -83,12 +88,13 @@ python3 '00-Guidelines/13-Plan/plan.py' check
 
 Fetched 2026-10-28 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-28-p032-ds11-sweep)); the implementation was written from the contract.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p032-omissions): rollback CHT, `empty`/`size`/`clear`, hull merging, `CHT_XY`, envelope pieces.
+- Row 22 is partial: `MonotoneCHT::merge`, the merge of two monotone hulls, is missing (source hitonanode; user decision 2026-11-22), and P032 implements it.
+- Left out with reasons in [00-notes.md](00-notes.md#p032-omissions): rollback CHT, `empty`/`size`/`clear`, `CHT_XY` and static envelope pieces (Geometry rows 20 and 41). Single-crossing functions in a monotone hull are planned Esoteric row 74 (`MonotoneCHTFunction`).
 - `LineContainer::query` returns the value only (user decision 2026-10-28).
 - Geometry row 41 `lowerEnvelope` against this row is an open question of P139 (`duplicates.md`).
-- On aarch64 `long double` is already binary128, so the `_Float128` brute force for `long double` lines has no extra precision there; the `8 eps (1 + mag)` tolerance was calibrated on x87 and passed the aarch64 quick run.
+- On aarch64 `long double` is already binary128, so the `_Float128` brute force for `long double` lines gains no precision there; the `8 eps (1 + mag)` tolerance was calibrated on x87 and passed the aarch64 quick run.
 
 ## Aliases
 
@@ -96,9 +102,9 @@ Search aliases (P263, grab --find): convex hull trick, CHT; 斜率优化, 凸包
 
 ## History
 
-- 2026-10-28: P032 DS11 first implementation; the tester found the `LLONG_MIN` query defect and the independent review the narrow value domain of the negated side (both fixed, `boundary` group added) and two style findings; full (seed 20261028) on g++ and g++-14 and stress (seed 7) passed.
-- 2026-10-28: `/finish` DS11: floating `T` with an asserted magnitude domain, the front-most tie rule for `lng` (user decisions), tolerance tightened to `8 eps (1 + mag)`; floating stress seed 7 failed when two hull lines with slopes `3e-10` apart evaluated to the same `double`, fixed by comparing neighbours through slope and intercept differences (`notWorse`); quick, full on g++ and g++-14 and stress (seeds 1 to 5 and 7) passed.
-- 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the floating oracle type `__float128` became `_Float128`, which aarch64 g++ also provides; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
-- 2026-11-10: /finish P276 (user decision 2026-11-10): search alias `convex hull trick`, `CHT` restores the `simple` corpus rank that rows added by P254 and P275 had taken; `14-search_tester.py --mode quick` passed.
+- 2026-10-28: P032 DS11 first implementation; the tester found the `LLONG_MIN` query defect and the review the narrow value domain of the negated side (both fixed, `boundary` group added) plus two style findings; full (seed 20261028) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-10-28: `/finish` DS11: floating `T` with an asserted magnitude domain and the front-most tie rule for `lng` (user decisions), tolerance tightened to `8 eps (1 + mag)`; neighbours compared through slope and intercept differences (`notWorse`) after floating stress seed 7 failed on two hull lines `3e-10` apart in slope that evaluated to the same `double`; quick, full on g++ and g++-14 and stress (seeds 1 to 5 and 7) passed.
+- 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the floating oracle type `__float128` became `_Float128`, which aarch64 g++ also provides; quick passed on x86-64 and on aarch64 under qemu-user, full on g++ and g++-14.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.
+- 2026-11-10: `/finish` P276 (user decision 2026-11-10): the alias `convex hull trick`, `CHT` restores the `simple` corpus rank that rows added by P254 and P275 had taken; `14-search_tester.py --mode quick` passed.

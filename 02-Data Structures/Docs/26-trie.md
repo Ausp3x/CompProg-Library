@@ -1,47 +1,47 @@
-# 26-trie.hpp — evidence
+# 26-trie.hpp — Evidence
 
-Package P033 (batch DS13). New header; no legacy source. Binary integer tries over `B`-bit keys, most significant bit first. Preconditions are `assert`s checked once per operation; each operation is O(B) with B the key width.
+Package P033 (batch DS13). New header; no legacy source. Binary integer tries over `B`-bit keys, most significant bit first. Each operation asserts its preconditions once and costs O(B) for key width B.
 
 ## Contracts
 
-### Keys and signed-key encoding
+### Keys and Signed-Key Encoding
 
-`T` is an integral type and `1 <= B <= ` its bit width (default: all bits). Keys are `[0, 2^B)` for unsigned `T` and `[-2^(B-1), 2^(B-1))` for signed `T`; every key, xor mask and query bound must lie in that domain (asserted). A key `a` is stored as `enc(a) = (a xor SIGN) & MASK`, where `MASK` keeps the low `B` bits and `SIGN` is bit `B - 1` for signed `T` and 0 otherwise; `dec(s) = T(s - SIGN)` (modular, then sign-extended by the conversion). `enc` is an order isomorphism from the signed domain onto `[0, 2^B)`, and `enc(a xor x) = enc(a) xor (x & MASK)` because both sides flip bit `B - 1` once, so xor masks act on encoded keys directly and every order query (`kth`, `countLess`, `lowerBound`, `xorMin`, `xorMax`) compares in the signed order of `T`. For signed keys the xor of two in-domain keys stays in the domain: bits above `B - 1` all equal bit `B - 1`.
+`T` is an integral type and `1 <= B <=` its bit width (default: all bits). Keys are `[0, 2^B)` for unsigned `T` and `[-2^(B-1), 2^(B-1))` for signed `T`; every key, xor mask and query bound must lie in that domain (asserted). A key `a` is stored as `enc(a) = (a xor SIGN) & MASK`, where `MASK` keeps the low `B` bits and `SIGN` is bit `B - 1` for signed `T` and 0 otherwise; `dec(s) = T(s - SIGN)`, modular and then sign-extended by the conversion. `enc` maps the signed domain onto `[0, 2^B)` preserving order, and `enc(a xor x) = enc(a) xor (x & MASK)` because both sides flip bit `B - 1` once. Xor masks therefore act on encoded keys directly, and every order query (`kth`, `countLess`, `lowerBound`, `xorMin`, `xorMax`) compares in the signed order of `T`. For signed keys the xor of two in-domain keys stays in the domain, since the bits above `B - 1` all equal bit `B - 1`.
 
 ### binary_trie_detail::Nodes<T, B>
 
-Node pool shared by both tries: `ch[v]` (children, 0 when absent), `cnt[v]` (keys in the subtree). Node 0 is the empty node: count 0 and both children 0, so a walk that leaves the trie stays at node 0 and reads count 0. The kernels walk two roots `u`, `v` in lockstep and use `cnt[v'] - cnt[u']`, which is the count of the multiset difference `v - u` when `u`'s multiset is contained in `v`'s: `count(u, v, s)`, `kth(u, v, k, x)` (the `k`-th smallest of `s xor x`, 0-based, preferring the child whose bit equals `x`'s), `countLess(u, v, t, x)` (the number of `s` with `(s xor x) < t`). `xorMin` is `kth(0)` and `xorMax` is `kth(size - 1)`. Not public API.
+The node pool both tries share (not public API): `ch[v]` holds the children (0 when absent) and `cnt[v]` the keys in the subtree. Node 0 is the empty node with count 0 and both children 0, so a walk that leaves the trie stays at node 0 and reads count 0. The kernels walk two roots `u` and `v` in lockstep and use `cnt[v'] - cnt[u']`, the count of the multiset difference `v - u` when `u`'s multiset is contained in `v`'s: `count(u, v, s)`; `kth(u, v, k, x)`, the 0-based `k`-th smallest of `s xor x`, preferring the child whose bit equals `x`'s; and `countLess(u, v, t, x)`, the number of `s` with `(s xor x) < t`. `xorMin` is `kth(0)` and `xorMax` is `kth(size - 1)`.
 
 ### BinaryTrie<T, B>
 
 A multiset of at most `INT_MAX` keys with a global xor `lz`: the current keys are the stored codes xor `lz`.
 
 - `insert(a, c = 1)`: adds `c >= 0` copies (`size() + c <= INT_MAX` asserted); creates at most `B` nodes.
-- `erase(a, c = 1)`: removes `min(c, count(a))` copies, `c >= 0`, and returns that number; erasing an absent key is a valid no-op that returns 0 (Library Checker `set_xor_min` erases keys that may be absent). Nodes are never freed: an emptied path keeps count 0 and is reused by a later insert.
+- `erase(a, c = 1)`: removes `min(c, count(a))` copies, `c >= 0`, and returns that number. Erasing an absent key returns 0, since Library Checker `set_xor_min` erases keys that may be absent. Nodes are never freed: an emptied path keeps count 0 and a later insert reuses it.
 - `count(a)`, `size()` (with multiplicity).
 - `applyXor(x)`: replaces every current key `a` by `a xor x` in O(1); later inserts are not affected.
 - `xorMin(x)`, `xorMax(x)`: the minimum and maximum of `a xor x` over the current keys; assert a nonempty trie.
 - `kth(k)`: the `k`-th smallest current key, `0 <= k < size()`.
 - `countLess(y)`: the number of current keys `< y`.
-- `lowerBound(y, res)`: the smallest current key `>= y`; returns `false` and leaves `res` unchanged when none exists (no in-domain sentinel exists for full-width `T`). It is `kth(countLess(y))`, two O(B) walks.
-- A per-query xor on `kth`, `countLess` or `lowerBound` is `applyXor(x)`, the query, `applyXor(x)` (three O(1) or O(B) steps); the library keeps one form.
+- `lowerBound(y, res)`: the smallest current key `>= y`, as `kth(countLess(y))` in two O(B) walks. Returns `false` and leaves `res` unchanged when none exists, because full-width `T` has no in-domain sentinel.
+- A per-query xor on `kth`, `countLess` or `lowerBound` is `applyXor(x)`, the query, then `applyXor(x)`; the library keeps one form.
 - Memory: `n` insert calls create at most `n * B + 2` nodes of 12 bytes. A copy is an independent snapshot.
 
 ### PersistentBinaryTrie<T, B>
 
-Versions are node ids; version 0 is the empty multiset, and every update returns a new version without changing old ones (path copying: `B + 1` new nodes per update).
+Versions are node ids. Version 0 is the empty multiset, and every update returns a new version without changing old ones (path copying, `B + 1` new nodes per update).
 
 - `insert(v, a, c = 1)`: the version `v` plus `c >= 0` copies of `a`; `v` must be an existing version.
 - `erase(v, a, c = 1)`: the version `v` minus `min(c, count)` copies of `a`; returns `v` itself when nothing is removed.
-- Queries take a pair `(u, v)` and see the multiset difference `v - u`; the caller guarantees that `u` is contained in `v` (for example prefix versions `root[l]`, `root[r]` of an array built by inserts, which answer queries over `a[l, r)`; `u = 0` for a single version). `size(u, v)` and the `count`/`countLess` entry assert only `size(u, v) >= 0`; a non-included pair gives meaningless results.
+- Queries take a pair `(u, v)` and see the multiset difference `v - u`. The caller guarantees that `u` is contained in `v`: prefix versions `root[l]` and `root[r]` of an array built by inserts answer queries over `a[l, r)`, and `u = 0` queries a single version. `size(u, v)` and the `count`/`countLess` entry assert only `size(u, v) >= 0`; a pair that is not included gives meaningless results.
 - `size(u, v)`, `count(u, v, a)`, `xorMin(u, v, x)`, `xorMax(u, v, x)` (assert a nonempty difference), `kth(u, v, k, x = 0)` (the `k`-th smallest of `a xor x`), `countLess(u, v, y, x = 0)` (the number of `a` with `(a xor x) < y`).
-- Memory: `(B + 1)` nodes per update. Erase on a persistent version keeps the old nodes; there is no garbage collection.
+- Memory: `B + 1` nodes per update. An erase keeps the old version's nodes; there is no garbage collection.
 
-### Violated preconditions
+### Violated Preconditions
 
 Under `NDEBUG` an out-of-domain key is truncated to its low `B` bits, an empty `xorMin`/`xorMax`/`kth` returns a meaningless key, and an out-of-range version id reads outside the pool (undefined). Every walk is bounded by `B` steps, so no call loops.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/26-trie_tester.cpp`, entry `26-trie_tester.py` (driver `_00_contest_runner.py`; three builds; 28 assertion probes).
 
@@ -55,11 +55,28 @@ Tester `96-Local Testing/02-Data Structures/26-trie_tester.cpp`, entry `26-trie_
 | Empty structure, `lowerBound` absence, zero-copy insert, erase of absent and of more copies than present, copies, full-width extremes | `edges` | Direct values |
 | Preconditions | `invalid` | BinaryTrie: out-of-domain keys, xor masks and bounds (unsigned and both signed ends) in `insert`, `count`, `countLess`, `applyXor`, `xorMin`, `xorMax`; empty `xorMin`/`xorMax`; `kth` at `size()` and at -1; negative counts in `insert` and `erase`; size overflow past `INT_MAX`. PersistentBinaryTrie: unknown version, out-of-domain key, mask or bound in `insert`, `count`, `kth`, `countLess`, `xorMax`; negative counts in `insert` and `erase`; count overflow; `kth` out of range; empty `xorMin`/`xorMax` differences; a non-included version pair |
 
-Mutation check (2026-10-14, quick mode, temporary copies): 8 of 8 injected faults detected (strict comparison in `kth`, `countLess` not turning after counting, no sign encoding, `applyXor` assigning instead of xoring, `erase` ignoring the count, a persistent child pointing at its own node, `xorMax` computed as `xorMin`, persistent `erase` ignoring the count).
+A hand mutation check on 2026-10-14 (quick mode, temporary copies) detected 8 of 8 injected faults: a strict comparison in `kth`, `countLess` not turning after counting, no sign encoding, `applyXor` assigning instead of xoring, `erase` ignoring the count, a persistent child pointing at its own node, `xorMax` computed as `xorMin`, and persistent `erase` ignoring the count.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 943 MB; optimized 0.1 s compile + 5.5 s run, checked 31.7 s compile + 40.7 s run, ASan-UBSan 40.6 s compile + 61.1 s run; MEMORY peak 1203 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 940 MB; optimized 0.3 s compile + 5.1 s run, checked 32.6 s compile + 42.2 s run, ASan-UBSan 41.6 s compile + 52.9 s run; MEMORY peak 1244 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.6 s compile + 1.4 s run, checked 23.3 s compile + 28.8 s run; MEMORY peak 925 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 56 MB; optimized 0.1 s compile + 4.1 s run, checked 13.8 s compile + 29.9 s run, ASan-UBSan 18.1 s compile + 32.2 s run; MEMORY peak 827 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
+
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 943 MB; optimized 0.1 + 5.5 s, checked 31.7 + 40.7 s, ASan-UBSan 40.6 + 61.1 s; MEMORY peak 1203 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 940 MB; optimized 0.3 + 5.1 s, checked 32.6 + 42.2 s, ASan-UBSan 41.6 + 52.9 s; MEMORY peak 1244 MB |
+| `01-run.py --mode quick` | Optimized 37.6 + 1.4 s, checked 23.3 + 28.8 s; MEMORY peak 925 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 56 MB; optimized 0.1 + 4.1 s, checked 13.8 + 29.9 s, ASan-UBSan 18.1 + 32.2 s; MEMORY peak 827 MB |
+
+Latest per-header run 2026-10-14, after the review fixes, on the same machine with CPython 3.14, in the optimized, checked and ASan/UBSan builds. MEMORY peaks are dominated by compilation. The slowest binary (checked build) takes about 46 s in full and 76 s in stress, against the runner's 180 s timeout.
+
+| Command (2026-10-14) | Result |
+|---|---|
+| `26-trie_tester.py --mode full --seed 20261014` (GCC 16.2.1) | PASS, 11,852,623 checks per configuration, 28 assertion probes, MEMORY peak 664 MB |
+| `CXX=g++-14 26-trie_tester.py --mode full --seed 20261014` (GCC 14.4.1) | PASS, 11,852,623 checks per configuration, 28 assertion probes, MEMORY peak 679 MB |
+| `01-run.py --mode stress --seed 7 --rounds 1` | PASS, 3 configurations, 15,456,616 checks per configuration, MEMORY peak 776 MB |
+| `02-integration.py --sanitizers` | PASS: 143 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 2758 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/26-trie_tester.py' --mode full --seed 20261014
@@ -69,7 +86,6 @@ python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-14 (after the review fixes): full mode seed 20261014 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 11,852,623 checks per configuration and 28 assertion probes, MEMORY peak 664 MB and 679 MB; stress mode seed 7 (one round) passed all three configurations with 15,456,616 checks per configuration, MEMORY peak 776 MB. The slowest binary (checked build) takes about 46 s in full and 76 s in stress, against the runner's 180 s timeout. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, in the runner's optimized, checked and ASan/UBSan builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (143 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 2758 MB) and `03-consistency.py` reported no errors.
 
 ## Sources
 
@@ -81,9 +97,10 @@ Final run 2026-10-14 (after the review fixes): full mode seed 20261014 passed on
 
 Fetched 2026-10-14 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-14-p033-sweep)); the implementation was written from the contract.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p033-omissions): trie meld, the LSB-first global +1 trie, kth xor pair and pair counting, range xored mex, index payloads, ordered enumeration.
+- Row 26 is partial: `BinaryTrie::values` (ordered enumeration) is missing, returned by P275. The LSB-first trie with a global +1 (`LsbBinaryTrie`) and the k-th xor pair (`kthXorPair`) are planned Esoteric row 72, and range xored mex (`RangeXoredMex`) row 73.
+- Left out with reasons in [00-notes.md](00-notes.md#p033-omissions): trie meld, counting pairs with xor below t, index payloads.
 - Literal-prefix and radix tries are Strings `04-trie.hpp` and `25-radixtrie.hpp`; xor bases are row 62; row 17 (`WaveletMatrix`) defers range xor queries to `PersistentBinaryTrie`.
 
 ## Aliases
@@ -92,6 +109,6 @@ Search aliases (P263, grab --find): 字典树 (Trie), 可持久化字典树, 01�
 
 ## History
 
-- 2026-10-14: P033 first implementation and verification; the independent review found no header defects and 11 missing assertion probes, now added.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-14: P033 first implementation and verification; the review found no header defects and 11 missing assertion probes, which were added; full (seed 20261014) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

@@ -290,7 +290,7 @@
       "problem": "data_structure/associative_array",
       "judge_url": "https://judge.yosupo.jp/problem/associative_array",
       "targets": [
-        "06-Miscellaneous/19-hash_families.hpp"
+        "02-Data Structures/61-hashmap.hpp"
       ],
       "read_scopes": [
         "Problem catalog name/path compared; full statement/generators not audited."

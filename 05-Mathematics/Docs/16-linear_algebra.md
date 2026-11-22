@@ -1,21 +1,21 @@
-# 16-linear_algebra.hpp — evidence
+# 16-linear_algebra.hpp — Evidence
 
-`16-linear_algebra.hpp` is the contest scalar linear-algebra family on `Mat<T> = vector<vector<T>>`. It covers:
+`16-linear_algebra.hpp` is the contest scalar linear-algebra family on `Mat<T> = vector<vector<T>>`:
 
-- Exact elimination over a field: reduced row echelon form, rank, determinant, inverse, adjugate of any rank, linear systems with the full solution set, several right-hand sides, nullspace.
-- Composite moduli and integers: determinant and inverse modulo any m by Euclidean row reduction, and Bareiss fraction-free integer determinants.
-- Approximate reals: Crout LU with partial pivoting and its solve, partial-pivoting solve, rank and determinant.
-- Structured systems: tridiagonal (Thomas), cyclic tridiagonal and banded solves without pivoting.
-- Matrix powers and power sums, Sherman–Morrison–Woodbury updates of an inverse, an incremental `FieldBasis`, and the randomized Freivalds and Schwartz–Zippel checks.
+- exact elimination over a field: reduced row echelon form, rank, determinant, inverse, adjugate of any rank, linear systems with the full solution set or several right-hand sides, nullspace;
+- composite moduli and integers: determinant and inverse modulo any m by Euclidean row reduction, Bareiss fraction-free integer determinants;
+- approximate reals: Crout LU with partial pivoting and its solve, partial-pivoting solve, rank and determinant;
+- structured systems: tridiagonal (Thomas), cyclic tridiagonal and banded solves without pivoting;
+- matrix powers and power sums, Sherman–Morrison–Woodbury inverse updates, an incremental `FieldBasis`, and the randomized Freivalds and Schwartz–Zippel checks.
 
-The functions are free and generic over the scalar type `T`, except `determinantMod` and `inverseMod` (`lng` entries). The header depends on `01-mod_arithmetic.hpp` (`gcd64`, `extendedGcd`, `modNorm`). It uses no Barrett/Montgomery and no ISA-specific code. Core `10-matrix.hpp` owns the accelerated matrix type; this header is the scalar duplicate `02-structure.md` allows.
+The functions are free and generic over the scalar type `T`, except `determinantMod` and `inverseMod` (`lng` entries). The header depends on `01-mod_arithmetic.hpp` (`gcd64`, `extendedGcd`, `modNorm`) and uses no Barrett/Montgomery and no ISA-specific code. Core `10-matrix.hpp` owns the accelerated matrix type; this header is the scalar duplicate `02-structure.md` (Tiers and Core Order) allows.
 
 ## Contracts
 
 Common conventions:
 
 - **Shapes.** `Mat<T>` is row-major; every row of a matrix has the same length (asserted at entry of every elimination and product). A `Mat` without rows is 0 x 0, so an n x 0 matrix needs n empty rows.
-- **Scalar domains.** "Exact field" means `T` with `+ - * /`, `==`, `T(0)`, `T(1)` and exact arithmetic: Core modints with a prime modulus, rationals. Exact-field operations reject floating `T` at compile time (`static_assert`), and the `Real` operations and `luDecompose` accept only floating `T`, so exact and approximate pivoting are separately named (`03-cpp.md`, API contracts). "Any ring" needs only `+ *` and `T(0)`, `T(1)`.
+- **Scalar domains.** "Exact field" means `T` with `+ - * /`, `==`, `T(0)`, `T(1)` and exact arithmetic: Core modints with a prime modulus, rationals. Exact-field operations reject floating `T` at compile time (`static_assert`), and the `Real` operations and `luDecompose` accept only floating `T`, so exact and approximate pivoting are separately named (`03-cpp.md`, API Contracts). "Any ring" needs only `+ *` and `T(0)`, `T(1)`.
 - **Pivoting.** Exact operations pivot on the first nonzero entry of the column. Floating operations pivot on the largest `|x|` in the column (partial pivoting) and treat `|x| <= eps` as zero; `eps` is absolute (default `1e-9`), so scale inputs to magnitude about 1.
 - **Status results.** A no-answer is a `bool` `false` (structured solves, inverses, `FieldBasis`) or an empty `Mat` (`solveLinear`, `solveLinearApprox`), which never collides with a solution: a solvable system returns at least one row. After `false`, in-place outputs are unspecified unless the function says untouched.
 - **Aliasing.** Inputs are taken by value or read completely before an output is written, so an output may share storage with any input (`solveLinearMultiRhs(a, b, b)`, `tridiagonalSolve(v, v, v, v)`, `lowRankUpdateInverse(a, a, a)`).
@@ -89,7 +89,7 @@ Common conventions:
 - **`freivaldsProductCheck(a, b, c, rounds, seed)`** compares `A (B r)` with `C r` for `rounds` random vectors, `O(rounds (n m + m k + n k))`. Monte Carlo, one-sided: `false` proves `A B != C`; `true` is wrong with probability at most `(2 / min(p, 2^31))^rounds` over a prime field (`2^-31` per round over overflow-free integers). Composite rings void the bound.
 - **`schwartzZippelIdentityCheck<T>(f, vars, rounds, seed)`** evaluates a black-box polynomial `f(vector<T>)` at `rounds` random points. `false` proves `f != 0`; `true` is wrong with probability at most `(2 d / min(p, 2^31))^rounds` for total degree d (Schwartz–Zippel). Monte Carlo, one-sided.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Legacy | Replacement |
 |---|---|
@@ -106,7 +106,7 @@ Common conventions:
 | `matrixRankReal` (P276 rename, 2026-11-10) | `matrixRankApprox` |
 | `determinantReal` (P276 rename, 2026-11-10) | `determinantApprox` |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`16-linear_algebra_tester.py`](<../../96-Local Testing/05-Mathematics/16-linear_algebra_tester.py>), with C++ cases in `16-linear_algebra_tester.cpp`. Every check uses the tester's own oracle code; `validateOracles` checks the oracles first.
 
@@ -136,26 +136,35 @@ Oracles:
 | assertion probes | 35 checked-build probes (non-square, ragged rows in every elimination and product, mismatched shapes, `mod < 1`, `rollback` above and below range, low-rank shapes) |
 | builds | header alone; two translation units calling every operation, with and without `-DNDEBUG`, `-Wall -Wextra -Wconversion -Werror` |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1593 MB; optimized 0.1 s compile + 0.5 s run, checked 58.7 s compile + 2.8 s run, ASan-UBSan 61.2 s compile + 5.0 s run; MEMORY peak 2579 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1481 MB; optimized 0.2 s compile + 1.2 s run, checked 90.0 s compile + 4.9 s run, ASan-UBSan 99.3 s compile + 9.4 s run; MEMORY peak 2416 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 144.2 s compile + 0.2 s run, checked 79.5 s compile + 3.8 s run; MEMORY peak 1597 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1609 MB; optimized 0.1 s compile + 1.4 s run, checked 42.5 s compile + 8.1 s run, ASan-UBSan 44.9 s compile + 16.4 s run; MEMORY peak 1598 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`). Every command passed; times are compile + run.
 
-2026-10-28, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan.
+- 2026-11-10, P276 rename: the tester's full mode on g++ and g++-14, stress mode and extraction passed (counts not recorded).
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-```bash
-python3 '96-Local Testing/05-Mathematics/16-linear_algebra_tester.py' --mode quick                                # PASS (pre-flight of each run below); MEMORY peak=966MB
-python3 '96-Local Testing/05-Mathematics/16-linear_algebra_tester.py' --mode full --seed 20261028                 # PASS, 3 configurations, 35 probes, builds, 148,112 checks each; MEMORY peak=1113MB
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/16-linear_algebra_tester.py' --mode full --seed 20261028      # PASS, 3 configurations, 35 probes, builds, 148,112 checks each; MEMORY peak=1133MB
-python3 '96-Local Testing/05-Mathematics/16-linear_algebra_tester.py' --mode stress --seed 7                      # PASS, 584,947 checks each; MEMORY peak=1115MB
-python3 '96-Local Testing/02-integration.py'                                                                      # PASS: 178 standalone/aggregate headers, multi-TU, workspace; MEMORY peak=1392MB
-```
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 0.5 s | 58.7 + 2.8 s | 61.2 + 5.0 s | 2579 MB | 1593 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 1.2 s | 90.0 + 4.9 s | 99.3 + 9.4 s | 2416 MB | 1481 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 144.2 + 0.2 s | 79.5 + 3.8 s | — | 1597 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 1.4 s | 42.5 + 8.1 s | 44.9 + 16.4 s | 1598 MB | 1609 MB |
 
-- Mode coverage: quick runs a tenth of the random cases, full all of them, stress four times as many with fresh seeds; every mode runs every suite, the probes and the build checks.
-- Test programs take about 1 s optimized and 8.5 s checked in full mode; the reported peaks are the compiler.
+- 2026-10-28, P058, the latest run with check counts (optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan). The test programs took about 1 s optimized and 8.5 s checked in full mode; the reported peaks are the compiler.
+
+  ```bash
+  python3 '96-Local Testing/05-Mathematics/16-linear_algebra_tester.py' --mode quick                                # PASS (pre-flight of each run below); MEMORY peak=966MB
+  python3 '96-Local Testing/05-Mathematics/16-linear_algebra_tester.py' --mode full --seed 20261028                 # PASS, 3 configurations, 35 probes, builds, 148,112 checks each; MEMORY peak=1113MB
+  CXX=g++-14 python3 '96-Local Testing/05-Mathematics/16-linear_algebra_tester.py' --mode full --seed 20261028      # PASS, 3 configurations, 35 probes, builds, 148,112 checks each; MEMORY peak=1133MB
+  python3 '96-Local Testing/05-Mathematics/16-linear_algebra_tester.py' --mode stress --seed 7                      # PASS, 584,947 checks each; MEMORY peak=1115MB
+  python3 '96-Local Testing/02-integration.py'                                                                      # PASS: 178 standalone/aggregate headers, multi-TU, workspace; MEMORY peak=1392MB
+  ```
+
+Modes: quick runs a tenth of the random cases, full all of them, stress four times as many with fresh seeds; every mode runs every suite, the probes and the build checks.
 
 ## Benchmarks
 
-Contest profile: no benchmark is required (no Barrett/Montgomery). Ad-hoc probe (`_00_memory_cap.py`, 2026-10-28, GCC 16.2 `-O2 -DNDEBUG`, uniform random entries, seed 1, median of 5), recorded to show Library Checker sizes are comfortable:
+The Contest profile requires no benchmark here (no Barrett/Montgomery). An ad-hoc probe shows that Library Checker sizes are comfortable: `_00_memory_cap.py`, 2026-10-28, GCC 16.2 `-O2 -DNDEBUG`, uniform random entries, seed 1, median of 5, peak memory 22 MB.
 
 | Workload | ms |
 |---|---|
@@ -170,18 +179,20 @@ Contest profile: no benchmark is required (no Barrett/Montgomery). Ad-hoc probe 
 | `matrixPower` / `matrixPowerSum` n = 200, e = 1e18 | 692 / 1176 |
 | `luDecompose` / `solveLinearApprox` n = 500, double | 33 / 27 |
 
-Peak memory 22 MB. Core `10-matrix.hpp` is the fast path for large products.
+Core `10-matrix.hpp` is the fast path for large products.
 
 ## Sources
 
-[00-sources.md](00-sources.md), P058 sweep: Library Checker `linear_algebra` problems, KACTL numerical (`SolveLinear`, `Tridiagonal`, `IntDeterminant`, `MatrixInverse`), maspypy `linalg/solve_linear_lower`, `linalg/basis`, OI Wiki linear algebra (basis, matrix), cp-algorithms (Gauss, determinant, Crout LU). Bareiss: E. H. Bareiss, "Sylvester's identity and multistep integer-preserving Gaussian elimination", Math. Comp. 22 (1968). The code was written independently.
+From [00-sources.md](00-sources.md), P058 sweep: Library Checker `linear_algebra` problems, KACTL numerical (`SolveLinear`, `Tridiagonal`, `IntDeterminant`, `MatrixInverse`), maspypy `linalg/solve_linear_lower`, `linalg/basis`, OI Wiki linear algebra (basis, matrix), cp-algorithms (Gauss, determinant, Crout LU). Bareiss: E. H. Bareiss, "Sylvester's identity and multistep integer-preserving Gaussian elimination", Math. Comp. 22 (1968). The code was written independently.
 
-## Limits and handoffs
+## Limits and Handoffs
 
+- The row is `partial`: `solveLinearDetermined` is missing.
 - Hessenberg reduction, characteristic and minimal polynomials, black-box methods and `det(A + x B)` are row 44 and Core Matrix; permanents, Pfaffians, hafnians row 48; Hermite/Smith forms, integer kernels and `modularSolve` row 49; GF(2) Core `12-bitmatrix.hpp`.
 - `inverse` and `inverseMod` eliminate on the full `[A | I]` width, about 1.5 n^3 multiply-adds instead of the n^3 of an in-place inversion.
 - `tridiagonalSolve`, `cyclicTridiagonalSolve` and `bandedSolve` do not pivot; a nonsingular matrix with a zero leading minor returns `false`, and the caller uses `solveLinear` instead.
-- Rejected candidates are in [00-notes.md](00-notes.md), under P058 research decisions.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+- Rejected candidates are in [00-notes.md](00-notes.md), P058 Research Decisions.
 
 ## Aliases
 
@@ -191,8 +202,8 @@ Search aliases (P263, grab --find): Gaussian elimination, Gauss-Jordan, system o
 
 ## History
 
-- 2026-10-28: P058 initial implementation and verification; the tester found 2 header defects (`-DNDEBUG` unused variables, `lowRankUpdateInverse` with n = 0 < k) and `@reviewer` 8 findings (unbounded `rollback`, unchecked ragged rows, output terms in complexity lines, `FieldBasis` floating guard, aliasing, `determinantInteger` limit tests, 3 keeps recorded), all fixed; quick, full and stress passed on g++, full on g++-14, integration passed.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-28: P058 implementation and verification. The tester found 2 header defects (`-DNDEBUG` unused variables, `lowRankUpdateInverse` with n = 0 < k) and `@reviewer` 8 findings (unbounded `rollback`, unchecked ragged rows, output terms in complexity lines, the `FieldBasis` floating guard, aliasing, `determinantInteger` limit tests, 3 keeps recorded), all fixed; quick, full and stress passed on g++, full on g++-14, integration passed.
+- 2026-11-07: P263 added the search aliases; no code or test change.
+- 2026-11-07: P263 follow-up added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.
 - 2026-11-10: P276 rename (`…Real` → `…Approx`); full on g++ and g++-14, stress and extraction passed.

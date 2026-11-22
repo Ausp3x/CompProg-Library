@@ -1,20 +1,22 @@
-# Online testing
+# Online Testing
 
-`src/` holds canonical judge solutions under `src/<Judge>/<Topic>/` (Title Case directories). The `expanded/` outputs and the `02-expansion.json` manifest are git-ignored artifacts of `01-expander.py`; none exist until the expander runs. The current set has **68 Yosupo C++ sources**: 11 linear algebra, 9 big integer, 46 polynomial and 2 number theory programs. The linear algebra and big integer programs were migrated from the earlier library layout; the polynomial and number theory programs were written and run locally against the regenerated judge tests ([judge sources](Docs/00-judge-sources.md)). Online acceptance has not been verified except where a source comment records it. Source comments identify their problems and the features they exercise.
+Rules for sources, statuses, expansion, submission and the workspace: [06-online.md](../00-Guidelines/06-online.md).
 
-Run the C++ expander from any directory:
+`src/` holds the canonical judge solutions under `src/<Judge>/<Topic>/` (Title Case directories). The current set has **68 Yosupo C++ sources**: 11 linear algebra, 9 big integer, 46 polynomial and 2 number theory programs. The linear algebra and big integer programs were migrated from the earlier library layout; the polynomial and number theory programs were written and run locally against the regenerated judge tests ([judge sources](Docs/00-judge-sources.md)). Online acceptance is verified only where a source's Status line records it.
+
+`01-expander.py` writes `expanded/` and its manifest `02-expansion.json`, both git-ignored, so neither exists until it runs:
 
 ```bash
 python3 "/path/to/library/97-Online Testing/01-expander.py"
 ```
 
-It recursively bundles unexpanded `src/**/*.cpp` (files ending `.expanded.cpp` are excluded even if misplaced under src), preserving relative directories and writing `name.expanded.cpp` under `expanded/`. By default it bundles through [`10-grab.py`](<../09-Contest Testing/10-grab.py>): the template header whole, then only the library declarations the source names, with `#line` directives (`01-matrixproduct` is 45,718 bytes against 68,329 whole). Without libclang grab inlines whole headers and says so. `--bundler oj-bundle` (or a path to it) runs `oj-bundle` instead, with a per-file timeout of 120 seconds (`--timeout`); install it with `python -m pip install online-judge-verify-helper`. If bundling fails, the command exits nonzero and keeps prior outputs. Cleanup of orphaned manifest-owned outputs is on by default (`--clean`); use `--noclean` to retain them. Modified generated files are protected from overwrite or deletion. Python sources may remain standalone under `src/`; this tool reports them but supports C++ expansion only.
+It bundles through [`10-grab.py`](<../09-Contest Testing/10-grab.py>); measured bundle sizes are in [00-extraction.md](<../96-Local Testing/Docs/00-extraction.md>). Without libclang grab inlines whole headers and says so. `--bundler oj-bundle` (or a path to it) runs `oj-bundle` with a per-file timeout of 120 seconds (`--timeout`); install it with `python -m pip install online-judge-verify-helper`. Generated files that were modified by hand are never overwritten or deleted. Python sources may stay standalone under `src/`; the expander reports them and bundles C++ only.
 
-`04-submit.py` is the maintainer's submission tool and never Claude's (the shell hook refuses it): `python3 '97-Online Testing/04-submit.py' login` once, `list` for every Yosupo source with its state (`new`, `current`, `stale`), and `python3 '97-Online Testing/04-submit.py' [numbers, ranges, problems, file names, globs, new, stale or all]` to expand, confirm, submit, wait for verdicts and record each AC in the source's Status line; with no selection it lists and asks. Rules: [06-online.md](../00-Guidelines/06-online.md); evidence: [judge sources](Docs/00-judge-sources.md).
+`04-submit.py` is the maintainer's submission tool: `python3 '97-Online Testing/04-submit.py' login` once, `list` for every Yosupo source with its state, and `python3 '97-Online Testing/04-submit.py' <selection>` to submit; with no selection it lists and asks. Evidence: [judge sources](Docs/00-judge-sources.md).
 
-`03-workspace.py` regenerates the standalone `99-Workspace/template.cpp` snapshot from `01-Core/01-template.hpp` and `02-debug.hpp`; after template or debug changes, `--check` displays a diff and exits nonzero if the snapshot is stale. Snapshot contents and the regeneration rule: [06-online.md](../00-Guidelines/06-online.md). Evidence: [workspace verification](Docs/00-workspace-verification.md).
+`03-workspace.py` regenerates `99-Workspace/template.cpp`; `--check` prints a diff and exits nonzero when the snapshot is stale. Evidence: [workspace verification](Docs/00-workspace-verification.md).
 
-## Judge coverage backlog
+## Judge Coverage Backlog
 
 [library-checker-coverage.json](../00-Guidelines/Ledgers/library-checker-coverage.json) maps Library Checker problem families to planned canonical targets; it adds no solutions or acceptance records. After a target's API and local tests stabilize, add the relevant small judge wrapper and record the feature it exercises:
 
@@ -26,4 +28,4 @@ It recursively bundles unexpanded `src/**/*.cpp` (files ending `.expanded.cpp` a
 | CSES, AtCoder, AOJ, Codeforces, Luogu, SPOJ, Kattis and other suitable judges | Complementary domains and practical limits; constructive/numerical validators and problem-specific interactive/scored adapters where applicable. These are future source groups, not existing directories or accepted submissions. |
 | Python subset | Standalone judge programs for deliberately selected Python algorithms; a Python dependency bundler remains unimplemented. |
 
-Wrapper statuses and acceptance records: [06-online.md](../00-Guidelines/06-online.md). The repository has no CI.
+CI runs no judge sources.

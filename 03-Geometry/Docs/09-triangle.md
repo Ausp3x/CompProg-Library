@@ -1,15 +1,15 @@
-# 09-triangle.hpp — evidence
+# 09-triangle.hpp — Evidence
 
-Implementation: [09-triangle.hpp](../09-triangle.hpp). Prerequisites C01/P002, C05 and C06/P019, GE01/P007 and GE02/P008 are verified. Both geometry aggregates include the header. Owned by package P009 / GE23. Every operation in the row has a test with an independent oracle.
+Implementation: [09-triangle.hpp](../09-triangle.hpp), owned by package P009 / GE23 and included by both geometry aggregates. Its prerequisites C01/P002, C05 and C06/P019, GE01/P007 and GE02/P008 are verified. Every operation in the row has a test with an independent oracle.
 
 ## Contracts
 
-### Common numeric policy
+### Common Numeric Policy
 
-- Every operation takes O(1) time and O(1) storage. The exceptions: `Triangle2::centroid`, `circumcenter` and `orthocenter` normalize a `RationalPoint2` by gcd in O(log(C)) word operations, C <= 1.5 * 10^29; `circumradius2` multiplies a fixed number of big integers of O(1) words, which allocate. No other operation allocates. There is no size threshold, competing asymptotic algorithm or ISA path, so this contest-profile header has nothing to benchmark.
+- Every operation takes O(1) time and storage, except that `Triangle2::centroid`, `circumcenter` and `orthocenter` normalize a `RationalPoint2` by gcd in O(log(C)) word operations, C <= 1.5 * 10^29, and `circumradius2` multiplies a fixed number of big integers of O(1) words, which allocate. No other operation allocates. With no size threshold, competing algorithm or ISA path, the header has nothing to benchmark.
 - Exact APIs (`Triangle2`, `Barycentric2`) use integral `point` coordinates in [-10^9, 10^9]; determinants widen to `lll` before multiplication. Public fields must keep that domain.
 - Approximate APIs (`TriangleApprox`, `heronAreaApprox`) follow the `CircleApprox` policy of [00-notes.md](00-notes.md#ge02-numeric-policy-p008). Overflow, or a nonzero divisor erased by rounding, is a precondition violation, not a no-answer result.
-- Every failed bool query leaves its output unchanged, even when that output aliases a vertex.
+- A failed bool query leaves its output unchanged, even when the output aliases a vertex.
 
 ### Barycentric2
 
@@ -49,7 +49,7 @@ Exact homogeneous weights `w` relative to `(a, b, c)` with denominator `d > 0` a
 
 `heronAreaApprox(a, b, c, out)` takes finite nonnegative sides in any order. An impossible triangle returns false with `out` unchanged. Triangle-inequality equality, including collapsed and zero-side cases, returns true with area zero. The four Kahan factors must be finite, and a positive result must be representable; the quartic product itself need not fit the floating range. Heron improves the evaluation of the supplied lengths but does not certify the original coordinates.
 
-### Correctness and arithmetic bounds
+### Correctness and Arithmetic Bounds
 
 Integral differences have magnitude at most 2 * 10^9, so every determinant and dot product is at most 8 * 10^18 and fits `lll`. Centroid numerators are at most 3 * 10^9. The barycentric numerators are the three oriented subtriangle areas. Their sum equals the full determinant, and their coordinate-weighted sum equals the full determinant times the query point. The exact circumcenter solves `2 * dot(u, x) = |u|^2`, `2 * dot(v, x) = |v|^2` for `x = O - a` by Cramer's rule, whose determinant is `4 * cross(u, v)`; the squared radius is the law of sines `R = |bc| / (2 sin A)` with `sin A = |cross(u, v)| / (|u| |v|)`. `locate` multiplies each edge orientation `orient(a, b, p)`, `orient(b, c, p)`, `orient(c, a, p)` by the triangle's own sign `o`. For `o != 0` the closed triangle is the intersection of the three closed halfplanes left of its edges after that normalization, so a negative product means outside, all positive means interior, and otherwise `p` lies on an edge line inside the other two halfplanes, which is that edge. For `o == 0` the closed point set is the convex hull of collinear points, which the union of any two of its three edges covers (the middle point splits it, or one edge spans it). `angleKind` uses the fact that the angle at a vertex is acute, right or obtuse exactly when the dot product of its two edge vectors is positive, zero or negative. At most one angle is non-acute, so the smallest dot product decides the triangle.
 
@@ -59,7 +59,7 @@ Excircle opposite `o`: let `u` and `v` be the edges to the other two vertices, `
 
 Heron sorts `a >= b >= c`, then tests `c - (a - b)`: negative is impossible and zero is degenerate. Otherwise it evaluates Kahan's grouping, `16 * area^2 = (a + (b + c)) * (c - (a - b)) * (c + (a - b)) * (a + (b - c))`. `frexp` splits each factor into a mantissa in [1/2, 1) and an exponent. The four mantissas multiply to a value in [1/16, 1), and the exponents add in an `int`. An odd exponent is made even before the square root, and `scalbn` applies the remaining power of two and the division by four. This avoids an overflowing or underflowing quartic product, and it never normalizes by the largest side, which could erase a tiny third side. The Kahan parentheses require ordinary floating semantics with no unsafe reassociation flags.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
@@ -67,11 +67,11 @@ Heron sorts `a >= b >= c`, then tests `c - (a - b)`: negative is impossible and 
 | `t.circumcenter(p)`, `t.circumradius(r)` | `.c`, `.r` of `circumcircleApprox(t.a, t.b, t.c, out)` |
 | `t.incenter(p)`, `t.inradius(r)` | `.c`, `.r` of `incircleApprox(t.a, t.b, t.c, out)` |
 
-The circle queries returned on 2026-11-15 as the members `t.circumcircleApprox(out)` and `t.incircleApprox(out)` (user decision 2026-11-14); the legacy names above stay removed.
+The circle queries returned on 2026-11-15 as the members `t.circumcircleApprox(out)` and `t.incircleApprox(out)` (user decision 2026-11-14); the legacy names stay removed.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Entry: [09-triangle_tester.py](<../../96-Local Testing/03-Geometry/09-triangle_tester.py>), with its C++ feature suite and the shared contest runner. Python uses only the standard library. Failures print the seed, the reproducing input and operation, and the expected and actual values. The runner adds command, configuration and crash or timeout details.
+Entry: [09-triangle_tester.py](<../../96-Local Testing/03-Geometry/09-triangle_tester.py>), with its C++ feature suite and the shared contest runner; the Python side uses only the standard library. Failures print the seed, the reproducing input and operation, and the expected and actual values; the runner adds command, configuration and crash or timeout details.
 
 | Feature or edge class | Independent verification |
 |---|---|
@@ -104,9 +104,9 @@ Approximate constructions without a tighter oracle use a scaled absolute or rela
 | full | 18,225 grid cases, 2,009 exact, 369 Heron, 406 excircle, 380 angle, 4,635 orient/locate and 367 center fixtures, 2,000 random constructions; optimized, checked and ASan/UBSan builds |
 | stress | 390,625 grid cases, 12,009 exact, 1,869 Heron, 2,406 excircle, 2,217 angle, 26,539 orient/locate and 2,161 center fixtures, 12,000 random constructions |
 
-## Commands and results
+## Commands and Results
 
-P009 re-audit run, 2026-11-15 (experiment: none): Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and the floor compiler GCC 14.4.1 (`CXX=g++-14`), Python 3.14, GNU++20, other worktree sessions running beside it; times are wall-clock under that load.
+Package run, 2026-11-15 (P009 re-audit, experiment none): Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and the floor compiler GCC 14.4.1 (`CXX=g++-14`), Python 3.14, GNU++20, with other worktree sessions running; times are wall-clock under that load.
 
 | Command | Result |
 |---|---|
@@ -115,7 +115,7 @@ P009 re-audit run, 2026-11-15 (experiment: none): Linux x86-64, Intel Core i9-11
 | Stress, seed 42, optimized | PASS, 22,224,602 checks, 18.7 s run; peak 38 MB |
 | `05-extraction.py ops --filter 03-Geometry/09-triangle.hpp` | PASS, 35 operations in 30 extractions on g++ and g++-14 |
 | `05-extraction.py testers --filter 09-triangle` | PASS, 18 names, quick run on the extracted build |
-| `04-mutation.py run 03-Geometry/09-triangle.hpp` (whole file, survivor retest with `--workdir`, then the changed lines) | Records in Mutation testing; `check` PASS |
+| `04-mutation.py run 03-Geometry/09-triangle.hpp` (whole file, survivor retest with `--workdir`, then the changed lines) | See Mutation Testing; `check` PASS |
 | `02-integration.py` | PASS, 190 standalone and aggregate headers, scalar and available AVX2 multi-TU builds, workspace; peak 3,204 MB |
 | `03-consistency.py`; `--braces` on header and tester | No errors; no closing-brace, comment-cap or free-function violations |
 
@@ -131,31 +131,31 @@ python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/09-triangle.hp
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-## Mutation testing
+## Mutation Testing
 
 Record: mewt 4.0.0 on blob `0cd148b10679c6d80b6ea7c866fc42b419c6a812` (2026-11-15, seed 1, 3 lines changed since blob `99b16b9bb740`): 52 mutants, 52 caught (0 by timeout), 0 survived, 0 untested.
 
-Stage times: quick 184 s, full optimized 7 s, full checked and ASan/UBSan 33 s. This run (the `/finish` fixes: the excircle gap assertion and the `circumradius2` integral-type guard) left no survivor. Every survivor of the two campaigns before it (blob `99b16b9bb740`, 30 changed-line mutants; blob `6a0792c4d4ad`, 500 of 1,008 mutants) that is not closed by a test is equivalent; lines are those of the current blob:
+Stage times: quick 184 s, full optimized 7 s, full checked and ASan/UBSan 33 s. This run, on the `/finish` fixes (the excircle gap assertion and the `circumradius2` integral-type guard), left no survivor. The open survivors below come from the two earlier campaigns of 2026-11-15 (a whole-file sample of 500 of 1,008 mutants, then 30 changed-line mutants); each is equivalent. Line numbers are those of the current blob.
 
 | Mutant | Line | Why equivalent |
 |---|---|---|
 | `AS 215`, `AS 233`, `AS 235` | 32, 81 | `angleApprox` uses `abs(cross)` and `dot`, and `dot` is symmetric; swapping its arguments gives the same bits |
 | `AS 226` | 55 | `cross(v, u) == -cross(u, v)` exactly; `s` is used through `s == 0`, `abs(s)` and `s / q * s`, all sign-blind |
 | `COS 928` | 98 | `d == 0` already returned false two lines earlier |
-| `AOS 789`, `AOS 793`, `AOS 797` (this run; `AOS 797` also in the first) | 103 | `o` is `1` or `-1` in that branch, so `* o` equals `/ o` |
+| `AOS 789`, `AOS 793`, `AOS 797` (the changed-line campaign; `AOS 797` also the whole-file one) | 103 | `o` is `1` or `-1` in that branch, so `* o` equals `/ o` |
 | `AS 251`, `AS 252`, `AS 253` | 111 | `swap(b, a)` is `swap(a, b)` |
 | `LOS 864`, `COS 980` | 119 | for finite sides with `gap > 0` every Kahan factor is positive; an overflowing factor reaches the final `isfinite(area)` assertion, which the `heron-factor-overflow` probe still trips |
 
 ## Sources
 
-Read on 2026-09-27; the completeness sweep was added on 2026-10-07, and the 2026-11-15 re-audit sources (CGAL `circumcenter`, `squared_radius`, `side_of_bounded_circle` and `Triangle_2`; hitonanode `triangle.hpp`; suisen `geometry.hpp`) are in [00-sources.md](00-sources.md) under "P009 re-audit, fetched 2026-11-15". The implementation is written from geometric and arithmetic identities, and no external code was copied. Completeness-sweep candidates not adopted are in [00-notes.md](00-notes.md#p009-completeness-decisions-2026-10-07).
+Read on 2026-09-27, with the completeness sweep added on 2026-10-07; the 2026-11-15 re-audit sources (CGAL `circumcenter`, `squared_radius`, `side_of_bounded_circle` and `Triangle_2`; hitonanode `triangle.hpp`; suisen `geometry.hpp`) are in [00-sources.md](00-sources.md) under "P009 re-audit, fetched 2026-11-15". The implementation follows geometric and arithmetic identities; no external code was copied. Completeness-sweep candidates not adopted are in [00-notes.md](00-notes.md#p009-completeness-decisions-2026-10-07).
 
 - [William Kahan, *Miscalculating Area and Angles of a Needle-like Triangle*](https://people.eecs.berkeley.edu/~wkahan/Triangle.pdf), revision of September 4, 2014, sections 1–4 (printed pages 2–4): naive Heron cancellation, decreasing-side ordering, the triangle-inequality test and the parenthesized four-factor formula. Its error analysis excludes overflow and underflow; the exponent-separated product is this implementation's own extension.
 - MathWorld [Barycentric Coordinates](https://mathworld.wolfram.com/BarycentricCoordinates.html), [Triangle Centroid](https://mathworld.wolfram.com/TriangleCentroid.html), [Orthocenter](https://mathworld.wolfram.com/Orthocenter.html), [Incenter](https://mathworld.wolfram.com/Incenter.html) eq. (2), [Inradius](https://mathworld.wolfram.com/Inradius.html) eqs. (2)–(7), [Exradius](https://mathworld.wolfram.com/Exradius.html) eqs. (1)–(6) (area / semiperimeter gap, product and sum identities), [Nine-Point Center](https://mathworld.wolfram.com/Nine-PointCenter.html) and [Nine-Point Circle](https://mathworld.wolfram.com/Nine-PointCircle.html) eq. (3).
 - CGAL Kernel `angle` (see [00-sources.md](00-sources.md)): acute, right and obtuse classification by the sign of a dot product.
 - Preserved `OLD/Team Notebook/main.tex`, lines 232–234, has the elementary Heron formula; `heronAreaApprox` covers it. No other legacy triangle code needs migration, and the archive bytes are unchanged.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 The row covers planar single-triangle measurements, coordinates, orientation and point location, vertex angles, affine images, the angle kind and the named centers and circles above, exact for the circumcenter, squared circumradius and orthocenter of an integral triangle. An approximate `locate` is left out: a boundary is not decidable from rounded coordinates. Follow-up for P019: `Rational<InfIntMini>::toLongDouble` does not compile, so a caller who needs `circumradius2` as a float passes `InfInt`. Follow-up for row 14 (outside this package): `EnclosingCircle::center` and `radius2` repeat the formulas of `Triangle2::circumcenter` and `circumradius2` for three support points and could call them. Arbitrary catalogs of named triangle centers are not implied. Triangle and polygon clipping, triangulation, geometric medians and the Fermat point, 3D line-triangle intersection, spherical triangles and certified predicates belong to their later inventory rows.
 
@@ -169,7 +169,7 @@ Search aliases (P263, grab --find): 海伦公式, 海龙公式, 三角形面积,
 - 2026-10-07: re-audit, added `angleKind`; 4 findings fixed (excircle gap cancellation, Heron oracle misclassifying dyadic degenerate sides, `; }` closings, excircle contract conditioning); full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `TriangleApprox` circumcircle, incircle, circumcenter, incenter, circumradius and inradius (cases moved to `circumcircleApprox` and `incircleApprox`); full suite passed on g++ and g++-14.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): excircle references printed to 40 digits instead of 30, which binary128 `long double` needs; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
-- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.
+- 2026-11-07: P263 follow-up added Chinese search aliases (common names, Simplified and Taiwan or Hong Kong terms); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; inputs and checks unchanged; the library-wide runs passed. The header gained `[[maybe_unused]]` on names only an `assert` uses, with no logic change and no mutation campaign (user decision 2026-11-10).
 - 2026-11-15: P009 re-audit, added `TriangleApprox::angles`, `transform`, `circumcircleApprox`, `incircleApprox` and `Triangle2::orient`, `locate`, `circumcenter`, `circumradius2`, `orthocenter` (user decisions 2026-11-14 and 2026-11-15); first mutation campaign; @reviewer found 2 wrong equivalence claims (COS 895, rounding pinned by the user; AS 221, signed zero), both closed by regressions, plus ledger and documentation fixes; 3 probes added; full suite passed on g++ and g++-14, stress and extraction passed.
 - 2026-11-15: /finish P009: excircle asserts a normal gap `g` (2 probes; the unrepresentable-exradius probe moved past it), `circumradius2` rejects integral `I` at compile time, the member-circle failure messages print both circles, a signed-zero regression, the circumcenter formula sign and the excircle accuracy and range claims fixed, row 09 grouped by struct; fixes in `01-point.hpp` and `02-line_segment.hpp` by user decision (their evidence); changed-lines mutation campaign caught all 52 mutants; full suite passed on g++ and g++-14, stress, extraction and `02-integration.py` passed.

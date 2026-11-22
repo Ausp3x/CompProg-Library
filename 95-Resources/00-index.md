@@ -2,9 +2,9 @@
 
 Offline reading for the library. Open only the relevant reference or chapter; these copies are not verified implementations.
 
-Maintenance: prefer author/project downloads, avoid duplicate editions, keep original contents/notices, and record URL, retrieval date, edition and SHA-256 in [99-sources.json](99-sources.json). Files and folders use `NN-descriptive_name`; inside `11-NOI.PH Notes` the number precedes the original title. Check reuse terms before adapting or redistributing material. Agner Fog's PDFs permit local study but prohibit public mirrors. Library implementation rules remain in [the focused guides](../00-Guidelines/00-index.md), including Core-only ISA specialization.
+Maintenance: prefer the author's or project's download, keep one edition, keep original contents and notices, and record URL, retrieval date, edition and SHA-256 in [99-sources.json](99-sources.json). Files and folders use `NN-descriptive_name`; inside `11-NOI.PH Notes` the number precedes the original title. Check reuse terms before adapting or redistributing material: Agner Fog's PDFs permit local study but prohibit public mirrors. Implementation rules stay in [the guidelines](../00-Guidelines/00-index.md).
 
-`00-Inbox/` (git-ignored) receives the files a session asks the user for because it could not open them (`00-Guidelines/01-principles.md`, Evidence); the evidence that cites one records its title, URL, SHA-256 and the pages read. A file worth keeping moves into the list below with a manifest entry.
+`00-Inbox/` (git-ignored) receives the files a session asks the user for because it could not open them; what the citing evidence records: [01-principles.md](../00-Guidelines/01-principles.md), Evidence. A file worth keeping moves into the list below with a manifest entry.
 
 User-provided: [Competitive Programmer's Handbook — Antti Laaksonen](<01-competitive_programmers_handbook-laaksonen.pdf>) and [NOI.PH lecture notes](<11-NOI.PH Notes>) (29 PDFs, the two C++ notes first).
 
@@ -30,4 +30,4 @@ Downloads (15 PDFs); sources are linked beside each, and edition details and che
 
 Additional online reading: [Algorithms for Modern Hardware — Sergey Slotin](https://en.algorithmica.org/hpc/) and [robust geometric predicates — Jonathan Richard Shewchuk](https://www.cs.cmu.edu/~quake/robust.html). The broader [research source list](../00-Guidelines/09-sources.md) covers maintained libraries, judges, notebooks and multilingual references, and the excluded sources.
 
-The [completeness audit](../00-Guidelines/History/2026-09-27-inventory-audit.md) and [inspected-source record](../00-Guidelines/Ledgers/research-sources.json) add algebra systems, computational-geometry/graph toolkits, dynamic succinct structures, current multilingual contest libraries and research papers as source categories. They distinguish catalog inspection from detailed reading; online references are not additional offline downloads.
+The [completeness audit](../00-Guidelines/History/2026-09-27-inventory-audit.md) and the [inspected-source record](../00-Guidelines/Ledgers/research-sources.json) add algebra systems, computational-geometry and graph toolkits, dynamic succinct structures, current multilingual contest libraries and research papers as source categories, and tell catalog inspection from detailed reading.

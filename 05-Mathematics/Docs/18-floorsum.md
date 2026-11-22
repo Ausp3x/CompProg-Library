@@ -1,4 +1,4 @@
-# 18-floorsum.hpp — evidence
+# 18-floorsum.hpp — Evidence
 
 `18-floorsum.hpp` covers floor sums of linear functions, modular linear sequences (sums, counts, extrema, first hits) and quotient blocks of `floor(n / x)`. It depends only on `01-mod_arithmetic.hpp` (`floorDiv`, `ceilDiv`, `modNorm`). Every operation is deterministic and allocation-free except `enumerateQuotients`, whose output is `O(sqrt(n))`.
 
@@ -19,6 +19,7 @@ Correctness and widths: after the fold, `a, b < m < 2^63` and `n < 2^63`, so `y 
 `floorSumWide(n, m, a, b)` is `floorSum` for a 128-bit modulus. It takes `n >= 0`, `1 <= m < 2^127` and any `lll` `a`, `b`, and returns the sum modulo 2^128, exact when the true sum fits `lll`.
 
 Algorithm:
+
 - `a` and `b` are folded into `[0, m)` by `floorDiv`, contributing `q n (n - 1) / 2` and `q n`. The remainder `a - q m` is formed in `ulll`, because `q m` alone can leave `lll` (`a = -2^127`, `m = 3`).
 - The kernel `floorsum_detail::reducedWide` runs the same Euclidean loop as `reduced` with 128-bit `m`, `a`, `b`.
 - Each round needs `(a n + b) / m` and its remainder, where `a, b < m < 2^127` and `n < 2^63`. `divStep` forms the 191-bit numerator from two 64-by-64-bit partial products (the low and high halves of `a` times `n`) and an addition, propagating both carries. When the numerator fits 128 bits it divides directly. Otherwise the numerator is below `m 2^63`, so `m > 2^65`, and one step of Knuth's Algorithm D gives the quotient word:
@@ -28,11 +29,12 @@ Algorithm:
   - the remainder is `(<r, u0> − q d0) >> s`, computed modulo 2^128 because it lies in `[0, d)`.
 
 Widths:
+
 - The quotient is at most `n < 2^63`, and the loop keeps `a, b < m`.
 - With `T = <u2, u1> < d / 2 < (d1 + 1) 2^63`, `u2 < d1`, so the estimate fits one word. It exceeds the true quotient by at most 1: `q − X / d <= T / d1 − T / (d1 + 1) = T / (d1 (d1 + 1)) < 2^63 / d1 <= 1` for the shifted numerator `X`. So the correction runs at most once; Knuth's general bound of 2 cannot occur here.
 - That makes `O(log(m))` rounds of `O(1)` word operations.
 
-Geometry row 19 uses it for rational polygons whose slopes need more than 64 bits (P037). It is kept beside `floorSum` by decision (2026-10-19) for its larger domain.
+Geometry row 19 uses it for rational polygons whose slopes need more than 64 bits (P037). It is kept beside `floorSum` for its larger domain (decision 2026-10-19).
 
 ### modSum, countModInRange
 
@@ -72,18 +74,14 @@ Algorithms, both `O(log(m))`; the extrema recurse at most `log2(m) + 1` levels a
 
 `forEachJointQuotientBlock(vs, f)` with every `v` in `[0, 2^62]` calls `f(l, r)` for every maximal `[l, r)` of `x` in `[1, max v]` on which every `floor(v / x)` is constant. A value below `l` contributes quotient 0 for the rest of the range. The cost is `O(k)` per block for `k` values, and there are at most `sum 2 sqrt(v)` blocks. This is the multi-bound divisor-block loop of Möbius sums.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed | Replacement |
 |---|---|
 | `getFloorSum(n, a, b, mod)` (`OLD/5-Mathematics/14-miscellaneous.hpp`, nonnegative `a`, `b`) | `floorSum(n, mod, a, b)`, any signed `a`, `b` |
 | `floorSumUnsigned` (row only; user decision 2026-10-18) | `ulng(floorSum(n, m, a, b))` for every `ulng` `a`, `b` |
 
-Aliases: ACL `floor_sum`; KACTL `divsum`, `modsum`; maspypy `floor_sum_of_linear`, `mod_sum_of_linear`, `range_freq_of_linear`, `min_of_linear`, `max_of_linear`, `first_mod_range_of_linear`, `floor_range`; Nyaan `sum_of_floor`, `mod_affine_range_counting`, `enumerate_quotient`; hitonanode `get_quotients`; suisen `enumerate_quotients`, `quotient_ranges`, `multiple_quotients_ranges`; ei1333 `sum_of_floor_of_linear`; Library Checker `sum_of_floor_of_linear`, `min_of_mod_of_linear`, `enumerate_quotients`.
-
-Search aliases (P263, grab --find): Euclidean-like algorithm (类欧几里得), floor sum, quotient blocks, number-theoretic sqrt decomposition (数论分块); 类欧几里得算法, 整除分块, 除法分块.
-
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`18-floorsum_tester.py`](<../../96-Local Testing/05-Mathematics/18-floorsum_tester.py>).
 
@@ -99,27 +97,36 @@ Entry: [`18-floorsum_tester.py`](<../../96-Local Testing/05-Mathematics/18-floor
 | Oracle validation | The Python recursions, the value search and the first-hit search are checked against brute force for `n <= 8`, `m <= 7` and `a, b` in `[-9, 9]` before use. |
 | Preconditions | Eleven checked-build death probes: `m = 0` (for `floorSum` and `floorSumWide`), `n < 0`, reversed and oversized ranges, moments with `m = 0`, an empty minimum, `max` with `m = 0`, a negative bound, and negative quotient inputs. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 16 violating calls (zero or negative `m` and `n`, empty and reversed ranges, negative quotient inputs) terminate. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 724 MB; optimized 0.2 s compile + 21.4 s run, checked 12.7 s compile + 30.3 s run, ASan-UBSan 13.3 s compile + 47.0 s run; MEMORY peak 853 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 776 MB; optimized 0.2 s compile + 27.6 s run, checked 18.8 s compile + 40.3 s run, ASan-UBSan 17.9 s compile + 54.2 s run; MEMORY peak 912 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 19.6 s compile + 19.6 s run, checked 16.4 s compile + 31.7 s run; MEMORY peak 731 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 62 MB; optimized 0.1 s compile + 28.2 s run, checked 5.3 s compile + 46.2 s run, ASan-UBSan 5.1 s compile + 68.3 s run; MEMORY peak 868 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, Linux x86-64, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14. Every command passed; times are compile + run.
 
-Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. Counts are per configuration. With `-Wall -Wextra -Wconversion`, the header and tester compile without warnings on both compilers.
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-| Command | Result |
-|---|---|
-| `18-floorsum_tester.py --mode full --seed 1` | PASS, 32,095,166 C++ checks (400,160 of them on `divStep`), 3000 Python rows and 3000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=773MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=773MB` |
-| `18-floorsum_tester.py --mode stress --seed 7` | PASS, 160,479,218 C++ checks (2,000,160 on `divStep`), 20,000 Python rows and 20,000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=902MB` |
-| `20-continued_fraction_tester.py --mode full --seed 1` (includes this header), `g++` and `g++-14` | PASS, 3,805,206 checks and 3000 Python rows per configuration, 17 probes, `MEMORY peak=818MB` and `817MB` |
-| `18-floorsum_benchmark.py 5` | PASS; table below |
-| `02-integration.py` | PASS, 168 standalone and aggregate headers, two translation units, workspace, `MEMORY peak=652MB` |
-| `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
-| `03-consistency.py` | No errors |
-| `03-consistency.py --braces` on the header, tester and benchmark | No violations |
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 21.4 s | 12.7 + 30.3 s | 13.3 + 47.0 s | 853 MB | 724 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 27.6 s | 18.8 + 40.3 s | 17.9 + 54.2 s | 912 MB | 776 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 19.6 + 19.6 s | 16.4 + 31.7 s | — | 731 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 28.2 s | 5.3 + 46.2 s | 5.1 + 68.3 s | 868 MB | 62 MB |
+
+- 2026-10-19, P037 round 3, the latest run with check counts. The runner built optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and, in full and stress, ASan/UBSan configurations; counts are per configuration. The header and tester compiled without warnings under `-Wall -Wextra -Wconversion` on both compilers.
+
+  | Command | Result |
+  |---|---|
+  | `18-floorsum_tester.py --mode full --seed 1` | PASS, 32,095,166 C++ checks (400,160 of them on `divStep`), 3000 Python rows and 3000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=773MB` |
+  | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=773MB` |
+  | `18-floorsum_tester.py --mode stress --seed 7` | PASS, 160,479,218 C++ checks (2,000,160 on `divStep`), 20,000 Python rows and 20,000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=902MB` |
+  | `20-continued_fraction_tester.py --mode full --seed 1` (includes this header), `g++` and `g++-14` | PASS, 3,805,206 checks and 3000 Python rows per configuration, 17 probes, `MEMORY peak=818MB` and `817MB` |
+  | `18-floorsum_benchmark.py 5` | PASS; table below |
+  | `02-integration.py` | PASS, 168 standalone and aggregate headers, two translation units, workspace, `MEMORY peak=652MB` |
+  | `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
+  | `03-consistency.py` | No errors |
+  | `03-consistency.py --braces` on the header, tester and benchmark | No violations |
 
 ## Benchmarks
 
-`18-floorsum_benchmark.py 5` (2026-10-19, round 3), GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions. Run serially on the final code, with other sessions keeping the load average near 2.7. Outputs are compared across kernels, and the Farey rank is verified.
+`18-floorsum_benchmark.py 5`, 2026-10-19 (round 3): GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions, run serially on the final code while other sessions kept the load average near 2.7. Outputs are compared across kernels, and the Farey rank is verified.
 
 10^6 random `floorSum` queries with `0 <= a, b < m`:
 
@@ -141,25 +148,34 @@ The word step makes `floorSumWide` 8.1× faster on wide moduli. Below `2^64` bot
 
 ## Sources
 
-Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep). The algorithms were implemented from the stated identities, and no external code was copied.
+Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep). The algorithms were implemented from the stated identities; no external code was copied.
 
 - AC Library `floor_sum`: the unsigned Euclidean loop and its `n, m < 2^32`, modulo 2^64 contract.
 - OI Wiki 类欧几里得算法: the `f`, `g`, `h` recursion, used here only as the Python oracle. The header uses the division-free binomial form.
 - maspypy `mod/` and Library Checker `min_of_mod_of_linear`, `sum_of_floor_of_linear`, `enumerate_quotients`: contracts of the extrema, first hit and quotient enumeration.
 - OI Wiki 数论分块 and suisen `multiple_quotients_ranges`: joint quotient blocks.
-- Round 3 (2026-10-19), from the P037 bounds sweep: [GMP manual, Basecase Division](https://gmplib.org/manual/Basecase-Division) and the [Möller–Granlund division draft](https://www.lysator.liu.se/~nisse/archive/draft-division-paper.pdf) (normalized divisor, word estimate, at most two corrections). `divStep` implements Knuth's Algorithm D for one quotient word from those statements.
+- Round 3 (2026-10-19, P037 bounds sweep): [GMP manual, Basecase Division](https://gmplib.org/manual/Basecase-Division) and the [Möller–Granlund division draft](https://www.lysator.liu.se/~nisse/archive/draft-division-paper.pdf) (normalized divisor, word estimate, at most two corrections). `divStep` implements Knuth's Algorithm D for one quotient word from those statements.
 
-## Limits and handoffs
+## Limits and Handoffs
 
+- The row is `partial`: `forEachCeilQuotientBlock`, `enumerateQuotientsCount`, `floorSumInRange`, `minOfModOfLinearInRange`, `minOfModOfLinearSegments` and `countRepresentableSylvester` are missing.
 - Polynomial-weighted floor sums `sum i^a floor^b` for general `a`, `b`, the universal Euclidean monoid product and convex floor sums are row 55.
 - Recursion depth is at most `log2(m) + 1` for the extrema, `2 log2(m) + 2` for the first hit and `O(log(m))` for `floorSumMoments`.
 - `OLD/5-Mathematics/14-miscellaneous.hpp` stays in `OLD`; there was no `97-Legacy` excerpt.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+Catalog aliases: ACL `floor_sum`; KACTL `divsum`, `modsum`; maspypy `floor_sum_of_linear`, `mod_sum_of_linear`, `range_freq_of_linear`, `min_of_linear`, `max_of_linear`, `first_mod_range_of_linear`, `floor_range`; Nyaan `sum_of_floor`, `mod_affine_range_counting`, `enumerate_quotient`; hitonanode `get_quotients`; suisen `enumerate_quotients`, `quotient_ranges`, `multiple_quotients_ranges`; ei1333 `sum_of_floor_of_linear`; Library Checker `sum_of_floor_of_linear`, `min_of_mod_of_linear`, `enumerate_quotients`.
+
+Search aliases (P263, grab --find): Euclidean-like algorithm (类欧几里得), floor sum, quotient blocks, number-theoretic sqrt decomposition (数论分块); 类欧几里得算法, 整除分块, 除法分块.
+
 
 ## History
 
-- 2026-10-18: P060 initial implementation; `@reviewer` found 8 package issues, all fixed; full suite passed on g++ and g++-14, stress seed 7 and integration passed.
-- 2026-10-19: P037 added `floorSumWide` for geometry row 19; review fixes (coefficient reduction modulo `2^128`, direct division when the numerator fits 128 bits) and a tester overflow caught by the stress run; full suite passed on g++ and g++-14, stress seed 7 passed.
-- 2026-10-19 (round 3): `divStep` became one Knuth D word step with at most one correction (mutation checks on a private copy caught four planted faults); review found a 128-bit shift reachable by a negative modulus under `NDEBUG` (split, UB-free) and pinned shift-62 moduli; final full suite passed on g++ and g++-14, stress seed 7 and row 20 full passed.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-18: P060 implementation; `@reviewer` found 8 package issues, all fixed; full passed on g++ and g++-14, stress seed 7 and integration passed.
+- 2026-10-19: P037 added `floorSumWide` for geometry row 19, with review fixes (coefficient reduction modulo `2^128`, direct division when the numerator fits 128 bits) and a tester overflow the stress run caught; full passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19: P037 round 3 made `divStep` one Knuth D word step with at most one correction (mutation checks on a private copy caught four planted faults); the review found a 128-bit shift reachable by a negative modulus under `NDEBUG` (split, UB-free) and pinned shift-62 moduli; full passed on g++ and g++-14, stress seed 7 and row 20 full passed.
+- 2026-11-07: P263 added the search aliases; no code or test change.
+- 2026-11-07: P263 follow-up added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.

@@ -1,46 +1,46 @@
-# Duplicate and omission re-review 2026-11-10 (P275)
+# Duplicate and Omission Re-Review 2026-11-10 (P275)
 
-P275 (SUP26) re-reviewed three groups under `03-cpp.md` (One API per operation), as widened on 2026-11-08:
+P275 (SUP26) re-reviewed three groups under `03-cpp.md` (One API per Operation), as widened on 2026-11-08:
 
 - the pending items of [duplicates.md](../duplicates.md);
 - the removals of the 25 `Pxxx: prune duplicates` commits;
 - every omission recorded before 2026-11-08.
 
-The decisions that bind it are in the Recorded decisions of [omissions.md](../omissions.md) and [duplicates.md](../duplicates.md), and in [10-decisions.md](../../10-decisions.md) (2026-11-08 One API by context; 2026-11-10 P275 re-review).
+The decisions that bind it are in the Recorded Decisions of [omissions.md](../omissions.md) and [duplicates.md](../duplicates.md), and in [10-decisions.md](../../10-decisions.md) (2026-11-08 One API by Context, Operation Names, Source Keys; 2026-11-10 P275 Re-Review).
 
 ## Contracts
 
-### Legacy guard
+### Legacy Guard
 
 An item returns to a row only if all three hold:
 
 1. the rule keeps it;
 2. a current catalog, judge problem or standard text names it (`OLD`, `97-Legacy` and legacy code never count);
-3. it comes back as a call to its owner, under a name that follows `02-structure.md` (Operation names).
+3. it comes back as a call to its owner, under a name that follows `02-structure.md` (Operation Names).
 
 Implemented operations that the ledger keeps were re-classified under the rule only. Limits lists the four keeps that cite no source.
 
-### Held items
+### Held Items
 
-An item whose source or name is still an open question is not added to its row. It waits in `omissions.md` (Open questions), and its owner's plan note points there.
+An item whose source or name is still an open question is not added to its row. It waits in `omissions.md` (Open Questions), and its owner's plan note points there.
 
 | Package | Held items |
 |---|---|
 | P027 | `LazySegmentTree` point combine |
 | P043 | `TwoSat::answerLexicographic` |
-| P045 | `maxCostFlow` |
+| P045 | `maxCostFlow`: adopted into row 20 on 2026-11-22 (user decision, source CF 884F; `omissions.md`, Recorded Decisions) |
 | P013, P009, P072 | `multisetPermutationCount`, `TriangleApprox::circumcircle`, `incircle` and Miscellaneous row 29 `knapsack01`: each conforming name is a removed or legacy one |
 
-### User decisions of 2026-11-10
+### User Decisions of 2026-11-10
 
 **Re-review.** These are recorded in `omissions.md`.
 
 - **Rare omissions.** Omissions left out only as rare, one-catalog, low-value or of no contest use are re-read too. In `08-Python`, "low PyPy value" still counts as a reason.
 - **GR13, GR27 and GR32.** Their 2026-10-28/29 confirmations yield to the 2026-11-08 adoption.
 - **CGAL families.** The families the 2026-09-27 Geometry audit excluded return as planned Esoteric rows, owned by new research packages.
-- **Open questions.** Item-level questions go to the ledgers' Open questions, and the owning packages settle them.
+- **Open questions.** Item-level questions go to the ledgers' Open Questions, and the owning packages settle them.
 
-**`/finish`.** These are recorded in `omissions.md`, `duplicates.md` (Rulings), `02-structure.md` (Tiers) and `10-decisions.md`.
+**`/finish`.** These are recorded in `omissions.md`, `duplicates.md` (Rulings), `02-structure.md` (Tiers and Core Order) and `10-decisions.md`.
 
 - **NetworkX families.** The families left out of Graphs join planned row 97: communities, link analysis, similarity, summarization, small-world, structural holes, swaps and node classification.
 - **CGAL joins.** Spatial Sorting, Polygon Repair, Snap Rounding and Interval Skip List stay joined to the planned rows that own their tasks:
@@ -57,7 +57,7 @@ An item whose source or name is still an open question is not added to its row. 
 - **Members.** A type's member beside a free function for the same operation is another context, so the wrapper stays. This settles `Plane3::distanceApprox`, the `DirichletSeries` prefix functions and `BitsetDP::shiftOr` (P068 names the last).
 - **Flags.** Every flag that chooses between two operations goes to P010's ask, under one ruling: P010's `longest` and `lexicographic` flags, the MST `maximum` flags and `eulerianTrail`'s `lexicographic` flag.
 
-### Pending ledger items
+### Pending Ledger Items
 
 Before, `duplicates.md` held 176 rows in 98 package sections.
 
@@ -70,7 +70,7 @@ Before, `duplicates.md` held 176 rows in 98 package sections.
 | Rows | 176 | 84 |
 | Package sections | 98 | 50 |
 
-- **Keeps.** 112 keeps moved to "Kept by the sweep" (151 lines there before, 263 now).
+- **Keeps.** 112 keeps moved to "Kept by the Sweep" (151 lines there before, 263 now).
 - **Asks.**
   - 11 stay, including P020 `Matrix(vector<T>, bool axis)` (an empty `v` changes the shape), P079 `huffmanCost` and P089 `count2D`.
   - New asks, or keeps reopened as asks:
@@ -108,7 +108,7 @@ Before, `duplicates.md` held 176 rows in 98 package sections.
   - P205's second `kWayMerge` keep: P066's keep covers rows 15 and 44.
 - **Keep stands.** The recorded keep `/=(Matrix)` stands, because MATLAB `mrdivide` names it.
 
-### Prune removals
+### Prune Removals
 
 - All 25 commits were re-read through their `duplicates.md` diffs and their evidence documents' mappings.
 - Every removed name stays removed.
@@ -170,11 +170,11 @@ Before, `duplicates.md` held 176 rows in 98 package sections.
   - Row 97's floating measures take `Approx`.
   - `ExtendedLiChaoTree` takes row 21's `addLine`, `addSegment` and `query`.
 - **Folder records.**
-  - Each `Docs/00-notes.md` in 02–08 has a section "P275 re-review 2026-11-10". It lists the returns per row and the items not returned, and it supersedes every earlier bullet naming a returned item.
-  - Bullets found by name scan or by the review are annotated in place ("returned by P275 2026-11-10 into row …"): 37 notes bullets and the Graphs `Docs/00-sources.md` Not adopted list. The other folders' Not adopted lists are not annotated (Limits).
+  - Each `Docs/00-notes.md` in 02–08 has a section "P275 Re-Review 2026-11-10". Since the 2026-11-22 `/tidy` it is one sentence per folder naming the rows that gained operations; the rows hold the operations, and the items not returned keep their reasons.
+  - The `/tidy` of 2026-11-22 deleted every returned item from the folders' "left out" and Not adopted lists, together with the "returned by P275" markers that 37 notes bullets and the Graphs `Docs/00-sources.md` list carried (user decision 2026-11-22).
 - **Source keys.** `BOOST` and `SYMPY` joined the library key list in `09-sources.md`.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tests: none, as the brief says. Each part was checked as follows.
 
@@ -200,7 +200,7 @@ What the refutation agents changed:
   - `countWalks` to Graphs row 53.
 - **Corrected to Operation names**, for example: `binSearchRealGeometric`, `coprimeFactorization`, `eisensteinNormCount`, `minimumPerimeterTriangleApprox`, `MaxFlow::minCutFewestEdges`.
 
-## Commands and results (2026-11-10)
+## Commands and Results (2026-11-10)
 
 - `python3 '00-Guidelines/13-Plan/plan.py' rank`, `render`, `check`: ok, 285 packages.
 - `python3 '96-Local Testing/03-consistency.py'`: no errors.
@@ -212,10 +212,10 @@ What the refutation agents changed:
 
 ## Sources
 
-- The fetched pages are in each folder's `Docs/00-sources.md`, section "Fetched 2026-11-10 (P275 re-review)".
+- The fetched pages are in each folder's `Docs/00-sources.md`, section "Fetched 2026-11-10 (P275 Re-Review)".
 - SciPy `scipy.linalg.matmul_toeplitz` (<https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.matmul_toeplitz.html>) backs the `toeplitzMultiply` keep.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 ### Limits
 
@@ -227,7 +227,6 @@ What the refutation agents changed:
 
   Their packages' step 3 completes the lists and confirms the semantics, for example `GreedySubtractSegmentTree` and the Geometry 70–72 types.
 - **Keeps that cite no source.** `Voronoi::adjacency`, `convexPolyhedronIntersection`, `BidirectionalFmIndex::count` and `RIndex::count` are existing keeps. Their owners cite a source or fold them in when they next run.
-- **Unannotated bullets.** Not adopted lists outside Graphs `Docs/00-sources.md` are not annotated. The P275 section of each folder's notes supersedes them.
 - **Secondary owners.** P259, P260 and P262 own minis or shared support targets of changed rows and carry no P275 note. The full row's owner implements first.
 - **Unrecorded candidates.** These were found but never recorded as omissions. They wait for the one-problem `/omission-sweep` pass the P275 note asks the user to plan:
   - NetworkX `is_aperiodic`, `dag_to_branching`, `colliders`, `v_structures`, `transitive_closure_dag`;

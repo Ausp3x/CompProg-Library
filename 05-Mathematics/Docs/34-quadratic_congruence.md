@@ -1,28 +1,22 @@
-# 34-quadratic_congruence.hpp — evidence
+# 34-quadratic_congruence.hpp — Evidence
 
-`34-quadratic_congruence.hpp` solves quadratic Diophantine problems:
-
-- Pell equations: the fundamental unit, families, and the generalized equation `x^2 - D y^2 = N`;
-- Cornacchia's equation `x^2 + d y^2 = m`;
-- sums of two, three and four squares, and three triangular numbers;
-- primitive Pythagorean triples and Gauss circle counts;
-- positive definite binary quadratic forms: reduction, Gauss composition, all representations, and the reduced forms of a discriminant.
+`34-quadratic_congruence.hpp` solves quadratic Diophantine problems: Pell equations (the fundamental unit, families and the generalized equation `x^2 - D y^2 = N`); Cornacchia's equation `x^2 + d y^2 = m`; sums of two, three and four squares and of three triangular numbers; primitive Pythagorean triples and Gauss circle counts; and positive definite binary quadratic forms (reduction, Gauss composition, all representations, the reduced forms of a discriminant).
 
 ## Contracts
 
-Inputs are `lng`, and the arithmetic uses `__int128` where products can exceed 64 bits. The class-member enumerations (`x += M` in `cornacchia`, `pellGeneralized` and `represent`) count in `__int128`, so moduli near `2^63` cannot overflow. Nothing is cached. The header calls:
+Inputs are `lng`; the arithmetic uses `__int128` where products can exceed 64 bits, and the class-member enumerations (`x += M` in `cornacchia`, `pellGeneralized` and `represent`) count in `__int128`, so moduli near `2^63` cannot overflow. Nothing is cached. The header calls:
 
 - `07` `factorize`, `isPrime` and `divisors` (Pollard–Brent and Miller–Rabin on Core `Montgomery64`);
 - row 11 `sqrtModPrimeCipolla`;
 - row 33 `sqrtModAll` and `quadraticCongruenceMod`.
 
-It performs no Barrett or Montgomery arithmetic itself, so it needs no Compact twins.
+It performs no Barrett or Montgomery arithmetic itself; the `Compact` twins such headers once needed were superseded on 2026-11-05 by Core type parameters (`10-decisions.md`, 2026-11-05 Mini-First, Completeness First, Extraction).
 
-Violated preconditions return an empty result or the sentinel after the assertion. A `-DNDEBUG` ASan/UBSan probe ran every violated call in 0.6 ms with no undefined behaviour; the calls are listed in [33-modular_square_roots.md](33-modular_square_roots.md), Contracts.
+Violated preconditions return an empty result or the sentinel after the assertion. A `-DNDEBUG` ASan/UBSan probe ran every violated call in 0.6 ms with no undefined behaviour; [33-modular_square_roots.md](33-modular_square_roots.md#contracts) lists the calls.
 
 `quadratic_detail` holds:
 
-- `isqrt`: exact floor square root of any `ulng`, from a `double` estimate corrected with overflow-free divisions. Row 21 will own the public `isqrt`.
+- `isqrt`: exact floor square root of any `ulng`, from a `double` estimate corrected with overflow-free divisions (row 21 owns the public `isqrt`; Limits and Handoffs).
 - `descent(d, m, r)`: Cornacchia's Euclidean descent. Starting from `(m, r)`, it takes remainders until `r^2 < m`, then accepts `(r, y)` when `(m - r^2) / d = y^2`.
 - `gaussPrime(p)`: `a^2 + b^2 = p`, from the square root of -1 by Cipolla.
 - `pellUnit<T>`, `normalize<T>`, `definite` and `reduce`: described below.
@@ -95,11 +89,7 @@ All take `n >= 0` and return their values in descending order.
 3. Accept a perfect square or a prime, which `gaussPrime` splits. A halved remainder `p = a^2 + b^2` gives `2p = (a + b)^2 + (a - b)^2`.
 4. If the scan finds nothing, a second scan over every `z` uses the factoring `twoSquares`; Legendre's theorem guarantees it ends.
 
-The method is deterministic: the Rabin–Shallit idea (a prime remainder is split cheaply) in maspypy's top-down form.
-
-- An ad hoc probe found that the fallback is needed only for `n` = 214, 526 and 1414 and their `4^k` multiples (24 values below `2 * 10^7`). The exhaustive suite covers them.
-- In the same probe the scan tried 4.7 candidates on average for `n <= 2 * 10^7`, and 12.9 (at most 420) for `2 * 10^5` random 63-bit `n`.
-- Expected `O(log(n))` candidates is heuristic: prime density on the quadratic values, unproven, as in Rabin–Shallit. The worst case, through the fallback, is `O(sqrt(n) * n^(1/4) * log(n))`.
+The method is deterministic: the Rabin–Shallit idea (a prime remainder is split cheaply) in maspypy's top-down form. An ad hoc probe found that the fallback is needed only for `n` = 214, 526 and 1414 and their `4^k` multiples (24 values below `2 * 10^7`), which the exhaustive suite covers; the scan tried 4.7 candidates on average for `n <= 2 * 10^7`, and 12.9 (at most 420) for `2 * 10^5` random 63-bit `n`. Expected `O(log(n))` candidates is heuristic (prime density on the quadratic values, unproven, as in Rabin–Shallit); the worst case, through the fallback, is `O(sqrt(n) * n^(1/4) * log(n))`.
 
 `fourSquares(n)` strips `4^a`, takes `threeSquares(m)` or `threeSquares(m - 1) + 1^2` for `m = 7 mod 8`, and scales by `2^a`. It is a separate operation because its domain is every `n`.
 
@@ -147,7 +137,7 @@ The operations:
 
 Search aliases (P263, grab --find): Pell 方程, 佩尔方程, 两平方和, 费马平方和定理, 四平方和定理, 三平方和定理, 勾股数, 二元二次型, 高斯圆问题, 毕氏三元数.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`34-quadratic_congruence_tester.py`](<../../96-Local Testing/05-Mathematics/34-quadratic_congruence_tester.py>).
 
@@ -161,7 +151,7 @@ C++ oracles:
 - `y` scans, repeated multiplication and a hand-written `2 x 2` matrix power for Pell;
 - Nagell-bounded exhaustive scans with class grouping for the generalized equation.
 
-The Python oracle uses constructed factorizations and closed formulas, listed in the table. Limits below are given as quick / full / stress.
+The Python oracle uses constructed factorizations and closed formulas, listed in the table. Limits in the table are quick / full / stress.
 
 | Feature | Oracle and edge classes |
 |---|---|
@@ -179,30 +169,39 @@ The Python oracle uses constructed factorizations and closed formulas, listed in
 | `pellGeneralized` | Every non-square `D <= 40 / 120 / 250` with `x1 <= 10^12`, and every `abs(N) <= 25 / 80 / 150` whose Nagell bound is at most `10^5` (1700 / 17440 scans in quick / full), against the scan grouped into classes (least `y`, then larger `x`), exact list; `iint` agrees with `lll`. `N` near `±2^63` (`±(2^63 - 1)`, `2^62 - 57`): validity. Python: planted `(x0, y0)` with `D <= 10^4` and `abs(N)` up to `10^14`, which must have its class present; validity, distinct classes, order, minimality against both unit neighbours, and the tie rule. With `iint` for `D` in `{1021, 1117, 991, 661, 9949}` (units beyond the `lll` bound) and nine `N`: equation, `(y, x)` order, minimality against both unit neighbours, distinct classes, and `(-1022, 32)` present for `D = 1021`, `N = -1020`. |
 | Preconditions | 24 checked-build probes: `cornacchia` with `d = 0`, `m = 0`, `gcd > 1`; negative `n` for each sum-of-squares function, `pythagoreanTriples` and `gaussCircleCount`; `threeTriangular` above its bound; `pellGeneralized` with a square `D`, `D = 1` and `N = LLONG_MIN`; `reducedForms` with `D > 0` or `D = 2 mod 4`; `reduce` on indefinite and negative definite forms; `compose` across discriminants and on a non-primitive form; `represent` on an indefinite form; `reduce` with coefficients below `2^62` but `abs(D) >= 2^62`; `pellSolutions` with a non-unit. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1031 MB; optimized 0.1 s compile + 13.1 s run, checked 37.5 s compile + 18.6 s run, ASan-UBSan 49.2 s compile + 31.7 s run; MEMORY peak 1544 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1123 MB; optimized 0.2 s compile + 22.2 s run, checked 65.4 s compile + 32.5 s run, ASan-UBSan 88.9 s compile + 47.8 s run; MEMORY peak 1548 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 70.6 s compile + 1.9 s run, checked 42.6 s compile + 5.2 s run; MEMORY peak 1065 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1067 MB; optimized 0.1 s compile + 20.1 s run, checked 16.6 s compile + 27.4 s run, ASan-UBSan 24.2 s compile + 44.6 s run; MEMORY peak 853 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, Arch Linux, GNU++20, GCC 16.2 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14. Every command passed; times are compile + run.
 
-2026-10-17, i9-11900H, Arch Linux, GCC 16.2 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with probes, and ASan/UBSan (full and stress). Counts are per configuration and equal on both compilers.
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-| Command | Result |
-|---|---|
-| `34-quadratic_congruence_tester.py --mode quick --seed 1` | PASS 2 configurations, 236,791 C++ checks and 283 Python cases, 24 probes; MEMORY peak 583 MB |
-| `34-quadratic_congruence_tester.py --mode full --seed 1` | PASS 3 configurations, 2,316,828 C++ checks and 2,112 Python cases, 24 probes; MEMORY peak 753 MB |
-| same with `CXX=g++-14` | PASS, same counts; MEMORY peak 774 MB |
-| `34-quadratic_congruence_tester.py --mode stress --seed 2` | PASS 3 configurations, 6,813,251 C++ checks (68,372 Pell scans) and 8,430 Python cases, 24 probes; MEMORY peak 781 MB |
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 13.1 s | 37.5 + 18.6 s | 49.2 + 31.7 s | 1544 MB | 1031 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 22.2 s | 65.4 + 32.5 s | 88.9 + 47.8 s | 1548 MB | 1123 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 70.6 + 1.9 s | 42.6 + 5.2 s | — | 1065 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 20.1 s | 16.6 + 27.4 s | 24.2 + 44.6 s | 853 MB | 1067 MB |
 
-```bash
-python3 '96-Local Testing/05-Mathematics/34-quadratic_congruence_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/34-quadratic_congruence_tester.py' --mode full --seed 1
-python3 '96-Local Testing/05-Mathematics/34-quadratic_congruence_tester.py' --mode stress --seed 2
-```
+- 2026-10-17, P178, the latest run with check counts. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with probes, and ASan/UBSan (full and stress); counts are per configuration and equal on both compilers.
+
+  ```bash
+  python3 '96-Local Testing/05-Mathematics/34-quadratic_congruence_tester.py' --mode full --seed 1
+  CXX=g++-14 python3 '96-Local Testing/05-Mathematics/34-quadratic_congruence_tester.py' --mode full --seed 1
+  python3 '96-Local Testing/05-Mathematics/34-quadratic_congruence_tester.py' --mode stress --seed 2
+  ```
+
+  | Command | Result |
+  |---|---|
+  | `34-quadratic_congruence_tester.py --mode quick --seed 1` | PASS 2 configurations, 236,791 C++ checks and 283 Python cases, 24 probes; MEMORY peak 583 MB |
+  | `34-quadratic_congruence_tester.py --mode full --seed 1` | PASS 3 configurations, 2,316,828 C++ checks and 2,112 Python cases, 24 probes; MEMORY peak 753 MB |
+  | same with `CXX=g++-14` | PASS, same counts; MEMORY peak 774 MB |
+  | `34-quadratic_congruence_tester.py --mode stress --seed 2` | PASS 3 configurations, 6,813,251 C++ checks (68,372 Pell scans) and 8,430 Python cases, 24 probes; MEMORY peak 781 MB |
 
 The header and tester build with no warnings under `-Wall -Wextra -Wconversion -Werror` on both compilers. With `99-all.hpp` included, the only warning comes from `06-segmentedsieve.hpp:151`, outside this package.
 
 ## Benchmarks
 
-None are required: there is no Barrett, Montgomery or ISA-specific code. An ad hoc timing probe ran at Library Checker scale: `g++ -O2`, seed 1, three runs, median, with every result folded into a checksum. It measured:
+None is required: there is no Barrett, Montgomery or ISA-specific code. An ad hoc timing probe at Library Checker scale (`g++ -O2`, seed 1, median of three runs, every result folded into a checksum) measured:
 
 - 100 `twoSquaresAll` with `n <= 10^18`, half of them multiples of `5 * 13 * ... * 97`: 8.0 ms;
 - `10^5` `threeSquares` with random `n <= 10^18`: 245 ms;
@@ -216,7 +215,7 @@ None are required: there is no Barrett, Montgomery or ISA-specific code. An ad h
 
 ## Sources
 
-[00-sources.md](00-sources.md), P178 sweep:
+From [00-sources.md](00-sources.md), P178 sweep:
 
 - Library Checker `two_square_sum`: output convention and count;
 - OI Wiki Pell and quadratic-form pages;
@@ -233,20 +232,20 @@ The following are cited from their standard published statements; none was fetch
 - Nagell: bounds for the fundamental solutions, used only by the tests;
 - Berggren's tree.
 
-Everything was written independently.
+Everything was written independently. Research decisions are in [00-notes.md](00-notes.md), P178.
 
-Research decisions (adopted and rejected) are in [00-notes.md](00-notes.md), P178.
+## Limits and Handoffs
 
-## Limits and handoffs
-
+- The row is `partial`: `BinaryQuadraticForm::pow`, `principal`, `inverse`, `primeForm` and `order`, `eisensteinNormCount` and `sumOfSquaresAll` are missing.
 - Pell sizes: the fundamental unit has `O(sqrt(D) log(D))` digits. `pellFundamental` and `pellSolutions` with `lll` need the results below `2^127`, and `pellGeneralized` with `lll` needs `64 x1^2 max(|N|, 1) < 2^127`; `iint` has no limit. Modular images of generalized solutions are taken after an exact `iint` run.
 - `threeSquares` has a heuristic expected bound. The deterministic fallback is exponential in the worst case, and was reached only by 214, 526, 1414 and their `4^k` multiples.
 - `BinaryQuadraticForm` is positive definite only. Indefinite reduction cycles and NUCOMP are out of scope (00-notes).
-- `quadratic_detail::isqrt` duplicates the planned row 21 `isqrt` and the private `primality_detail::kthRoot(n, 2)` of `07`. When row 21 is implemented, that package should make this header call it. None of these helpers is public API.
-- Row 57 lists `gaussianPrimeFactor` (two squares of a prime) and `fourSquaresFromHurwitz`, which overlap `twoSquares` and `fourSquares` here. The row 57 package should settle them under One API per operation.
+- `quadratic_detail::isqrt` duplicates row 21 `isqrt` (and the private `primality_detail::kthRoot(n, 2)` of `07`); migrating to it is this package's follow-up ([21-integer_roots.md](21-integer_roots.md#limits-and-handoffs)).
+- Row 57 lists `gaussianPrimeFactor` (two squares of a prime) and `fourSquaresFromHurwitz`, which overlap `twoSquares` and `fourSquares` here; the row 57 package settles them under `03-cpp.md` (One API per Operation).
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## History
 
-- 2026-10-17: P178 initial implementation, `reducedForms` adopted from the sweep, `fourSquares` made deterministic through `threeSquares`, UBSan found 2 overflows (fixed, with regressions), review found 7 issues, all fixed; full suite passed on g++ and g++-14, stress on g++.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-17: P178 implementation; `reducedForms` adopted from the sweep, `fourSquares` made deterministic through `threeSquares`, UBSan found 2 overflows (fixed, with regressions), and the review found 7 issues, all fixed; full passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.

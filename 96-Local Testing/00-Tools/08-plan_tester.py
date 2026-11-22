@@ -1090,16 +1090,16 @@ class Synthetic(Base):
         (core / '00-index.md').write_text('# 01 Core — inventory\n\n| Header | Basic | Operations | Status |\n|---|---|---|---|\n' + row('03-a', 'A: f, g', 'verified')
                                           + row('04-b', 'B: h', 'verified') + row('05-c', 'C: k', 'verified') + row('06-cmini', 'CMini: k', 'verified')
                                           + row('07-d', 'D: m', 'partial') + row('08-e', 'E: q', 'verified') + row('01-template', 'aliases', 'verified'))
-        head = '## Benchmarks\n\n### Optimization candidates\n\nText.\n\n| Operation | Candidate | Verdict | Evidence |\n|---|---|---|---|\n'
+        head = '## Benchmarks\n\n### Optimization Candidates\n\nText.\n\n| Operation | Candidate | Verdict | Evidence |\n|---|---|---|---|\n'
         (core / 'Docs/03-a.md').write_text(head + '| `f`, `g` | select | adopted | GCC 15: 0.91 |\n| `g` | simd | rejected | argument: outside the ISA set |\n| `f` | — | none found: one add | read the code |\n\n## Next\n\n| x | y |\n')
         (core / 'Docs/04-b.md').write_text('## Benchmarks\n')
         (core / 'Docs/05-c.md').write_text(head + '| `k` | table | maybe | 1.0 |\n| `k` | chain | rejected | |\n| `k` | asm | rejected: Deferred | x |\n| `k` | fold | rejected | 1.2 |\n')
         (core / 'Docs/06-cmini.md').write_text('mini\n')
-        (core / 'Docs/08-e.md').write_text('### Optimization candidates\n\nNo table.\n')
+        (core / 'Docs/08-e.md').write_text('### Optimization Candidates\n\nNo table.\n')
         pending, faults, named = PLAN.sweeps(self.root)
         self.assertEqual(pending, ['01-Core/04-b.hpp'], 'a mini, a partial row and the template are not pending')
         self.assertEqual(named, {'01-Core/03-a.hpp': {'f', 'g'}, '01-Core/05-c.hpp': {'k'}})
-        where = 'Optimization candidates (05-testing.md, Benchmarks): 01-Core/'
+        where = 'Optimization Candidates (05-testing.md, Benchmarks): 01-Core/'
         self.assertEqual([f[len(where):].split(':')[0] + ':' + f[len(where):].split(': ')[1].split(' ')[0] for f in faults],
                          ['05-c.hpp:row', '05-c.hpp:row', '05-c.hpp:undecided', '05-c.hpp:verdict', '08-e.hpp:no'], faults)
         self.assertTrue(all(f.startswith(where) for f in faults))
@@ -1161,7 +1161,7 @@ class Synthetic(Base):
         rig.write_text('rig\n')
         doc.write_text('## Benchmarks\n\nThe window size was not tried.\n')
         r, _ = self.gaps('C07', role='maintainer')
-        self.assertEqual(part(r.stdout, undecided), ['01-Core/Docs/10-matrix.md:3: The window size was not tried.', '01-Core/Docs/10-matrix.md: no "### Optimization candidates" table'])
+        self.assertEqual(part(r.stdout, undecided), ['01-Core/Docs/10-matrix.md:3: The window size was not tried.', '01-Core/Docs/10-matrix.md: no "### Optimization Candidates" table'])
         self.assertEqual(part(r.stdout, record), ['01-Core/Docs/10-matrix.md: no Comparison line (96-Local Testing/06-compare.py)'])
         fake = self.bin / 'fakecxx'
         fake.write_text('#!/bin/sh\necho 15.3.0\n')
@@ -1170,7 +1170,7 @@ class Synthetic(Base):
         line = lambda version='15.3.0', extra='': (f'Comparison: 2026-11-17, rig 96-Local Testing/01-Core/10-matrix_compare.cpp {blob(rig)}, base {"b" * 12}, headers '
                                                    f'01-template.hpp {blob(core / "01-template.hpp")} 10-matrix.hpp {blob(core / "10-matrix.hpp")}, fakecxx {version}, {extra}CPU Test, 3 passes, 4 rows, 0 losing over 3%.')
         old = 'Comparison: 2026-11-01, rig gone.cpp aaaaaaaaaaaa, base bbbbbbbbbbbb, headers 10-matrix.hpp cccccccccccc, fakecxx 1.0.0, CPU Test, 3 passes, 4 rows, 0 losing over 3%.'
-        doc.write_text(f'## Benchmarks\n\n### Optimization candidates\n\n| Operation | Candidate | Verdict | Evidence |\n\n{old}\n\n- {line()}\n')
+        doc.write_text(f'## Benchmarks\n\n### Optimization Candidates\n\n| Operation | Candidate | Verdict | Evidence |\n\n{old}\n\n- {line()}\n')
         r, _ = self.gaps('C07', role='maintainer')
         self.assertEqual(part(r.stdout, undecided), ['(none)'])
         self.assertEqual(part(r.stdout, record), ['01-Core/Docs/10-matrix.md: comparison of 2026-11-17 is current'], 'the newest line counts')

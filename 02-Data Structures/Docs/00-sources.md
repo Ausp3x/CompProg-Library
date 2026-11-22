@@ -1,4 +1,4 @@
-# 02 Data Structures — sources
+# 02 Data Structures — Sources
 
 ## Fetched 2026-10-06
 
@@ -24,7 +24,7 @@
 
 Not fetched today: CSES problem set, Koosaga/ecnerwala/verngutz indexes, PyRival (its sorted-list design is already cited by `08-Python`), Open Data Structures PDF. The Library Checker front page and `judge.yosupo.jp/problem/*` pages render client-side and returned no statements.
 
-## Fetched 2026-10-07 (P006 re-audit sweep)
+## Fetched 2026-10-07 (P006 Re-Audit Sweep)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -39,7 +39,7 @@ Not fetched today: CSES problem set, Koosaga/ecnerwala/verngutz indexes, PyRival
 | Nyaan compress; maspypy index_compression | https://nyaannyaan.github.io/library/misc/compress.hpp ; https://maspypy.github.io/library/ds/index_compression.hpp | 2026-10-07 | CoordinateCompression `operator[]` / `idx_to_val` (`decode`). |
 | OI Wiki prefix sums; OI Wiki sqrt decomposition; maspypy prefix_sum, point_set_range_sum_sqrt | https://oi-wiki.org/basic/prefix-sum/ ; https://oi-wiki.org/ds/decompose/ ; https://maspypy.github.io/library/ds/prefix_sum.hpp ; https://maspypy.github.io/library/ds/point_set_range_sum_sqrt.hpp | 2026-10-07 | Considered and not adopted; reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions). |
 
-## Fetched 2026-10-08 (P027 sweep)
+## Fetched 2026-10-08 (P027 Sweep)
 
 Four `@researcher` sweeps for rows 11, 12, 13 and 24; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p027-omissions).
 
@@ -57,7 +57,7 @@ Four `@researcher` sweeps for rows 11, 12, 13 and 24; the adopted operations are
 | OI Wiki segment tree merge/split; Nyaan, tko919, suisen dynamic trees | https://oi-wiki.org/ds/seg-merge-split/ ; https://nyaannyaan.github.io/library/segment-tree/dynamic-segment-tree.hpp ; https://tko919.github.io/library/DataStructure/dynamicsegtree.hpp ; https://tko919.github.io/library/DataStructure/dynamiclazysegtree.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/segment_tree/sparse_segment_tree.hpp | 2026-10-08 | Destructive meld bound, split by key, node recycling, `reserve`; range clear rejected. |
 | suisen range_set, range_foldable_map; Nyaan segment-set; tko919 rangeunionset; maspypy intervals, piecewise_constant; OI Wiki ODT | https://suisen-cp.github.io/cp-library-cpp/library/datastructure/util/range_set.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/range_foldable_map.hpp ; https://nyaannyaan.github.io/library/data-structure/segment-set.hpp ; https://tko919.github.io/library/DataStructure/rangeunionset.hpp ; https://maspypy.github.io/library/ds/intervals.hpp ; https://maspypy.github.io/library/ds/piecewise_constant/piecewise_constant.hpp ; https://oi-wiki.org/misc/odt/ | 2026-10-08 | Interval set counts and `mex`/`next`, map `get`/callback assign/`merge`, ODT `split` and the random-data caveat; fast and splay variants rejected. |
 
-## Fetched 2026-10-10 (P028 sweep)
+## Fetched 2026-10-10 (P028 Sweep)
 
 Three `@researcher` sweeps for rows 14, 15/16 and 30; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p028-omissions). Codeforces blog 57319, CF 438D, Luogu P6242 and the Luogu article returned HTTP 403/523, `judge.yosupo.jp` pages rendered empty, and Ji's 2016 paper and LOJ 6029 were known only from search summaries; none of them is cited as read.
 
@@ -75,7 +75,7 @@ Three `@researcher` sweeps for rows 14, 15/16 and 30; the adopted operations are
 
 Library Checker problem lists came from the local coverage ledger because `judge.yosupo.jp` renders client-side; Luogu P5494 returned HTTP 522.
 
-## Fetched 2026-10-09 (P227 sweep)
+## Fetched 2026-10-09 (P227 Sweep)
 
 Two `@researcher` sweeps for rows 61 and 64; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p227-omissions).
 
@@ -89,7 +89,7 @@ Two `@researcher` sweeps for rows 61 and 64; the adopted operations are in those
 | tatyam SortedMultiset; PyRival SortedList; sortedcontainers; OI Wiki block list | https://raw.githubusercontent.com/tatyam-prime/SortedSet/main/SortedMultiset.py ; https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/SortedList.py ; https://grantjenks.com/docs/sortedcontainers/sortedlist.html ; https://oi-wiki.org/ds/block-list/ | 2026-10-09 | `pop(k)` (`eraseKth`), `contains`, `clear`, range construction, reverse iteration; split/merge bucket policies (sortedcontainers load with split above 2x and merge below 1/2). |
 | maspypy my_multiset | https://maspypy.github.io/library/ds/my_multiset.hpp | 2026-10-09 | Checked for the MAS tag: a dynamic segment tree over values, not a bucket list. |
 
-## Fetched 2026-10-13 (P029 sweep)
+## Fetched 2026-10-13 (P029 Sweep)
 
 Three `@researcher` sweeps for rows 17, 19 and 25; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p029-omissions). `judge.yosupo.jp` pages rendered empty and `oi-wiki.org/ds/wavelet/` returned 404; the library index pages were read only to their first 100,000–200,000 characters.
 
@@ -103,7 +103,7 @@ Three `@researcher` sweeps for rows 17, 19 and 25; the adopted operations are in
 | Treap references | https://cp-algorithms.com/data_structures/treap.html ; https://github.com/kth-competitive-programming/kactl/blob/main/content/data-structures/Treap.h ; https://oi-wiki.org/ds/treap/ ; https://nyaannyaan.github.io/library/rbst/treap.hpp ; https://nyaannyaan.github.io/library/rbst/lazy-reversible-rbst.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/bbst/reversible_implicit_treap_lazy_segtree.hpp ; .../reversible_implicit_treap_segtree.hpp ; https://maspypy.github.io/library/ds/randomized_bst/rbst_acted_monoid.hpp | 2026-10-13 | Linear build, `unite` bound, upper bounds, `values`, `maxRight`/`minLeft`, reversal through a toggle hook (row 19). |
 | Heap references | https://oi-wiki.org/ds/heap/ ; https://oi-wiki.org/ds/binary-heap/ ; https://oi-wiki.org/ds/leftist-tree/ ; https://oi-wiki.org/ds/pairing-heap/ ; https://cp-algorithms.com/data_structures/randomized_heap.html ; https://nyaannyaan.github.io/library/data-structure/skew-heap.hpp ; https://maspypy.github.io/library/ds/meldable_heap.hpp ; https://maspypy.github.io/library/ds/removable_queue.hpp ; https://maspypy.github.io/library/ds/slide_split_sum.hpp ; https://ei1333.github.io/library/structure/heap/skew-heap.hpp ; .../leftist-heap.hpp ; .../fibonacchi-heap.hpp ; .../erasable-heap.hpp ; https://ei1333.github.io/library/structure/others/priority-sum-structure.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/util/priority_sum.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/heap/interval_heap.hpp ; .../heap/binary_heap.hpp ; .../double_ended_priority_queue.hpp ; https://hitonanode.github.io/cplib-cpp/data_structure/fibonacci_heap.hpp ; https://noshi91.github.io/Library/data_structure/pairing_heap.cpp | 2026-10-13 | Heapify, lazy add on meldable heaps, handle erase, randomized heap, `PrioritySum` boundary and both directions (row 25). |
 
-## Fetched 2026-10-14 (P033 sweep)
+## Fetched 2026-10-14 (P033 Sweep)
 
 Four `@researcher` sweeps for rows 26, 27, 28 and 33; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p033-omissions). `judge.yosupo.jp` pages render client-side, so Library Checker statements were read from the GitHub repository; `cp-algorithms.com/data_structures/disjoint_sparse_table.html` returned 404 and three Codeforces blogs returned 403; library index pages were read only to their first 100,000–300,000 characters.
 
@@ -115,7 +115,7 @@ Four `@researcher` sweeps for rows 26, 27, 28 and 33; the adopted operations are
 | Disjoint sparse tables and static products | https://raw.githubusercontent.com/maspypy/library/main/ds/sparse_table/disjoint_sparse_table.hpp ; .../ds/static_range_product.hpp ; .../ds/offline_query/static_monoid_products.hpp ; .../ds/sparse_table/xor_disjoint_sparse_table.hpp ; .../ds/sparse_table/sparse_table_on_segtree.hpp ; https://ei1333.github.io/library/structure/others/disjoint-sparse-table.hpp ; https://hitonanode.github.io/cplib-cpp/sparse_table/disjoint_sparse_table.hpp ; https://tko919.github.io/library/DataStructure/disjointsparsetable.hpp ; https://sotanishy.github.io/cp-library-cpp/data-structure/disjoint_sparse_table.hpp.html ; https://oi-wiki.org/ds/cat-tree/ ; https://cp-algorithms.com/data_structures/sqrt-tree.html ; https://arxiv.org/abs/2406.06321 (abstract) | 2026-10-14 | Empty-range conventions, offline dyadic bucketing, blocked products, Alon–Schieber tradeoff (row 28). |
 | Offline rectangle engines | https://raw.githubusercontent.com/maspypy/library/main/ds/offline_query/point_add_rectangle_sum.hpp ; .../rectangle_add_point_sum.hpp ; .../rectangle_add_rectangle_sum.hpp ; .../coefficient_query_2d.hpp ; .../ds/fenwicktree/dual_fenwicktree_2d.hpp ; https://raw.githubusercontent.com/ei1333/library/master/other/static-point-add-rectangle-sum.hpp ; .../dynamic-point-add-rectangle-sum.hpp ; .../dynamic-rectangle-add-point-get.hpp ; https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/data_structure/rectangle_sum.hpp ; .../rectangle_add_rectangle_sum.hpp ; https://raw.githubusercontent.com/NyaanNyaan/library/master/data-structure-2d/rectangle-add-rectangle-sum.hpp ; .../dynamic-binary-indexed-tree-2d.hpp ; https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/datastructure/fenwick_tree/static_rectangle_add_rectangle_sum.hpp ; .../offline_rectangle_add_point_get.hpp ; .../rectangle_add_rectangle_sum.hpp ; .../compressed_fenwick_tree.hpp ; https://raw.githubusercontent.com/tko919/library/main/DataStructure/dynamicrectsum.hpp ; https://oi-wiki.org/misc/cdq-divide/ ; https://oi-wiki.org/geometry/scanning/ ; https://oi-wiki.org/ds/bit-in-block-array/ | 2026-10-14 | Static sweeps, four-coefficient decomposition, CDQ over time, online registered variants (row 33). |
 
-## Fetched 2026-10-17 (P034 sweep)
+## Fetched 2026-10-17 (P034 Sweep)
 
 Five `@researcher` sweeps for rows 09, 10, 34, 35 and 63; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p034-omissions). `judge.yosupo.jp` pages render client-side, so the persistent_unionfind statement was read from the GitHub repository; Codeforces blogs 83467, 111117 and 154645 returned 403, Luogu returned 523, and library index pages were read only to their first 100,000–300,000 characters.
 
@@ -127,7 +127,7 @@ Five `@researcher` sweeps for rows 09, 10, 34, 35 and 63; the adopted operations
 | Persistent DSU | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/data_structure/persistent_unionfind/task.md ; https://ei1333.github.io/library/structure/union-find/partially-persistent-union-find.hpp ; .../persistent-union-find.hpp ; https://noshi91.github.io/Library/data_structure/partially_persistent_union_find.cpp ; https://hitonanode.github.io/cplib-cpp/unionfind/partially_persistent_uf.hpp ; .../fully_persistent_uf.hpp ; https://nyaannyaan.github.io/library/data-structure/persistent-union-find.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/union_find/persistent_union_find.hpp ; https://tko919.github.io/library/DataStructure/persistentunionfind.hpp ; https://maspypy.github.io/library/test/2_library_checker/data_structure/persistent_unionfind.test.cpp ; https://oi-wiki.org/ds/persistent-seg/ | 2026-10-17 | Implicit versus explicit time, per-root size histories, version handles, `groups` (left out), union by rank on a persistent segment tree (row 10). |
 | Offline deletion | https://cp-algorithms.com/data_structures/deleting_in_log_n.html ; https://oi-wiki.org/topic/segment-tree-offline/ ; https://hitonanode.github.io/cplib-cpp/data_structure/offline_dynamic_connectivity.hpp ; https://maspypy.github.io/library/ds/offline_query/add_remove_query.hpp ; https://nyaannyaan.github.io/library/graph/offline-dynamic-connectivity.hpp ; https://ei1333.github.io/library/other/offline-dynamic-connectivity.hpp ; https://github.com/ShahjalalShohag/code-library/blob/main/Data%20Structures/Queue%20Undo%20Trick.cpp | 2026-10-17 | Segment tree over time with observations, insert/erase pairing into intervals, the queue-undo implementation (row 63). |
 
-## Fetched 2026-10-17 (P027 monoid sweeps)
+## Fetched 2026-10-17 (P027 Monoid Sweeps)
 
 Both sweeps were run by `@researcher`, which fetched every listed page itself on 2026-10-17; pages that failed are named.
 
@@ -142,7 +142,7 @@ Both sweeps were run by `@researcher`, which fetched every listed page itself on
 | Codeforces and Luogu problems | https://www.luogu.com.cn/problem/CF718C ; CF380C ; CF145E ; CF1114F ; CF1149C ; CF446C ; P2572 ; P2894 ; P7453 ; P6327 ; P4247 ; https://drken1215.hatenablog.com/entry/2025/01/06/121520 (CF 2057D) | 2026-10-17 | Matrix-action sums (718C, P7453, P6327), assign/flip runs (P2572), brackets (380C), `MaxGain` (2057D); one-off problems rejected (notes). codeforces.com pages returned 403; Luogu CF266E, CF1093G, CF2057D and P2486 returned 523, so those four are unverified. |
 | Codeforces EDU segment-tree problem list; Qiita and drken segment-tree surveys; CSES; Library Checker `data_structure` | https://chuka231.blogspot.com/2021/09/itmo-academy-pilot-course-segment-tree.html ; https://qiita.com/kikutannnb/items/81e48d44282316002d52 ; https://drken1215.hatenablog.com/archive/category/セグメント木 (first 100k characters) ; https://cses.fi/problemset/ ; https://github.com/yosupo06/library-checker-problems/tree/master/data_structure | 2026-10-17 | Weighted-sum and painter patterns (EDU names only; the course pages returned 403); confirmation that Library Checker data-structure problems are covered or owned elsewhere. |
 
-## Fetched 2026-10-18 (seeded folds, rows 03 and 12)
+## Fetched 2026-10-18 (Seeded Folds, Rows 03 and 12)
 
 `@researcher` fetched every listed page itself on 2026-10-18; it read the Nyaan library index only to its first 100k characters.
 
@@ -154,7 +154,7 @@ Both sweeps were run by `@researcher`, which fetched every listed page itself on
 | betrue12, 「セグメント木に行列を乗せる」とはどういうことか | https://betrue12.hateblo.jp/entry/2020/03/30/220421 | 2026-10-18 | Matrix segment trees: `O(K^3 log n)` queries, product applied to `dp[L]`, multiplication order |
 | OI Wiki 动态 DP; Onaka and Midorikawa, セグメント木と代数構造の理論 (pp. 1–4, 24–26) | https://oi-wiki.org/dp/dynamic/ ; https://elliptic-shiho.github.io/segtree/segtree.pdf | 2026-10-18 | Range matrix products only; no action on an outside value |
 
-## Fetched 2026-10-23 (P035 sweep)
+## Fetched 2026-10-23 (P035 Sweep)
 
 Three `@researcher` sweeps for rows 29, 36 and 65; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p035-omissions). `judge.yosupo.jp` rendered only its title (the `unionfind_with_potential`, `unionfind_with_potential_non_commutative_group` and `predecessor_problem` statements were not read; GitHub `task.md` paths for the first two returned 404), and library index pages were read only to their first 100,000–200,000 characters.
 
@@ -164,7 +164,7 @@ Three `@researcher` sweeps for rows 29, 36 and 65; the adopted operations are in
 | Fast set | https://maspypy.github.io/library/ds/fastset.hpp ; https://maspypy.github.io/library/ds/decremental_fastset.hpp ; https://hitonanode.github.io/cplib-cpp/data_structure/fast_set.hpp ; https://tko919.github.io/library/DataStructure/fastset.hpp ; https://nyaannyaan.github.io/library/data-structure/w-ary-tree.hpp ; https://noshi91.github.io/Library/data_structure/w_ary_tree_set.cpp ; https://cp-algorithms.com/data_structures/disjoint_set_union.html | 2026-10-23 | 64-ary levels, linear build from a predicate, `next`/`prev` sentinels, enumeration with erasure, word-level decremental set over a DSU of empty words (row 36). |
 | DSU extensions | https://nyaannyaan.github.io/library/data-structure/union-find-enumerate.hpp ; .../dynamic-union-find.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/union_find/linked_union_find.hpp ; .../union_find_component_sum.hpp ; .../union_find_lazy.hpp ; .../merge_history_forest.hpp ; https://noshi91.github.io/Library/data_structure/union_enumerate.cpp ; https://maspypy.github.io/library/ds/unionfind/dual_unionfind.hpp ; https://maspypy.github.io/library/graph/tree_of_unionfind.hpp ; https://hitonanode.github.io/cplib-cpp/unionfind/grid_unionfind.hpp ; https://oi-wiki.org/ds/dsu/ | 2026-10-23 | Cycle-swap member lists, component sums, hash-keyed vertices with `isSameSet`/`size`, component actions with point reads, the merge-history forest and its time queries, deletable and grid DSUs (left out) (row 65). |
 
-## Fetched 2026-10-27 (P030 sweep)
+## Fetched 2026-10-27 (P030 Sweep)
 
 One `@researcher` sweep for row 18; the adopted operations are in that row and the rejected ones in [00-notes.md](00-notes.md#p030-omissions). `judge.yosupo.jp` rendered only its title, so problem metadata came from the v3 API; the `persistent_range_affine_range_sum` statement has template placeholders for its limits. The ei1333, Nyaan, suisen and hitonanode index pages were read to their first 100,000 characters.
 
@@ -175,7 +175,7 @@ One `@researcher` sweep for row 18; the adopted operations are in that row and t
 | cp-algorithms segment tree (persistent section) | https://cp-algorithms.com/data_structures/segment_tree.html | 2026-10-27 | Point update and range k-th only; nothing new. |
 | Library Checker | https://v3.api.judge.yosupo.jp/problems ; https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/data_structure/persistent_range_affine_range_sum/task.md | 2026-10-27 | `range_kth_smallest`, `static_range_count_distinct`, `persistent_range_affine_range_sum` (affine apply, copy a range between versions, sum). |
 
-## Fetched 2026-10-28 (P032 DS11 sweep)
+## Fetched 2026-10-28 (P032 DS11 Sweep)
 
 Two `@researcher` sweeps for rows 21 and 22; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p032-omissions). `judge.yosupo.jp` gave metadata only (no `line_add_get_min` statement); Codeforces blog 51684 returned 403; the ei1333 `convex-hull-trick.hpp` page returned 404; the Nyaan, maspypy and ei1333 index pages were read to their first 100,000 characters; the yukicoder library was not fetched.
 
@@ -185,7 +185,7 @@ Two `@researcher` sweeps for rows 21 and 22; the adopted operations are in those
 | Convex hull trick | https://github.com/kth-competitive-programming/kactl/blob/main/content/data-structures/LineContainer.h ; https://ei1333.github.io/library/structure/convex-hull-trick/convex-hull-trick-add-monotone.hpp ; https://maspypy.github.io/library/convex/cht.hpp ; .../cht_monotone.hpp ; .../cht_monotone_F.hpp ; .../line_min_function.hpp ; https://nyaannyaan.github.io/library/data-structure/line-container.hpp ; .../line-container-2d.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/convex_hull_trick.hpp ; .../monotonic_convex_hull_trick.hpp ; https://hitonanode.github.io/cplib-cpp/convex_hull_trick/convex_hull_trick.hpp ; .../add-get-monotone_cht.hpp ; https://oi-wiki.org/dp/opt/slope/ | 2026-10-28 | Lines at either end of a deque, monotone queries in both directions, KACTL floor-division intersections, 128-bit products; rollback CHT, floats and 2D line containers left out (row 22). |
 | Library Checker | https://v3.api.judge.yosupo.jp/problems ; https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/data_structure/line_add_get_min/task.md ; .../info.toml ; .../segment_add_get_min/task.md ; .../info.toml | 2026-10-28 | `line_add_get_min`, `segment_add_get_min`: N, Q <= 2 * 10^5, slopes, query points and segment ends at most 10^9 in absolute value, intercepts at most 10^18, segments `[l, r)` (statements fetched at `/finish`). |
 
-## Fetched 2026-11-02 (P032 DS27 sweep)
+## Fetched 2026-11-02 (P032 DS27 Sweep)
 
 One `@researcher` sweep for row 31; the adopted operations are in that row and the rejected ones in [00-notes.md](00-notes.md#p032-omissions). maspypy has no radix heap (raw path 404); cp-algorithms and KACTL have none (site search); at `/finish` the suisen (https://suisen-cp.github.io/cp-library-cpp/, heap folder: binary and interval heaps only), tko919 (https://tko919.github.io/library/) and ACL (https://atcoder.github.io/ac-library/production/document_en/index.html) indexes showed none either.
 
@@ -194,7 +194,7 @@ One `@researcher` sweep for row 31; the adopted operations are in that row and t
 | Radix heaps | https://raw.githubusercontent.com/NyaanNyaan/library/master/data-structure/radix-heap.hpp ; https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/data_structure/radix_heap.hpp ; .../radix_heap_array.hpp ; https://raw.githubusercontent.com/iwiwi/radix-heap/master/radix_heap.h ; https://raw.githubusercontent.com/ei1333/library/master/structure/heap/radix-heap.hpp ; https://raw.githubusercontent.com/noshi91/Library/master/data_structure/radix_heap.cpp ; https://docs.rs/radix-heap/latest/radix_heap/struct.RadixHeapMap.html ; https://scrapbox.io/data-structures/Radix%20Heap | 2026-11-02 | `bit_width(key ^ last)` buckets (digits + 1), pull from the lowest nonempty bucket, key+payload form (all catalogs), signed keys by sign-bit flip (iwiwi), array variant with O(1) bucket removal (hitonanode); `top` moving `last` (hitonanode warning); `clear`, float keys, bounded-gap heaps and the Rust extras left out (row 31). |
 | Library Checker, AOJ, yukicoder | https://v3.api.judge.yosupo.jp/problems/shortest_path | 2026-11-02 | `shortest_path` metadata; AOJ GRL_1_A and yukicoder 1288, 1320 named by the catalogs' verify lists, not fetched. |
 
-## Fetched 2026-11-02 (P032 DS28 sweep)
+## Fetched 2026-11-02 (P032 DS28 Sweep)
 
 One `@researcher` sweep for row 32; the adopted operations are in that row and the rejected ones in [00-notes.md](00-notes.md#p032-omissions). The cp-algorithms index has no static distinct, mex or majority article; the Nyaan, hitonanode and suisen listings were read only in part; KACTL and ACL were not fetched. CF 703D, 522D, 220B, 1436E and Luogu P4137 are named from memory, not fetched.
 
@@ -205,7 +205,7 @@ One `@researcher` sweep for row 32; the adopted operations are in that row and t
 | Catalog listings | https://maspypy.github.io/library/ ; https://nyaannyaan.github.io/library/ (first part) ; https://ei1333.github.io/library/ ; https://hitonanode.github.io/cplib-cpp/ (first part) ; https://suisen-cp.github.io/cp-library-cpp/ (first two parts) ; https://cp-algorithms.com/ (index) | 2026-11-02 | Candidate operations; nothing beyond the adopted and rejected ones. |
 | suisen, OI Wiki | https://suisen-cp.github.io/cp-library-cpp/library/range_query/static_range_xored_mex_query.hpp ; https://oi-wiki.org/ds/persistent-seg/ | 2026-11-02 | Xored mex (not adopted); persistent segment trees (k-th only; the persistent last-occurrence mex is the standard derivation, Luogu P4137 and CF 1436E named by the sweep, not fetched). |
 
-## Fetched 2026-11-02 (P032 DS50 sweep)
+## Fetched 2026-11-02 (P032 DS50 Sweep)
 
 One `@researcher` sweep for row 62; the adopted operations are in that row and the rejected ones in [00-notes.md](00-notes.md#p032-omissions). The maspypy listing was read in part (offsets 0 and 200000), the Nyaan listing to 100k characters; KACTL was not fetched, Library Checker pages rendered empty, and CF blogs 68953, 149993 and 100683 refused the fetch.
 
@@ -216,9 +216,9 @@ One `@researcher` sweep for row 62; the adopted operations are in that row and t
 | ei1333, suisen, hitonanode | https://ei1333.github.io/library/math/matrix/binary-basis.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/linear_algebra/xor_base.hpp ; https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/f2_linear_space.hpp | 2026-11-02 | `normalize`, `==`, `+`, `&`, `dim`, `f2_intersection`: the reduced basis, `merge`, `intersection`, `size`. |
 | PyRival | https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/linear_algebra/max_xor.py | 2026-11-02 | Maximum with the achieving indices (`represent` of `max()`). |
 
-## Fetched 2026-11-08 (omission sweep)
+## Fetched 2026-11-08 (Omission Sweep)
 
-Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission Sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
 
 | URL | Used for |
 |---|---|
@@ -352,13 +352,15 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://doc.cgal.org/latest/Manual/packages.html | 68: `IntervalTree`, `insert` |
 | https://www.cnblogs.com/TianMeng-hyl/p/14989441.html | 69: `BinaryGrouping`, `insert` |
 
-## Source keys and prior audit (condensed)
+## Source Keys and Prior Audit (Condensed)
 
-Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys). Here OI is the OI Wiki data-structure section and KACTL its data-structures directory; ODS was read from the saved PDF (chapters 4/8/9/10/13) and KOO from Library/codes on 2026-09-27; the CNBLOGS, WIKI and BENDER02 URLs are in [Fetched 2026-11-08](#fetched-2026-11-08-omission-sweep).
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source Keys). Here OI is the OI Wiki data-structure section and KACTL its data-structures directory; ODS was read from the saved PDF (chapters 4/8/9/10/13) and KOO from Library/codes on 2026-09-27; the CNBLOGS, WIKI and BENDER02 URLs are in [Fetched 2026-11-08](#fetched-2026-11-08-omission-sweep).
 
-The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md)) compared named families and public-operation catalogs, not source correctness; it introduced rows 28–60 as planned from LC, OI, MAS, NYA, EI, SUI, HIT, TKO, DYNAMIC, ODS, KOO and the saved KACTL/Stanford notebooks. The OI Wiki merge/split entry and the ei1333 Fibonacci-heap entry were recorded as source leads whose proofs remain implementation work. Machine-readable read-scope records are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json) and the Library Checker family map in [library-checker-coverage.json](../../00-Guidelines/Ledgers/library-checker-coverage.json) (snapshot 2026-09-27; `associative_array` and `area_of_union_of_rectangles` postdate it). P006 verification sources for rows 01–08 are listed in the Sources section of each per-header document ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)).
+The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md)) compared named families and public-operation catalogs, not source correctness; it introduced rows 28–60 as planned from LC, OI, MAS, NYA, EI, SUI, HIT, TKO, DYNAMIC, ODS, KOO and the saved KACTL/Stanford notebooks. The OI Wiki merge/split entry and the ei1333 Fibonacci-heap entry were recorded as source leads whose proofs remain implementation work. Machine-readable read-scope records are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json) and the Library Checker family map in [library-checker-coverage.json](../../00-Guidelines/Ledgers/library-checker-coverage.json) (snapshot 2026-09-27; `associative_array` and `area_of_union_of_rectangles` added later). P006 verification sources for rows 01–08 are listed in the Sources section of each per-header document ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)).
 
-## Not adopted
+## Not Adopted
+
+The dated sections above record what each sweep adopted or rejected on that day; candidates rejected there and adopted later (the 2026-11-08 omission sweep, the P275 re-review of 2026-11-10) are in the inventory rows, which are authoritative. Still not adopted:
 
 - `area_of_union_of_rectangles`, union-rectangle (EI, TKO, MAS, HIT): Geometry `13-segment_union.hpp` owns it.
 - kd-tree nearest/kNearest/radius/box reporting (MAS, HIT, TKO): Geometry `28-spatial_index.hpp` owns point-facing kd-trees; the acted-monoid rectangle engine is `LazyKdTree` in row 15 (P028).
@@ -371,18 +373,17 @@ The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guid
 - string trie, Patricia binary trie (SUI, EI): Strings `04-trie.hpp` / `25-radixtrie.hpp`; the binary-trie Patricia compression is a memory variant, not a new operation.
 - dividing tree (划分树), persistent block array, cat tree (OI): dominated by wavelet matrix, persistent array (row 35) and disjoint sparse table respectively.
 - tree block decomposition (树分块) (OI): graph-facing, Graphs tree algorithms.
-- xor-indexed segment/sparse tables, sparse table on segtree, prefix-max/greedy-subtract/make-increasing segment trees, range max/min/mex change, slide split sum, sum over bit positions, power query, doubling (MAS): problem-specific wrappers; their underlying structures are rows 03, 04, 12, 14, 25, 28; doubling is Graphs functional graph.
-- rollback lazy segment tree, dual 2D dense segment tree variants beyond row 15, offline set intersection, mo_3d naming (MAS): covered by rows 12, 15, 23 operations or too problem-specific.
+- slide split sum, power query, doubling (MAS): problem-specific wrappers over rows 03, 04, 12, 14, 25 and 28; doubling is the Graphs functional graph.
+- dual 2D dense segment tree variants beyond row 15, mo_3d naming (MAS): covered by the operations of rows 15 and 23. Offline set intersection (MAS): Miscellaneous row 22.
 - xor linked list, light forward list, linked list, stream (NOSHI, HIT, TKO): no operation beyond the standard library.
 - randomized queue, ternary treap (NOSHI): no contest family; ternary search tries were adopted on 2026-11-08 into a new Strings Esoteric row as `TernarySearchTree`.
 - dynamic/static bitset utilities (NYA, SUI, HIT, MAS bit_array): Core `18-bitset.hpp`.
 - fenwick-tree-on-wavelet-matrix as a separate header (NYA): folded into row 17 as WaveletMatrixMonoid.
-- union-find lazy/dual (MAS, SUI): semantics not identifiable from the catalog name; revisit when a motivating problem appears.
 - hash-map-variable-length (NYA): row 61 covers resizing; the fixed-capacity variant is HashMapFixed.
 
-## Fetched 2026-11-10 (P275 re-review)
+## Fetched 2026-11-10 (P275 Re-Review)
 
-Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+Pages the P275 re-review agents read to confirm the returns ([00-notes.md](00-notes.md#p275-re-review-2026-11-10)).
 
 - <https://raw.githubusercontent.com/maspypy/library/main/ds/sparse_table/sparse_table.hpp>
 - <https://raw.githubusercontent.com/maspypy/library/main/ds/segtree/range_assignment_segtree.hpp>
@@ -403,7 +404,7 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 - <https://yukicoder.me/problems/no/2977>
 - <https://uoj.ac/problem/164>
 
-## Fetched 2026-11-11 (DS01 sweep)
+## Fetched 2026-11-11 (DS01 Sweep)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -419,7 +420,7 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 | OI Wiki Fenwick, 时间戳优化 | https://oi-wiki.org/ds/fenwick/ (characters 100,000 to the end) | 2026-11-12 | A `tag` per node, stale nodes reset in `add` and skipped in `getsum`, O(1) `reset` by incrementing `Tag`: row 02 `FenwickTimestamp`. |
 | OI Wiki 并查集, 带删除并查集 and UVa 11987 | https://oi-wiki.org/ds/dsu/ | 2026-11-12 | Virtual node per element so elements stay leaves; delete gives the element a new virtual node, move re-parents it under the target root (SPOJ JMFILTER, UVa 11987). Row 65 `MovableDSU` (P035) owns it; row 01 keeps none. |
 
-## Fetched 2026-11-12 (DS02 sweep)
+## Fetched 2026-11-12 (DS02 Sweep)
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|

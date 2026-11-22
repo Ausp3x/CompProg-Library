@@ -53,7 +53,7 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
     Tool('GitHub CLI', None, ('gh',), None, 'gh', 'github-cli'),
     Tool('mewt', None, ('mewt',), None, f'python3 && python3 {MUTATION!r} install', f'python && python3 {MUTATION!r} install'),  # verifying a package that changes a header needs a campaign (05-testing.md)
     Tool('LuaLaTeX', 'notebook PDF', ('lualatex',), None, 'texlive-luatex texlive-latex-recommended',
-         'texlive-luatex texlive-latexrecommended'),
+         'texlive-luatex texlive-latexrecommended texlive-fontsrecommended'),
     Tool('kpathsea', 'notebook PDF', ('kpsewhich',), None, 'texlive-binaries', 'texlive-bin'),
     Tool('fontconfig', 'notebook PDF', ('fc-list',), None, 'fontconfig fonts-inter fonts-jetbrains-mono',
          'fontconfig inter-font ttf-jetbrains-mono'),

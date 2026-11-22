@@ -1,25 +1,19 @@
-# 17-numerical_methods.hpp — evidence
+# 17-numerical_methods.hpp — Evidence
 
-`17-numerical_methods.hpp` holds scalar one-dimensional numerical methods in binary64:
-- stable quadratic and cubic roots;
-- polynomial value and derivative;
-- compensated and pairwise summation;
-- bracketing and open root finders with a status result;
-- fixed-rule, adaptive, Gaussian, Romberg and double-exponential quadrature;
-- Richardson extrapolation and finite differences;
-- forward-mode dual numbers.
+`17-numerical_methods.hpp` holds scalar one-dimensional numerical methods in binary64: stable quadratic and cubic roots; polynomial value and derivative; compensated and pairwise summation; bracketing and open root finders with a status result; fixed-rule, adaptive, Gaussian, Romberg and double-exponential quadrature; Richardson extrapolation and finite differences; and forward-mode dual numbers.
 
-Every operation is approximate. The contracts below state its stopping rule, its tolerance and its conditioning. Callers must not compile with `-ffast-math` or `-fassociative-math`, which reorder the compensated sums and the step-rounding trick. The header adds no floating-point flags. Every function is stateless, and caller functions must be deterministic.
+Every operation is approximate; its contract states its stopping rule, tolerance and conditioning. Callers must not compile with `-ffast-math` or `-fassociative-math`, which reorder the compensated sums and the step-rounding trick; the header adds no floating-point flags. Every function is stateless, and caller functions must be deterministic.
 
 ## Contracts
 
 ### RootStatus
 
 The result type of the root finders:
+
 - `value`: the returned point.
-- `converged`: true iff the method's stopping test was met. That means an exact zero `f(value) = 0`, a step or bracket within tolerance, or adjacent bracket endpoints.
+- `converged`: true iff the method's stopping test was met: an exact zero `f(value) = 0`, a step or bracket within tolerance, or adjacent bracket endpoints.
 - `iterations`: the number of method steps after the initial evaluations.
-- `residual`: `|f(value)|`. For `fixedPointIterate` it is the last step `|x_k - x_(k-1)|` instead, infinity if no step was taken.
+- `residual`: `|f(value)|`; for `fixedPointIterate` the last step `|x_k - x_(k-1)|` instead, infinity if no step was taken.
 
 `converged = false` means the iteration cap was reached, or a derivative or difference quotient vanished or became non-finite. `value` is then the last valid iterate.
 
@@ -33,6 +27,7 @@ The result type of the root finders:
 ### solveQuadratic
 
 `solveQuadratic(a, b, c)` returns the real roots of `a x^2 + b x + c`, ascending and with multiplicity.
+
 - Preconditions (asserted): finite coefficients that are not all zero.
 - `a = 0` gives the linear root `-c / b`, or no root when `b = 0` too.
 - Otherwise all three coefficients are first multiplied by `2^-e`, `e = ilogb(max |coefficient|)`. That is exact and leaves the roots unchanged, and it puts the largest coefficient in `[1, 2)`, so `b^2` and `4 a c` cannot overflow, and underflow only where they are negligible against the largest coefficient squared. A coefficient more than `2^1074` below the largest one is lost, a limit of the double range.
@@ -48,6 +43,7 @@ The result type of the root finders:
 The polynomial is first made monic and rewritten in `y` with `x = 2^e y`. `e` is the largest `floor((ilogb(coef_k) - ilogb(a)) / k)` over the nonzero coefficients `b, c, d` (k = 1, 2, 3). Each monic coefficient is formed as a mantissa quotient in `(1/2, 2)` times an exact power of two, so neither the division by `a` nor the scaling overflows, and the scaled coefficients are below 2, 4 and 8. A coefficient underflows only when it is negligible at the largest root's scale: roots smaller than about `2^-537` of the largest are lost (`(1, -1e81, -1, 2e-81)` with roots `-2e-81, 1e-81, 1e81` returns its small roots as `-5e-82, 0`). The roots are scaled back by `2^e`. Zero `b, c, d` give the triple root 0.
 
 The method follows Numerical Recipes 5.6. With `Q = (b^2 - 3 c) / 9` and `R = (2 b^3 - 9 b c + 27 d) / 54` of the scaled polynomial:
+
 - The cubic is taken to have three real roots when `R^2 - Q^3 <= 2 |R| e_R + 3 Q^2 e_Q + 4 eps max(R^2, |Q^3|)`. Here `e_Q = 4 eps (b^2 + 3 |c|) / 9` and `e_R = 4 eps (2 |b|^3 + 9 |b c| + 27 |d|) / 54` bound the rounding errors of `Q` and `R`, the monic division included, and the right side bounds the error that rounding propagates into `R^2 - Q^3`.
   - So exact double roots, whose true `R^2 - Q^3` is 0, stay in this branch.
   - A genuine complex pair is lost only when its discriminant is at rounding level. For example, `(1, 0, -3 + 2.5e-13, 2 + 5e-13)` with roots `-2` and `1 ± 5e-7 i` returns one root.
@@ -58,6 +54,7 @@ The method follows Numerical Recipes 5.6. With `Q = (b^2 - 3 c) / 9` and `R = (2
 - Otherwise there is one real root, `A + Q / A - b / 3` with `A = -sign(R) cbrt(|R| + sqrt(R^2 - Q^3))` (Cardano, free of cancellation).
 
 The sorted roots then get at most two Newton steps on the scaled polynomial. A step is accepted only when it strictly lowers `|p|` and moves the root by less than `max(gap / 2, 1e-6 max |root|)`, where `gap` is the distance to the nearest other root.
+
 - The `1e-6` term lets both copies of a near-double root converge, since their closed-form error is about `sqrt(eps)` of the root scale.
 - The gap term keeps a root from jumping onto a distinct root.
 - No step is taken when `p'` vanishes, and the roots are sorted again afterwards.
@@ -69,7 +66,8 @@ The sorted roots then get at most two Newton steps on the scaled polynomial. A s
 
 ### kahanSum, neumaierSum, pairwiseSum
 
-All three take a `vector<double>` and return its sum. An empty vector gives 0.
+All three take a `vector<double>` and return its sum; an empty vector gives 0.
+
 - `kahanSum`: compensated summation. The error is at most `2 eps sum |a_i| + O(n eps^2) sum |a_i|`, independent of `n` to first order.
 - `neumaierSum`: Kahan–Babuška–Neumaier. It has the same bound, but also keeps the error when a term is larger than the running sum (`[1, 1e100, 1, -1e100]` gives 2, where Kahan gives 0). The correction is added once at the end.
 - `pairwiseSum`: recursive halving down to blocks of at most 128 summed in order. The error is at most `(128 + ceil(log2(n / 128))) eps sum |a_i|`, with recursion depth `log2(n / 128)`. It is faster than the compensated sums and has no data dependence on a correction term.
@@ -77,14 +75,16 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### bisectionRoot
 
 `bisectionRoot(l, r, f, itr = 100, abs_tol = 0, rel_tol = 0)` needs finite `l`, `r` in either order with `f(l)` and `f(r)` of opposite sign or zero (asserted, using the two initial evaluations).
+
 - Each step evaluates the midpoint and keeps the half whose endpoint values differ in sign, by `signbit`. It stops at an exact zero endpoint, at width `|r - l| <= abs_tol + rel_tol max(|l|, |r|)`, at adjacent endpoints, or after `itr` steps.
 - `value` is the endpoint with the smaller `|f|`, so `residual` is a value that was actually evaluated. `iterations` counts midpoint evaluations.
 - 100 steps shrink the width by `2^-100`. With zero tolerances, a bracket spanning many binades (a root near 0, subnormals) may need more steps; it then reports `converged = false` with the current bracket.
-- `bisectionRoot` is kept beside `binSearchRealBracket` as root finding on f (`duplicates.md`, Kept by the sweep).
+- `bisectionRoot` is kept beside `binSearchRealBracket` as root finding on f (`duplicates.md`, Kept by the Sweep).
 
 ### newtonRoot
 
 `newtonRoot(x, f, df, itr = 100, abs_tol = 0, rel_tol = 0)` takes a finite start `x` and iterates `x - f(x) / df(x)`.
+
 - It stops converged at `f(x) = 0`, or after a step with `|step| <= tol(new x)`, returning the new point.
 - It stops not converged when a step is non-finite (zero, infinite or NaN derivative) or after `itr` steps.
 - Convergence is quadratic near a simple root and linear near a multiple root, with no global guarantee; use `newtonSafeRoot` with a bracket.
@@ -92,6 +92,7 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### newtonSafeRoot
 
 `newtonSafeRoot(l, r, f, df, itr, abs_tol, rel_tol)` follows Numerical Recipes `rtsafe`. It needs a bracket as for `bisectionRoot` and starts at the midpoint.
+
 - Each step first shrinks the bracket to the current point by the sign of `f`. It then takes the Newton step if the step stays strictly inside the bracket and halves the step from two iterations ago (`|2 f| <= |prev df|`). Otherwise it bisects, which also covers a zero or non-finite `df`.
 - It stops at an exact zero, after a step with `|step| <= tol`, at a step that does not move `x`, or after `itr` steps.
 - The bracket never grows, so convergence is guaranteed: at worst linear as bisection, and quadratic once Newton steps are accepted.
@@ -103,15 +104,18 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### brentRoot
 
 `brentRoot(l, r, f, itr, abs_tol, rel_tol)` is Brent's zeroin as Numerical Recipes `zbrent` gives it. It combines inverse quadratic interpolation and the secant with bisection, and needs a bracket as for `bisectionRoot`.
+
 - The midpoint offset is `c / 2 - b / 2`, so brackets as wide as `[-DBL_MAX, DBL_MAX]` never overflow it.
 - The convergence tolerance at each step is `t = 2 eps |b| + (abs_tol + rel_tol |b|) / 2 + DBL_MIN`. The `DBL_MIN` floor guarantees progress for a root at 0 with zero tolerances, where Brent's original requires a positive tolerance.
 - It returns `b`, the best point, once the half-bracket `|c - b| / 2 <= t` or `f(b) = 0`.
-- At the default `itr = 100`, a high-multiplicity root converges slowly: on `(x - 1)^9` over `[0, 3]`, `brentRoot` reports `converged = false` after 100 steps and `newtonSafeRoot` needs 97 (measured 2026-11-03); pass a larger `itr` for such roots. The defaults (100 iterations, zero tolerances meaning machine precision through the 4-ulp floor, the `DBL_MIN` Brent floor, `simpsonAdaptive` depth 50, tanh-sinh range `|t| < 7`, a Romberg minimum of 5 levels) are a user decision 2026-11-03.
+- At the default `itr = 100`, a high-multiplicity root converges slowly: on `(x - 1)^9` over `[0, 3]`, `brentRoot` reports `converged = false` after 100 steps and `newtonSafeRoot` needs 97 (measured 2026-11-03); pass a larger `itr` for such roots.
+- The defaults are a user decision of 2026-11-03: 100 iterations, zero tolerances meaning machine precision through the 4-ulp floor, the `DBL_MIN` Brent floor, `simpsonAdaptive` depth 50, tanh-sinh range `|t| < 7`, and a Romberg minimum of 5 levels.
 - Each step either interpolates inside the bracket or bisects. The bracket keeps a sign change, and Brent's bound gives at most about `(log2(width / t))^2` steps.
 
 ### fixedPointIterate
 
 `fixedPointIterate(x, g, itr, abs_tol, rel_tol)` iterates `x = g(x)` from a finite `x`.
+
 - It stops converged once `|g(x) - x| <= tol(g(x))`, returning `g(x)`.
 - It stops not converged at a non-finite iterate (keeping the last finite `x`) or after `itr` steps.
 - `residual` is the last step. For a contraction with constant `L < 1` the true error is at most `L / (1 - L)` times that step.
@@ -123,6 +127,7 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### simpsonAdaptive
 
 `simpsonAdaptive(l, r, f, eps = 1e-9, depth = 50)` is adaptive Simpson with Richardson correction (Lyness; KACTL `IntegrateAdaptive.h`, the archived `adaptiveIntegS`).
+
 - An interval is accepted when its two halves change the estimate by at most `15 eps`, returning `S2 + (S2 - S) / 15`. Otherwise it splits, with `eps / 2` per half.
 - `depth` bounds the recursion: a branch at depth 0, or one whose difference is NaN, is accepted as is. That bounds the work by `2^(depth + 2) + 1` evaluations (3 initial, 2 per tree node) and the stack by `depth` frames.
 - An interval is also accepted when its difference is at rounding level: `|S2 - S| <= 15 * 16 eps M`, with `M` the Simpson estimate of the integral of `|f|` over the interval. So an absolute `eps` below the rounding noise of a large integrand stops at rounding level instead of filling the tree: `1e8 exp(x)` on `[0, 1]` takes 2049 evaluations at the default `eps`.
@@ -137,6 +142,7 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### rombergIntegrate
 
 `rombergIntegrate(l, r, f, eps = 1e-10, levels = 20)` builds the Romberg tableau on trapezoids halved from one interval, reusing every previous evaluation.
+
 - It stops after level `k >= 4` (at least 16 intervals) once two consecutive diagonal entries differ by at most `max(eps, 16 eps_mach M)`, or at `levels`. `M` is the trapezoid estimate of the integral of `|f|`, so an `eps` below the rounding noise of a large integrand stops at rounding level: `1e6 exp(x)` on `[0, 1]` takes at most 257 evaluations.
 - `levels` is asserted in `[1, 30]` and clamped to 30, so it makes at most `2^29 + 1` evaluations.
 - The minimum depth stops false convergence on integrands that are periodic on the coarse grid. Smooth integrands converge as in Richardson extrapolation of the Euler–Maclaurin expansion.
@@ -144,6 +150,7 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### richardsonExtrapolate
 
 `richardsonExtrapolate(h, f, levels = 4, t = 2, p = 2)` estimates `f(0)` from `f(h), f(h / t), ..., f(h / t^(levels - 1))`. It assumes the error expansion `f(h) - f(0) = c1 h^p + c2 h^(2 p) + ...` and returns the deepest entry of the Neville tableau `R(i, j) = R(i, j-1) + (R(i, j-1) - R(i-1, j-1)) / (t^(j p) - 1)`.
+
 - `p = 2` fits central differences and the trapezoid rule; forward differences, whose error has every power of `h`, use `p = 1`.
 - Asserted: `levels >= 1`, `t > 1` and `p >= 1`. Under `NDEBUG`, `levels <= 0` runs one level.
 - Ridders' derivative is `richardsonExtrapolate(h, [&](double s) { return finiteDifference(x, f, 1, s); })`.
@@ -151,6 +158,7 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### finiteDifference
 
 `finiteDifference(x, f, d = 1, h = 0, central = true)` returns the `d`-th derivative (`0 <= d <= 60` asserted; `NDEBUG` clamps `d` to that range) at a finite `x` from binomial differences.
+
 - Forward: `sum (-1)^(d-i) C(d, i) f(x + i h) / h^d`, with error O(h).
 - Central: the same weights at offsets `i - d / 2`, so odd `d` uses half steps. The error is O(h^2).
 - `h = 0` chooses `eps^(1 / (d + 1 + central)) max(1, |x|)`, which balances truncation against rounding.
@@ -160,22 +168,24 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### doubleExponentialIntegrate
 
 `doubleExponentialIntegrate(l, r, f, eps = 1e-12, levels = 12)` is tanh-sinh quadrature (Takahasi–Mori) on a finite `[l, r]`, in either orientation.
+
 - It uses `x = (l + r) / 2 + (r - l) / 2 tanh(pi / 2 sinh t)`, with step `h = 1` halved per level and nodes reused, over `|t| < 7`.
 - Endpoint distances are computed directly as `(r - l) e / (1 + e)` with `e = exp(-pi sinh t)`. So `f` is never evaluated exactly at an endpoint, and a node whose distance rounds away is skipped.
 - That allows integrable endpoint singularities such as `1 / sqrt(x)` or `log(x)`. The skipped tail contributes O(weight · f(near endpoint)), which is negligible for integrable singularities.
 - It stops after level `k >= 2` once two levels differ by at most `eps`, or at `levels` (asserted in `[1, 20]`, clamped). Level `k` adds about `6 * 2^k` evaluations, fewer once nodes collapse onto the endpoints.
-- `l = r` returns 0 without evaluating `f`. Infinite ranges need a substitution (`00-notes.md`, P059 research decisions).
+- `l = r` returns 0 without evaluating `f`. Infinite ranges are the missing operation `doubleExponentialIntegrateInfinite`.
 - At a nonzero endpoint the abscissa `l + dist` is rounded to the ulp of `l`, so `f` sees the singularity at a slightly wrong distance. For `1 / sqrt(1 - x^2)` on `[-1, 1]` the error is about `2e-8` (the tests allow `1e-7`). Translate a singular endpoint to 0 for full accuracy, as in `x = 1 - u`.
 
 ### DualNumber
 
 `DualNumber<T = double>` is `x + dx e` with `e^2 = 0`, over a field `T`.
+
 - Operators: `+`, `-`, unary `-`, `*`, `/` and their compound forms, all hidden friends. The implicit constructor from `T` lets scalars mix, as in `2.0 * u`.
 - Division computes `x / o.x` first and then `(dx - x' o.dx) / o.x`, and follows `T` for a zero divisor (IEEE infinities and NaN for `double`).
 - `DualNumber<T>::derivative(f, x)` evaluates `f` at `DualNumber(x, 1)` and returns `dx = f'(x)` exactly in the arithmetic of `T`, with no truncation error.
 - Nesting `DualNumber<DualNumber<double>>` gives second derivatives. Elementary functions are written by the chain rule at the call site.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Archived | Replacement |
 |---|---|
@@ -183,9 +193,9 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 | `adaptiveIntegS(a, b, f, eps = 1e-9)` (same files) | `simpsonAdaptive(a, b, f, eps)`. It adds the depth cap and stops a NaN branch, where the archived version could recurse without bound. |
 | `isSquare` (same file) | Row 21 `isPerfectSquare` ([21-integer_roots.md](21-integer_roots.md)) |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Entry: [`17-numerical_methods_tester.py`](<../../96-Local Testing/05-Mathematics/17-numerical_methods_tester.py>), which drives `17-numerical_methods_tester.cpp` in the shared runner's optimized `-O2 -DNDEBUG` and checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress) builds, plus ASan/UBSan outside quick mode. A Python oracle on exact rationals (`fractions.Fraction`) and 80-digit `decimal` checks the discriminant sign and the quadratic roots against a derived error bound, and the three sums against exact sums. The tester subagent reported mutation-testing these oracles in scratch copies (a naive discriminant, naive summation and a dropped Neumaier correction each caught); that run is not recorded as a command here.
+Entry: [`17-numerical_methods_tester.py`](<../../96-Local Testing/05-Mathematics/17-numerical_methods_tester.py>), which drives `17-numerical_methods_tester.cpp` in the shared runner's optimized `-O2 -DNDEBUG` and checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress) builds, plus ASan/UBSan outside quick mode. A Python oracle on exact rationals (`fractions.Fraction`) and 80-digit `decimal` checks the discriminant sign and the quadratic roots against a derived error bound, and the three sums against exact sums. The tester subagent reported that a naive discriminant, naive summation and a dropped Neumaier correction, each planted in a scratch copy, were caught; that check has no recorded command.
 
 | Feature | Independent verification |
 |---|---|
@@ -202,28 +212,35 @@ Entry: [`17-numerical_methods_tester.py`](<../../96-Local Testing/05-Mathematics
 | `doubleExponentialIntegrate` | `1 / sqrt(x)`, `log(x)` and `1 / sqrt(1 - x^2)` endpoint singularities against closed forms (the last within `1e-7`, see Contracts); a reversed interval; `l = r`, including a singular `1 / sqrt(x)` at `l = r = 0`. |
 | Preconditions | 40 checked-build assertion probes: all-zero and non-finite coefficients, brackets without a sign change, negative iteration counts or tolerances, equal secant starts, `gaussLegendreNodes(0)`, `simpsonFixed` with `n = 0`, Romberg and DE level bounds, `finiteDifference` with `d < 0` or a step lost to rounding. |
 
-Coverage per mode: random counts are x1, x10 and x100 for quick, full and stress. Gauss–Legendre nodes are checked up to n = 15, 200 and 400. The Python oracle runs 400, 20,000 and 200,000 quadratics and 60, 600 and 4,000 sums. The runner has no `--rounds`; stress varies the seed and the counts.
+Modes: random counts are x1, x10 and x100 for quick, full and stress; Gauss–Legendre nodes are checked up to n = 15, 200 and 400; the Python oracle runs 400, 20,000 and 200,000 quadratics and 60, 600 and 4,000 sums. The runner has no `--rounds`; stress varies the seed and the counts. The 10 s quick bound (P274) moved the 20-level double-exponential cases to full and stress; quick keeps 12 levels.
 
-Moved from quick to full and stress by the 10 s quick bound (P274): the 20-level double-exponential cases; quick keeps 12 levels.
+## Commands and Results
 
-## Commands and results
+Machine: Intel Core i9-11900H, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14.8. Every command passed; times are compile + run.
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 939 MB; optimized 0.1 s compile + 34.8 s run, checked 27.7 s compile + 41.8 s run, ASan-UBSan 32.8 s compile + 117.4 s run; MEMORY peak 1195 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 963 MB; optimized 0.4 s compile + 52.6 s run, checked 43.5 s compile + 52.0 s run, ASan-UBSan 51.5 s compile + 93.0 s run; MEMORY peak 1150 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 40.0 s compile + 1.8 s run, checked 26.5 s compile + 3.2 s run; MEMORY peak 926 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 932 MB; optimized 0.1 s compile + 45.7 s run, checked 11.2 s compile + 46.1 s run, ASan-UBSan 13.9 s compile + 105.4 s run; MEMORY peak 764 MB. Dated rows below stay those commands' latest results.
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-Maintainer runs 2026-11-03 (P059 `/merge-pr 3`, after its fixes) under `merge_pr.py run 3` and its gates (bwrap, memory cap): Intel Core i9-11900H, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.8. Every suite runs the shared runner's optimized `-O2 -DNDEBUG` and checked `-O0 -g -D_GLIBCXX_DEBUG` builds, plus ASan/UBSan outside quick mode; counts are per configuration and equal on both compilers.
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 34.8 s | 27.7 + 41.8 s | 32.8 + 117.4 s | 1195 MB | 939 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.4 + 52.6 s | 43.5 + 52.0 s | 51.5 + 93.0 s | 1150 MB | 963 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 40.0 + 1.8 s | 26.5 + 3.2 s | — | 926 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 45.7 s | 11.2 + 46.1 s | 13.9 + 105.4 s | 764 MB | 932 MB |
 
-| Command | Result |
-|---|---|
-| `17-numerical_methods_tester.py --mode quick` | PASS, 2 configurations, 6,702,077 C++ checks, 402 Python quadratics and 62 sums, 40 assertion probes |
-| `17-numerical_methods_tester.py --mode full --seed 1` | PASS, 3 configurations, 7,094,311 C++ checks, 20,002 Python quadratics and 602 sums, `MEMORY peak=629MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=630MB` |
-| `17-numerical_methods_tester.py --mode stress --seed 2` | PASS, 3 configurations, 10,602,856 C++ checks, `MEMORY peak=782MB` |
-| `02-integration.py --sanitizers` (gate) | PASS, `MEMORY peak=4886MB cap=8192MB` |
-| `03-consistency.py` (gate) | PASS |
+- 2026-11-03, the latest run with check counts: the maintainer's runs in P059's `/merge-pr 3` after its fixes, under `merge_pr.py run 3` and its gates (bwrap, memory cap). Counts are per configuration and equal on both compilers.
+
+  | Command | Result |
+  |---|---|
+  | `17-numerical_methods_tester.py --mode quick` | PASS, 2 configurations, 6,702,077 C++ checks, 402 Python quadratics and 62 sums, 40 assertion probes |
+  | `17-numerical_methods_tester.py --mode full --seed 1` | PASS, 3 configurations, 7,094,311 C++ checks, 20,002 Python quadratics and 602 sums, `MEMORY peak=629MB` |
+  | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=630MB` |
+  | `17-numerical_methods_tester.py --mode stress --seed 2` | PASS, 3 configurations, 10,602,856 C++ checks, `MEMORY peak=782MB` |
+  | `02-integration.py --sanitizers` (gate) | PASS, `MEMORY peak=4886MB cap=8192MB` |
+  | `03-consistency.py` (gate) | PASS |
 
 ## Benchmarks
 
-No timing benchmark: the contest profile asks for optimal complexity and a direct implementation, and every operation's cost is its evaluation count, stated in its contract. No Barrett/Montgomery or ISA-specific code is used.
+No timing benchmark: the Contest profile asks for optimal complexity and a direct implementation, and each operation's cost is the evaluation count its contract states. No Barrett/Montgomery or ISA-specific code is used.
 
 ## Sources
 
@@ -238,10 +255,12 @@ No timing benchmark: the contest profile asks for optimal complexity and a direc
 | J. N. Lyness (1969) adaptive Simpson; H. Takahasi, M. Mori (1974) double-exponential formulas, from knowledge, not fetched | The 15-fold Richardson test and the tanh-sinh substitution; both checked against closed forms in the tester. |
 | [hitonanode, dual number](https://hitonanode.github.io/cplib-cpp/) | `DualNumber` interface. |
 
-## Limits and handoffs
+## Limits and Handoffs
 
+- The row is `partial`: `falsePositionRoot`, `doubleExponentialIntegrateInfinite`, `hornerDerivativeTable` and the `DualNumber` elementary functions `sqrt`, `exp`, `log`, `sin`, `cos` are missing.
 - Polynomial real-root isolation and complex roots belong to row 29, contour integrals to row 45, and real searches by predicate to row 02.
 - Multidimensional integration nests `simpsonAdaptive` or `gaussLegendreIntegrate`.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## Aliases
 
@@ -249,9 +268,9 @@ Search aliases (P263, grab --find): 数值积分, 牛顿迭代法, Kahan 求和,
 
 ## History
 
-- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `DualNumber` `add, sub, neg, mul, div` written as the operators they are (`+, - (binary, unary), *, /`), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
-- 2026-11-03: P059 implementation; the tester found 2 defects (cubic double roots, iteration counts on an exact zero) and the review 8 (cubic and quadratic range, cubic slack, adaptive Simpson noise floor, bounded misuse, DE at `l = r`, a parameter name, handoffs), all fixed; full suite passed on g++ and g++-14.
-- 2026-11-03: /finish audit, 8 defects fixed (non-monic cubic range, spread-root deflation, Romberg rounding floor, two assertions, sources labeled, wrong figures, duplicates keeps) and 6 from its diff review (near-double vertex fallback, finite step, doc limits), 5 user decisions recorded; full suite passed on g++ and g++-14.
-- 2026-11-03: maintainer review in `/merge-pr 3` found 4 defects, all fixed, three with regressions that fail on the old header: `simpsonFixed` overflowed `int` at `n = INT_MAX`, `brentRoot` overflowed `c - b` on brackets wider than `DBL_MAX`, `hornerDerivative` did not compile for nested `DualNumber` (`T{}` now), and `finiteDifference` was unbounded under `NDEBUG` for huge `d` (clamped; checked by inspection, since tests keep `NDEBUG` inputs in the domain). The user confirmed the decisions recorded as theirs; full suite passed on g++ and g++-14.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.
+- 2026-11-03: P059 implementation; the tester found 2 defects (cubic double roots, iteration counts on an exact zero) and the review 8 (cubic and quadratic range, cubic slack, adaptive Simpson noise floor, bounded misuse, DE at `l = r`, a parameter name, handoffs), all fixed; full passed on g++ and g++-14.
+- 2026-11-03: `/finish` audit fixed 8 defects (non-monic cubic range, spread-root deflation, Romberg rounding floor, two assertions, source labels, wrong figures, duplicate keeps) and 6 from its diff review (near-double vertex fallback, finite step, documented limits) and recorded 5 user decisions; full passed on g++ and g++-14.
+- 2026-11-03: the maintainer's review in `/merge-pr 3` found 4 defects, all fixed, three with regressions that fail on the old header: `simpsonFixed` overflowed `int` at `n = INT_MAX`, `brentRoot` overflowed `c - b` on brackets wider than `DBL_MAX`, `hornerDerivative` did not compile for nested `DualNumber` (now `T{}`), and `finiteDifference` was unbounded under `NDEBUG` for huge `d` (now clamped, checked by inspection since tests keep `NDEBUG` inputs in the domain). The user confirmed the decisions recorded as theirs; full passed on g++ and g++-14.
+- 2026-11-06: P253 `/finish` (user decision 2026-11-06) wrote the inventory's `DualNumber` operations `add, sub, neg, mul, div` as the operators `+, - (binary, unary), *, /`, so `05-extraction.py ops` resolves them; no code change.
+- 2026-11-07: P263 added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed. The header gained `[[maybe_unused]]` on names only an `assert` uses, no logic change; P274 ran no mutation campaign (user decision 2026-11-10), so the first one stays with this header's own package.

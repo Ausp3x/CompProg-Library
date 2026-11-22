@@ -1,10 +1,10 @@
-# Inventory completeness audit — 2026-09-27
+# Inventory Completeness Audit — 2026-09-27
 
 This is the historical expansion record (430 targets, 334 batches, 201 archived files at that audit). The later [Core family migration](2026-09-27-core-migration.md) recorded the counts and Core paths after it: 428 targets, 335 batches, 226 unchanged packages and 205 archived files. Original measurements and source hashes remain historical evidence.
 
 The inventories were compared against established contest catalogs, Library Checker problem families, specialist documentation, selected reference APIs/source comments, paper abstracts and the archived library. This is a broad, traceable planning audit. It does **not** establish that every competitive-programming algorithm or research paper has been found, nor that existing implementations satisfy the expanded contracts. Future family-specific research remains part of each implementation job.
 
-## Coverage and resulting scope
+## Coverage and Resulting Scope
 
 | Folder | Before | Current | Added families |
 |---|---:|---:|---:|
@@ -22,7 +22,7 @@ All original targets retain owners. New operations in existing families are addi
 
 The comparison covered **all 250 non-sample/test Library Checker problem families** in the fetched repository tree: every family has at least one inventoried target in [library-checker-coverage.json](../Ledgers/library-checker-coverage.json). Most mappings used catalog paths/names; ambiguous bounded-sequence/subsequence/subset-sum statements were read directly. This is inventory coverage, not 250 accepted submissions or full test coverage.
 
-## Material additions and corrections
+## Material Additions and Corrections
 
 - Core/Mathematics: preservation obligations for legacy InfInt sentinels/conversions and Matrix subspace/Hafnian operations; complete domain-specific dense/sparse/poly contracts; dynamic bitsets; polynomial roots/factorization, specialized convolutions and set FPS, exact normal forms, coding theory, finite fields, nimbers, group/combinatorial/game/arithmetic research and certified numerical variants.
 - Data Structures/Graphs: weighted DSU, SWAG, range workload families, integer/persistent heaps and arrays, dynamic succinct structures, common-interval/PQ/finger trees; functional graphs, bounded flows/circulations, weighted blossom, ranked paths, graph classes, planarity/SPQR, dynamic connectivity/MST/SCC, coloring/cycle/postman and specialized flow/decomposition algorithms.
@@ -32,7 +32,7 @@ The comparison covered **all 250 non-sample/test Library Checker problem familie
 
 Corrected or clarified nonconvex Minkowski semantics, randomized dynamic-string guarantees, Carmichael lambda composition, closed nimber-field widths, probable-prime versus certified primality, rounded floating I/O, exact/approximate numerical contracts, and A* reopening conditions. Avoided overlapping owners for weighted blossom, bounded circulation, string-prefix versus integer tries, Ukkonen versus offline suffix trees, tree DP, CHT engines, and Python suffix/reroot/factorization features. Source pitfalls are preserved in the read-scope ledger rather than copied into specifications.
 
-## Research evidence and limits
+## Research Evidence and Limits
 
 [research-sources.json](../Ledgers/research-sources.json) records **101 successful fetches**, two failed obsolete/incorrect URLs with working alternatives, content hashes and specific read scopes. Compared ACL, CP-algorithms, OI Wiki, CSES, Library Checker, KACTL/Stanford and Japanese/Korean libraries, plus GMP/FLINT/NTL/Sage, CGAL/robust predicates, OGDF/NetworkX/DYNAMIC, PyRival/Python ACL and selected string papers. Saved reference books/notebooks supplement live catalogs. No claim is made that every listed paper proof or reference implementation was fully audited.
 
@@ -40,7 +40,7 @@ The [source guide](../09-sources.md) offers more choices for implementation rese
 
 [archive-map.json](../Ledgers/archive-map.json) classifies all **201** archived files with no unclassified entries and accounts for legacy files and maps algorithm families to current owners, retaining incomplete/obsolete/test-only material honestly. The original monolith source-range/body-hash evidence stays in [monolith-map.json](../Ledgers/monolith-map.json). Archived code remains unchanged; this pass does not transfer or repair additional algorithm bodies.
 
-## Work scheduling and renumbering
+## Work Scheduling and Renumbering
 
 The bottom of [01-prompts.md](../../01-prompts.md) contains **226 assignable packages** for **334 stable algorithm batches** plus five support passes. Related manageable units run sequentially inside a package; 94 large Core/research jobs remain isolated with checkpoints. The research expansion adds substantial work, so collapsing it into a few giant folder assignments would make the requested sizing misleading. The practical foundations are scheduled first; support tests and evidence remain part of every implementation job.
 
@@ -48,7 +48,7 @@ Sessions were assigned with `Complete package Pxxx from 01-prompts.md` and read 
 
 Existing batch IDs were retained; oversized groups were split with ownership transfers recorded in the batch map. [path-updates.json](../Ledgers/path-updates.json) maps every original target to its current prefix, including planned targets. Eight existing Graph headers were renamed and their aggregate/provenance references updated; algorithm bodies were preserved. Historical decisions retain historical counts; the current plan is [13-Plan](../13-Plan/00-index.md).
 
-## Follow-up review before implementation — 2026-09-27
+## Follow-Up Review before Implementation — 2026-09-27
 
 A second pass reviewed every algorithm inventory and batch table, the shared workflow and support indexes, current source interfaces and relevant legacy bodies, the archive/coverage maps, and the previously fetched reference catalogs. Repository-wide checks cover all 47 Markdown files. The PDFs remain chapter-level reference material; this pass did not read every page of every book, re-prove every algorithm, or re-audit every generated source copy.
 
@@ -74,7 +74,7 @@ Follow-up validation passed: unique target/batch/package ownership and counts; e
 
 The resulting roadmap is ready for package implementation with no known unassigned family in the reviewed scope. This is a scoped coverage conclusion, not a guarantee that no relevant algorithm or future paper can ever be missing. Each package still performs its own domain-specific completeness, correctness and performance review before being checked off.
 
-## Original expansion validation
+## Original Expansion Validation
 
 - Inventory/target/batch/package coverage is checked for unique ownership, valid tier order, sequential prefixes and prerequisite order; planned files are not added to aggregates.
 - Every Library Checker family at the recorded snapshot maps to a current inventory target; archive and source maps retain honest read/verification scope.
@@ -83,6 +83,6 @@ The resulting roadmap is ready for package implementation with no known unassign
 
 Remaining limits: GCC14/interpreter matrix and the expanded per-family behavioral/benchmark suites are future implementation work. No online submissions or notebook PDF rendering were performed by this inventory audit. The specialist backlog remains planned until independently implemented and verified.
 
-## Function-level rewrite — 2026-10-06
+## Function-Level Rewrite — 2026-10-06
 
 Every algorithm inventory was rewritten to the `Header | Operations | Status` contract with a live catalog sweep per folder (Library Checker problem trees, cp-algorithms, ACL, KACTL, OI Wiki, Nyaan, maspypy, ei1333, suisen, hitonanode, tko919, noshi91, PyRival, GMP/FLINT/NTL, CGAL and domain papers; each folder's `81-sources.md` lists the pages fetched). Contract prose moved to each folder's `80-notes.md` (both moved to `Docs/00-sources.md` and `Docs/00-notes.md` on 2026-10-08). Counts became **459 targets, 359 batches, 230 packages**: 31 new rows (DS 6, GE 2, GR 3, MA 1, MI 7, ST 1, PY 11), roughly 1,900 named operations, and 24 previously verified headers downgraded to `partial` with explicit `missing:` lists for operations the catalogs showed. The plan manifest in `13-Plan/` owns every target once; `plan.py check` and the consistency validator pass.

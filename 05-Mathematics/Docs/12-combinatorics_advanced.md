@@ -1,4 +1,4 @@
-# 12-combinatorics_advanced.hpp — evidence
+# 12-combinatorics_advanced.hpp — Evidence
 
 `12-combinatorics_advanced.hpp` holds the combinatorics beyond factorial tables modulo a large prime: binomials for large indices and composite moduli, binomial prefix sums, valuations, Stirling, Bell, Eulerian, Entringer and Lah numbers, partitions, q-analogues, the binomial and Stirling transforms, pruned inclusion–exclusion, subset sums, Pisano periods, Zeckendorf representations and indecomposable permutations. It depends on `05-combinatorics.hpp` (`PrimeCombinatorics`), `07-primality_factorization.hpp` (`factorize`, `isPrime`), `09-modinverse.hpp` (`inverseTable`, `powerTable`), `13-convolution.hpp`, `14-polynomial_algorithms.hpp` (`fpsInverse`, `fpsLog`, `fpsExp`, `fpsPow`, `taylorShift`, `productTree`) and Core `16-poly.hpp` (`evalMulti`, for `inverseStirlingTransform`). The Stirling rows, the Eulerian row and `partitionCount` are intended duplicates of Core Poly series (user decision 2026-10-19; inventory scope note).
 
@@ -116,7 +116,7 @@ For a = (a_0..a_n), prime modulus > n:
 - `zeckendorf(n)`: the unique representation of a 64-bit n as F_(k_1) + F_(k_2) + ... with k_1 > k_2 + 1 > ... and k_i >= 2 (F_1 = F_2 = 1), greedy from F_93, returned as descending indices; 0 gives none. O(log(n)).
 - `indecomposablePermutations<M>(n)`: c_0..c_n with sum c_i x^i = 1 - 1 / sum i! x^i (c_0 = 0), the permutations with no proper prefix mapping onto an initial segment, any modint, O(n log(n)).
 
-### Planned-name mapping
+### Planned-Name Mapping
 
 | Planned | Implemented |
 |---|---|
@@ -131,7 +131,7 @@ Aliases: Library Checker `binomial_coefficient`, `binomial_coefficient_prime_mod
 
 Search aliases (P263, grab --find): 阶乘取模, 卢卡斯定理, 排列组合, 容斥原理, 斐波那契数列, 斯特林数, 贝尔数, Entringer Number, Eulerian Number, 分拆数, 扩展卢卡斯, 第二类斯特林数, 第一类斯特林数, 二项式反演, 组合数取模, 斯特林反演.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`12-combinatorics_advanced_tester.py`](<../../96-Local Testing/05-Mathematics/12-combinatorics_advanced_tester.py>).
 
@@ -158,24 +158,26 @@ Entry: [`12-combinatorics_advanced_tester.py`](<../../96-Local Testing/05-Mathem
 | Oracle validation | The Python Pisano certificate and factorization are checked by simulation for m < 300 before use. |
 | Preconditions | Twenty-one checked-build death probes: p = 1, k > n, a Lucas digit beyond the table, table bounds (small-prime table, prefix sums, queries, block table, q-table, surjections), a prime power beyond 2^27 (struct and a composite with a large prime), a composite prime-power base, m = 0 (struct and row), a negative factorial power, a composite Stirling or Bell modulus, negative partition, enumeration and subset inputs, m = 0 for Pisano. A separate `-DNDEBUG` probe (2026-10-19, `-O2` on g++ and `-O0` on g++-14) confirmed that 22 violating calls across the package terminate, among them p = 0 and 1 in the valuation, carry, Lucas and prime-power loops, negative table sizes, and prime powers beyond the cap (a struct stops its table at 2^27, peak 520 MB; a composite part degenerates to one entry). |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1815 MB; optimized 0.3 s compile + 19.7 s run, checked 78.8 s compile + 21.1 s run, ASan-UBSan 98.4 s compile + 64.4 s run; MEMORY peak 2511 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1749 MB; optimized 0.2 s compile + 17.6 s run, checked 85.9 s compile + 23.1 s run, ASan-UBSan 97.6 s compile + 45.0 s run; MEMORY peak 2513 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 76.3 s compile + 7.0 s run, checked 60.6 s compile + 34.9 s run; MEMORY peak 1802 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 997 MB; optimized 0.1 s compile + 26.9 s run, checked 38.4 s compile + 35.4 s run, ASan-UBSan 42.0 s compile + 78.2 s run; MEMORY peak 1469 MB. Dated rows below stay those commands' latest results.
+Conditions: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. The header compiles without warnings under `-Wall -Wextra -Wconversion` on both compilers. The 2026-10-19 rows are the latest with recorded counts.
 
-Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. With `-Wall -Wextra -Wconversion`, the header compiles without warnings on both compilers.
-
-| Command | Result |
-|---|---|
-| `12-combinatorics_advanced_tester.py --mode full --seed 1` | PASS, 2,838,479 C++ checks and 400 Python rows per configuration, 3 configurations, 21 assertion probes, `MEMORY peak=1131MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=1154MB` |
-| `12-combinatorics_advanced_tester.py --mode stress --seed 7` | PASS, 8,514,695 C++ checks (three randomized rounds) and 2000 Python rows per configuration, 21 assertion probes, `MEMORY peak=1172MB` |
-| `12-combinatorics_advanced_benchmark.py 5` | PASS; table below, `MEMORY peak=489MB` |
-| `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
-| `03-consistency.py` | PASS, no errors |
+| Date, package | Command | Result |
+|---|---|---|
+| 2026-10-19 P054 | `12-combinatorics_advanced_tester.py --mode full --seed 1` | PASS, 2,838,479 C++ checks and 400 Python rows per configuration, 3 configurations, 21 assertion probes, `MEMORY peak=1131MB` |
+| 2026-10-19 P054 | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=1154MB` |
+| 2026-10-19 P054 | `12-combinatorics_advanced_tester.py --mode stress --seed 7` | PASS, 8,514,695 C++ checks (three randomized rounds) and 2000 Python rows per configuration, 21 assertion probes, `MEMORY peak=1172MB` |
+| 2026-10-19 P054 | `12-combinatorics_advanced_benchmark.py 5` | PASS; table below, `MEMORY peak=489MB` |
+| 2026-10-19 P054 | `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
+| 2026-10-19 P054 | `03-consistency.py` | PASS, no errors |
+| 2026-11-10 P274 (seed 42, beside the other suites, build cache emptied before each cold run) | `01-run.py --mode full` (GCC 16.2.1) | PASS; pre-flight quick peak 1815 MB; optimized 0.3 s compile + 19.7 s run, checked 78.8 s + 21.1 s, ASan-UBSan 98.4 s + 64.4 s; MEMORY peak 2511 MB |
+| 2026-11-10 P274 | `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | PASS; pre-flight quick peak 1749 MB; optimized 0.2 s + 17.6 s, checked 85.9 s + 23.1 s, ASan-UBSan 97.6 s + 45.0 s; MEMORY peak 2513 MB |
+| 2026-11-10 P274 | `01-run.py --mode quick` | PASS; optimized 76.3 s + 7.0 s, checked 60.6 s + 34.9 s; MEMORY peak 1802 MB |
+| 2026-11-10 P274 | `01-run.py --mode stress --rounds 1` | PASS; pre-flight quick peak 997 MB; optimized 0.1 s + 26.9 s, checked 38.4 s + 35.4 s, ASan-UBSan 42.0 s + 78.2 s; MEMORY peak 1469 MB; check counts not recorded |
 
 ## Benchmarks
 
-`12-combinatorics_advanced_benchmark.py`, GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions, modulo 998244353 unless stated, seeded inputs at Library Checker sizes, machine shared with other work (load about 2.5); repeated outputs are compared, and the two `bellNumberLarge` kernels must agree.
+`12-combinatorics_advanced_benchmark.py` (2026-10-19): GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions, modulo 998244353 unless stated, seeded inputs at Library Checker sizes, on a machine shared with other work (load about 2.5). Repeated outputs are compared, and the two `bellNumberLarge` kernels must agree.
 
 | Workload | Median |
 |---|---|
@@ -194,7 +196,7 @@ Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.1
 | `bellNumberLarge`, p = 10007, n = 10^18: shipped left-to-right powering | 166.2 ms |
 | the same with right-to-left binary powering | 249.5 ms |
 
-Left-to-right powering replaces the multiplication by x of each set bit with a shift (33% faster here). On random input, Core Poly `evalMulti` evaluates the 10^5-point step of `inverseStirlingTransform` in about 335 ms against 465 ms for the former private remainder tree (probe on the same machine).
+Left-to-right powering replaces the multiplication by x of each set bit with a shift, 33% faster here. On random input, Core Poly `evalMulti` evaluates the 10^5-point step of `inverseStirlingTransform` in about 335 ms against 465 ms for the private remainder tree it replaced (probe on the same machine).
 
 ## Sources
 
@@ -205,15 +207,17 @@ Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-
 - maspypy `q_analogue`, `prefix_sum_of_binom`, `stirling_number_query`, `bell_number_large`; suisen `binomial_coefficitnt_enumeration`, `binomial_coefficient_sum`; Nyaan `fps-famous-series`, `stirling-matrix`.
 - Zoghbi and Stojmenović, Fast algorithms for generating integer partitions (ZS1).
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - n! mod p and C(n, k) mod p for n beyond any table (sample-point shift) are row 37; the factorial-basis conversion is row 22.
 - Scope decisions (left-out catalog candidates, each with its reason) are in [00-notes.md](00-notes.md), P054 research decisions.
 - No `97-Legacy` excerpt existed for this row.
+- `BinomialMod2p64`, `factorialValuationComposite`, `stirling1Table`, `stirling2Table`, `bellTriangle`, `eulerianTable`, `partitionsExactPartsTable`, `distinctPartsExactPartsTable` and `standardTableauTotal` are in the row under `missing:`, so the row is `partial`.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## History
 
 - 2026-10-19: P054 initial implementation; `@reviewer` found 1 bug in this header (`stirling2` start index wrapping near n = 2^64), unbounded `-DNDEBUG` loops for p <= 1 and Pisano beyond its domain, two cost statements and a memory figure, all fixed with regressions; full suite passed on g++ and g++-14, stress seed 7 passed.
-- 2026-10-19: P054 follow-up: prime powers capped at 2^27, `BinomialCompositeMod`, `binomialRowCompositeMod` and `pisanoPeriod` widened to every 64-bit modulus, r = -1 in Mo's queries, a weighted block table, product-tree `stirling1Row` for other moduli, Core Poly `evalMulti` replacing the private remainder tree, 64-bit moduli through row 13's generalized convolution; full and stress passed on g++, full on g++-14.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-19: P054 follow-up capped prime powers at 2^27, widened `BinomialCompositeMod`, `binomialRowCompositeMod` and `pisanoPeriod` to every 64-bit modulus, added r = -1 to Mo's queries, a weighted block table and a product-tree `stirling1Row` for other moduli, replaced the private remainder tree by Core Poly `evalMulti`, and took 64-bit moduli through row 13's generalized convolution; full and stress passed on g++, full on g++-14.
+- 2026-11-07: P263 added Chinese names to the search aliases: OI Wiki's page titles and common names of the row's operations (Simplified, plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; library-wide full (g++ and g++-14), quick and stress runs passed.

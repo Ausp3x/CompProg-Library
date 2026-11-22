@@ -238,7 +238,7 @@ PENDING_LOCK = threading.RLock()  # a build runs the compiler through ``timed_ru
 
 def fail_fast() -> bool:
     """True in a mutant's test (``04-mutation.py`` sets ``CP_TEST_FAIL_FAST=1``): a failing header should stop the test after
-    one build, so builds are made when first run and jobs run in order (05-testing.md, Mutation testing)."""
+    one build, so builds are made when first run and jobs run in order (05-testing.md, Mutation Testing)."""
     return os.environ.get("CP_TEST_FAIL_FAST") == "1"
 
 

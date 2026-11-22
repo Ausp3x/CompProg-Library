@@ -1,4 +1,4 @@
-# 06 Miscellaneous — inventory
+# 06 Miscellaneous — Inventory
 
 Scope: reusable contest algorithms and utilities whose primary API is not owned by another topic: randomness, hashing, compression, bit and permutation tools, sequence/interval/offline patterns, enumeration, knapsack and the generic DP, search and heuristic engines. Mathematics owns integer/real search (`02`), algebraic transforms, DP optimizations (Monge/Knuth/SMAWK/alien, `27`) and combinatorial counts; Graphs owns explicit-graph shortest paths, tree DP engines and Hamiltonian/TSP APIs; Core owns fast stream I/O (`01-Core/19-fastio.hpp`); Data Structures owns range-query engines, Mo, heaps and rollback/persistent containers; Strings owns text indexes and LCS. Contracts and ownership rules are in [00-notes.md](Docs/00-notes.md); the source ledger is in [00-sources.md](Docs/00-sources.md).
 

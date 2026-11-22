@@ -1,33 +1,32 @@
-# 35-persistentarray.hpp — evidence
+# 35-persistentarray.hpp — Evidence
 
-Package P034 (batch DS31). New header; no legacy source. A fully persistent array by 2^B-ary path copying; row 10's `PersistentDSU` is built on it. Preconditions are `assert`s checked once per call.
+Package P034 (batch DS31). New header; no legacy source. A fully persistent array by 2^B-ary path copying; row 10's `PersistentDSU` is built on it. Each call asserts its preconditions once.
 
 ## Contracts
 
 ### PersistentArray<T, B>
 
-`T` is copyable and default-constructible: `T()` pads the last leaf chunk. `1 <= B <= 8`, `k = 2^B`, default `B = 3` (see Benchmarks); `0 <= n <= INT_MAX`.
+`T` is copyable and default-constructible (`T()` pads the last leaf chunk). `1 <= B <= 8`, `k = 2^B`, default `B = 3` ([Benchmarks](#benchmarks)); `0 <= n <= INT_MAX`.
 
-- Layout: values live in leaf chunks of `k` (`val`), internal nodes hold `k` child ids (`ch`), and `h` is the least height with `k^(h + 1) >= n`. When `h = 0` the root is a leaf chunk. Index `p` is read in base `k` from the digit at shift `B * h` down to the leaf digit. Versions are dense ids from 0 (the build); `roots[v]` is version `v`'s root.
+- Layout: values live in leaf chunks of `k` (`val`), internal nodes hold `k` child ids (`ch`), and `h` is the least height with `k^(h + 1) >= n`; when `h = 0` the root is a leaf chunk. Index `p` is read in base `k` from the digit at shift `B * h` down to the leaf digit. Versions are dense ids from 0 (the build), and `roots[v]` is version `v`'s root.
 - Build from a vector: O(n) time; `max(ceil(n / k), 1) * k` values plus about `n / (k - 1)` child ids. Children past the last chunk point at a valid node and are never followed for `p < n`.
-- Build from `(n, x)`: one internal node of `k` zero ids and one leaf chunk of `k` copies of `x`. Id 0 names both, so node 0 serves every level and every path ends in the shared chunk. Construction is O(k + log_k(n)) time and O(k) memory even for `n = INT_MAX`, which is how row 10 starts a DSU of size n without O(n) work.
+- Build from `(n, x)`: one internal node of `k` zero ids and one leaf chunk of `k` copies of `x`. Id 0 names both, so node 0 serves every level and every path ends in the shared chunk. Construction takes O(k + log_k(n)) time and O(k) memory even for `n = INT_MAX`; row 10 starts a DSU of size n this way without O(n) work.
 - `get(v, p)`: `h` child reads. Returns `vector<T>::const_reference` into `val`, valid until the next `set` (pool growth reallocates).
-- `set(v, p, x)`: branches from any version (full persistence). It copies the `h` internal nodes and the leaf chunk on `p`'s path, shared fill nodes included, so no other version changes, and returns the new id `versionCount() - 1`. Exactly `h * k` ids and `k` values per set. `x` is taken by value, so passing a reference from `get` is safe.
-- `toVector(v)`: version `v` as a vector, by DFS in O(n).
-- `versionCount()`: number of versions.
+- `set(v, p, x)`: branches from any version (full persistence). It copies the `h` internal nodes and the leaf chunk on `p`'s path, shared fill nodes included, so no other version changes, and returns the new id `versionCount() - 1`. Each set adds exactly `h * k` ids and `k` values. `x` is taken by value, so passing a reference from `get` is safe.
+- `toVector(v)` returns version `v` as a vector by DFS in O(n); `versionCount()` is the number of versions.
 - Pools hold fewer than 2^31 entries (int ids). Copies are independent snapshots.
 
-Arity tradeoff: `get` costs `log_k(n)` reads and `set` costs `k * log_k(n)` copied words. Memory per set is smallest at `k = 2` or `4`, and reads get cheaper as `k` grows. The default `B = 3` is a time and memory compromise. It is fastest on the Library Checker-shaped DSU workload and the mixed array workload at 2 * 10^5, and within 30% of the fastest arity everywhere measured. `B = 4` is up to 23% faster on the 10^6-scale workloads but stores 1.4–1.7 times as much (see Benchmarks).
+Arity tradeoff: `get` costs `log_k(n)` reads and `set` copies `k * log_k(n)` words. Memory per set is smallest at `k = 2` or `4`, and reads get cheaper as `k` grows. The default `B = 3` is a time and memory compromise: fastest on the Library Checker-shaped DSU workload and the mixed array workload at 2 * 10^5, and within 30% of the fastest arity everywhere measured. `B = 4` is up to 23% faster on the 10^6-scale workloads but stores 1.4–1.7 times as much.
 
-### Violated preconditions
+### Violated Preconditions
 
 Under `NDEBUG` a bad version id reads `roots` out of range (undefined). An out-of-range `p` reaches some stored chunk: digits are masked, padding children are valid, and both builds hold at least one chunk. A negative fill size builds an empty array. No loop runs past `h` levels.
 
-### Legacy mapping
+### Legacy Mapping
 
 No legacy code. Catalog forms of the same operations: Nyaan `update(root, k, v)`, ei1333 `mutable_get`, hitonanode `ch`/`set`, tko919 `set` and maspypy `set` are `set`; suisen `dump` is `toVector`; ei1333 and hitonanode `build(vector)` and maspypy `new_node(vector)` are the vector build.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/35-persistentarray_tester.cpp`, entry `35-persistentarray_tester.py` (driver `_00_contest_runner.py`; three builds; 7 assertion probes).
 
@@ -40,22 +39,42 @@ Tester `96-Local Testing/02-Data Structures/35-persistentarray_tester.cpp`, entr
 | Aliasing, copies, empty arrays, `n = INT_MAX` fill with B = 1, B = 8 | `edges` | Direct values |
 | Preconditions | `invalid` | Bad versions in `get`, `set`, `toVector`; out-of-range and negative positions; negative fill size |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 814 MB; optimized 0.2 s compile + 3.9 s run, checked 24.1 s compile + 5.7 s run, ASan-UBSan 29.6 s compile + 16.6 s run; MEMORY peak 1022 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 882 MB; optimized 0.3 s compile + 5.0 s run, checked 36.2 s compile + 11.8 s run, ASan-UBSan 42.8 s compile + 24.4 s run; MEMORY peak 1035 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 48.2 s compile + 2.8 s run, checked 27.3 s compile + 8.5 s run; MEMORY peak 809 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 820 MB; optimized 0.1 s compile + 3.7 s run, checked 9.9 s compile + 9.1 s run, ASan-UBSan 11.6 s compile + 23.2 s run; MEMORY peak 1030 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
+
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 814 MB; optimized 0.2 + 3.9 s, checked 24.1 + 5.7 s, ASan-UBSan 29.6 + 16.6 s; MEMORY peak 1022 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 882 MB; optimized 0.3 + 5.0 s, checked 36.2 + 11.8 s, ASan-UBSan 42.8 + 24.4 s; MEMORY peak 1035 MB |
+| `01-run.py --mode quick` | Optimized 48.2 + 2.8 s, checked 27.3 + 8.5 s; MEMORY peak 809 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 820 MB; optimized 0.1 + 3.7 s, checked 9.9 + 9.1 s, ASan-UBSan 11.6 + 23.2 s; MEMORY peak 1030 MB |
+
+Latest per-header run 2026-10-17 on the same machine with CPython 3.14.8, in the optimized, checked and ASan/UBSan builds. MEMORY peaks are dominated by compilation.
+
+| Command (2026-10-17) | Result |
+|---|---|
+| `35-persistentarray_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 2,863,577 checks per configuration, 7 assertion probes, MEMORY peak 588 MB |
+| `CXX=g++-14 35-persistentarray_tester.py --mode full --seed 20261017` (GCC 14.4.1) | PASS, 2,863,577 checks per configuration, 7 assertion probes, MEMORY peak 589 MB |
+| `35-persistentarray_tester.py --mode stress --seed 7` | PASS, 3 configurations, 5,413,519 checks per configuration, MEMORY peak 959 MB |
+| `02-integration.py --sanitizers` | PASS: 153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 1820 MB |
+| `03-consistency.py` | No errors |
+
+A hand mutation check (temporary header copies, quick mode seed 7, `-O2 -DNDEBUG`) detected 5 of 5 injected faults: the leaf chunk not copied by `set`, a wrong digit shift in `get`, the fill value ignored, a non-minimal height, and a `toVector` overrun.
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/35-persistentarray_tester.py' --mode full --seed 20261017
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/35-persistentarray_tester.py' --mode full --seed 20261017
 python3 '96-Local Testing/02-Data Structures/35-persistentarray_tester.py' --mode stress --seed 7
 python3 '96-Local Testing/02-Data Structures/35-persistentarray_benchmark.py' --runs 5
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-17: full mode seed 20261017 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 2,863,577 checks per configuration and 7 assertion probes, MEMORY peak 588 MB and 589 MB; stress mode seed 7 (one round) passed all three configurations with 5,413,519 checks per configuration, MEMORY peak 959 MB. Mutation check (temporary header copies, quick mode seed 7, `-O2 -DNDEBUG`): 5 of 5 injected faults detected (leaf chunk not copied by `set`, wrong digit shift in `get`, fill value ignored, non-minimal height, `toVector` overrun). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.8, in the runner's optimized, checked and ASan/UBSan builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 1820 MB) and `03-consistency.py` reported no errors.
 
 ## Benchmarks
 
-Driver `96-Local Testing/02-Data Structures/35-persistentarray_benchmark.py` (C++ `35-persistentarray_benchmark.cpp`). It rewrites the header's default `B` in a temporary copy, so `PersistentDSU` runs on each arity. Conditions: Intel Core i9-11900H, Linux x86-64, GCC 16.2.1 `-std=gnu++20 -O2 -DNDEBUG`, seed 20261017, 5 runs, median seconds. Pool = `ch` + `val` + `roots` bytes, excluding vector slack. Checksums agree across arities. Run 2026-10-17 with no other suite running.
+Driver `96-Local Testing/02-Data Structures/35-persistentarray_benchmark.py` (C++ `35-persistentarray_benchmark.cpp`), which rewrites the header's default `B` in a temporary copy, so `PersistentDSU` runs on each arity. Run 2026-10-17 with no other suite running: Intel Core i9-11900H, GCC 16.2.1 `-std=gnu++20 -O2 -DNDEBUG`, seed 20261017, 5 runs, median seconds. The pool is the bytes of `ch`, `val` and `roots`, without vector slack. Checksums agree across arities.
 
 Workloads:
 - `array-mixed`: half `set` and half `get` on random versions.
@@ -84,9 +103,9 @@ Each cell is median seconds / pool MB.
 
 Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-17-p034-sweep)); the implementation was written from the contract.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Decided 2026-10-17 (`duplicates.md`, Keeps): k-ary path copying, kept beside row 18's binary `PersistentSegmentTree` get/set as a different time and memory tradeoff.
+- k-ary path copying is kept beside row 18's binary `PersistentSegmentTree` get/set as a different time and memory tradeoff (decided 2026-10-17, `duplicates.md`, Keeps).
 - Left out with reasons in [00-notes.md](00-notes.md#p034-omissions): in-place set, `size`, node pools and garbage collection, the persistent block array.
 
 ## Aliases
@@ -95,7 +114,7 @@ Search aliases (P263, grab --find): 可持久化块状数组, 可持久化数组
 
 ## History
 
-- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` (the vector and fill constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
-- 2026-10-17: P034 first implementation and verification; the fill build shrank to one shared node after a mutation check; independent review: an empty vector build now holds one chunk, the default-arity wording matches the benchmark.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-17: P034 first implementation and verification; the fill build shrank to one shared node after a mutation check; after the review an empty vector build holds one chunk and the default-arity wording matches the benchmark; full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-06: P253 `/finish` (user decision 2026-11-06): the inventory's `build` became `ctor` (the vector and fill constructors), so `96-Local Testing/05-extraction.py ops` resolves them; no code changed.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

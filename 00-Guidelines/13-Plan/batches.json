@@ -2674,7 +2674,7 @@
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Python I/O, search, number theory, combinatorics and sequences. PY28 owns CRT/floor sums/Lucas; numerical roots use built-ins where appropriate.",
+      "focus": "Python I/O (with the low-allocation readers and interactive safeguards merged from `_28_io_advanced`), search, number theory, combinatorics and sequences. PY28 owns CRT/floor sums/Lucas; numerical roots use built-ins where appropriate.",
       "prerequisites": [],
       "tiers": [
         "Basic"
@@ -2791,7 +2791,7 @@
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Offline and randomized algorithms.",
+      "focus": "Offline and randomized algorithms. No RNG type: routines take a `random.Random`.",
       "prerequisites": [
         "PY01"
       ],
@@ -2830,22 +2830,6 @@
       ],
       "tiers": [
         "Esoteric"
-      ]
-    },
-    {
-      "id": "PY11",
-      "folder": "08-Python",
-      "targets": [
-        "08-Python/_28_io_advanced.py"
-      ],
-      "support_targets": [],
-      "size": "M",
-      "focus": "Advanced low-allocation I/O with interactive safeguards.",
-      "prerequisites": [
-        "PY01"
-      ],
-      "tiers": [
-        "Advanced"
       ]
     },
     {
@@ -2903,11 +2887,12 @@
       "id": "PY15",
       "folder": "08-Python",
       "targets": [
-        "08-Python/_49_sat.py"
+        "08-Python/_49_sat.py",
+        "08-Python/_62_exactcover.py"
       ],
       "support_targets": [],
       "size": "L",
-      "focus": "Python SAT/exact cover solver after concrete use case.",
+      "focus": "Python SAT solver and exact cover (DancingLinks) after a concrete use case.",
       "prerequisites": [
         "PY01"
       ],
@@ -2919,11 +2904,12 @@
       "id": "PY16",
       "folder": "08-Python",
       "targets": [
-        "08-Python/_50_approximation.py"
+        "08-Python/_50_approximation.py",
+        "08-Python/_63_probabilistic_sketches.py"
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Approximation algorithms with error estimates.",
+      "focus": "Numerical integration and root finding with error estimates; Bloom filter and count-min sketch.",
       "prerequisites": [
         "PY01"
       ],
@@ -6763,7 +6749,7 @@
       "targets": [],
       "support_targets": [],
       "size": "M",
-      "focus": "Run the `96-Local Testing/01-run.py` suites and the `02-integration.py` builds in parallel across the cores (16 locally, about 13 GB free on 2026-10-24): bounded jobs inside the memory cap, a recorded reason for any raised cap (`05-testing.md`, Memory safety), results and failure artifacts identical to a sequential run, and `ccache` when installed. Measure before and after; the last sequential integration build took 304 s, and `--sanitizers` 737 s in total (2026-10-19). P224 keeps the end-of-plan audit.",
+      "focus": "Run the `96-Local Testing/01-run.py` suites and the `02-integration.py` builds in parallel across the cores (16 locally, about 13 GB free on 2026-10-24): bounded jobs inside the memory cap, a recorded reason for any raised cap (`05-testing.md`, Memory Safety), results and failure artifacts identical to a sequential run, and `ccache` when installed. Measure before and after; the last sequential integration build took 304 s, and `--sanitizers` 737 s in total (2026-10-19). P224 keeps the end-of-plan audit.",
       "prerequisites": [],
       "tiers": []
     },
@@ -6954,7 +6940,7 @@
         "01-Core/06-modintmini.hpp"
       ],
       "size": "L",
-      "focus": "ModIntMini parity (`01-principles.md`, Profiles, 2026-11-05): every operation and domain of the `05-modint.hpp` row (is_prime, isPrime, trySqrt, sqrt, batchInv, streams, casts, ordering and the rest), except backend internals named after `internals:`; the full type's complexity in scalar code; scaling and ratio benchmarks (`05-testing.md`, Benchmarks).",
+      "focus": "ModIntMini parity (`01-principles.md`, Profiles, 2026-11-05): every operation and domain of the `05-modint.hpp` row (is_prime, isPrime, trySqrt, sqrt, batchInv, streams, casts, ordering, MontModInt64, DynMontModInt64 and the rest), except backend internals named after `internals:`; the full type's complexity in scalar code; scaling and ratio benchmarks (`05-testing.md`, Benchmarks).",
       "prerequisites": [
         "C03",
         "C16",
@@ -8040,7 +8026,7 @@
       "targets": [],
       "support_targets": [],
       "size": "L",
-      "focus": "Harness settings, hooks and agents (user decisions 2026-11-19, from the review of the harness against pstack, firstmate, about 20 other public kits and the Claude Code docs; `00-Guidelines/10-decisions.md`, 2026-11-19 Harness review). (1) Settings, in `.claude/settings.json` unless the settings reference limits a key's scope: `worktree.baseRef: \"head\"`, so new worktrees branch from local HEAD, and `01-prompts.md` (Workflow) drops its step of pushing `master` before launching them; `syncClaudeAiSkills: false` in `.claude/settings.local.json` or the user settings, since its scope is user, local or managed and a project value is ignored; `skillOverrides` set to `\"user-invocable-only\"` for claude-api, dataviz, artifact-design, artifact-diagramming, artifact-capabilities, run, init, schedule, plugin-authoring and security-review, while workflow-authoring and update-config stay `\"on\"` (the skill listing is 27 skills and about 14,000 characters a session, and claude-api loaded itself 5 times at about 105–114 KB each; none of these serves library work, and `/name` still runs each); `enableArtifact: false`; `includeGitInstructions` stays on for the git status snapshot. (2) PreCompact hook: its output becomes instructions for the compaction summary, capped at 10,000 characters; it prints the target package, the skill step and the ledger path, reusing `.claude/hooks/resume.py`'s target logic. (3) Notification hook, matcher `permission_prompt|idle_prompt`: runs `notify-send` with the session name and reason, silent when notify-send is missing. (4) SessionEnd hook, matcher `prompt_input_exit|logout|other`: runs `.claude/skills/reap/reap.py --own`, never `--scratchpads`; SessionEnd hooks share a 1.5 s budget that a per-hook `timeout` raises up to 60 s (`CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS`), so its timeout covers reap's measured runtime. (5) PreModelSwitch hook (Claude Code v2.1.251 or later): refuses a `to_model` outside the set `.claude/hooks/harness.py` allows, with its HOW message, and warns when a switch drops a warm cache; the matcher is the canonical model name, and the hook checks `to_model` as well, because an unresolved target runs every hook. (6) Push and submit guard: `.claude/githooks/pre-push` and a guard in `97-Online Testing/04-submit.py` refuse only when `CLAUDECODE` is set, closing `sh -c \"git push\"` and `g=git; $g push`, which pass `.claude/hooks/shell.py` today (`git -C . push`, `git -c x=y push` and `env git push` are refused). The user's own pushes and submissions must still pass: check first whether a `!` command typed in a session carries `CLAUDECODE`, and if it does, key the guard on a signal only the Bash tool's shells carry, or ask the user before the guard lands. (7) Status line (`.claude/hooks/statusline.py`): shows `miss N` from `prompt_cache.misses` only once the session has had a miss. (8) Agents: `.claude/agents/researcher.md` gains `omitClaudeMd: true` (Claude Code v2.1.271 or later), while @reviewer and @speedscout keep CLAUDE.md for its scratchpad and memory rules; no agent gets `maxTurns`, since a cut review is worse than a long one. `.claude/agents/reviewer.md`'s report gains a `Not verified` section for claims the reviewer could not check, and `/package` and `/finish` say that a brief to @reviewer lists what to review, never what not to flag; no cross-model reviewer until `00-Guidelines/13-Plan/finish-log.tsv` measures review yield. (9) Skill model pins: the `model:` pins of `/tidy`, `/duplicate-sweep`, `/omission-sweep` and `/speed-sweep` stay, and `01-prompts.md` says to start each in a fresh session of the matching preset, since a skill whose model differs from the session's makes that turn re-read the whole context uncached.",
+      "focus": "Harness settings, hooks and agents (user decisions 2026-11-19, from the review of the harness against pstack, firstmate, about 20 other public kits and the Claude Code docs; `00-Guidelines/10-decisions.md`, 2026-11-19 Harness Review). (1) Settings, in `.claude/settings.json` unless the settings reference limits a key's scope: `worktree.baseRef: \"head\"`, so new worktrees branch from local HEAD, and `01-prompts.md` (Workflow) drops its step of pushing `master` before launching them; `syncClaudeAiSkills: false` in `.claude/settings.local.json` or the user settings, since its scope is user, local or managed and a project value is ignored; `skillOverrides` set to `\"user-invocable-only\"` for claude-api, dataviz, artifact-design, artifact-diagramming, artifact-capabilities, run, init, schedule, plugin-authoring and security-review, while workflow-authoring and update-config stay `\"on\"` (the skill listing is 27 skills and about 14,000 characters a session, and claude-api loaded itself 5 times at about 105–114 KB each; none of these serves library work, and `/name` still runs each); `enableArtifact: false`; `includeGitInstructions` stays on for the git status snapshot. (2) PreCompact hook: its output becomes instructions for the compaction summary, capped at 10,000 characters; it prints the target package, the skill step and the ledger path, reusing `.claude/hooks/resume.py`'s target logic. (3) Notification hook, matcher `permission_prompt|idle_prompt`: runs `notify-send` with the session name and reason, silent when notify-send is missing. (4) SessionEnd hook, matcher `prompt_input_exit|logout|other`: runs `.claude/skills/reap/reap.py --own`, never `--scratchpads`; SessionEnd hooks share a 1.5 s budget that a per-hook `timeout` raises up to 60 s (`CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS`), so its timeout covers reap's measured runtime. (5) PreModelSwitch hook (Claude Code v2.1.251 or later): refuses a `to_model` outside the set `.claude/hooks/harness.py` allows, with its HOW message, and warns when a switch drops a warm cache; the matcher is the canonical model name, and the hook checks `to_model` as well, because an unresolved target runs every hook. (6) Push and submit guard: `.claude/githooks/pre-push` and a guard in `97-Online Testing/04-submit.py` refuse only when `CLAUDECODE` is set, closing `sh -c \"git push\"` and `g=git; $g push`, which pass `.claude/hooks/shell.py` today (`git -C . push`, `git -c x=y push` and `env git push` are refused). The user's own pushes and submissions must still pass: check first whether a `!` command typed in a session carries `CLAUDECODE`, and if it does, key the guard on a signal only the Bash tool's shells carry, or ask the user before the guard lands. (7) Status line (`.claude/hooks/statusline.py`): shows `miss N` from `prompt_cache.misses` only once the session has had a miss. (8) Agents: `.claude/agents/researcher.md` gains `omitClaudeMd: true` (Claude Code v2.1.271 or later), while @reviewer and @speedscout keep CLAUDE.md for its scratchpad and memory rules; no agent gets `maxTurns`, since a cut review is worse than a long one. `.claude/agents/reviewer.md`'s report gains a `Not verified` section for claims the reviewer could not check, and `/package` and `/finish` say that a brief to @reviewer lists what to review, never what not to flag; no cross-model reviewer until `00-Guidelines/13-Plan/finish-log.tsv` measures review yield. (9) Skill model pins: the `model:` pins of `/tidy`, `/duplicate-sweep`, `/omission-sweep` and `/speed-sweep` stay, and `01-prompts.md` says to start each in a fresh session of the matching preset, since a skill whose model differs from the session's makes that turn re-read the whole context uncached.",
       "prerequisites": [],
       "tiers": []
     },
@@ -8060,7 +8046,7 @@
       "targets": [],
       "support_targets": [],
       "size": "L",
-      "focus": "Harness measurements and `/reflect` (user decisions 2026-11-19, same review as SUP32). Each measurement is recorded in `00-Guidelines/13-Plan/Docs/00-harness-audit.md`, and each change it suggests waits for the user's yes. (1) Compaction window: replay the transcripts with `00-Guidelines/13-Plan/context_usage.py` at 250k, 300k and 400k and decide `autoCompactWindow` on the numbers, closing the re-check that `00-Guidelines/10-decisions.md` (2026-10-24 Session tuning) set for after about five packages; about fifteen have run since. The C03 session made about 4,460 calls at about 214k average context, with 27 compactions and 956M cache-read tokens. (2) @reviewer cache lifetime: price @reviewer's recorded gaps of more than 5 minutes at both lifetimes from the transcripts, and set `experimental: {cacheTtl: 1h}` in `.claude/agents/reviewer.md` (Claude Code v2.1.248 or later) only if one hour wins; the test of 2026-10-31 covered all subagents at once. (3) Each harness part: `.claude/hooks/harness.py`'s model guard, context-integrity scanner and request-setting warnings, the weekly scan and its canary, `.claude/launch.py` and every hook. Count each part's catches over the last month from its state files and transcripts, and propose removing each part with no catch and no protective role, one yes per part; launch.py first, since its strip test could not show whether stripping changes anything (`00-harness-audit.md`, Strip test). (4) `/reflect`: a new read-only skill whose subagents read the transcripts since its last run and list the user's corrections, each with whether it reached its owning file (`00-Guidelines/01-principles.md`, Scope discipline); it proposes an edit for each, the user approves row by row, and it never edits on its own. It runs before `/tidy`.",
+      "focus": "Harness measurements and `/reflect` (user decisions 2026-11-19, same review as SUP32). Each measurement is recorded in `00-Guidelines/13-Plan/Docs/00-harness-audit.md`, and each change it suggests waits for the user's yes. (1) Compaction window: replay the transcripts with `00-Guidelines/13-Plan/context_usage.py` at 250k, 300k and 400k and decide `autoCompactWindow` on the numbers, closing the re-check that `00-Guidelines/10-decisions.md` (2026-10-24 Session tuning) set for after about five packages; about fifteen have run since. The C03 session made about 4,460 calls at about 214k average context, with 27 compactions and 956M cache-read tokens. (2) @reviewer cache lifetime: price @reviewer's recorded gaps of more than 5 minutes at both lifetimes from the transcripts, and set `experimental: {cacheTtl: 1h}` in `.claude/agents/reviewer.md` (Claude Code v2.1.248 or later) only if one hour wins; the test of 2026-10-31 covered all subagents at once. (3) Each harness part: `.claude/hooks/harness.py`'s model guard, context-integrity scanner and request-setting warnings, the weekly scan and its canary, `.claude/launch.py` and every hook. Count each part's catches over the last month from its state files and transcripts, and propose removing each part with no catch and no protective role, one yes per part; launch.py first, since its strip test could not show whether stripping changes anything (`00-harness-audit.md`, Strip Test). (4) `/reflect`: a new read-only skill whose subagents read the transcripts since its last run and list the user's corrections, each with whether it reached its owning file (`00-Guidelines/01-principles.md`, Scope Discipline); it proposes an edit for each, the user approves row by row, and it never edits on its own. It runs before `/tidy`.",
       "prerequisites": [],
       "tiers": []
     }

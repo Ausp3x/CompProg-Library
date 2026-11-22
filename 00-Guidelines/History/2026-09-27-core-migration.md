@@ -1,8 +1,8 @@
-# Core modular-family migration
+# Core Modular-Family Migration
 
 The 2026-09-27 migration implements the approved namespace/co-location rules and adds independently copyable modular mini types. Scope after this migration was **428 numbered targets, 335 algorithm batches, 226 packages and five support passes**. Core has 18 numbered targets. Existing package IDs and C01–C15 retain their identity; P005 owns C03 and the new C16, in that order. The earlier expansion audit remains a historical record.
 
-## Canonical layout and ownership
+## Canonical Layout and Ownership
 
 | Target | Contents | Owner |
 |---|---|---|
@@ -14,7 +14,7 @@ Core 01–04 and aggregate names 98/99 are unchanged. Both aggregates expose ful
 
 The [exact path map](../Ledgers/core-path-updates.json) records retired headers, moved artifacts and archived originals. The canonical [structure guide](../02-structure.md), [Core inventory](../../01-Core/00-index.md), [batch manifest](../13-Plan/batches.json), both machine scheduling maps, checklist, dependent includes, source/archive maps, judge-family map and generated outputs use the current layout. Detailed modular contracts and evidence remain in [full-family evidence](../../01-Core/Docs/05-modint.md) and [mini evidence](../../01-Core/Docs/06-modintmini.md).
 
-## Style and preservation
+## Style and Preservation
 
 Family-only shared helpers live with their public types in one shallow `<family>_detail` namespace. One-type helpers stay in that struct. Namespace contents use four spaces and a separate labelled closing line. Existing public names remain stable. Barrett and Montgomery remain independently reusable headers. Mini structs have no sibling/full/base/detail/reduction-header dependencies; any necessary helpers and state are inside the copied struct.
 
@@ -63,6 +63,6 @@ Hashes at this migration for files whose earlier evidence refers to an older nam
 
 The permanent [consistency validator](<../../96-Local Testing/03-consistency.py>) audits exact Markdown/machine ownership, target numbering, package prerequisites, local links/formatting, current map destinations/includes, Core aggregate coverage, quick-suite discovery, archived hashes, monolith provenance, expansion manifests and missing-workspace reporting. It is read-only except for temporary fixtures. The integration runner now fails clearly for a missing required Workspace snapshot; generation remains explicit.
 
-## Package scope
+## Package Scope
 
 P001–P004 kept their original scope, with P002 on `18-bitset.hpp`; P005 covered both C03 and C16 and their reduced and full contracts.

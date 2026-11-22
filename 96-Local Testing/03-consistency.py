@@ -310,10 +310,10 @@ for target, parts in inventories.items():
         mini_first(target, f'Mini row lacks operations of {full} (list them, after internals: or missing:): {target}: ' + ', '.join(lacking))
 
 # Status cells (02-structure.md, Inventory contract) start with a status word; every other entry is a link, a `missing:`
-# operation, a `legacy:` path or one of the library's source keys (00-Guidelines/09-sources.md, Source keys) with an
+# operation, a `legacy:` path or one of the library's source keys (00-Guidelines/09-sources.md, Source Keys) with an
 # optional parenthesized detail. A row with neither a link nor a key or path is reported in unsourced_rows.
 sources_text = (ROOT / '00-Guidelines/09-sources.md').read_text()
-source_keys = set(re.findall(r'^\| ([A-Z][A-Z0-9]*) \|', sources_text.split('## Source keys', 1)[1].split('\n## ', 1)[0], re.M))
+source_keys = set(re.findall(r'^\| ([A-Z][A-Z0-9]*) \|', sources_text.split('## Source Keys', 1)[1].split('\n## ', 1)[0], re.M))
 unsourced_rows = []
 for target, parts in inventories.items():
     items = extraction.split(parts[-1], ';')
@@ -330,7 +330,7 @@ for target, parts in inventories.items():
                 require(bool(re.search(r'/|\.\w+`?$', re.sub(r' \(.*\)$', '', entry))), f'Status legacy: entry is not a path: {target}: {entry}')
             elif not re.fullmatch(r'(?:see )?\[[^\]]*\]\([^)]*\)', entry):
                 m = re.fullmatch(r'([A-Z][A-Z0-9]*)(?: \([^()]*\))?', entry)
-                require(bool(m) and m[1] in source_keys, f'Unknown source key (00-Guidelines/09-sources.md, Source keys): {target}: {entry}')
+                require(bool(m) and m[1] in source_keys, f'Unknown source key (00-Guidelines/09-sources.md, Source Keys): {target}: {entry}')
 
 # Operation names (02-structure.md): a type name, or a name of the template every header includes, in two rows is an
 # error; a free function in two rows is reported in name_collisions. Core functions are members or hidden friends, and a
@@ -548,7 +548,7 @@ sweep_pending, sweep_faults, sweep_named = plan.sweeps(ROOT)
 errors.extend(sweep_faults)
 for target, named in sweep_named.items():
     lacking = sorted(operation_names(inventories[target][-2]) - named)
-    require(not lacking, f'Optimization candidates table lacks operations of its row (05-testing.md, Benchmarks): {target}: ' + ', '.join(lacking))
+    require(not lacking, f'Optimization Candidates table lacks operations of its row (05-testing.md, Benchmarks): {target}: ' + ', '.join(lacking))
 # LICENSE is the CC0-1.0 legal code verbatim (creativecommons.org legalcode.txt, identical in SPDX).
 require(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest() == 'a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499',
         'LICENSE differs from the CC0-1.0 legal code')

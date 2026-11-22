@@ -1,290 +1,236 @@
-# 02 Data Structures — notes
+# 02 Data Structures — Notes
 
-Folder-wide contracts, ownership boundaries, migration obligations and per-package omissions. Operation lists live only in [00-index.md](../00-index.md); evidence is in the per-header documents, and rows 01–08 share the [Foundations](#foundations-rows-0108-p006) contracts.
+Folder-wide contracts, ownership boundaries, migration obligations and per-package omissions. Operation lists live only in [00-index.md](../00-index.md) and evidence in the per-header documents; rows 01–08 share the [Foundations](#foundations-rows-0108-p006) contracts.
 
-## Common contracts
+## Common Contracts
 
-- Ranges follow `03-cpp.md`, API contracts (zero-based, half-open); empty ranges return the identity.
-- State indexing, boundary inclusivity, empty-range identity, key duplicates, signed coordinates, overflow policy and the operation algebra (associativity, identity, action homomorphism, commutativity) for every structure.
-- State static versus online/offline, update/query memory, amortized versus worst-case bounds, and whether balancing is randomized or deterministic. Amortized bounds must be re-proved under persistence and rollback; ephemeral amortization does not transfer.
-- Generic arithmetic must keep every stored value and intermediate representable or be explicitly modular; `lng` is a convenient sum type, not an overflow check.
+- Ranges follow `03-cpp.md` (API Contracts): zero-based and half-open; an empty range returns the identity.
+- Every structure states its indexing, boundary inclusivity, empty-range identity, key duplicates, signed coordinates, overflow policy and operation algebra (associativity, identity, action homomorphism, commutativity).
+- Every structure states whether it is static, online or offline, its update and query memory, whether its bounds are amortized or worst-case, and whether its balancing is randomized or deterministic. Amortized bounds are re-proved under persistence and rollback; ephemeral amortization does not transfer.
+- Generic arithmetic keeps every stored value and intermediate representable or is explicitly modular; `lng` is a convenient sum type, not an overflow check.
 - Public storage is exposed for contest use but must not be mutated behind an algorithm's invariants. Structures own their storage and copy as independent snapshots.
-- The capacity of a public vector member or a returned vector is unspecified; only its size and values are part of the contract (user decisions 2026-11-12, `SparseTable::v`, then DS02 for every row).
-- Handles (heap nodes, multiset tokens, versions) state their invalidation rules; tokens from other histories must never be passed back.
+- The capacity of a public vector member or a returned vector is unspecified; only its size and values are part of the contract (user decisions 2026-11-12: `SparseTable::v`, then DS02 for every row).
+- Handles (heap nodes, multiset tokens, versions) state their invalidation rules; a token from another history must never be passed back.
 
-## Numeric and algebraic policies
+## Numeric and Algebraic Policies
 
-- Fenwick variants require an additive commutative group; prefix-monoid Fenwick requires monotone updates (max/min) and has no range subtraction.
-- Segment-tree searches need a deterministic predicate true on the identity whose truth forms a prefix as the interval grows.
+- Fenwick variants require an additive commutative group, except `FenwickPrefixMonoid` (monotone updates, no range subtraction) and `FenwickRangeMax` (idempotent monoid, overwrite in O(log(n)^2)).
+- Segment-tree searches need a deterministic predicate that is true on the identity and whose truth forms a prefix as the interval grows.
 - `SparseTable::prod` needs idempotence; `associativeProd` and the disjoint sparse table need only associativity.
-- Monoids follow the `03-cpp.md` monoid rule; presets, adapters and laws are row 00 ([00-monoids.md](00-monoids.md)). Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15, 18 and 19 consume acted monoids (rows 13 and 18 also need only the monoid part, or only the action part, for their plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`).
-- Li Chao and convex hull trick must state an overflow-safe evaluation policy and exact intersection comparison (128-bit products or bounded domains) and tie rules for equal lines, and serve both min and max queries.
-- Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement ([14-segtreebeats.md](14-segtreebeats.md)).
-- ODT/Chtholly workloads must state adversarial worst-case degeneration ([24-interval_set.md](24-interval_set.md)). Kinetic structures must distinguish adversarial event counts from ordinary update bounds.
-- Hash maps use a process-seeded SplitMix hash; Miscellaneous `02-customhash.hpp` owns the hash functions and seeding policy.
+- Monoids follow the `03-cpp.md` monoid rule; presets, adapters and laws are row 00 ([00-monoids.md](00-monoids.md)). Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15, 18 and 19 consume acted monoids. Rows 13 and 18 need only the monoid part for their plain trees and only the action part for their dual trees; row 15's 2D trees need a commutative `op` or `composition`.
+- Li Chao trees and the convex hull trick state an overflow-safe evaluation policy, exact intersection comparison (128-bit products or bounded domains) and tie rules for equal lines, and serve both min and max queries.
+- Segment-tree beats variants beyond chmin, chmax, add and assign need their own amortized proof and value-domain statement ([14-segtreebeats.md](14-segtreebeats.md)).
+- ODT (Chtholly) workloads state their adversarial worst-case degeneration ([24-interval_set.md](24-interval_set.md)). Kinetic structures distinguish adversarial event counts from ordinary update bounds.
+- Hash maps use a process-seeded SplitMix hash; Miscellaneous `02-customhash.hpp` owns the hash functions and the seeding policy.
 
-## Ownership boundaries
+## Ownership Boundaries
 
 - Data Structures owns data-structure engines. Graphs owns dynamic-connectivity orchestration (`26-dynamic_connectivity.hpp`), HLD, LCA and tree adapters; Graphs `48-matroidintersection.hpp` consumes the oracles of `46-matroid_oracle.hpp` and Mathematics linear algebra.
-- Geometry owns point-facing kd/R/quadtree and nearest-neighbour APIs (`28-spatial_index.hpp`), rectangle-union area/perimeter (`13-segment_union.hpp`), kinetic geometry and dynamic/decremental hulls; it may use `43-rangetree.hpp` and `33-offline_rectangle_queries.hpp` as engines.
-- Strings owns literal-prefix (`04-trie.hpp`) and radix tries; this folder owns binary integer/XOR tries and succinct rank/select engines used by Strings `36-compressed_text_index.hpp`.
-- Miscellaneous owns CDQ (`21-cdq.hpp`), parallel binary search (`20-parallelbinarysearch.hpp`), Hilbert order (`16-hilbertorder.hpp`), generic undo log/checkpoints (`42-rollback_framework.hpp`), persistent allocator, slope trick (`34-slope_trick.hpp`), coordinate compression by encounter ID, interval algorithms over static endpoint sets and probabilistic sketches. `63-offline_deletion.hpp` owns the generic add/remove-over-time engine and the queue-undo trick because its contract is the rollback structure, not a graph.
-- Core owns reusable accelerated dynamic bitsets and GF(2) matrices (`12-bitmatrix.hpp`: rank, solve, nullspace); `62-xorbasis.hpp` owns the incremental basis, prefix (timestamped) basis and offline range basis queries. Miscellaneous owns static mex (`08-sequence_algorithms.hpp`, which Mathematics `25-game_theory.hpp` calls for Grundy values); `24-interval_set.hpp` owns dynamic mex over a set (`IntervalSet::find(x).second`).
+- Geometry owns point-facing kd-tree, R-tree, quadtree and nearest-neighbour APIs (`28-spatial_index.hpp`), rectangle-union area and perimeter (`13-segment_union.hpp`), kinetic geometry and dynamic or decremental hulls; it may use `43-rangetree.hpp` and `33-offline_rectangle_queries.hpp` as engines.
+- Strings owns literal-prefix (`04-trie.hpp`) and radix tries; this folder owns binary integer and XOR tries and the succinct rank/select engines that Strings `36-compressed_text_index.hpp` uses.
+- Miscellaneous owns CDQ (`21-cdq.hpp`), parallel binary search (`20-parallelbinarysearch.hpp`), Hilbert order (`16-hilbertorder.hpp`), the generic undo log and checkpoints (`42-rollback_framework.hpp`), the persistent allocator, slope trick (`34-slope_trick.hpp`), coordinate compression by encounter ID, interval algorithms over static endpoint sets and probabilistic sketches. `63-offline_deletion.hpp` owns the generic add/remove-over-time engine and the queue-undo trick, because its contract is the rollback structure, not a graph.
+- Core owns reusable accelerated dynamic bitsets and GF(2) matrices (`12-bitmatrix.hpp`: rank, solve, nullspace); `62-xorbasis.hpp` owns the incremental basis, the prefix (timestamped) basis and offline range-basis queries. Miscellaneous owns static mex (`08-sequence_algorithms.hpp`, which Mathematics `25-game_theory.hpp` calls for Grundy values); `24-interval_set.hpp` owns dynamic mex over a set (`IntervalSet::find(x).second`).
 - Python mirrors (`08-Python`) own their own sorted-list and xor-basis (`_22_bitset.py`) implementations.
-- Rollback DSU owns the generic undo/connectivity substrate; weighted DSU owns potential/parity/noncommutative algebra and the weighted rollback variant. Reuse the undo contract without reciprocal header dependencies. `65-dsu_extensions.hpp` holds member enumeration, component aggregates and actions, sparse keys and the merge-history forest; it depends on `01-dsu.hpp`, `61-hashmap.hpp` and Miscellaneous `02-customhash.hpp` only. Groups for rows 29 and 65 are monoids with `inv` ([00-monoids.md](00-monoids.md#group-contract)).
-- Dynamic wavelet and succinct structures are Esoteric rows, never extra modes hidden inside the Advanced wavelet header. Persistent split/merge stays with the persistent segment tree; destructive meld/split stays with the dynamic segment tree.
-- Heap and deque engines are consumed by Graphs Dijkstra and k-shortest walks and Miscellaneous optimal merge; those clients do not reimplement heaps.
+- Rollback DSU owns the generic undo and connectivity substrate; weighted DSU owns potential, parity and noncommutative algebra and the weighted rollback variant. They reuse the undo contract without reciprocal header dependencies. `65-dsu_extensions.hpp` holds member enumeration, component aggregates and actions, sparse keys and the merge-history forest, and depends only on `01-dsu.hpp`, `61-hashmap.hpp` and Miscellaneous `02-customhash.hpp`. Groups for rows 29 and 65 are monoids with `inv` ([00-monoids.md](00-monoids.md#group-contract)).
+- Dynamic wavelet and succinct structures are Esoteric rows, never extra modes inside the Advanced wavelet header. Persistent split and merge stay with the persistent segment tree; destructive meld and split stay with the dynamic segment tree.
+- Graphs Dijkstra and k-shortest walks and Miscellaneous optimal merge consume the heap and deque engines and do not reimplement heaps.
 
-## Migration obligations
+## Migration Obligations
 
-- Unchanged extractions (`23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit.
+- Row 23 (`23-range_query_offline.hpp`) is a pinned unchanged extraction: it keeps its original body and comments until its package rewrites it (`03-cpp.md`, One API per Operation), and compiling proves nothing about its semantics. Its audit strips hidden template globals and splits mixed-operation bodies.
 
-## P006 re-audit omissions
+## P006 Re-Audit Omissions
 
 Candidates from the 2026-10-07 sweep ([00-sources.md](00-sources.md)) left out of rows 01–08:
 
-- SparseTable `maxRight`/`minLeft` (MAS): the table has no identity; a binary search over `query` gives the same O(log(n)) bound. (returned by P275 2026-11-10 into row 04)
-- SegmentTree/SqrtDecomp/Fenwick `reset`/`build` (MAS, HIT): constructing a new object does the same.
-- Fenwick timestamp clearing (OI): a per-problem multi-test trick, not a structure operation. (returned by P275 2026-11-10 into row 02)
-- Prefix product over a noncommutative or xor group (MAS `Static_Range_Product_Group`): a custom T with `+`/`-` covers commutative groups; noncommutative prefix products are rare.
-- 3D prefix sums and difference arrays (OI): rare; apply the 2D axis-by-axis method one more time.
-- Tree prefix sums and path differences (OI): need LCA, so they belong to Graphs tree algorithms.
-- SqrtDecomp range actions and block policies (NYA, CPA): adopted on 2026-11-08 into row 06 as `BlockDecomp` (caller block policy) and `SortedBlocks` (range add or assign with `countLess`), whose block summaries are not monoids; monoid actions stay with the lazy segment tree (row 12), which has the better bound.
+- SegmentTree and Fenwick `reset`/`build` (MAS, HIT): constructing a new object does the same.
+- Tree prefix sums and path differences (OI): they need LCA, so they belong to Graphs tree algorithms.
+- SqrtDecomp monoid range actions (NYA, CPA): the lazy segment tree (row 12) has the better bound.
 - SqrtDecomp `maxRight`/`minLeft` (CPA): the segment tree has the same predicate search with a better bound.
-- O(1)-update / O(sqrt(n))-query group block sums (MAS): adopted on 2026-11-08 into row 23 as `SqrtBlockSum`, the Mo value-domain tool.
-- OrderedMultiSet `split`/`join` (OI pb_ds): rare; `OrderedSet` keeps the native PBDS API, including both. (returned by P275 2026-11-10 into row 07)
 - CoordinateCompression distinct-by-position encoding and counting-sort mode (MAS, NYA): an argsort rank, not compression; Miscellaneous row 04 owns them (`stableRanks`, `compressCounting`, `stableRanksCounting`, 2026-11-17).
-- DSU delete/move element (OI): planned as row 65 `MovableDSU` (P275 re-review 2026-11-10, package P035; row 01 keeps none, user decision 2026-11-13). DSU grid adapters (HIT): left out, a grid vertex is `r * w + c`, an argument form (user decision 2026-11-12; earlier reasons in [P035 omissions](#p035-omissions)).
+- DSU grid adapters (HIT): a grid vertex is `r * w + c`, an argument form (user decision 2026-11-12). DSU delete and move (OI) belong to row 65 `MovableDSU`; row 01 keeps neither (user decision 2026-11-13).
 
-## Foundations rows 01–08 (P006)
+## Foundations Rows 01–08 (P006)
 
-Folder-level record for the verified Basic rows `01-dsu.hpp` … `08-monotone_stack.hpp` (package P006, DS01 then DS02 order). Per-header evidence: [01-dsu.md](01-dsu.md), [02-fenwick.md](02-fenwick.md), [03-segmenttree.md](03-segmenttree.md), [04-sparsetable.md](04-sparsetable.md), [05-prefix_sum.md](05-prefix_sum.md), [06-sqrt_decomposition.md](06-sqrt_decomposition.md), [07-ordered_set.md](07-ordered_set.md), [08-monotone_stack.md](08-monotone_stack.md). C01/P002 supplies the verified template, integer aliases and PBDS imports. Rows 01–08 use no ISA kernels, Barrett/Montgomery reduction or empirically selected dispatch thresholds.
+Folder-level record for the verified Basic rows `01-dsu.hpp` … `08-monotone_stack.hpp` (package P006, DS01 then DS02). Per-header evidence: [01-dsu.md](01-dsu.md), [02-fenwick.md](02-fenwick.md), [03-segmenttree.md](03-segmenttree.md), [04-sparsetable.md](04-sparsetable.md), [05-prefix_sum.md](05-prefix_sum.md), [06-sqrt_decomposition.md](06-sqrt_decomposition.md), [07-ordered_set.md](07-ordered_set.md), [08-monotone_stack.md](08-monotone_stack.md). C01/P002 supplies the verified template, integer aliases and PBDS imports. Rows 01–08 use no ISA kernels, no Barrett or Montgomery reduction and no empirically selected dispatch thresholds.
 
-### Common foundation contracts
+### Common Foundation Contracts
 
-The folder [common contracts](#common-contracts) apply. Empty construction is supported. Invalid indices, sizes, shapes and required predicate identities are preconditions checked by assertions; they remain preconditions under `NDEBUG`. Complexity counts constant-cost element operations/comparisons/copies; strings and large integers add their own costs. Allocation failure is ordinary C++ allocation failure. Associativity, idempotence, arithmetic validity and predicate monotonicity are semantic caller contracts, not properties a generic library can cheaply infer.
+The folder's [common contracts](#common-contracts) apply. Empty construction is supported. Invalid indices, sizes, shapes and required predicate identities are preconditions checked by assertions, and they remain preconditions under `NDEBUG`. Complexity counts constant-cost element operations, comparisons and copies; strings and large integers add their own costs. Allocation failure is ordinary C++ allocation failure. Associativity, idempotence, arithmetic validity and predicate monotonicity are semantic caller contracts, not properties a generic library can cheaply infer.
 
-A moved-from structure may only be assigned to or destroyed. Its size fields keep their old values while its storage is empty, so every other call is a precondition violation. Assignment restores every invariant. Structures that have both a size constructor and a vector constructor (`Fenwick`, `SegmentTree`, `PrefixSum`, `DifferenceArray`, `SqrtDecomp`, `SqrtRangeSum`) also take an `std::initializer_list<T>`. A braced list therefore always means values, as with `std::vector`: `PrefixSum<lng> p({7})` and `PrefixSum<lng> p{7}` hold the single value 7, and `PrefixSum<lng> p(7)` holds seven zeros. Elements of `T = bool` are read by value through `vector<bool>::const_reference` wherever a reference to storage is returned.
+A moved-from structure may only be assigned to or destroyed. Its size fields keep their old values while its storage is empty, so every other call is a precondition violation; assignment restores every invariant. Structures with both a size constructor and a vector constructor (`Fenwick`, `SegmentTree`, `PrefixSum`, `DifferenceArray`, `SqrtDecomp`, `SqrtRangeSum`) also take an `std::initializer_list<T>`, so a braced list always means values, as with `std::vector`: `PrefixSum<lng> p({7})` and `PrefixSum<lng> p{7}` hold the single value 7, and `PrefixSum<lng> p(7)` holds seven zeros. Elements of `T = bool` are read by value through `vector<bool>::const_reference` wherever a reference to storage is returned.
 
-### Test infrastructure
+### Test Infrastructure
 
-Failure reporting follows `05-testing.md`; invalid probes require SIGABRT with assertion diagnostics. Exhaustive enumerations stop on the first discovered failing case. The DSU union histories and the `FenwickTimestamp` add/clear histories run by iterative deepening, so their first failure is a shortest history; the other enumerations make no shrinking claim.
+Rows 01–08 run through `96-Local Testing/_00_contest_runner.py`, which sets the optimized, checked and sanitizer builds with their flags and leak checking; modes and failure reporting follow `05-testing.md` (Layout and Modes). Folder-specific parts:
 
-Quick modes reduce enumeration lengths/history depths/random counts and run optimized plus checked builds. Full runs every feature in optimized (`-O2 -DNDEBUG`), checked (`-O1 -g -D_GLIBCXX_DEBUG`; the ordered suite uses `_GLIBCXX_ASSERTIONS`, see [07-ordered_set.md](07-ordered_set.md)), and sanitizer (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`) builds, with leak checking enabled. Every configuration compiles with `-Wall -Wextra -Wconversion -Werror`. Stress modes extend the enumerations/random counts; each suite's source records its concrete mode limits. Declared algebra/monotonicity/representability conditions and impractically large allocations are justified contracts, not runtime proof by finite tests.
+- Invalid probes must end in SIGABRT with an assertion diagnostic.
+- The ordered-set suite's checked build uses `_GLIBCXX_ASSERTIONS` instead of `_GLIBCXX_DEBUG` ([07-ordered_set.md](07-ordered_set.md)).
+- Exhaustive enumerations stop at the first failing case. The DSU union histories and the `FenwickTimestamp` add/clear histories run by iterative deepening, so their first failure is a shortest history; the other enumerations make no shrinking claim.
+- Each suite's source records its concrete mode limits.
+- Declared algebra, monotonicity and representability conditions and impractically large allocations are justified contracts, not proved at run time by finite tests.
 
-## P027 omissions
+## P027 Omissions
 
 Candidates from the 2026-10-08 sweep and the 2026-10-17 monoid sweeps ([00-sources.md](00-sources.md)) left out of rows 00, 11, 12, 13 and 24:
 
-- Hash-map dynamic Fenwick, dynamic 2D Fenwick (NYA): row 13 covers huge universes; a hash-map Fenwick is a constant-factor variant without new operations.
-- Persistent Fenwick (SUI): row 18 owns persistence.
-- Compressed rectangle-add/rectangle-sum, compressed dual 2D Fenwick (SUI, MAS): row 33 owns the offline rectangle engines; `Fenwick2DRangeAdd` covers the dense online case.
-- Fenwick range max with arbitrary overwrite in O(log(n)^2) (OI): adopted on 2026-11-08 into row 11 as `FenwickRangeMax`, lighter than the row 03 segment tree.
-- 2D dual Fenwick (rectangle add, point get) (NYA): four `Fenwick2D::add` corners plus `prefixSum`.
-- K-dimensional compressed prefix monoid (SUI, EI): rare; `CompressedFenwick2D` with a group covers dominance sums, and 2D prefix max is a sorted sweep over `FenwickPrefixMonoid`.
 - Fenwick01 `kth` from an offset (MAS): `kth(rank(l) + k)`.
-- Lazy tree `multiply`, generator build, `reset` (MAS): `apply(p, f)` or `set(p, op(get(p), x))`; constructing a new object.
-- Lazy tree xor-index range apply, rollback lazy tree, run-based range-assignment tree (MAS): rare; the last is `IntervalMap` plus a point-update tree. Power sums under add or assignment (MAS) are `RangeLinearRangeSum` with a binomial or rank-one matrix.
-- Plain `Assign` monoid (MAS): any assign preset's action drives a dual tree (`DualSegmentTree<RangeAssignRangeSum<T>>`), and `MonoidAction<Max<pair<time, value>>>` assigns by timestamp.
-- `AddDivide` floor-division composite (MAS, CF 878E), Fibonacci-progression add (CF 446C), elementary symmetric sums under add (P4247), pairs of acted monoids (CF 1114F): one problem each; user structs under the contract.
-- `Dummy` and dihedral-group monoids, public `monoid_pow` (MAS): rare; `Monoid` with a user op, and powers by squaring with `m.op`.
-- Leftmost free block of length k (P2894 Hotel): needs a custom descent over the run fields of `MaxSubarray`, which `maxRight` cannot express.
+- Lazy tree `multiply`, generator build and `reset` (MAS): `apply(p, f)` or `set(p, op(get(p), x))`, and constructing a new object.
+- Power sums under range add (MAS): `RangeLinearRangeSum` with a binomial matrix.
+- Run-based range-assignment tree (MAS): rare; `IntervalMap` (row 24) plus a point-update tree does the same.
+- `Dummy` monoid (MAS): rare; `Monoid` with a user op.
 - Euler-tour diameter monoid (CF 1149C): Graphs owns tree diameters.
 - Dynamic tree one-node-per-key sparse variant (MAS): a memory variant of the same API.
-- Dynamic tree range `clear` (TKO), split by count (MAS sortable), meld on the lazy tree (NYA), dual `getAll` (MAS): rare; split by count is `split(root, maxRight(root, lo, count <= k))`; sortable trees are row 51.
+- Dynamic tree range `clear` (TKO) and split by count (MAS sortable): rare; split by count is `split(root, maxRight(root, lo, count <= k))`, and sortable trees are row 51.
 - Dynamic tree vector build (legacy `DynSegTree(span)`): a dense array is row 12.
-- Interval set `sameInterval`, `maxExcluded`, iterator `lowerBound` (SUI, NYA): `covers(min, max + 1)`; `contains(x) ? find(x).first - 1 : x` (none when that interval starts at the minimum of `T`); `find`/`next` cover the lookups.
-- `IntervalsFast` over a fastset, splay-backed `PiecewiseConstant` with slides (MAS): row 36 owns the fastset; the sliding structure is an Esoteric candidate without a current owner.
-- `IntervalMap::toArray` (MAS): `enumerate` over `[lo, hi)`.
+- Interval set `sameInterval`, `maxExcluded` and iterator `lowerBound` (SUI, NYA): `covers(min, max + 1)`; `contains(x) ? find(x).first - 1 : x` (none when that interval starts at the minimum of `T`); `find` and `next` cover the lookups.
+- `IntervalsFast` over a fastset (MAS): row 36 owns the fastset.
 
-## P227 omissions
+## P227 Omissions
 
 Candidates from the 2026-10-09 sweep ([00-sources.md](00-sources.md)) left out of rows 61 and 64:
 
 - HashMap `count` (MAS, NYA, LC): `contains` gives the same answer.
 - HashMap `forEach`/`enumerate` (MAS, NYA): range-for over `begin`/`end` does it.
-- HashMap `erase(iterator)` returning the next element (NYA): backward-shift erase moves later cluster members into the hole, so erase while iterating needs a different contract; rare.
-- `emplace`/`try_emplace`, default-value parameter, `build(n)`, `cbegin`/`cend`, `dump` (NYA, MAS, LC): covered by `insert`, `get(k, def)`, `clear` plus `reserve`, const `begin`, and range-for.
+- HashMap `erase(iterator)` returning the next element (NYA): backward-shift erase moves later cluster members into the hole, so erasing while iterating needs a different contract; rare.
+- `emplace`/`try_emplace`, a default-value parameter, `build(n)`, `cbegin`/`cend` and `dump` (NYA, MAS, LC): covered by `insert`, `get(k, def)`, `clear` plus `reserve`, const `begin`, and range-for.
 - Shrinking on erase (NYA): capacity stays at the peak; assign a new table to release it.
-- SortedList `countRange`, slice erase, `irange`/`islice`, bulk `update`, `operator==` (sortedcontainers, tatyam): `rank(r) - rank(l)`, iterators, repeated `insert` or `rebuild`, and comparing iteration. (returned by P275 2026-11-10 into row 64)
-- SortedList negative `kth` indices (tatyam, PyRival): Python convention; C++ uses `kth(n - 1 - k)`.
-- Fenwick over bucket sizes (PyRival) or a positional index tree (sortedcontainers): `rank`/`kth` would gain O(log(n)) bucket lookup, but `insert` stays O(sqrt(n)) and every split or merge rebuilds the index; the RATIO sweep in [64-sortedlist.md](64-sortedlist.md) favours smaller buckets (shorter shifts) over fewer buckets, so the linear bucket scan is not the bottleneck at n <= 1e6.
+- SortedList `countRange` and `irange`/`islice` (sortedcontainers, tatyam): `rank(r) - rank(l)` and iterators.
+- SortedList negative `kth` indices (tatyam, PyRival): a Python convention; C++ uses `kth(n - 1 - k)`.
+- Fenwick over bucket sizes (PyRival) or a positional index tree (sortedcontainers): `rank`/`kth` would gain O(log(n)) bucket lookup, but `insert` stays O(sqrt(n)) and every split or merge rebuilds the index. The RATIO sweep in [64-sortedlist.md](64-sortedlist.md) favours smaller buckets (shorter shifts) over fewer buckets, so the linear bucket scan is not the bottleneck at n <= 1e6.
 
-## P028 omissions
+## P028 Omissions
 
 Candidates from the 2026-10-10 sweep ([00-sources.md](00-sources.md#fetched-2026-10-10-p028-sweep)) left out of rows 14, 15, 16 and 30:
 
-- Historic values under chmax (UOJ 169) and the historic-max sum (OI, tjkendev): each needs four or more interacting tags; `LazySegmentTreeBeats` hosts the chmax variant as a user BeatsMonoid. Historic max under add and assignment (CPU monitor) was adopted on 2026-11-08 into row 00 as `RangeAddAssignRangeMaxHistoricMax`, and historic max under chmin with add (Luogu P6242) into row 14 as `RangeChminAddRangeSumMaxHistoricMax`.
-- Chmin with a change callback (MAS), max-plus tags (UOJ 164), historic sums of squares: rare. Range gcd-with plus max/sum (yukicoder 880, HIT), change counters and two-array `max(A_i + B_i)` (OI) were adopted on 2026-11-08 into row 14 as `RangeGcdAssignRangeMaxSum`, `RangeChminChmaxAddRangeChangeCount` and `TwoArrayChminAddRangeMaxSum`.
-- `LazySegmentTreeBeats` `maxRight`/`minLeft` and `values` (SUI, MAS): rare on beats trees; `prod` per prefix or row 12 when no failures are needed. (returned by P275 2026-11-10 into row 14)
+- Historic values under chmax (UOJ 169) and the historic-max sum (OI, tjkendev): each needs four or more interacting tags; `LazySegmentTreeBeats` hosts the chmax variant as a user BeatsMonoid.
+- Chmin with a change callback (MAS) and historic sums of squares: rare.
+- `LazySegmentTreeBeats::values` (SUI, MAS): rare on beats trees; `prod` per prefix, or row 12 when no failures are needed.
 - Kinetic segment tree beats (MAS): row 45 owns it.
 - `FenwickOfSegmentTrees` (former row 15 entry): `SegmentTree2DSparse::prod` answers prefix-x range-y queries at the same bound; row 11 `CompressedFenwick2D` is the group-valued variant.
-- Sparse 2D `maxUp`/`minDown` searches, k-dimensional compressed trees (SUI), pluggable range trees (NYA, HIT): rare; row 43 owns range trees.
-- Online rectangle-apply/point-get on registered points (MAS `Dual_FenwickTree_2D`): row 33 sweeps offline, `Fenwick2DRangeAdd` (row 11) is the dense case and `LazyKdTree` the O(sqrt(k)) online case.
-- Fully online 2D trees on unknown points (NYA hash-map Fenwick, OI seg-in-seg): adopted into row 15 as `DynamicSegmentTree2D` and `HybridSegmentTree2D` (user decision 2026-11-04) and, in linear memory, as `DynamicKdTree` (logarithmic method, 2026-11-08); the group-valued hash-map Fenwick is row 11 `DynamicFenwick2D`.
-- Merge sort tree `sumLeq`/`countSumLeq` (LC `static_range_sum_with_upper_bound`): row 17 `sumLess`; `countGreater`, `countGeq`, `countLeq` (HIT): `r - l - countLess` or `countLess` of the next value. (returned by P275 2026-11-10 into row 16)
-- Fenwick of value segment trees for O(log^2) dynamic kth (OI seg-in-bit): adopted on 2026-11-08 into row 16 as `FenwickValueTrees`; value trees opened on demand need no offline values, and its kth beats `DynamicMergeSortTree::kth` by a log factor.
+- Pluggable range trees (NYA, HIT): rare; row 43 owns range trees, including the k-dimensional compressed `RangeTreeK` (SUI, user decision 2026-11-04).
+- Merge sort tree `sumLeq`/`countSumLeq` (LC `static_range_sum_with_upper_bound`): row 17 `sumLess`.
 - Online `lng` x coordinates in `DynamicMergeSortTree` (legacy `insert2D`): compress x to slots; huge online universes belong to row 13.
-- SWAG `operator[]`, separate front/back folds, pop returning the value, iterator constructors, separate value and product types (SUI, MAS, HIT): rare conveniences; `front`/`back`/`top` and `allProd` cover the uses.
+- SWAG `operator[]`, separate front and back folds, pop returning the value, iterator constructors and separate value and product types (SUI, MAS, HIT): rare conveniences; `front`, `back`, `top` and `allProd` cover the uses.
 
-## P029 omissions
+## P029 Omissions
 
 Candidates from the 2026-10-13 sweep ([00-sources.md](00-sources.md#fetched-2026-10-13-p029-sweep)) left out of rows 17, 19 and 25:
 
 - Wavelet xor queries (`kthXor`, `xorMin`/`xorMax`, xor-bounded counts; SUI, MAS): they need raw-bit levels instead of the compressed alphabet; row 26 `PersistentBinaryTrie` answers range xor queries through prefix versions.
-- Wavelet `maxRight` over values with a (count, sum) predicate, multi-range descents and tree-path wavelets (MAS): rare; `kth` and `kthSum` cover the fixed-k uses, and a Graphs path-kth owner would build on multi-range descents.
-- Wavelet `topK`, `rangeList`, `rangeMinK`/`rangeMaxK`, `intersect` (MitI-7): rare; the distinct values of a window are repeated `minGeq` plus `countEqual`, O(log k) each. (returned by P275 2026-11-10 into row 17)
-- Fenwick nodes in `WaveletMatrixMonoid` for invertible weights (EI, NYA): a constant-factor variant of the segment-tree nodes with the same bounds; value-range sums and the sum of the k largest are differences of `sumLess` and `kthSum`.
-- Treap `prev`/`next` keys and `count` (OI, LC `ordered_set`): `kth(v, rank(v, x) - 1)`, `kth(v, upperRank(v, x) - 1)`, `lowerBound`, `upperBound`, `upperRank - rank`. (returned by P275 2026-11-10 into row 19)
-- Treap `intersect` and difference (CPA, bound stated without code), split by count (OI `split_by_rk`; `split(v, kth(v, k))` for distinct keys): rare. Key-range monoid products (SUI) were adopted on 2026-11-08 into row 20 as `OrderedMonoidMap`.
-- ImplicitTreap `rotate`, point `apply`, `allProd`, end pushes and pops (SUI, KACTL `move`, NYA): compositions of `split`/`merge`, range `apply` and `prod`. (returned by P275 2026-11-10 into row 19)
+- Tree-path wavelets (MAS): rare; a Graphs path-kth owner would build on the multi-range descents.
+- Fenwick nodes in `WaveletMatrixMonoid` for invertible weights (EI, NYA): a constant-factor variant of the segment-tree nodes with the same bounds.
+- Treap `next` (OI, LC `ordered_set`): `lowerBound` or `upperBound`.
+- Treap difference (CPA, bound stated without code): rare.
 - `decreaseKey` on `BinomialHeap`/`LeftistHeap` and handle `erase` on the leftist, skew, randomized and binomial heaps (OI, CPA, HIT): they need parent pointers or handle-moving key swaps; `PairingHeap` and `FibonacciHeap` cover handles with better bounds.
-- Heap pool `clear`, sorted dumps, lazy multiply tags, `DAryHeap` push-or-decrease (HIT, SUI, MAS, OI): a new object, popping a copy, rare, and `contains` with `push`/`decreaseKey`.
+- Heap pool `clear` and sorted dumps (HIT, SUI, MAS, OI): a new object, and popping a copy.
 - Brodal and soft heaps: no catalog implementation.
 
-## P033 omissions
+## P033 Omissions
 
 Candidates from the 2026-10-14 sweep ([00-sources.md](00-sources.md#fetched-2026-10-14-p033-sweep)) left out of rows 26, 27, 28 and 33:
 
 - Binary trie meld (OI, NYA): merging in amortized O(total nodes) needs tries sharing one node pool; small-to-large insertion gives O(n log(n) B).
-- LSB-first trie with global +1 and subtree xor sums (OI): a different bit orientation for one problem family (P6623).
-- kth xor pair and the count of pairs with xor below t (HIT, yukicoder 2977): the count is n `countLess` calls; the parallel descent for the kth pair is rare.
-- Range xored mex (SUI): a wavelet-like structure, not a trie; rare.
-- Index payloads per key and ordered enumeration (EI, NYA, MAS): a map beside the trie; enumeration is `kth` for each rank at the same bound.
-- Per-query xor masks on `BinaryTrie::kth`, `countLess`, `lowerBound` (EI, MAS, SUI): `applyXor` around the query; `PersistentBinaryTrie` takes the mask because versions are immutable.
-- Weighted subarray counts by minimum (MAS `count_subrectangle`): `(i - l + 1) * (r - i)` from `range`; depth or traversal arrays: no catalog offers them.
-- DisjointSparseTable `maxRight`/`minLeft` (MAS): a binary search over `prod` gives the same O(log(n)) bound. (returned by P275 2026-11-10 into row 28)
+- The count of pairs with xor below t (HIT, yukicoder 2977): n `countLess` calls.
+- Index payloads per key (EI, NYA, MAS): a map beside the trie.
+- Per-query xor masks on `BinaryTrie::kth`, `countLess` and `lowerBound` (EI, MAS, SUI): `applyXor` around the query; `PersistentBinaryTrie` takes the mask because versions are immutable.
+- Weighted subarray counts by minimum (MAS `count_subrectangle`): `(i - l + 1) * (r - i)` from `range`. Depth or traversal arrays: no catalog offers them.
 - Blocked static range product with naive in-block queries (MAS `Static_Range_Product`): O(2^LOG) in-block queries; `staticRangeProducts` answers offline in O(n + q) memory.
-- Xor-indexed disjoint sparse table, 2D associative products on a segment tree (MAS): rare; row 15 covers commutative rectangle products.
+- 2D associative products on a segment tree (MAS): rare; row 15 covers commutative rectangle products.
 - Alon–Schieber O(α(n)) semigroup queries after linear preprocessing: research-level, no contest implementation.
-- Higher-order coefficient queries `[x^p y^q] f / ((1 - x)^A (1 - y)^B)` (MAS `coefficient_query_2d`): A = B = 1 and A = B = 2 are the engine's kernels; higher orders are rare.
-- Online rectangle-add rectangle-sum and rectangle-add point-get on registered points (SUI, MAS): row 33 sweeps offline, row 11 `Fenwick2DRangeAdd` is the dense online case (as recorded in the P027 and P028 omissions).
-- K-dimensional compressed, dynamic 2D and block-decomposed Fenwick trees (SUI, NYA, OI): online structures; row 11 would own them if a motivating problem appears.
+- Block-decomposed Fenwick trees (OI): an online structure; row 11 would own it if a motivating problem appears.
 
-## P034 omissions
+## P034 Omissions
 
 Candidates from the 2026-10-17 sweep ([00-sources.md](00-sources.md#fetched-2026-10-17-p034-sweep)) left out of rows 09, 10, 34, 35 and 63:
 
-- SqrtTree range assignment (CPA, OI `massUpdate`): adopted on 2026-11-08 into row 34 as `SqrtTree::assign`; tags sit on layer-1 nodes and each assignment builds the power table x^1..x^B in O(sqrt(n)) op calls, so `prod` stays O(1). The O(sqrt(n)) update with O(log(log(n))) queries is the same operation by another algorithm.
+- SqrtTree range assignment with O(sqrt(n)) updates and O(log(log(n))) queries (CPA, OI `massUpdate`): the same operation as row 34 `SqrtTree::assign` by another algorithm.
 - SqrtTree generator build and fixed three-layer layout (MAS): construction from a vector; row 34 already stops layering at segments of at most 8 elements, which a direct fold answers.
-- PersistentArray in-place set (SUI `mut_set`, MAS `make_copy = false`): writes into nodes shared with other versions. `size` (SUI): the public `n`. Node pools, reset and garbage collection (SUI, MAS): Miscellaneous row 43 owns persistent arenas. Fat-node partially persistent array (EI internals): `PartiallyPersistentDSU` keeps its own attach times. Persistent block array (OI): O(sqrt(n)) per operation.
+- PersistentArray in-place set (SUI `mut_set`, MAS `make_copy = false`): it writes into nodes shared with other versions. `size` (SUI): the public `n`. Node pools, reset and garbage collection (SUI, MAS): Miscellaneous row 43 owns persistent arenas. Fat-node partially persistent array (EI internals): `PartiallyPersistentDSU` keeps its own attach times. Persistent block array (OI): O(sqrt(n)) per operation.
 - RollbackDSU `makeSet` and an `undo` reporting what it reverted: no catalog has them. Union by rank (CPA): `size` needs sizes. History-clearing `snapshot` (EI, SUI) and `reset` (MAS, HIT): `rollback` to a token and `rollback(0)`.
-- PersistentDSU `groups(version)` and `dump` (SUI): `findSet` over every vertex; debug output. Offline persistent DSU by DFS over the version tree (the usual Library Checker solution): a use of rows 09 and 63.
-- Priority-queue undo (Codeforces blog 111117) and deque undo (blog 154645): both tutorials returned 403, so neither algorithm nor its amortized proof could be checked; `OfflineDeletion` covers deletions with known times and `QueueUndo` the FIFO case.
+- PersistentDSU `dump` (SUI): debug output.
+- Priority-queue undo (Codeforces blog 111117) and deque undo (blog 154645): both tutorials returned 403, so neither the algorithm nor its amortized proof could be checked; `OfflineDeletion` covers deletions with known times and `QueueUndo` the FIFO case.
 
-## P035 omissions
+## P035 Omissions
 
 Candidates from the 2026-10-23 sweep ([00-sources.md](00-sources.md#fetched-2026-10-23-p035-sweep)) left out of rows 29, 36 and 65:
 
 - Persistent weighted DSU: no catalog has one.
-- Component sums under a component-wide action (suisen `UnionFindLazy`): needs an action on sums that merges can cancel; rare. `DualDSU` reads single values, `ComponentSumDSU` folds without actions. Monoid-only component actions (chmax) are left out too: `DualDSU` cancels the absorbing root's tag with `inv`.
-- Delete and move element (OI Wiki virtual nodes, UVa 11987) and grid adapters with a border merge (hitonanode `grid_unionfind`): a move needs a group to remove the old value from its component; a grid is `r * w + c` and a loop. (Superseded: see the DSU line of the P006 omissions above.)
-- Merges of one batch as a single time step (suisen `merge_simultaneously`): `MergeHistoryForest` stamps each union with its index; a caller maps indices to steps.
-- FastSet `clear`/`reset` (maspypy, hitonanode): constructing a new set does the same. `fillOne`: `build` with a true predicate. `toString`: debug output. `any(l, r)`: `next(l) < r`. Range erase: `enumerate` with `erase` in the callback. Counting and k-th: Fenwick `lowerBound` (row 02).
-- Arpa's offline RMQ (cp-algorithms, a DSU over next-smaller links): rows 04 and 28 answer the same queries online.
+- Monoid-only component actions such as chmax: `DualDSU` cancels the absorbing root's tag with `inv`, which a monoid lacks.
+- FastSet `clear`/`reset` (maspypy, hitonanode): constructing a new set does the same. `fillOne`: `build` with a true predicate. `toString`: debug output. Counting and k-th: Fenwick `lowerBound` (row 02).
 
-## P030 omissions
+## P030 Omissions
 
 Candidates from the 2026-10-27 sweep ([00-sources.md](00-sources.md#fetched-2026-10-27-p030-sweep)) left out of row 18 (user decision 2026-10-27; pool reset, copy with an action, `kthMax`, `countLess` and `sumLess` were added instead):
 
-- Persistent Fenwick tree (SUI): the left-sum tree with path copying is `PersistentSegmentTree<Sum<lng>>` at the same bounds; a scratch measurement (2026-10-27, n = q = 2 * 10^5, half point adds, half range sums on random versions) made 1.86M nodes either way in about 65 ms against 64 ms.
 - k-th smallest on a tree path (SPOJ COT, versions per vertex combined through the LCA): Graphs owns tree adapters; filed as P248 (Graphs row 88).
-- Position-dependent defaults for untouched ranges (legacy `defR(l, r)`, row 13's `fill` functor) in `PersistentSegmentTree`: untouched ranges would hold `fill` instead of `e()`, which breaks the null-node shortcuts of `merge`, `split` and retagging; the fill build `(n, x)` covers uniform defaults on any `lng` universe and a vector build covers the rest up to memory.
+- Position-dependent defaults for untouched ranges (legacy `defR(l, r)`, row 13's `fill` functor) in `PersistentSegmentTree`: untouched ranges would hold `fill` instead of `e()`, which breaks the null-node shortcuts of `merge`, `split` and retagging. The fill build `(n, x)` covers uniform defaults on any `lng` universe, and a vector build covers the rest up to memory.
 
-## P032 omissions
+## P032 Omissions
 
 Candidates from the 2026-10-28 DS11 sweep ([00-sources.md](00-sources.md#fetched-2026-10-28-p032-ds11-sweep)) left out of rows 21 and 22 (user decision 2026-10-28; floating-point lines were added to row 22 instead):
 
-- Minimum over an x-interval (Nyaan, monotone lines only) and lazy additive tags on the envelope (maspypy `extended_lichao`; CF 1120F named there, not fetched): rare; range linear add with range minimum is row 45.
 - Real x coordinates (cp-algorithms): `LiChaoTreeCompressed` takes any finite point set of `lng`; real points need a rank mapping inside `F::eval`, which a stored function cannot capture.
-- Line deletion: `undo` with row 63 `OfflineDeletion`; node-pool reset (maspypy): a new object.
+- Line deletion: `undo` with row 63 `OfflineDeletion`. Node-pool reset (maspypy): a new object.
 - Rollback CHT with binary-search insertion (CEOI 2009 Harbingers, named by the sweep, not fetched; CF blog 51684 returned 403): `LiChaoTree` and `LiChaoTreeCompressed` with `UNDO` answer the same tree DP at O(log(C)) per operation.
-- `empty`, `size`, `clear` (ei1333, maspypy): the public deque, a new object. Merging two monotone hulls (hitonanode, unverified there), single-crossing functions in a monotone CHT (maspypy `CHT_Monotone_F`): one catalog each; the Li Chao trees cover general functions.
+- `empty`, `size`, `clear` (ei1333, maspypy): the public deque, and a new object.
 - Max of `a x + b y` over points (maspypy `CHT_XY`, Nyaan `LineContainer2D`) and static envelope pieces (maspypy `line_min_function`): Geometry rows 20 and 41.
 
 Candidates from the 2026-11-02 DS27 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds27-sweep)) left out of row 31 (user decision 2026-11-02):
 
 - `clear` (hitonanode, iwiwi): a new object, as in rows 22 and 36; `swap`: `std::swap`.
-- Floating-point keys by IEEE bit encoding (iwiwi): rare; a caller encodes them into `ulng` keys.
 - Bounded-gap radix heaps with O(log(C)) buckets (Ahuja et al., scrapbox): the xor buckets already give O(b), and Graphs `dialDijkstra` covers small `C`.
-- Rust `radix-heap` extras (start bound, `constrain`, iterators, max order, `shrink_to_fit`): no contest use; a max-heap is the complemented key.
-- hitonanode `chmin` (push or decrease): `contains` with `push`/`decreaseKey`, as for `DAryHeap`.
+- Rust `radix-heap` extras (start bound, `constrain`, iterators, `shrink_to_fit`): no contest use.
 
 Candidates from the 2026-11-02 DS28 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds28-sweep)) left out of row 32 (user decision 2026-11-02; `PersistentRangeMex` was added, the threshold query lists values with count at least `t`, and the majority candidate comes from a Boyer–Moore segment tree):
 
-- Weighted distinct sum or xor (CF 703D), closest equal pair in a range (CF 522D), number of values occurring exactly `k` times (CF 220B): offline sweeps of the same shape as `staticRangeCountDistinct`, rare enough to write per problem.
-- All-distinct test: `staticRangeCountDistinct` equals `r - l`. Xored mex (suisen), `RangeMexChange` (maspypy) and the k-th missing value: rare.
-- k-majority by Misra–Gries summaries: `RangeThresholdFrequency::frequent` with `t = (r - l) / k + 1`. Point-set range majority (Library Checker `majority_voting`): row 00 `MajorityVote` in a segment tree with row 16 `PointSetRangeFrequency`.
+- All-distinct test: `staticRangeCountDistinct` equals `r - l`. The k-th missing value: rare.
+- k-majority by Misra–Gries summaries: `RangeThresholdFrequency::frequent` with `t = (r - l) / k + 1`.
 
 Candidates from the 2026-11-02 DS50 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds50-sweep)) left out of row 62 (user decision 2026-11-02; `represent` and `PrefixXorBasis::push` were added):
 
 - `countRepresentable`, `reducedEchelon`, `min`: `1ull << size()`, the stored reduced basis `b`, and `reduce(x)` or `kth(1)` (duplicates ledger, Keeps).
-- Online maximum-weight basis (maspypy `maximum_weighted_basis`): one catalog; the offline form is the greedy insertion by decreasing weight.
-- Undo of `insert` for row 63 `OfflineDeletion`: a client keeps its own pivot-indexed basis with an undo history (row 63's test client `UndoXorBasis`) or snapshots the at most 64-word `b` and `masks`. Orthogonal complement (maspypy `vector_space`): Core row 12 `ker` over the basis rows.
+- Undo of `insert` for row 63 `OfflineDeletion`: a client keeps its own pivot-indexed basis with an undo history (row 63's test client `UndoXorBasis`) or snapshots the at most 64-word `b` and `masks`.
 - A segment tree of bases: a segment tree over `merge`. Range minimum or k-th: `rangeXorBasisQuery`'s echelon basis inserted into an `XorBasis`. k-th with multiplicities over n inserted values: `kth(k >> (n - size()))` when `n - size() < 64`, else 0.
 
-## Planned-row omissions
+## Planned-Row Omissions
 
 - Row 48 `PersistentSkewHeap`: skew-heap melds are only amortized, and persistence lets an expensive version be reused, so no bound holds; `PersistentLeftistHeap` gives persistent melds in O(log n).
 
-## Test matrix
+## Test Matrix
 
-- Differential-test Fenwick/segment-tree variants against a vector; persistent versions against copied snapshots; dynamic-tree structures against small forests; sorted containers against a sorted vector; hash maps against `std::unordered_map` with adversarial key patterns.
-- Also test repeated update/rollback sequences, noncommutative action order, version branching and failed merges.
+- Differential-test Fenwick and segment-tree variants against a vector, persistent versions against copied snapshots, dynamic-tree structures against small forests, sorted containers against a sorted vector, and hash maps against `std::unordered_map` with adversarial key patterns.
+- Also test repeated update and rollback sequences, noncommutative action order, version branching and failed merges.
 
-## Omission sweep 2026-11-08
+## Omission Sweep 2026-11-08
 
-Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded decisions): exact duplicates, second implementations and items another row owns. Handoff notes name where a candidate is implemented instead.
+Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded Decisions): exact duplicates, second implementations and items another row owns. Each note names where the candidate is implemented instead.
 
 - `RBST` (acted monoid, implicit): build, at, set, apply (range), prod, reverse, maxRight, values (MAS, NYA): a second implementation of row 19 `ImplicitTreap` with the same operations, domain and expected bounds; persistence is row 58.
 - `select0`, `select1` by binary search over block ranks (NOSHI, SUI): a second implementation of row 40's `select0`/`select1` with the same results and a worse bound.
-- `RollbackWeightedDSU`: findSet, isSameSet, size, count, groups: found in the library, no catalog source; inherited from row 09 `RollbackDSU`, which owns them; row 29 lists only what the class defines.
+- `RollbackWeightedDSU`: findSet, isSameSet, size, count, groups: found in the library, no catalog source; inherited from row 09 `RollbackDSU`, which owns them, so row 29 lists only what the class defines.
 - `rebuild` (pool compaction) for row 58 (EI, SUI, TKO): Miscellaneous row 43 `PersistentArena` owns persistent node pools.
 
-## P275 re-review 2026-11-10
+## P275 Re-Review 2026-11-10
 
-P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items below returned to rows and supersede the earlier bullets that name them; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
+P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per Operation), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`; [evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)). The operations it returned are in the inventory rows, including the new planned Esoteric rows 70–74, and the omission bullets that named them, like those for the operations adopted on 2026-11-08, were deleted (user decision 2026-11-22). Every omission still listed here stands.
 
-- `00-monoids.hpp`: Assign; monoidPow; PairActedMonoid; AddFloorDivComposite; RangeAssignRangePowerSums (K).
-- `02-fenwick.hpp`: FenwickTimestamp: add, prefixSum, sum, clear (O(1) by timestamps).
-- `04-sparsetable.hpp`: SparseTable::maxRight, SparseTable::minLeft.
-- `05-prefix_sum.hpp`: PrefixProduct (noncommutative group): prod; PrefixSum3D: prefixSum, sum (box); DifferenceArray3D: add, values, clear.
-- `07-ordered_set.hpp`: OrderedMultiSet::split, OrderedMultiSet::join.
-- `10-persistentdsu.hpp`: PersistentDSU::groups (version); PersistentDSUOffline (RollbackDSU over the version tree): uniteSets (parent version), isSameSet (version), solve.
-- `11-fenwick_tree_advanced.hpp`: DualFenwick2D: add (rectangle), get.
-- `12-lazysegmenttree.hpp`: RollbackLazySegmentTree: snapshot, rollback.
-- `13-dynamicsegmenttree.hpp`: DynamicLazySegmentTree::meld; DynamicDualSegmentTree::values.
-- `14-segtreebeats.hpp`: LazySegmentTreeBeats::maxRight, LazySegmentTreeBeats::minLeft.
-- `16-mergesorttree.hpp`: MergeSortTree::countGreater, MergeSortTree::countGeq, MergeSortTree::countLeq; PointSetRangeMajority: set, majority.
-- `17-waveletmatrix.hpp`: WaveletMatrix::rangeList, WaveletMatrix::rangeMinK, WaveletMatrix::rangeMaxK, WaveletMatrix::topK, WaveletMatrix::intersect, WaveletMatrix::sumRange, WaveletMatrix::kthMaxSum, WaveletMatrix::maxRight (value predicate), WaveletMatrix::maxRight (ranges), WaveletMatrix::minLeft (ranges).
-- `19-treap.hpp`: Treap::prev, Treap::count, Treap::splitAt, Treap::intersect; ImplicitTreap::rotate, ImplicitTreap::apply (point), ImplicitTreap::allProd, ImplicitTreap::pushFront, ImplicitTreap::pushBack, ImplicitTreap::popFront, ImplicitTreap::popBack.
-- `24-interval_set.hpp`: RangeAssignSegmentTree: assign (range), prod, get; IntervalMap::values.
-- `25-heap_deque.hpp`: DAryHeap::chmin; LeftistHeap::applyAffine, SkewHeap::applyAffine (positive scale).
-- `26-trie.hpp`: BinaryTrie::values.
-- `28-disjointsparsetable.hpp`: DisjointSparseTable::maxRight, DisjointSparseTable::minLeft; staticRangeMinArpa (Arpa offline, O((n + q) α)).
-- `31-radixheap.hpp`: RadixHeap (floating keys by order-preserving bits); RadixMaxHeap: push, pop, top, size, empty; RadixHeapArray::chmin.
-- `33-offline_rectangle_queries.hpp`: CoefficientQuery2D (A, B): add, query, solve.
-- `36-fastset.hpp`: FastSet::anyInRange, FastSet::erase (range).
-- `62-xorbasis.hpp`: XorBasis::orthogonalComplement (Core BitMatrix ker).
-- `64-sortedlist.hpp`: SortedList::eraseRange, SortedList::insertAll, SortedList::operator==.
-- `65-dsu_extensions.hpp`: MergeHistoryForest: ctor (union batches); MovableDSU: uniteSets, move, findSet, size; LazyDSU: uniteSets, apply (component), get, set, componentValue.
-- `68-intervaltree.hpp`: IntervalTree (augmented balanced BST over dynamic intervals): insert, erase, stab, stabCount, overlap, anyOverlap, contains (some interval holds the point; CGAL Interval_skip_list is_contained).
-- new Esoteric row `70-problem_monoids.hpp`: Dihedral: op, inv; RangeFibonacciAddRangeSum; RangeAddNegateRangeElementarySymmetric (MAS, CF).
-- new Esoteric row `71-problem_segment_trees.hpp`: firstFreeBlock (k free cells); PrefixMaxSegmentTree: set, prefixMaxCount (range); GreedySubtractSegmentTree: set, subtract (range, greedy from the left), prod; RangeAddMakeIncreasing; SparseTableOnSegmentTree: set, prod; RangeMaxChange, RangeMinChange, RangeMexChange; RangeChminAssignMultiset; RangeAddChminChmaxHistoricMax; PiecewiseConstantSlide: shift, slideMin, slideMax, apply (range), values (MAS, OI, CF).
-- new Esoteric row `72-xor_indexed_structures.hpp`: XorSegmentTree: set, prod (xor-shifted range); XorDisjointSparseTable: prod (xor-shifted range); applyXorRange; LsbBinaryTrie: insert, erase, addOne, xorAll; kthXorPair; MaxWeightXorBasis: insert (weight), weightSum (MAS, OI).
-- new Esoteric row `73-offline_range_problems.hpp`: staticRangeDistinctSum; staticRangeClosestEqual; staticRangeCountValueEqualsFrequency; RangeXoredMex: mex; sumOverBitPositions (MAS, SUI, CF).
-- new Esoteric row `74-lichao_advanced.hpp`: ExtendedLiChaoTree: addLine, addSegment, addLinear (range), query, addConstant (range), prod (range min); MonotoneCHTFunction (single-crossing functions): addFunction, query (MAS, CF).
-- `PersistentFenwick` (P027 and P032 bullets) and the bullets that left out `DynamicFenwick`, `DynamicFenwick2D`, `DualCompressedFenwick2D`, `CompressedFenwick2DRangeAdd` and `SegmentTree2DSparse` `maxUp`, `minDown` were adopted into rows 11 and 15 on 2026-11-08.
-- suisen `union_find_lazy` states its semantics (returned as row 65 `LazyDSU`); hitonanode's monotone hull merge is verified there (row 22 `MonotoneCHT::merge`).
-- Not returned after the P275 review: `setIntersectionOffline` (Miscellaneous row 22 owns it, from the same maspypy file), `GridDSU` (a grid vertex is `r * w + c`, an argument form); `LazySegmentTree` point combine waits for its name (`omissions.md`, Open questions, P027).
+- Not returned: `setIntersectionOffline` (Miscellaneous row 22 owns it, from the same maspypy file) and `GridDSU` (a grid vertex is `r * w + c`, an argument form). The `LazySegmentTree` point combine waits for its name (`omissions.md`, Open Questions, P027).
+- The review recorded hitonanode's monotone hull merge as verified in row 22, which never had it. It is now the missing operation `MonotoneCHT::merge` of row 22 (source hitonanode; user decision 2026-11-22).
 
-## DS01 sweep 2026-11-11
+## DS01 Sweep 2026-11-11
 
-The DS01 completeness sweep ([00-sources.md](00-sources.md)) added `DSU::leaders` (MAS `get_all`, a batch form of `findSet`), `SegmentTree::setManySorted` (MAS `set_many_sorted`) and `SegmentTree::prodIds` (MAS `prod_ids`, a node-index result no other operation returns) to rows 01 and 03 (`03-cpp.md`, One API per operation); it left nothing out.
+The DS01 completeness sweep ([00-sources.md](00-sources.md)) added `DSU::leaders` (MAS `get_all`, a batch form of `findSet`), `SegmentTree::setManySorted` (MAS `set_many_sorted`) and `SegmentTree::prodIds` (MAS `prod_ids`, a node-index result no other operation returns) to rows 01 and 03 (`03-cpp.md`, One API per Operation). It left nothing out.
 
-## DS02 sweep 2026-11-12
+## DS02 Sweep 2026-11-12
 
-The DS02 completeness sweep ([00-sources.md](00-sources.md#fetched-2026-11-12-ds02-sweep)) settled its candidates under the recorded decisions of 2026-11-08 and 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`; user decision 2026-11-12 after the DS02 review): compositions and derived counts joined rows 05, 06 and 08 (`DifferenceArray::addArithmetic` (hitonanode), `StepSum`, `SortedBlocks::countGeq`, `countGreater`, `countEqual`, and in row 08 `countBinaryRectanglesAreaAtMost` (ABC420 F), `maxMinTimesSum` (UVa 1619), `maxMinTimesSum2D` (ABC311 G), `largestCheckerboardSquare` and `largestCheckerboardRectangle` (P1169), `nextGreaterDistanceSum` (POJ 3250), and `countBinarySquares` and `countBinaryRectanglesTotal` (CSES 3413, 3414), the total as its own algorithm since summing `countBinaryRectangles` needs its O(n * m) table where the stack count keeps O(m)); the standalone one-problem `CounterBlocks` (EI) joined planned Esoteric row 71 and `slidingLargestHistogramRectangle` (CSES 3227) planned row 73; row 07 owns the offline Fenwick multiset, built in the DS02 `/finish` as `OrderedMultiSetOffline` (user decision 2026-11-12, `omissions.md`). Left out:
+The DS02 completeness sweep ([00-sources.md](00-sources.md#fetched-2026-11-12-ds02-sweep)) settled its candidates under the recorded decisions of 2026-11-08 and 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`; user decision 2026-11-12 after the DS02 review).
 
-- Prefix-sum constructors from `(n, f(i))` and clamped `sum<true>` (MAS), `add` then `build` (EI, NYA): argument forms of the vector constructors and `sum`.
+- Compositions and derived counts joined rows 05, 06 and 08: `DifferenceArray::addArithmetic` (hitonanode), `StepSum`, `SortedBlocks::countGeq`, `countGreater` and `countEqual`, and in row 08 `countBinaryRectanglesAreaAtMost` (ABC420 F), `maxMinTimesSum` (UVa 1619), `maxMinTimesSum2D` (ABC311 G), `largestCheckerboardSquare` and `largestCheckerboardRectangle` (P1169), `nextGreaterDistanceSum` (POJ 3250), `countBinarySquares` and `countBinaryRectanglesTotal` (CSES 3413, 3414). The total is its own algorithm: summing `countBinaryRectangles` needs its O(n * m) table, while the stack count keeps O(m).
+- The standalone one-problem `CounterBlocks` (EI) joined planned Esoteric row 71, and `slidingLargestHistogramRectangle` (CSES 3227) planned row 73.
+- Row 07 owns the offline Fenwick multiset, built in the DS02 `/finish` as `OrderedMultiSetOffline` (user decision 2026-11-12, `omissions.md`).
+
+Left out:
+
+- Prefix-sum constructors from `(n, f(i))` and clamped `sum<true>` (MAS), and `add` then `build` (EI, NYA): argument forms of the vector constructors and `sum`.
 - `BlockList` set, range reverse, split and merge (OI): `at` returns a mutable reference; sequence split, merge and reverse are rows 19 and 20.

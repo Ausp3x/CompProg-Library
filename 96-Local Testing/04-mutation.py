@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mutation campaign on one library header with mewt (rules: 05-testing.md, Mutation testing; evidence: Docs/00-mutation.md).
+"""Mutation campaign on one library header with mewt (rules: 05-testing.md, Mutation Testing; evidence: Docs/00-mutation.md).
 
   run HEADER        copy the working tree into scratch shards (mewt mutates its target in place), generate the header's
                     mutants and select the sample: the lines changed since the blob the evidence record names (every line
@@ -21,7 +21,7 @@
                     --workdir (locked while a run uses it), and a rerun with the same --workdir tests what is untested and
                     retests the survivors with the current tester, even once the record names the current blob. SKIP
                     without mewt MEWT_VERSION. Exit 0 complete, 3 stopped by the budget, 1 failure, 130 interrupted.
-  check HEADER...   exit 1 unless each header's evidence document has a `## Mutation testing` record naming the header's
+  check HEADER...   exit 1 unless each header's evidence document has a `## Mutation Testing` record naming the header's
                     current git blob with 0 untested mutants; --existing passes headers without a record (/prune,
                     /restyle); --changed adds every header changed against BASE (default master), committed, uncommitted
                     or untracked. /finish and /merge-pr call stale() on their own lists of changed headers.
@@ -91,11 +91,11 @@ def evidence(header):
 
 
 def record(root, header):
-    """(blob, untested count or None) of the record line under the `## Mutation testing` heading of the header's
+    """(blob, untested count or None) of the record line under the `## Mutation Testing` heading of the header's
     evidence document, or None."""
     doc = Path(root) / evidence(header)
     text = doc.read_text(errors='replace') if doc.is_file() else ''
-    section = re.search(r'^## Mutation testing[ \t]*\n(.*?)(?=^## |\Z)', text, re.M | re.S)
+    section = re.search(r'^## Mutation Testing[ \t]*\n(.*?)(?=^## |\Z)', text, re.M | re.S)
     line = next((l for l in section[1].splitlines() if RECORD.search(l)), None) if section else None
     if line is None:
         return None
@@ -117,7 +117,7 @@ def stale(root, headers, existing=False):
         found, now = record(root, h), current(root, h)
         if found is None:
             if not existing:
-                out.append((h, f'no `## Mutation testing` record with a blob in {evidence(h)}'))
+                out.append((h, f'no `## Mutation Testing` record with a blob in {evidence(h)}'))
         elif found[0] != now:
             out.append((h, f'{evidence(h)} records blob {found[0][:12]}, the header is {now[:12]}'))
         elif found[1] != 0:

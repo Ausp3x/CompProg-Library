@@ -2,11 +2,19 @@
 
 A competitive-programming library: GNU C++20 headers for core numeric types, data structures, geometry, graphs, mathematics, utilities and strings, a PyPy-oriented Python subset, in-contest testing tools, a generated team notebook and a standalone contest template. A verified header has a documented contract, an evidence document and a regression suite with independent oracles. The [folder index](00-index.md) maps the layout, and each folder's `00-index.md` lists its headers, operations and status.
 
-## Using it in a contest
+## Using It in a Contest
 
-Start from the standalone [`99-Workspace/template.cpp`](99-Workspace/template.cpp). Headers need GCC 14 or newer with `-std=gnu++20`. To paste library code, use [`09-Contest Testing/10-grab.py`](<09-Contest Testing/10-grab.py>) (it needs libclang; `/setup-check` prints the install command): `grab bellTable DSU` prints and copies only the declarations those names reach, `grab --into a.cpp` keeps one marked block of what `grab` gives for the library names `a.cpp` uses above the first code that uses them (`--min` cuts each struct to the members called), and `grab --find shortest path` lists the closest inventory rows with the name to grab (a name, a concept, an abbreviation such as `lca`, a typo such as `dijkstar`, or Chinese, Simplified or Traditional, such as `线段树` or `線段樹`; it needs no libclang). The first run indexes the library for a few minutes, then reuses the cache. Grab finds the library from its own path, so it runs from any folder: `python3 '.claude/skills/setup-check/setup_check.py' --alias` writes the `grab` alias into `~/.bashrc` (or `~/.zshrc`), and in a new terminal `grab --into A.cpp` works in `99-Workspace` (save the file first). A source that includes headers by relative path is bundled into one submittable file by [`97-Online Testing`](<97-Online Testing/00-index.md>)'s expander, which uses grab too. A header's contract (domain, complexity, sentinels) is in its folder's `Docs/<NN-name>.md`, linked from the folder index. [`09-Contest Testing`](<09-Contest Testing/00-index.md>) holds the stress, checker and interactor tools.
+Start from the standalone [`99-Workspace/template.cpp`](99-Workspace/template.cpp). Headers need GCC 14 or newer with `-std=gnu++20`. A header's contract (domain, complexity, sentinels) is in its folder's `Docs/<NN-name>.md`, linked from the folder index. [`09-Contest Testing`](<09-Contest Testing/00-index.md>) holds the stress, checker and interactor tools.
 
-## Working on it
+To paste library code, use [`09-Contest Testing/10-grab.py`](<09-Contest Testing/10-grab.py>). It needs libclang, whose install command `/setup-check` prints. The first run indexes the library for a few minutes, then reuses the cache.
+
+- `grab bellTable DSU` prints and copies only the declarations those names reach.
+- `grab --into a.cpp` keeps one marked block of what `grab` gives for the library names `a.cpp` uses, above the first code that uses them; `--min` cuts each struct to the members called.
+- `grab --find shortest path` lists the closest inventory rows with the name to grab. It takes a name, a concept, an abbreviation such as `lca`, a typo such as `dijkstar`, or Chinese, Simplified or Traditional, such as `线段树` or `線段樹`, and needs no libclang.
+
+Grab finds the library from its own path, so it runs from any folder. `python3 '.claude/skills/setup-check/setup_check.py' --alias` writes the `grab` alias into `~/.bashrc` (or `~/.zshrc`); in a new terminal, `grab --into A.cpp` then works in `99-Workspace` (save the file first). A source that includes headers by relative path is bundled into one submittable file by the expander of [`97-Online Testing`](<97-Online Testing/00-index.md>), which uses grab too.
+
+## Working on It
 
 Linux x86-64 is the reference platform. Check a machine with:
 

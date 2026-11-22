@@ -61,7 +61,7 @@ files (maintainer only, linked worktree refused, refused while the record's work
 draft, closed, merged, base not master; moved head; claim branch -> package, model, branch; non-claim and wrong-batch
 branch -> pr-N; CORE_FULL -> reviewer model fable, the CORE FULL line, `reviewer model <m or default>`; OUTSIDE,
 library and final lines; state file; DECISIONS: added non-blank lines naming the user's decision or a dated one, and
-lines other than headings added under a ledger's `## Recorded decisions`, with path and line, 01-prompts.md skipped;
+lines other than headings added under a ledger's `## Recorded Decisions`, with path and line, 01-prompts.md skipped;
 INSTRUCTIONS: harness.py's blocks and prose lines of changed text files holding an added line, first added line and
 label, code spans, quotes, unchanged lines, binary files and 01-prompts.md not listed) -> test_files_*, test_checkout_land;
 checkout, land, drop (worktree added on the branch and synced, `created` recorded, exit 0 with the next step; exit 1
@@ -446,7 +446,7 @@ def o_decisions(paths, base, head):
         for tag, _, _, j1, j2 in difflib.SequenceMatcher(None, old, new, autojunk=False).get_opcodes():
             for j in range(j1, j2) if tag in ('insert', 'replace') else ():
                 heading = next((h for h in reversed(new[:j]) if h.startswith('## ')), '')
-                ledger = path.startswith('00-Guidelines/23-Sweep Ledgers/') and heading.strip() == '## Recorded decisions' and new[j][:1] != '#'
+                ledger = path.startswith('00-Guidelines/23-Sweep Ledgers/') and heading.strip() == '## Recorded Decisions' and new[j][:1] != '#'
                 if new[j].strip() and (o_decision(new[j]) or ledger):
                     out.append((path, j + 1, new[j]))
     return out
@@ -1727,7 +1727,7 @@ class MergePR(Base):
         notes = ('plain\n- user decision 2026-11-06: keep x\n- kept (user, 2026-11-06)\n- renamed (decided 2026-11-06)\n'
                  'Decided by the user: w\nthe user wants it, and we decided later\na decision was made\n\n'
                  '- ' + 'x' * 260 + ' user decided\n')
-        ledger = ('# Omissions\n\n## Recorded decisions\n\nDecided by whom Priority names.\n\n### Keeps\n\n- 2026-11-06, x: bob\n\n'
+        ledger = ('# Omissions\n\n## Recorded Decisions\n\nDecided by whom Priority names.\n\n### Keeps\n\n- 2026-11-06, x: bob\n\n'
                   '## Candidates\n\n- 2026-11-06, y: candidate\n')
         self.branch_name = 'P250-SUP19-bob'
         self.fixture(self.branch_name, {'02-Data Structures/Docs/00-notes.md': notes, '00-Guidelines/23-Sweep Ledgers/omissions.md': ledger,

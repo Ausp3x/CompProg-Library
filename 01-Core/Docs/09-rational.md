@@ -1,6 +1,6 @@
-# 09-rational.hpp — evidence
+# 09-rational.hpp — Evidence
 
-P019/C06 owns `09-rational.hpp`: the canonical rational `Rational<T>` over `T` in {`lng`, `lll`, `InfInt`}, the alias `Frac = Rational<lng>`, the `rational_detail` wide-arithmetic kernels and `std::hash<Rational<T>>`. The header includes only `01-template.hpp`. `Rational<InfInt>` needs `07-infint.hpp` included by the caller; the header does not include it because the full big integer (125 KB) would push every bundled `Frac` solution past Codeforces' 64 KB source limit. Prerequisites P002 and P018 are verified.
+P019/C06 owns `09-rational.hpp`: the canonical rational `Rational<T>` over `T` in {`lng`, `lll`, `InfInt`}, the alias `Frac = Rational<lng>`, the `rational_detail` wide-arithmetic kernels and `std::hash<Rational<T>>`. The header includes only `01-template.hpp`. `Rational<InfInt>` needs `07-infint.hpp` included by the caller; the header does not include it because the full big integer (over 200 KB) would push every bundled `Frac` solution past Codeforces' 64 KB source limit. Prerequisites P002 and P018 are verified.
 
 ## Contracts
 
@@ -8,7 +8,7 @@ P019/C06 owns `09-rational.hpp`: the canonical rational `Rational<T>` over `T` i
 
 `T num, den` for `T` = `lng`, `lll` or `InfInt` (other types fail a `static_assert`: `Rational<int>` or Linux's `Rational<long long>` would pick the generic kernels and wrap): `den > 0`, `gcd(|num|, den) = 1`, zero is `0/1`, so `==` is member equality (defaulted) and `std::hash` depends only on the value. Every constructor, builder and operation returns this canonical form; after editing the fields directly a caller restores it with `normalize()`. `BOUNDED` is true for `lng` and `lll`; `M` is the magnitude type (`ulng`, `ulll`, or `InfInt` itself). The bounded types store every canonical value with `MIN(T) <= num <= MAX(T)` and `1 <= den <= MAX(T)`; for `InfInt` the components must be finite (asserted), and InfInt's infinity sentinel is never a rational value.
 
-### Construction and conversion
+### Construction and Conversion
 
 | Feature | Contract |
 |---|---|
@@ -21,7 +21,7 @@ P019/C06 owns `09-rational.hpp`: the canonical rational `Rational<T>` over `T` i
 | `normalize()` | Restores the canonical form of `num/den` with `den != 0`, under the constructor's rules. |
 | `num`, `den`, `sign()`, `isInteger()` | Public fields; `sign()` is `-1`, `0` or `1`; `isInteger()` is `den == 1`. |
 
-### Arithmetic and comparison
+### Arithmetic and Comparison
 
 | Feature | Contract |
 |---|---|
@@ -34,7 +34,7 @@ P019/C06 owns `09-rational.hpp`: the canonical rational `Rational<T>` over `T` i
 | `trunc`, `floor`, `ceil`, `round` | Return `T`: truncation, floor, ceiling and rounding half away from zero (`round(5/2) = 3`, `round(-5/2) = -3`, as `std::round`). Each fits `T` because its magnitude is at most `\|num\|`. |
 | `fracPart(x)` | `x - floor(x)` in `[0, 1)`, through `raw` (the remainder stays coprime to `den`). |
 
-### Floating, text and modular conversion
+### Floating, Text and Modular Conversion
 
 | Feature | Contract |
 |---|---|
@@ -51,17 +51,25 @@ P019/C06 owns `09-rational.hpp`: the canonical rational `Rational<T>` over `T` i
 
 `mulW`, `addW`, `subW`, `shlW`, `divW`, `narrowW`, `low128`, `bitLen`, `gcdM` take magnitudes: for `ulng` the wide type is `ulll`, for `ulll` a `(high, low)` pair of `ulll` (`mulW` from four 64-bit products, `divW` by a divisor below 2^127 natively when the high word is zero, else the high word natively and the low word by a 128-step shift-subtract loop), and for any other type (InfInt) the type's own operators, `divMod`, `bitLength` and ADL `gcd`. They are internal helpers, not API.
 
-### Boundedness without assertions
+### Boundedness without Assertions
 
 Under `NDEBUG` every violated precondition stays bounded and free of undefined behaviour: overflowing arithmetic leaves the left operand unchanged, the constructor and the narrowing conversion map unrepresentable values and zero denominators to `0/1`, `raw` with `d <= 0` returns `0/1`, `inv(0)` and `pow(0, -k)` return `0/1`, bases are clamped, and `read` rejects powers outside `[-2^31, 2^31)` before forming them (for `lng` and `lll` the checked power stops at the first overflow).
 
-### Operation decisions
+### Operation Decisions
 
-Adopted from the 2026-10-17 sweep ([00-sources.md](00-sources.md)): `toMod` (Nyaan `to_mint`, FLINT `fmpq_mod_fmpz`), `raw` (Nyaan `raw`, maspypy's coprime flag), the converting constructor (Boost), `trySub` and `tryDiv` (`tryAdd(a, -b)` fails when `b.num` is the minimum), `toDecimal` (Python `format`; requested 2026-10-17 with decimal input). Decided 2026-10-17 ([duplicates.md](../../00-Guidelines/23-Sweep%20Ledgers/duplicates.md)): `toDouble` beside `toLongDouble`, `read`/`toString` with a base beside the streams; `parse` became `read`, the name InfInt uses. Not adopted: `height`, a rational `gcd`, `%`/`divMod` of rationals and `mulPow2` (rare; `num`/`den` and the operators express them), `limitDenominator`/best approximation, mediant, Stern–Brocot, continued fractions, simplest-between and fraction binary search (Mathematics `20-continued_fraction.hpp` owns them), `floorDiv`/`ceilDiv` (Mathematics `01-mod_arithmetic.hpp`), exact `sqrt` (no catalog; integer roots are Mathematics `21` and InfInt), `numerator()`/`denominator()`, comparison and arithmetic with integers, `min`/`max`, `++`/`--`, `operator bool`/`!`, `isOne`, `addmul`/`submul`, `as_integer_ratio` (the fields, the converting constructor and `std::` algorithms already say the same), a `den == 0` infinity (rationals exclude infinity, [00-notes.md](00-notes.md)).
+- Adopted from the 2026-10-17 sweep ([00-sources.md](00-sources.md)): `toMod` (Nyaan `to_mint`, FLINT `fmpq_mod_fmpz`), `raw` (Nyaan `raw`, maspypy's coprime flag), the converting constructor (Boost), `trySub` and `tryDiv` (`tryAdd(a, -b)` fails when `b.num` is the minimum), `toDecimal` (Python `format`; requested 2026-10-17 with decimal input).
+- Decided 2026-10-17 ([duplicates.md](../../00-Guidelines/23-Sweep%20Ledgers/duplicates.md)): `toDouble` beside `toLongDouble`, `read`/`toString` with a base beside the streams; `parse` became `read`, the name InfInt uses.
+- Not adopted, with reasons:
+  - `height`, a rational `gcd`, `%`/`divMod` of rationals and `mulPow2`: rare; `num`/`den` and the operators express them.
+  - `limitDenominator`/best approximation, mediant, Stern–Brocot, continued fractions, simplest-between and fraction binary search: Mathematics `20-continued_fraction.hpp` owns them.
+  - `floorDiv`/`ceilDiv`: Mathematics `01-mod_arithmetic.hpp`.
+  - Exact `sqrt`: no catalog has it; integer roots are Mathematics `21` and InfInt.
+  - `numerator()`/`denominator()`, comparison and arithmetic with integers, `min`/`max`, `++`/`--`, `operator bool`/`!`, `isOne`, `addmul`/`submul`, `as_integer_ratio`: the fields, the converting constructor and `std::` algorithms already say the same.
+  - A `den == 0` infinity: rationals exclude infinity ([00-notes.md](00-notes.md)).
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-`96-Local Testing/01-Core/09-rational_tester.py` builds `09-rational_tester.cpp` with `09-rational_tester_tu.cpp` (two translation units, every `T`) as optimized (`-O2 -DNDEBUG`), checked (`-O1 -g -D_GLIBCXX_ASSERTIONS`) and, from full mode, ASan/UBSan programs (`-Wall -Wextra -Wshadow -Wconversion -Werror`), runs the self-tests and streams the `--protocol` cases for `Rational<lng>`, `Rational<lll>` and `Rational<InfInt>` against Python's `fractions.Fraction` and exact integer models.
+`96-Local Testing/01-Core/09-rational_tester.py` builds `09-rational_tester.cpp` with the second translation unit `09-rational_tester_tu.cpp` (every `T`) as optimized (`-O2 -DNDEBUG`), checked (`-O1 -g -D_GLIBCXX_ASSERTIONS`) and, from full mode, ASan/UBSan (`-O1 -fsanitize=address,undefined`, quarantine capped at 64 MB) programs, all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. It runs the self-tests and streams the `--protocol` cases for `Rational<lng>`, `Rational<lll>` and `Rational<InfInt>` against Python's `fractions.Fraction` and exact integer models.
 
 | Feature | Verification (self-test; protocol command) |
 |---|---|
@@ -79,13 +87,22 @@ Adopted from the 2026-10-17 sweep ([00-sources.md](00-sources.md)): `toMod` (Nya
 | Preconditions under the checked build (19 `--invalid` cases: zero denominator, unrepresentable constructor, `raw` denominator, `inv` of 0 and of the minimum, `pow(0, -1)`, `pow` overflow, division by zero, `+` and `*` overflow, unary minus and `abs` of the minimum, `fromDouble` of NaN and of an unrepresentable value, bases 37 and 1, `toDecimal(-1)`, a narrowing conversion, an InfInt sentinel) | `--invalid` |
 | Header alone without InfInt (`Frac`, `Rational<lll>`), two translation units, `99-all`; compile-fail checks (floating constructor, floating second argument, floating operand, floating comparison, `Rational<int>`); `Poly<Frac>` product, `divMod`, `eval` and `deriv` against hand results | the driver's compile steps; `otherUnit` |
 
-Quick runs 150 values per type (about 6,300 protocol cases), full 1500 per type (about 61,000) plus the sanitizer build (ASan quarantine capped at 64 MB), stress 5000 per type per `--rounds` seed. Line coverage of the header by the quick corpus is complete (gcov, 2026-10-17). Mutation check (2026-10-17, quick mode): each of 13 seeded faults (tie rule of `round`, the sticky bit, the `g2` cancellation, the sign of `<=>` for negatives, trailing-zero stripping, the decimal carry digit, the minimum's range check, the 128-bit shift, the last bit of the 256-bit division, the high word of the 256-bit product, the carry of the 256-bit sum, the guard bit of `s`, the native remainder) failed the suite.
+Quick runs 150 values per type (about 6,300 protocol cases), full 1500 per type (about 61,000) plus the sanitizer build, stress 5000 per type per `--rounds` seed. The quick corpus executes every line of the header (gcov, 2026-10-17). Hand-seeded faults (2026-10-17, quick mode): each of 13 faults (tie rule of `round`, the sticky bit, the `g2` cancellation, the sign of `<=>` for negatives, trailing-zero stripping, the decimal carry digit, the minimum's range check, the 128-bit shift, the last bit of the 256-bit division, the high word of the 256-bit product, the carry of the 256-bit sum, the guard bit of `s`, the native remainder) failed the suite.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1019 MB; optimized 0.1 s compile + 13.0 s run, checked 0.2 s compile + 13.2 s run, sanitized 48.5 s compile + 13.6 s run; MEMORY peak 715 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1048 MB; optimized 0.3 s compile + 23.3 s run, checked 0.3 s compile + 22.7 s run, sanitized 86.6 s compile + 23.4 s run; MEMORY peak 752 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 102.7 s compile + 2.3 s run, checked 94.2 s compile + 2.5 s run; MEMORY peak 1016 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 994 MB; optimized 0.1 s compile + 8.5 s run, checked 0.1 s compile + 7.7 s run, sanitized 30.3 s compile + 3.1 s run; MEMORY peak 717 MB. Compile limit 1200 s instead of 400 or 600 s: `16-poly`'s sanitized compile passed 400 s on a cold full run beside the other suites (about 100 s alone). Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run; compile limits in `96-Local Testing/Docs/00-parallel.md`), all PASS. Times are compile + run in seconds; peaks in MB.
 
-Final header, 2026-10-17 (GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Intel Core i9-11900H; other worktrees' suites ran on the machine at the same time):
+| Command | Optimized | Checked | Sanitized | Pre-flight quick peak | Peak |
+|---|---|---|---|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | 0.1 + 13.0 | 0.2 + 13.2 | 48.5 + 13.6 | 1019 | 715 |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | 0.3 + 23.3 | 0.3 + 22.7 | 86.6 + 23.4 | 1048 | 752 |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | 102.7 + 2.3 | 94.2 + 2.5 | — | — | 1016 |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 8.5 | 0.1 + 7.7 | 30.3 + 3.1 | 994 | 717 |
+
+2026-11-22 (`/finish C03`, rerun on the committed `05-modint.hpp`, [05-modint.md](05-modint.md#commands-and-results)): `python3 '96-Local Testing/01-Core/09-rational_tester.py' --mode quick --seed 1` passed, 2 configurations, 26 s.
+
+Final header, 2026-10-17 (GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Intel Core i9-11900H; other worktrees' suites ran at the same time; pre-flight quick peaks 524–555 MB under the 2048 MB cap). Every run also ran the driver's compile steps (header alone without InfInt, `99-all`, five compile-fail checks, the `Poly<Frac>` consumer).
 
 ```bash
 python3 '96-Local Testing/03-consistency.py' --braces 01-Core/09-rational.hpp '96-Local Testing/01-Core/09-rational_tester.cpp' '96-Local Testing/01-Core/09-rational_tester_tu.cpp' '96-Local Testing/01-Core/09-rational_benchmark.cpp'   # no violations
@@ -97,11 +114,9 @@ python3 '96-Local Testing/02-integration.py'                                    
 python3 '96-Local Testing/03-consistency.py'                                                     # no errors
 ```
 
-Every run builds optimized (`-O2 -DNDEBUG`), checked (`-O1 -g -D_GLIBCXX_ASSERTIONS`) and, from full mode, ASan/UBSan (`-O1 -fsanitize=address,undefined`, quarantine 64 MB) programs with `-Wall -Wextra -Wshadow -Wconversion -Werror` and the second translation unit, and the driver's compile steps (header alone without InfInt, `99-all`, five compile-fail checks, the `Poly<Frac>` consumer); the pre-flight quick runs peaked at 524–555 MB under the 2048 MB cap. Line coverage (gcov, quick corpus): every line of the header executes.
-
 ## Benchmarks
 
-`96-Local Testing/01-Core/09-rational_benchmark.py` (driver `09-rational_benchmark.cpp`): 11th Gen Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG -march=x86-64`, seed 20261017, uniform operands of the stated bit sizes, medians of 9 runs (3 for sorts, 5 for InfInt). `naive` is the usual unchecked contest fraction (full 128-bit cross products and one `std::gcd`), whose results are compared with Rational's before the record is written; it is not exact on overflow. Other worktrees were running test suites on the machine.
+Command: `python3 '96-Local Testing/01-Core/09-rational_benchmark.py' --output '96-Local Testing/01-Core/09-rational_benchmark.jsonl'` (driver `09-rational_benchmark.cpp`; 2026-10-17, 3 min). Conditions: 11th Gen Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG -march=x86-64`, seed 20261017, uniform operands of the stated bit sizes, medians of 9 runs (3 for sorts, 5 for InfInt); other worktrees ran test suites at the same time. `naive` is the usual unchecked contest fraction (full 128-bit cross products and one `std::gcd`); its results are compared with Rational's before the record is written, and it is not exact on overflow.
 
 | T | Operation | Operand bits | Rational ns/op | Naive ns/op |
 |---|---|---|---|---|
@@ -129,17 +144,18 @@ Every run builds optimized (`-O2 -DNDEBUG`), checked (`-O1 -g -D_GLIBCXX_ASSERTI
 | InfInt | add | 256 | 2924.4 | — |
 | InfInt | add | 2048 | 51076.3 | — |
 
-Knuth's addition is about twice as fast as the textbook full cross product (smaller gcds) and the cross-cancelled product about 25% faster; sorting runs within 10% of the unchecked 128-bit comparator; `toDouble` takes one IEEE division when both components fit the mantissa (6 ns; the naive `double(p) / double(q)` is 1 ns but rounds twice for components above 2^53), and the 256-by-128-bit shift-subtract loop only for `lll` values whose shifted numerator exceeds 128 bits (570 ns at 120-bit operands). `Rational<lll>` additions of 120-bit operands mostly overflow and take the 256-bit path. Command: `python3 '96-Local Testing/01-Core/09-rational_benchmark.py' --output '96-Local Testing/01-Core/09-rational_benchmark.jsonl'` (2026-10-17, 3 min).
+Knuth's addition is about twice as fast as the textbook full cross product (smaller gcds), and the cross-cancelled product about 25% faster. Sorting runs within 10% of the unchecked 128-bit comparator. `toDouble` takes one IEEE division when both components fit the mantissa (6 ns; the naive `double(p) / double(q)` takes 1 ns but rounds twice for components above 2^53), and the 256-by-128-bit shift-subtract loop only for `lll` values whose shifted numerator exceeds 128 bits (570 ns at 120-bit operands). `Rational<lll>` additions of 120-bit operands mostly overflow and take the 256-bit path.
 
 ## Sources
 
 GMP `mpq` and FLINT `fmpq` (canonical form, Knuth addition, cross-cancelled products, exact conversion), Python `fractions` (grammar of decimal and exponent input, `__round__`, `__format__`), Boost.Rational (converting constructor), and the Nyaan, maspypy, ei1333, suisen, hitonanode and tko919 rational headers; the full list with URLs is in [00-sources.md](00-sources.md).
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - `read` on `lng` and `lll` follows the bounded component rule above; text whose unreduced components overflow is read only by `Rational<InfInt>`.
-- P025 (`16-poly.hpp`): `Poly<Frac>` compiles and its product, `divMod`, `eval` and `deriv` match hand results (this tester's consumer step); overflow in `Frac` coefficients asserts. Rational coefficients are outside Poly's row domain until P025 adds them with Poly-suite tests ([16-poly.md](16-poly.md#limits-and-handoffs)).
-- `Rational<InfInt>` costs the InfInt gcd per operation; long sums of InfInt rationals are dominated by gcds as in GMP.
+- `16-poly.hpp`: `Poly<Frac>` compiles and its product, `divMod`, `eval` and `deriv` match hand results (this tester's consumer step); overflow in `Frac` coefficients asserts. Rational coefficients stay outside Poly's row domain until they are added with Poly-suite tests ([16-poly.md](16-poly.md#limits-and-handoffs)).
+- `Rational<InfInt>` costs the InfInt gcd per operation; long sums of InfInt rationals are dominated by gcds, as in GMP.
+- Verified before the mutation rule of 2026-11-03; no record yet.
 
 ## Aliases
 
@@ -147,8 +163,9 @@ Search aliases (P263, grab --find): fraction, 分数类, 有理数, 分数运算
 
 ## History
 
-- 2026-10-17: P019 new header, tester and benchmark verified; 13 mutants killed; the review's findings (NDEBUG narrowing, unsupported `T`, floating arguments, doc bounds, test gaps) fixed, the base-prime cancellation in `read` and the `lng` comparison and `toDouble` fast paths added; full suites passed on g++ and g++-14, two stress rounds passed.
-- 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the `long double` rounding model reads the target's format from the compiler's `__LDBL_*` macros (x87 64-bit, binary128 113-bit significand), its overflow and denormal boundary cases derive from it, and the C++ mantissa printer follows `numeric_limits<long double>::digits`; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
+- 2026-10-17: P019 new header, tester and benchmark verified; 13 seeded faults caught; the review's findings (NDEBUG narrowing, unsupported `T`, floating arguments, doc bounds, test gaps) fixed, the base-prime cancellation in `read` and the `lng` comparison and `toDouble` fast paths added; full suites passed on g++ and g++-14, two stress rounds passed.
+- 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the `long double` rounding model reads the target's format from the compiler's `__LDBL_*` macros (x87 64-bit, binary128 113-bit significand) and derives its overflow and denormal boundary cases from it; the C++ mantissa printer follows `numeric_limits<long double>::digits`; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full on g++ and g++-14.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-08: P263 user request added `fraction` to the search aliases (`grab --find`) for a held-out corpus query the search missed (00-search.md, Evaluation); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-08: P263, at the user's request, added `fraction` to the search aliases for a held-out corpus query the search missed (`00-search.md`, Evaluation); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, with the 10 s quick bound and the raised compile limit; full and stress inputs and checks unchanged; the library-wide runs above passed.
+- 2026-11-22: `/finish C03` reran the quick suite on the committed `05-modint.hpp`; passed.

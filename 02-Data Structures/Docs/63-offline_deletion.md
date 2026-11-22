@@ -1,21 +1,20 @@
-# 63-offline_deletion.hpp — evidence
+# 63-offline_deletion.hpp — Evidence
 
-Package P034 (batch DS51). New header; no legacy source. A generic add/remove-over-time engine (segment tree on time) and the queue-undo adapter, both driving any undo-only structure through callbacks. Preconditions are `assert`s checked once per call.
+Package P034 (batch DS51). New header; no legacy source. A generic add/remove-over-time engine (segment tree on time) and the queue-undo adapter, both driving any undo-only structure through callbacks. Each call asserts its preconditions once.
 
 ## Contracts
 
 ### OfflineDeletion<X>
 
-Times `[0, n)`, `0 <= n <= 2^29` (the time tree's `2 * bit_ceil(n)` cells stay inside `int`). `X` is copyable; `insert` and `erase` also need `operator<` on `X` (an ordered map of open copies). A type without `operator<` works with `addInterval` alone.
+Times `[0, n)`, `0 <= n <= 2^29`, so the time tree's `2 * bit_ceil(n)` cells stay inside `int`. `X` is copyable; `insert` and `erase` also need `operator<` on `X` for their ordered map of open copies, so a type without it works with `addInterval` alone.
 
-- `addInterval(l, r, x)`: asserts `0 <= l <= r <= n`. `x` is present at every time in `[l, r)`; empty intervals add nothing. The interval is split into at most `2 log2(sz)` canonical nodes of a perfect binary tree on `sz = bit_ceil(max(n, 1))` leaves, O(log(n)).
-- `insert(t, x)`, `erase(t, x)`: an event log per key. `insert` opens a copy of `x` at time `t` (`0 <= t <= n`). `erase` closes the most recently opened copy into `[open, t)`. Copies of equal keys are interchangeable, so the pairing does not change the multiset present at any time. `erase` asserts a live copy opened at time `<= t`, which holds when each key's events arrive in nondecreasing time. Copies still open when `solve` runs close at `n`. O(log(m)) map work plus `addInterval`. Kept beside `addInterval` because it accepts a different input domain: unpaired events with multiplicities (`duplicates.md`, Kept by the sweep).
-- `addQuery(t)`: asserts `0 <= t < n`; marking a time twice is the same as once.
+- `addInterval(l, r, x)`: asserts `0 <= l <= r <= n`; `x` is present at every time in `[l, r)`, and empty intervals add nothing. The interval splits into at most `2 log2(sz)` canonical nodes of a perfect binary tree on `sz = bit_ceil(max(n, 1))` leaves, in O(log(n)).
+- `insert(t, x)`, `erase(t, x)`: an event log per key. `insert` opens a copy of `x` at time `t` (`0 <= t <= n`), and `erase` closes the most recently opened copy into `[open, t)`. Copies of equal keys are interchangeable, so the pairing does not change the multiset present at any time. `erase` asserts a live copy opened at time `<= t`, which holds when each key's events arrive in nondecreasing time; copies still open when `solve` runs close at `n`. O(log(m)) map work plus `addInterval`. Kept beside `addInterval` for its different input domain, unpaired events with multiplicities (`duplicates.md`, Kept by the Sweep).
+- `addQuery(t)`: asserts `0 <= t < n`; marking a time twice equals marking it once.
 - `solve(add, undo, answer)`:
-  - It closes open copies, then walks the time tree depth-first. At a node with an asked time below it, it calls `add(x)` for each element assigned there, recurses (`answer(t)` at an asked leaf), then calls `undo()` once per `add`.
-  - Calls are LIFO: each `undo` must revert the most recent `add` not yet reverted. `answer(t)` runs once per asked time, in increasing `t`, and sees exactly the elements whose intervals contain `t`. Subtrees without asked times are skipped.
-  - Each element costs at most `2 log2(sz)` `add`/`undo` pairs, so `solve` makes O(n + m log(n)) calls and runs in O(n + m log(n) c), where `c` is the structure's worst-case cost of an add plus its undo.
-  - An amortized structure such as path compression breaks the bound, because a costly add can be undone and redone; row 09 `RollbackDSU` is the intended client.
+  - It closes open copies, then walks the time tree depth-first. At a node with an asked time below it, it calls `add(x)` for each element assigned there, recurses (`answer(t)` at an asked leaf), then calls `undo()` once per `add`; subtrees without asked times are skipped.
+  - Calls are LIFO: each `undo` reverts the most recent `add` not yet reverted. `answer(t)` runs once per asked time, in increasing `t`, and sees exactly the elements whose intervals contain `t`.
+  - Each element costs at most `2 log2(sz)` `add`/`undo` pairs, so `solve` makes O(n + m log(n)) calls and runs in O(n + m log(n) c) for a structure whose add plus undo costs `c` in the worst case. An amortized structure such as path compression breaks the bound, because a costly add can be undone and redone; row 09 `RollbackDSU` is the intended client.
   - Calling `solve` again repeats the same calls.
 - Memory O(n + m log(n)) `(node, x)` entries, plus O(n + m log(n)) index arrays during `solve`.
 
@@ -28,14 +27,15 @@ Times `[0, n)`, `0 <= n <= 2^29` (the time tree's `2 * bit_ceil(n)` cells stay i
   - Entries are B (pushed) or A (reordered). When no A remains, it undoes everything and reapplies it in reverse as A, oldest on top.
   - It then takes the shortest top segment holding at least one A and as many A as B, or every A. It undoes the segment, stably moves the segment's B before its A, drops the topmost A (the oldest), and reapplies the rest.
   - Invariant: A entries are older than every B, the topmost A is the oldest live update, and the applied set equals the stack. So each call removes the oldest update.
-- Bound: O(log(n)) amortized `add`/`undo` calls per operation, for n live updates. This is the bound Noam527's tutorial (Codeforces blog 83467) states for this procedure. The blog returned 403 in this session, so the statement comes from the sweep's search snippets, and no proof was checked here.
-  - Argued here: a segment with s B entries has at most `max(s, 1)` A entries, so a call costs at most `4(s + 1)` calls. Each update is reversed at most once, since after a reversal it leaves only by removal. What remains open is that each B entry is popped O(log(n)) times, amortized, before its reversal.
-  - Measured: the tester bounds total calls by `4 ops (1 + log2(peak + 1))` on five access patterns and prints the worst ratio (see Commands and results). The review probe found 10.6, 15.9 and 19.4 calls per operation in the steady state at n = 2^10, 2^16, 2^20, which tracks log2(n), and a worst ratio of 1.13 over 27 patterns.
+- Bound: O(log(n)) amortized `add`/`undo` calls per operation for n live updates, as Noam527's tutorial (Codeforces blog 83467) states for this procedure. The blog returned 403 on 2026-10-17, so the statement comes from the sweep's search snippets and no proof was checked.
+  - Argued here: a segment with s B entries has at most `max(s, 1)` A entries, so a call makes at most `4(s + 1)` calls, and each update is reversed at most once, since after a reversal it leaves only by removal. Open: that each B entry is popped O(log(n)) times, amortized, before its reversal.
+  - Measured: the tester bounds total calls by `4 ops (1 + log2(peak + 1))` on five access patterns and prints the worst ratio ([Commands and Results](#commands-and-results)). The review probe found 10.6, 15.9 and 19.4 calls per operation in the steady state at n = 2^10, 2^16, 2^20, tracking log2(n), and a worst ratio of 1.13 over 27 patterns.
 - Memory O(n).
 
-### Violated preconditions
+### Violated Preconditions
 
 Under `NDEBUG`:
+
 - `addInterval` with bad bounds records nodes outside the tree, and `solve` indexes outside its arrays (undefined).
 - `erase` of an absent key dereferences `end()` (undefined).
 - An `n` outside `[0, 2^29]` is clamped for the tree size.
@@ -43,11 +43,11 @@ Under `NDEBUG`:
 
 Every loop is bounded by `n`, `m log(n)` or the stack size.
 
-### Legacy mapping
+### Legacy Mapping
 
 No legacy code. The planned row's "undoOnly adapter" describes `QueueUndo` itself (its constructor takes the undo-only structure's callbacks); it is not a separate operation. Catalog forms: cp-algorithms `add_query`/`solve` (closed ranges), hitonanode `apply_time_range`/`add_observation`/`generate`, Nyaan `run(add, del, query)` and ei1333 `run(f)` are `addInterval`/`addQuery`/`solve`; maspypy `Add_Remove_Query::add`/`remove`/`calc`, ei1333 `insert`/`erase` and Nyaan `add_edge`/`del_edge` are `insert`/`erase`; ShahjalalShohag `DSUQueue::push`/`pop` are `push`/`popFront`.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/63-offline_deletion_tester.cpp`, entry `63-offline_deletion_tester.py` (driver `_00_contest_runner.py`; three builds; 9 assertion probes).
 
@@ -63,17 +63,37 @@ Tester `96-Local Testing/02-Data Structures/63-offline_deletion_tester.cpp`, ent
 | n = 0 and n = 1, empty queue, `X` without `operator<` | `edgesCase` | Direct values |
 | Preconditions | `invalid` | Reversed and out-of-range intervals, out-of-range query and insert, erase of an absent key, erase before its insert, negative and oversized `n`, `popFront` on empty |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 932 MB; optimized 0.1 s compile + 1.3 s run, checked 18.9 s compile + 48.3 s run, ASan-UBSan 24.4 s compile + 17.8 s run; MEMORY peak 1129 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 945 MB; optimized 0.2 s compile + 2.7 s run, checked 36.6 s compile + 184.1 s run, ASan-UBSan 40.5 s compile + 35.4 s run; MEMORY peak 1114 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 34.2 s compile + 0.1 s run, checked 26.8 s compile + 6.9 s run; MEMORY peak 908 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 939 MB; optimized 0.1 s compile + 2.2 s run, checked 10.1 s compile + 78.9 s run, ASan-UBSan 11.3 s compile + 20.9 s run; MEMORY peak 781 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
+
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 932 MB; optimized 0.1 + 1.3 s, checked 18.9 + 48.3 s, ASan-UBSan 24.4 + 17.8 s; MEMORY peak 1129 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 945 MB; optimized 0.2 + 2.7 s, checked 36.6 + 184.1 s, ASan-UBSan 40.5 + 35.4 s; MEMORY peak 1114 MB |
+| `01-run.py --mode quick` | Optimized 34.2 + 0.1 s, checked 26.8 + 6.9 s; MEMORY peak 908 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 939 MB; optimized 0.1 + 2.2 s, checked 10.1 + 78.9 s, ASan-UBSan 11.3 + 20.9 s; MEMORY peak 781 MB |
+
+Latest per-header run 2026-10-17 on the same machine with CPython 3.14.8, in the optimized, checked and ASan/UBSan builds. MEMORY peaks are dominated by compilation.
+
+| Command (2026-10-17) | Result |
+|---|---|
+| `63-offline_deletion_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3,659,275 checks per configuration, 9 assertion probes, MEMORY peak 555 MB; worst QueueUndo ratio `calls / (ops (1 + log2(peak + 1)))` 1.136 |
+| `CXX=g++-14 63-offline_deletion_tester.py --mode full --seed 20261017` (GCC 14.4.1) | PASS, 3,659,275 checks per configuration, 9 assertion probes, MEMORY peak 610 MB |
+| `63-offline_deletion_tester.py --mode stress --seed 7` | PASS, 3 configurations, 8,360,815 checks per configuration, MEMORY peak 768 MB; worst QueueUndo ratio 1.128 |
+| `02-integration.py --sanitizers` | PASS: 153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 1820 MB |
+| `03-consistency.py` | No errors |
+
+A hand mutation check (temporary header copies, quick mode seed 7, `-O2 -DNDEBUG`) detected 5 of 5 injected faults: the left decomposition step not advanced, pruning by AND, the oldest update kept by `popFront`, `erase` pairing the oldest copy, and `popFront` stopping early.
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/63-offline_deletion_tester.py' --mode full --seed 20261017
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/63-offline_deletion_tester.py' --mode full --seed 20261017
 python3 '96-Local Testing/02-Data Structures/63-offline_deletion_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-17: full mode seed 20261017 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 3,659,275 checks per configuration and 9 assertion probes, MEMORY peak 555 MB and 610 MB; stress mode seed 7 (one round) passed all three configurations with 8,360,815 checks per configuration, MEMORY peak 768 MB. Mutation check (temporary header copies, quick mode seed 7, `-O2 -DNDEBUG`): 5 of 5 injected faults detected (left decomposition step not advanced, pruning by AND, oldest update kept by `popFront`, `erase` pairing the oldest copy, `popFront` stopping early). Worst measured QueueUndo ratio `calls / (ops (1 + log2(peak + 1)))`: 1.136 (full), 1.128 (stress). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.8, in the runner's optimized, checked and ASan/UBSan builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 1820 MB) and `03-consistency.py` reported no errors.
 
 ## Sources
 
@@ -85,7 +105,7 @@ Final run 2026-10-17: full mode seed 20261017 passed on GCC 16.2.1 and GCC 14.4.
 
 Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-17-p034-sweep)); the implementation was written from the contract.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - Left out with reasons in [00-notes.md](00-notes.md#p034-omissions): priority-queue undo and deque undo.
 - Graphs `26-dynamic_connectivity.hpp` owns edge-interval connectivity orchestration and may build on `OfflineDeletion` with row 09; Miscellaneous row 42 owns generic undo logs.
@@ -96,7 +116,7 @@ Search aliases (P263, grab --find): deleting from a data structure, segment tree
 
 ## History
 
-- 2026-10-17: P034 first implementation and verification; independent review: `n <= 2^29` asserted before allocation, in-place `popFront` that recovers after an empty call, `QueueUndo` `size`/`empty` added to the row, `insert`/`erase` recorded as kept, the amortized bound stated with its evidence, unordered-key test.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-17: P034 first implementation and verification; after the review, `n <= 2^29` is asserted before allocation, `popFront` works in place and recovers after an empty call, `QueueUndo` `size`/`empty` joined the row, `insert`/`erase` were recorded as kept, the amortized bound was stated with its evidence, and an unordered-key test was added; full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 added the search aliases (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

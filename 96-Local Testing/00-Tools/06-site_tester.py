@@ -271,7 +271,7 @@ def body_range(text: str, title: bool) -> tuple[int, int]:
     return i, end
 
 
-SECTION_TITLES = ("Contracts", "Limits and handoffs", "Sources")
+SECTION_TITLES = ("Contracts", "Limits and Handoffs", "Sources")
 TIER_HEADS = ("## Basic", "## Advanced", "## Esoteric")
 
 
@@ -283,7 +283,7 @@ def span(text: str) -> str:
 
 def layout(root: Path, targets: list[str], folders: list[str]) -> dict[str, tuple[str, list[tuple[int, int]]]]:
     """Repository document -> (site page, line ranges copied there) for every document a page copies: each existing
-    header's article body and evidence document (its non-empty Contracts, Limits and handoffs and Sources sections; no
+    header's article body and evidence document (its non-empty Contracts, Limits and Handoffs and Sources sections; no
     ranges when nothing or no file is there), and each folder's notes and folder-article body."""
     out = {}
 
@@ -675,7 +675,7 @@ Intro paragraph [ignored](../01-dsu.hpp).
 
 Second DSU heading; after the fences [again](../01-dsu.hpp).
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - Recursion-free; [geometry](../../03-Geometry/01-point.hpp#point).
 
@@ -737,7 +737,7 @@ def fixture(root: Path) -> None:
         "[core notes](../../01-Core/Docs/00-notes.md#shared).\n",
         "02-Data Structures/Docs/01-dsu.md": DSU_EVIDENCE.replace("ABS", str(root / "01-Core/01-template.hpp")),
         "02-Data Structures/Docs/02-adv.md": "# 02-adv.hpp — evidence\n\n## Contracts\n\n- Adv uses [DSU](01-dsu.md#dsu).\n\n"
-        "## Limits and handoffs\n\n## Sources\n",
+        "## Limits and Handoffs\n\n## Sources\n",
         "03-Geometry/00-index.md": "# 03 Geometry — inventory\n\nScope: geometry fixture.\n\n## Basic\n\n"
         "| Header | Operations | Status |\n|---|---|---|\n| `01-point.hpp` | Point: dot; cross | verified |\n",
         "03-Geometry/01-point.hpp": T + inc("../01-Core/01-template.hpp") + "struct Point {};\n",
@@ -1208,7 +1208,7 @@ class Fixture(Base):
         chart = DEPS.chart(DEPS.headers(self.root), "02-Data Structures")
         ds = ("# 02 Data Structures\n\nScope: DS fixture; notes in [00-notes.md](notes.md), sources and "
               "[Core](../01-core/index.md).\n\n[Folder notes](notes.md): contracts and ownership rules shared by the folder's "
-              "headers.\n\n## Include chart\n\nArrows point from a header to the headers it includes; the template is left "
+              "headers.\n\n## Include Chart\n\nArrows point from a header to the headers it includes; the template is left "
               f"out.\n\n```mermaid\n{chart}\n```\n\n## Basic\n\n| Header | Operations | Status |\n|---|---|---|\n"
               "| [`01-dsu.hpp`](01-dsu.md) | DSU: findSet, uniteSets; groups (sorted; stable); makeSet | verified; "
               "[evidence](01-dsu.md) |\n| [`03-red.hpp`](03-red.md) | Red: mul | verified |\n\n## Advanced\n\n"
@@ -1226,11 +1226,11 @@ class Fixture(Base):
         self.assertNotIn("## Core", core)
         self.assertIn("```mermaid\n", core)
         geo = files["docs/03-geometry/index.md"]
-        self.assertIn("## Include chart\n\nEvery header of this folder includes only the template.\n\n## Basic", geo)
+        self.assertIn("## Include Chart\n\nEvery header of this folder includes only the template.\n\n## Basic", geo)
         self.assertNotIn("mermaid", geo)
         self.assertNotIn("notes", geo.lower())
         py = files["docs/08-python/index.md"]
-        self.assertNotIn("## Include chart", py)
+        self.assertNotIn("## Include Chart", py)
         self.assertIn("## Basic\n\n| Module | Operations | Status |\n|---|---|---|\n| [`_01_x.py`](01-x.md) | readInts; Fast: "
                       "read, write | planned; pyrival |\n| `_02_y.py` | y | planned |\n", py)
         self.assertEqual(files["docs/02-data-structures/notes.md"], "# 02 Data Structures — notes\n\n## Rules\n\n- See "
@@ -1292,8 +1292,8 @@ class Fixture(Base):
             s, files = self.site(repo)
             body = "Start with [the DSU](01-dsu.md) and [usage](index.md#usage).\n\n## Usage\n\nPick by [contracts](01-dsu.md#contracts); ![fig](fig.png)."
             ds = before[repo]["docs/02-data-structures/index.md"]
-            self.assertIn("headers.\n\n## Include chart", ds)
-            self.assertEqual(files["docs/02-data-structures/index.md"], ds.replace("headers.\n\n## Include chart", f"headers.\n\n{body}\n\n## Include chart"))
+            self.assertIn("headers.\n\n## Include Chart", ds)
+            self.assertEqual(files["docs/02-data-structures/index.md"], ds.replace("headers.\n\n## Include Chart", f"headers.\n\n{body}\n\n## Include Chart"))
             self.assertTrue(files["docs/08-python/index.md"].startswith("# 08 Python\n\nScope: Python fixture.\n\n## Python usage\n\n"
                                                                      "See [x](01-x.md).\n\n## Basic\n\n| Module |"))
             self.assertEqual(files["docs/03-geometry/index.md"], before[repo]["docs/03-geometry/index.md"], "a title-only article adds nothing")
@@ -1383,7 +1383,7 @@ class Fixture(Base):
             self.assertIn("## Tests\n\n" + "\n".join(f"- [`{t}`]({gh(t)})" if repo else f"- `{t}`" for t in tests) + "\n\n", page)
             self.assertTrue(page.endswith('## Source\n\n??? abstract "01-dsu.hpp, 3 lines"\n\n    ```cpp\n    #pragma once\n'
                                           '    #include "../01-Core/01-template.hpp"\n    struct DSU {};\n    ```\n'), page[-300:])
-            self.assertIn("\n\n## Limits and handoffs\n\n- Recursion-free; ", page)
+            self.assertIn("\n\n## Limits and Handoffs\n\n- Recursion-free; ", page)
             self.assertIn("\n\n## Sources\n\n- [KACTL]", page)
 
     def test_header_page_python(self):
@@ -1400,7 +1400,7 @@ class Fixture(Base):
 
     def test_header_section_order(self):
         _, files = self.site()
-        order = {"02-data-structures/01-dsu.md": ["Overview", "Operations", "Contracts", "Dependencies", "Limits and handoffs", "Sources",
+        order = {"02-data-structures/01-dsu.md": ["Overview", "Operations", "Contracts", "Dependencies", "Limits and Handoffs", "Sources",
                                                   "Tests", "Source"],
                  "02-data-structures/02-adv.md": ["Operations", "Contracts", "Dependencies", "Tests", "Source"],
                  "02-data-structures/03-red.md": ["Operations", "Dependencies", "Source"],
@@ -1825,7 +1825,7 @@ class Repository(Base):
             if f[:2] <= "07" and any(h.startswith(f + "/") for h in self.graph):
                 self.assertTrue("```mermaid\n" in text or "Every header of this folder includes only the template." in text, f)
             else:
-                self.assertNotIn("## Include chart", text, f)
+                self.assertNotIn("## Include Chart", text, f)
 
     def test_repo_operations(self):
         """Each page's Operations bullets, joined by `;`, give back its row's Operations cell (no item lost or merged)."""
@@ -2140,7 +2140,7 @@ class Tree:
             if f in self.notes:
                 src = f"{f}/Docs/00-notes.md"
                 self.files[src] = self.doc(src, f"{f} notes", [("Rules", True), ("More", True)], True)
-        names = ["Contracts", "Limits and handoffs", "Sources", "Tests", "Moves"]
+        names = ["Contracts", "Limits and Handoffs", "Sources", "Tests", "Moves"]
         for t in self.rows:
             if rng.random() < .7:
                 src = f"{t.split('/')[0]}/Docs/{pname(t)}.md"

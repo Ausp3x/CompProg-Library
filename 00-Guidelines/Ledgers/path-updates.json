@@ -1,6 +1,6 @@
 {
   "date": "2026-09-27",
-  "reason": "Expansion-era source keys retained; live destinations composed through Ledgers/core-path-updates.json to the current 19-target Core layout (fast I/O, rows 03 and 17 of 06-Miscellaneous, moved to `01-Core/19-fastio.hpp` on 2026-11-01). Non-Core inventories remain ordered Basic/Advanced/Esoteric; original OLD bytes remain unchanged.",
+  "reason": "Expansion-era source keys retained; live destinations composed through Ledgers/core-path-updates.json to the current 19-target Core layout (fast I/O, rows 03 and 17 of 06-Miscellaneous, moved to `01-Core/19-fastio.hpp` on 2026-11-01). Non-Core inventories remain ordered Basic/Advanced/Esoteric; original OLD bytes remain unchanged. `08-Python/_28_io_advanced.py` merged into `08-Python/_01_io.py` on 2026-11-22.",
   "old_to_current": {
     "01-Core/01-template.hpp": "01-Core/01-template.hpp",
     "01-Core/02-debug.hpp": "01-Core/02-debug.hpp",
@@ -266,7 +266,8 @@
     "08-Python/_24_suffix.py": "08-Python/_25_suffix.py",
     "08-Python/_25_offline.py": "08-Python/_26_offline.py",
     "08-Python/_26_randomized.py": "08-Python/_27_randomized.py",
-    "08-Python/_27_io_advanced.py": "08-Python/_28_io_advanced.py",
+    "08-Python/_27_io_advanced.py": "08-Python/_01_io.py",
+    "08-Python/_28_io_advanced.py": "08-Python/_01_io.py",
     "08-Python/_28_lazysegmenttree.py": "08-Python/_29_lazysegmenttree.py",
     "08-Python/_29_dp_optimization.py": "08-Python/_30_dp_optimization.py",
     "08-Python/_30_exact_geometry.py": "08-Python/_44_exact_geometry.py",
@@ -420,7 +421,8 @@
     "08-Python/_24_suffix.py": "08-Python/_25_suffix.py",
     "08-Python/_25_offline.py": "08-Python/_26_offline.py",
     "08-Python/_26_randomized.py": "08-Python/_27_randomized.py",
-    "08-Python/_27_io_advanced.py": "08-Python/_28_io_advanced.py",
+    "08-Python/_27_io_advanced.py": "08-Python/_01_io.py",
+    "08-Python/_28_io_advanced.py": "08-Python/_01_io.py",
     "08-Python/_28_lazysegmenttree.py": "08-Python/_29_lazysegmenttree.py",
     "08-Python/_29_dp_optimization.py": "08-Python/_30_dp_optimization.py",
     "08-Python/_30_exact_geometry.py": "08-Python/_44_exact_geometry.py",

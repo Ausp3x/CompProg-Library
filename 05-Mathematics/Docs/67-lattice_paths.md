@@ -1,4 +1,4 @@
-# 67-lattice_paths.hpp — evidence
+# 67-lattice_paths.hpp — Evidence
 
 `67-lattice_paths.hpp` counts monotone lattice paths: free and obstructed grid paths, reflection counts below diagonals, between parallel lines and below integer-slope lines, ballot and Bizley counts, paths between monotone boundaries by divide and conquer, the named path numbers (Catalan convolution and triangle, Narayana, Motzkin, Schroeder, Delannoy) and the Lindström–Gessel–Viennot determinant. It depends on `05-combinatorics.hpp` (`PrimeCombinatorics`), `09-modinverse.hpp` (`inverseTable`), `13-convolution.hpp` (`convolution`), `14-polynomial_algorithms.hpp` (`fpsExp`) and `01-mod_arithmetic.hpp` (`floorDiv`). Graphs row 53 owns path families on general DAGs.
 
@@ -15,7 +15,7 @@ Common domain: paths use unit steps right (E, x + 1) and up (N, y + 1), plus dia
 - `catalanConvolution(n, k, pc)`: [x^n] C(x)^k = k / (2n + k) C(2n + k, n) = C(2n + k - 1, n) - C(2n + k - 1, n - 1) for k >= 1, [n = 0] for k = 0. It equals the weak ballot to (n + k - 1, n), and Dyck paths of semilength n touching the axis exactly t times are `catalanConvolution(n - t, t)`.
 - `narayana(n, k, pc)`: Dyck paths of semilength n with k peaks, (1 / n) C(n, k) C(n, k - 1) computed division-free as C(n - 1, k - 1)^2 - C(n - 1, k) C(n - 1, k - 2); N(0, 0) = 1, 0 outside 1 <= k <= n.
 
-### Linear-time counts
+### Linear-Time Counts
 
 - `gridPathsAvoidingRectangle(x, y, x1, y1, x2, y2, pc)`: paths (0, 0) -> (x, y) avoiding every lattice point of [x1, x2) x [y1, y2). The rectangle is clipped to the box; every path that meets it has a unique first point inside, entered from below at (i, y1) or from the left at (x1, j), and the prefix before it never meets the rectangle by monotonicity. So the count is the total minus O(x2 - x1 + y2 - y1) products of two binomials; a start inside gives 0.
 - `pathsBelowLine(a, b, c, d, mu, pc)`: paths (a, b) -> (c, d) with x >= mu y at every point (weakly below y = x / mu), integer mu >= 0, b >= 0. With h = x - mu y, E steps add 1 and N steps subtract mu. A bad path ends at h >= 0, so it visits h = -1 for a last time at Q = (mu y - 1, y), then steps E onto the line and stays good. The count is the total minus the sum over y of free(start -> Q) times the weak ballot from (mu y, y) to (c, d), O(d - b) terms (Korolyuk's formula, Krattenthaler Theorem 10.4.7). Lines with an offset translate the endpoints. Paths below a steeper line y <= mu x map to this case by reversing the path and swapping the axes.
@@ -37,7 +37,7 @@ Common domain: paths use unit steps right (E, x + 1) and up (N, y + 1), plus dia
 
 ### bizleyPaths
 
-`bizleyPaths<M>(a, b, n)` returns, for i in [0, n], the paths (0, 0) -> (a i, b i) weakly below the line through them (by symmetry, also weakly above). With g = gcd(a, b), Bizley's formula gives sum_j phi_j t^j = exp(sum_(j >= 1) C(s j, a' j) / (s j) t^j) for a' = a / g and s = (a + b) / g, and phi at (a i, b i) is the coefficient at g i. O((a + b) n + g n log(g n)), prime modulus > (a + b) n. Paths that touch the line only at their endpoints are 1 - 1 / F of this series.
+`bizleyPaths<M>(a, b, n)` returns, for i in [0, n], the paths (0, 0) -> (a i, b i) weakly below the line through them (by symmetry, also weakly above). With g = gcd(a, b), Bizley's formula gives sum_j phi_j t^j = exp(sum_(j >= 1) C(s j, a' j) / (s j) t^j) for a' = a / g and s = (a + b) / g, and phi at (a i, b i) is the coefficient at g i. O((a + b) n + g n log(g n)), prime modulus > (a + b) n. Paths that touch the line only at their endpoints are 1 - 1 / F of this series, the missing operation `bizleyPrimitivePaths`.
 
 ### nonIntersectingPathsDeterminant
 
@@ -50,7 +50,7 @@ Common domain: paths use unit steps right (E, x + 1) and up (N, y + 1), plus dia
 - `schroderLarge<M>(n)`, `schroderSmall<M>(n)`: (i + 1) x_i = 3 (2i - 1) x_(i-1) - (i - 2) x_(i-2) with x_1 = 2 (large: E, N, diagonal paths below the diagonal) or x_1 = 1 (small: s_n = r_n / 2 for n >= 1, the large paths with no diagonal step on the diagonal), prime modulus > n + 1, O(n).
 - `delannoyCentral<M>(n)`: i D_i = 3 (2i - 1) D_(i-1) - (i - 1) D_(i-2), prime modulus > n, O(n).
 
-### Planned-name mapping
+### Planned-Name Mapping
 
 | Planned | Implemented |
 |---|---|
@@ -59,11 +59,7 @@ Common domain: paths use unit steps right (E, x + 1) and up (N, y + 1), plus dia
 | `motzkin (table and nth)` | `motzkinTable`, `motzkinPaths(n, 0, 0)` |
 | `increasingSequencesBetweenBounds` (row 12) | moved here beside the rectangle transfer |
 
-Aliases: Library Checker `number_of_increasing_sequences_between_two_sequences`; maspypy `count_grid_path`, `catalan_convolution`; hitonanode `NorthEastLatticePathsInRectangle`, `NorthEastLatticePathsBounded`; Fuss–Catalan and k-ary Dyck paths (`ballotGeneral`); rational Catalan numbers (`bizleyPaths`).
-
-Search aliases (P263, grab --find): 卡特兰数, LGV 引理, 格路计数, 反射容斥, 折线法, 网格路径计数, 默慈金数, 施罗德数, 德拉诺依数.
-
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`67-lattice_paths_tester.py`](<../../96-Local Testing/05-Mathematics/67-lattice_paths_tester.py>).
 
@@ -83,24 +79,33 @@ Entry: [`67-lattice_paths_tester.py`](<../../96-Local Testing/05-Mathematics/67-
 | Oracle validation | The Python closed forms are checked against grid DP and known sequence prefixes before use. |
 | Preconditions | Thirteen checked-build death probes: table bounds (gridPaths, catalanConvolution, motzkinPaths, the transfer), negative arguments (dyckPaths, ballotGeneral, the sequence bounds, motzkinTable), mu < 0, lo > hi, size mismatches (bounds, LGV), a zero Bizley slope. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1207 MB; optimized 0.3 s compile + 37.1 s run, checked 52.1 s compile + 61.1 s run, ASan-UBSan 55.1 s compile + 63.3 s run; MEMORY peak 1635 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1204 MB; optimized 0.3 s compile + 34.7 s run, checked 48.1 s compile + 71.3 s run, ASan-UBSan 56.2 s compile + 73.4 s run; MEMORY peak 1620 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 61.4 s compile + 5.9 s run, checked 43.9 s compile + 12.4 s run; MEMORY peak 1188 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1191 MB; optimized 0.0 s compile + 63.1 s run, checked 20.2 s compile + 66.1 s run, ASan-UBSan 21.2 s compile + 71.3 s run; MEMORY peak 909 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, Linux x86-64, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14. Every command passed; times are compile + run.
 
-Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. With `-Wall -Wextra -Wconversion`, the header compiles without warnings on both compilers.
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-| Command | Result |
-|---|---|
-| `67-lattice_paths_tester.py --mode full --seed 1` | PASS, 130,325 C++ checks and 400 Python rows per configuration, 3 configurations, 13 assertion probes, `MEMORY peak=757MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=783MB` |
-| `67-lattice_paths_tester.py --mode stress --seed 7` | PASS, 218,585 C++ checks and 2000 Python rows per configuration, 13 assertion probes, `MEMORY peak=774MB` |
-| `67-lattice_paths_benchmark.py 5` | PASS; table below, `MEMORY peak=362MB` |
-| `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
-| `03-consistency.py` | PASS, no errors |
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.3 + 37.1 s | 52.1 + 61.1 s | 55.1 + 63.3 s | 1635 MB | 1207 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.3 + 34.7 s | 48.1 + 71.3 s | 56.2 + 73.4 s | 1620 MB | 1204 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 61.4 + 5.9 s | 43.9 + 12.4 s | — | 1188 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.0 + 63.1 s | 20.2 + 66.1 s | 21.2 + 71.3 s | 909 MB | 1191 MB |
+
+- 2026-10-19, P054, the latest run with check counts. The runner built optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and, in full and stress, ASan/UBSan configurations. The header compiled without warnings under `-Wall -Wextra -Wconversion` on both compilers.
+
+  | Command | Result |
+  |---|---|
+  | `67-lattice_paths_tester.py --mode full --seed 1` | PASS, 130,325 C++ checks and 400 Python rows per configuration, 3 configurations, 13 assertion probes, `MEMORY peak=757MB` |
+  | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=783MB` |
+  | `67-lattice_paths_tester.py --mode stress --seed 7` | PASS, 218,585 C++ checks and 2000 Python rows per configuration, 13 assertion probes, `MEMORY peak=774MB` |
+  | `67-lattice_paths_benchmark.py 5` | PASS; table below, `MEMORY peak=362MB` |
+  | `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
+  | `03-consistency.py` | PASS, no errors |
 
 ## Benchmarks
 
-`67-lattice_paths_benchmark.py`, GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions, modulo 998244353, seeded inputs, machine shared with other work (load about 2.5); repeated outputs are compared. Library Checker `number_of_increasing_sequences_between_two_sequences` has N, M <= 131072.
+`67-lattice_paths_benchmark.py 5`, 2026-10-19: GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions, modulo 998244353, seeded inputs, machine shared with other work (load about 2.5); repeated outputs are compared. Library Checker `number_of_increasing_sequences_between_two_sequences` has N, M <= 131072.
 
 | Workload | Median |
 |---|---|
@@ -115,7 +120,7 @@ A banded region keeps the staircase boundaries long, which is the worst case of 
 
 ## Sources
 
-Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-sources.md), P054 sweep). The algorithms were implemented from the stated identities, and no external code was copied.
+Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-sources.md), P054 sweep). The algorithms were implemented from the stated identities; no external code was copied.
 
 - Krattenthaler, Lattice path enumeration, pp. 591–610: strips (10.3.3), the slope-mu ballot (10.4.5), Korolyuk's formula (10.4.7) and rational lines (10.4.1).
 - Bizley's formula as stated in arXiv 1606.08412, Theorem 2.1.
@@ -123,15 +128,24 @@ Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-
 - hitonanode `north_east_lattice_paths.hpp` and maspypy `count_grid_path.hpp`: the rectangle transfer and the divide and conquer contracts.
 - cp-algorithms Catalan numbers and inclusion-exclusion (obstacle DP); OEIS A006318, A001003, A001850.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - Path families on general DAGs and LGV beyond grid paths are Graphs row 53; general step sets are bounded-height DP or row 15 recurrences.
-- Scope decisions (Sato's matrix formula, Schroeder paths between heights, strict Bizley counts) are in [00-notes.md](00-notes.md), P054 research decisions.
+- The row is `partial`: `bizleyPrimitivePaths` (paths touching the line only at their endpoints) is missing.
+- Sato's matrix formula and Schroeder paths between heights stay out ([00-notes.md](00-notes.md), P054 Research Decisions).
 - No `97-Legacy` excerpt existed for this row.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+Catalog aliases: Library Checker `number_of_increasing_sequences_between_two_sequences`; maspypy `count_grid_path`, `catalan_convolution`; hitonanode `NorthEastLatticePathsInRectangle`, `NorthEastLatticePathsBounded`; Fuss–Catalan and k-ary Dyck paths (`ballotGeneral`); rational Catalan numbers (`bizleyPaths`).
+
+Search aliases (P263, grab --find): 卡特兰数, LGV 引理, 格路计数, 反射容斥, 折线法, 网格路径计数, 默慈金数, 施罗德数, 德拉诺依数.
+
 
 ## History
 
-- 2026-10-19: P054 initial implementation; `@reviewer` found a misplaced detail namespace, the Bizley cost statement and do-while braces in the tester, all fixed; full suite passed on g++ and g++-14, stress seed 7 passed.
-- 2026-10-19: P054 follow-up: 64-bit prime coverage through row 13's generalized convolution; full and stress passed on g++, full on g++-14.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-19: P054 implementation; `@reviewer` found a misplaced detail namespace, the Bizley cost statement and do-while braces in the tester, all fixed; full passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19: P054 follow-up added 64-bit prime coverage through row 13's generalized convolution; full and stress passed on g++, full on g++-14.
+- 2026-11-07: P263 added Chinese search aliases (OI Wiki page titles and common names, Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.

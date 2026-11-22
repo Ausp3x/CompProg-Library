@@ -21,7 +21,7 @@ from worktree import uncommitted  # noqa: E402
 LIMIT_HEADING = re.compile(r'^#+ .*\b(limit|handoff|open|gap|omission|todo|remaining|known)', re.I)
 DEFERRAL = re.compile(r'left out|not adopted|omit|out of scope|defer|not implemented|not fetched|later|filed', re.I)
 DECIDED = re.compile(r'by the user|user (decision|decided|chose|asked)', re.I)
-SETTLED = ('Recorded decisions', 'Kept by the sweep', 'Conventions')
+SETTLED = ('Recorded Decisions', 'Kept by the Sweep', 'Conventions')
 TABLE_RULE = re.compile(r'^\|[\s|:-]+\|?$')
 ROW_REF = re.compile(r'\brows?\s+(\d+(?:\s*(?:,|and|/|–|-)\s*\d+)*)')
 PREFIX_REF = re.compile(r'(?<![\w.])_(\d{2})(?!\d)|\b(\d{2})-[a-z]')  # `_03` modules, `21-lichao` stems
@@ -201,8 +201,8 @@ def main():
         full = sorted({root / evidence_doc(t) for t in targets if CORE_FULL.fullmatch(t)})
         if full:  # 05-testing.md, Benchmarks: each is measured in this run or closed with its argument
             section('Undecided optimization candidates (Core full evidence)',
-                    [hit for d in full for hit in grep(d, UNDECIDED, root)] + [f'{d.relative_to(root)}: no "### Optimization candidates" table'
-                     for d in full if d.is_file() and '\n### Optimization candidates\n' not in d.read_text(errors='replace')])
+                    [hit for d in full for hit in grep(d, UNDECIDED, root)] + [f'{d.relative_to(root)}: no "### Optimization Candidates" table'
+                     for d in full if d.is_file() and '\n### Optimization Candidates\n' not in d.read_text(errors='replace')])
             section('Comparison record (05-testing.md, Stale evidence)', [comparison(d, root) for d in full])
         section(f'Packages filed by {pkg["id"]}', [f'{p["id"]} ({p["status"]}): {p["label"]}' for p in packages
                                                    if re.search(rf'Filed by {pkg["id"]}\b', p['note'] or '')])

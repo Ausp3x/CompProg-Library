@@ -1,4 +1,4 @@
-# 21-integer_roots.hpp — evidence
+# 21-integer_roots.hpp — Evidence
 
 `21-integer_roots.hpp` is the canonical owner of exact integer roots and perfect-power tests on 64- and 128-bit integers (`00-notes.md`, Domains). Every function is a stateless `inline` free function. Results are exact on the whole stated domain: a binary64 estimate followed by an exact integer correction, never a floating-point answer.
 
@@ -12,7 +12,7 @@
 
 - `isqrt(n)` returns `floor(sqrt(n))` for every `ulng`. It starts from `ulng(sqrt(double(n)))` clamped to `2^32 - 1`. `double(n)` has relative error at most `2^-53` and `sqrt` is correctly rounded, so the estimate is within 1 of the true floor. One comparison in each direction corrects it, and the clamp keeps `(r + 1)^2` from overflowing.
 - `isqrt128(n)` returns `floor(sqrt(n))` for every `ulll` (the result is below `2^64`). Values below `2^64` go to `isqrt`. Otherwise the binary64 estimate is off by at most about `2^11`. One integer Newton step `(r + n / r) / 2` never falls below the floor (AM–GM for integer Newton), and it lands within `(r - s)^2 / (2 r) + 1 <= 2` of it. The final decrement loop therefore runs at most twice, and the cap at `2^64 - 1` keeps `r * r` in range. The cost is one 128-by-64 division.
-- `isqrtRemainder(n)` returns `{s, n - s^2}` with `s = isqrt(n)` (GMP `mpz_sqrtrem`). It is kept beside `isqrt` as a derived formula (`duplicates.md`, Kept by the sweep).
+- `isqrtRemainder(n)` returns `{s, n - s^2}` with `s = isqrt(n)` (GMP `mpz_sqrtrem`). It is kept beside `isqrt` as a derived formula (`duplicates.md`, Kept by the Sweep).
 
 ### ikthRoot, ceilKthRoot, kthRootRound
 
@@ -34,13 +34,13 @@ All three take any `ulng n` and `k >= 1` (asserted). When `NDEBUG` removes the a
 
 `isPerfectPower(n)` returns `{b, e}` with `b^e = n` and `e` maximal, which makes `b` minimal and not itself a perfect power. `n` is a perfect power iff `e >= 2`. For `n <= 1` every exponent works, so the result is `{n, 1}` (user decision 2026-11-03); unlike GMP's `mpz_perfect_power_p`, 0 and 1 then read as "not a power", and the caller tests them directly. For each prime `p <= 61` below `bit_width(n)`, it replaces `n` by its p-th root as long as the root is exact, multiplying `e` by `p`. If `n = c^E` with `c` not a perfect power, then for a prime `p | E` the p-th root of `c^E` is `c^(E / p)`, and for a prime `p` not dividing `E` no exact p-th root exists. So the loop strips exactly the prime factors of `E`, with multiplicity. The cost is at most 18 primes times O(log(n)) root work, plus one extra root per prime factor of `E`.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Archived | Replacement |
 |---|---|
 | `isSquare(lng x)` (`OLD/5-Mathematics/13-numericalmethods.hpp`, `OLD/Team Notebook/src/math/issquare.hpp`) | `x >= 0 && isPerfectSquare(x)`. The archived 2-adic shortcut (an even number of trailing zeros and an odd part that is 1 mod 8) is subsumed by the mod-64 table plus an exact `isqrt` check. The archived `std::round(std::sqrtl(x))` is replaced by exact integer correction. |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`21-integer_roots_tester.py`](<../../96-Local Testing/05-Mathematics/21-integer_roots_tester.py>), which drives the C++ suite `21-integer_roots_tester.cpp` in the shared runner's optimized `-O2 -DNDEBUG` and checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress) builds, plus an ASan/UBSan build outside quick mode. A Python exact-integer oracle (`math.isqrt`, integer binary search, the exact `2^k n >= (2 r + 1)^k` rounding test, brute-force power decomposition) is first validated against linear scans, a table of perfect powers and 60-digit `Decimal` roots.
 
@@ -63,22 +63,31 @@ Coverage per mode (the runner has no `--rounds`; stress uses fixed larger sizes 
 | Python oracle rows | 300 | 3,000 | 20,000 |
 | C++ checks per build | 1.5M | 114M | 240M |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 735 MB; optimized 0.1 s compile + 33.7 s run, checked 10.1 s compile + 41.2 s run, ASan-UBSan 11.8 s compile + 115.7 s run; MEMORY peak 830 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 767 MB; optimized 0.3 s compile + 48.0 s run, checked 22.1 s compile + 54.6 s run, ASan-UBSan 21.2 s compile + 221.7 s run; MEMORY peak 882 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 12.8 s compile + 15.8 s run, checked 11.5 s compile + 20.1 s run; MEMORY peak 732 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 47 MB; optimized 0.1 s compile + 33.0 s run, checked 5.1 s compile + 43.8 s run, ASan-UBSan 4.8 s compile + 134.5 s run; MEMORY peak 851 MB. Dated rows below stay those commands' latest results.
+Every command passed; times are compile + run.
 
-P059 run, 2026-11-03. GCC 16.0.1 (`g++`) and GCC 14.3.0 (`CXX=g++-14`), GNU++20, CPython 3.14.4, Linux x86-64 (WSL2), AMD Ryzen AI 9 HX 370. Every suite runs the shared runner's optimized `-O2 -DNDEBUG` and checked `-O0 -g -D_GLIBCXX_DEBUG` builds, plus ASan/UBSan outside quick mode; counts are per configuration and equal on both compilers.
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds: Intel Core i9-11900H, GNU++20, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), seed 42, beside the other suites, build cache emptied before each cold run.
 
-| Command | Result |
-|---|---|
-| `21-integer_roots_tester.py --mode quick` | PASS, 2 configurations, `MEMORY peak=402MB` |
-| `21-integer_roots_tester.py --mode full --seed 1` | PASS, 3 configurations, 113,762,108 C++ checks, 3,000 Python oracle rows, 6 assertion probes, `MEMORY peak=816MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=817MB` |
-| `21-integer_roots_tester.py --mode stress --seed 2` | PASS, 240,355,320 C++ checks, 20,000 Python rows, `MEMORY peak=893MB` |
-| `02-integration.py` (header alone, `99-all`, two translation units) | PASS, `MEMORY peak=1704MB cap=8192MB` |
-| `03-consistency.py --braces` on the header and tester | PASS |
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 33.7 s | 10.1 + 41.2 s | 11.8 + 115.7 s | 830 MB | 735 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.3 + 48.0 s | 22.1 + 54.6 s | 21.2 + 221.7 s | 882 MB | 767 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 12.8 + 15.8 s | 11.5 + 20.1 s | — | 732 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 33.0 s | 5.1 + 43.8 s | 4.8 + 134.5 s | 851 MB | 47 MB |
 
-Mutation check (scratch copies): rounding `<` changed to `<=`, the dropped negative correction in `icbrt` and a rounding loop capped at 100 steps are each caught. Turning `while` into `if` in `isqrt128` and moving the `k >= 64` cutoff to 65 keep identical results, as the bounds in Contracts predict.
+- 2026-11-03, P059, the latest run with check counts: GCC 16.0.1 (`g++`) and GCC 14.3.0 (`CXX=g++-14`), GNU++20, CPython 3.14.4, Linux x86-64 (WSL2), AMD Ryzen AI 9 HX 370. The runner built optimized `-O2 -DNDEBUG` and checked `-O0 -g -D_GLIBCXX_DEBUG` configurations, plus ASan/UBSan outside quick mode; counts are per configuration and equal on both compilers.
+
+  | Command | Result |
+  |---|---|
+  | `21-integer_roots_tester.py --mode quick` | PASS, 2 configurations, `MEMORY peak=402MB` |
+  | `21-integer_roots_tester.py --mode full --seed 1` | PASS, 3 configurations, 113,762,108 C++ checks, 3,000 Python oracle rows, 6 assertion probes, `MEMORY peak=816MB` |
+  | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=817MB` |
+  | `21-integer_roots_tester.py --mode stress --seed 2` | PASS, 240,355,320 C++ checks, 20,000 Python rows, `MEMORY peak=893MB` |
+  | `02-integration.py` (header alone, `99-all`, two translation units) | PASS, `MEMORY peak=1704MB cap=8192MB` |
+  | `03-consistency.py --braces` on the header and tester | PASS |
+
+A mutation check on scratch copies in P059 caught three faults: rounding `<` changed to `<=`, the dropped negative correction in `icbrt`, and a rounding loop capped at 100 steps. Turning `while` into `if` in `isqrt128` and moving the `k >= 64` cutoff to 65 keep identical results, as the bounds in Contracts predict.
 
 ## Benchmarks
 
@@ -94,10 +103,12 @@ No timing benchmark: every operation is O(1), or bounded by a small constant tim
 | [Nyaan, kth-root-integral.hpp](https://nyaannyaan.github.io/library/math/kth-root-integral.hpp), [maspypy, integer_kth_root.hpp](https://maspypy.github.io/library/nt/integer_kth_root.hpp) | A floating estimate followed by exact correction. No code copied. |
 | [cp-algorithms, Newton's method](https://cp-algorithms.com/num_methods/roots_newton.html) | The integer Newton square root never undershoots the floor. |
 
-## Limits and handoffs
+## Limits and Handoffs
 
+- The row is `partial`: `floorLog` and `ceilLog` are missing.
 - The `isqrt` helpers inside `20-continued_fraction.hpp`, `34-quadratic_congruence.hpp`, Geometry `19-lattice_geometry.hpp` and `05-closestpair.hpp`, and Data Structures `14-segtreebeats.hpp`, plus the floor k-th root `primality_detail::kthRoot` in `07-primality_factorization.hpp`, are detail copies owned by their packages. Migrating them to this header is a follow-up for those packages.
 - Roots of `InfInt` values belong to Core.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## Aliases
 
@@ -105,9 +116,9 @@ Search aliases (P263, grab --find): integer sqrt, 开方, 整数平方根, 开�
 
 ## History
 
-- 2026-11-03: P059 implementation; review found no correctness defect (one handoff added); full suite passed on g++ and g++-14.
-- 2026-11-03: /finish audit, no code defect; NDEBUG note corrected, 2 user decisions recorded; quick suite passed.
-- 2026-11-03: maintainer review in `/merge-pr 3`, no code defect; `isqrt` beside `isqrt128` kept as a larger domain (user decision, `duplicates.md`), and the user confirmed the decisions recorded as theirs.
-- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-08: P263 user request added `integer sqrt` to the search aliases (`grab --find`) for a held-out corpus query the search missed (00-search.md, Evaluation); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-03: P059 implementation; the review found no correctness defect (one handoff added); full passed on g++ and g++-14.
+- 2026-11-03: `/finish` audit, no code defect; the `NDEBUG` note corrected and 2 user decisions recorded; quick passed.
+- 2026-11-03: the maintainer's review in `/merge-pr 3` found no code defect; `isqrt` beside `isqrt128` was kept as a larger domain (user decision, `duplicates.md`), and the user confirmed the decisions recorded as theirs.
+- 2026-11-07: P263 added common Chinese names of the row's operations to the search aliases (Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-08: P263, at the user's request, added `integer sqrt` to the search aliases for a held-out corpus query the search missed (`00-search.md`, Evaluation); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.

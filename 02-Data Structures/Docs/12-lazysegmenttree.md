@@ -1,54 +1,62 @@
-# 12-lazysegmenttree.hpp — evidence
+# 12-lazysegmenttree.hpp — Evidence
 
-Package P027 (batch DS05). Replaces the unchanged extraction `SegTree` (`OLD/algorithms.cpp:2042–2213`). The acted monoids it runs on are row 00 ([00-monoids.md](00-monoids.md)). Indices are zero-based, ranges half-open, preconditions are `assert`s checked once per operation, and a moved-from tree may only be assigned to or destroyed.
+Package P027 (batch DS05). The header replaces the unchanged extraction `SegTree` (`OLD/algorithms.cpp:2042–2213`); the acted monoids it runs on are row 00 ([00-monoids.md](00-monoids.md)). Indices are zero-based, ranges half-open, preconditions are `assert`s checked once per operation, and a moved-from tree may only be assigned to or destroyed.
 
 ## Contracts
 
 ### LazySegmentTree<A>
 
-`0 <= n <= 2^29`. ACL-style iterative tree with `base = 2^lg >= n`; padding leaves hold `e()` and never receive a non-identity action because an action lands only on nodes fully inside a real range (and their descendants). `get(p)`, `set(p, x)`, `apply(p, f)`, `apply(l, r, f)`, `prod(l, r)` (`e()` for an empty range, operand order preserved), `allProd()` (O(1), const), `values()` (pushes every pending action, O(n)), `maxRight(l, pred)` = largest `r` in `[l, n]` with `pred(prod(l, r))`, `minLeft(r, pred)` = smallest `l` in `[0, r]` with `pred(prod(l, r))`; predicates are deterministic, true on `e()` (asserted) and monotone. `fold(l, r, x, act)` and `foldRight(l, r, x, act)` carry `x` through the range under a right or left action of the monoid part, with the contract of row 03 ([03-segmenttree.md](03-segmenttree.md#segmenttree)), after pushing both boundary paths as `prod` does. Constructors `LazySegmentTree(N = 0, mon = {})` (all `e()`; length-aware presets then have `len = 0`, so build from `leaf` values) and `LazySegmentTree(vector<S>, mon = {})` with an O(n) build. Callbacks must not touch the tree.
+`0 <= n <= 2^29`. An ACL-style iterative tree with `base = 2^lg >= n`. Padding leaves hold `e()` and never receive a non-identity action, because an action lands only on nodes fully inside a real range (and their descendants).
+
+- `get(p)`, `set(p, x)`, `apply(p, f)`, `apply(l, r, f)`; `prod(l, r)` returns `e()` for an empty range and preserves operand order; `allProd()` is O(1) and const; `values()` pushes every pending action, in O(n).
+- `maxRight(l, pred)` is the largest `r` in `[l, n]` with `pred(prod(l, r))`, and `minLeft(r, pred)` the smallest `l` in `[0, r]` with `pred(prod(l, r))`. Predicates are deterministic, true on `e()` (asserted) and monotone.
+- `fold(l, r, x, act)` and `foldRight(l, r, x, act)` carry `x` through the range under a right or left action of the monoid part, with the contract of row 03 ([03-segmenttree.md](03-segmenttree.md#segmenttree)), after pushing both boundary paths as `prod` does.
+- Constructors: `LazySegmentTree(N = 0, mon = {})` fills `e()` (length-aware presets then have `len = 0`, so build them from `leaf` values), and `LazySegmentTree(vector<S>, mon = {})` builds in O(n).
+- Callbacks must not touch the tree.
 
 ### DualSegmentTree<A>, CommutativeDualSegmentTree<A>
 
-Store an action per point; `get(p)` returns the composition of every action applied to `p` (`id()` initially), `apply(l, r, f)`, `values()`; `DualSegmentTree` additionally has `set(p, f)` and pushes pending actions down the two boundary paths before composing, so noncommutative compositions keep their order; `CommutativeDualSegmentTree` uses a bottom-up tree of size `2n` (any `n`) without pushes and requires a commutative composition. Both accept a `vector<F>` of initial actions and a trailing `mon`; `MonoidAction<M>` turns a plain monoid into their action.
+Both store an action per point: `get(p)` returns the composition of every action applied to `p` (`id()` initially), with `apply(l, r, f)` and `values()`. `DualSegmentTree` also has `set(p, f)` and pushes pending actions down the two boundary paths before composing, so noncommutative compositions keep their order. `CommutativeDualSegmentTree` uses a bottom-up tree of size `2n` (any `n`) without pushes and requires a commutative composition. Both accept a `vector<F>` of initial actions and a trailing `mon`; `MonoidAction<M>` turns a plain monoid into their action.
 
-### Correctness and cost
+### Correctness and Cost
 
-The lazy tree is the ACL algorithm: push along both boundary paths before touching canonical nodes (`pushBounds`, shared by `apply`, `prod` and the folds), pull along them afterwards. The searches keep the accumulated product and descend only into a failing node, so each call touches `O(log n)` nodes; identity padding keeps the right-hand descent valid for nonpowers of two.
+The lazy tree is the ACL algorithm: push along both boundary paths before touching canonical nodes (`pushBounds`, shared by `apply`, `prod` and the folds), and pull along them afterwards. The searches keep the accumulated product and descend only into a failing node, so each call touches `O(log n)` nodes; identity padding keeps the right-hand descent valid for nonpowers of two.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-Tester `96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.cpp`, entry `12-lazysegmenttree_tester.py` (driver `_00_contest_runner.py`; three builds; 27 assertion probes). Row 00's tester runs every preset through this tree as well.
+Tester `96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.cpp`, entry `12-lazysegmenttree_tester.py` (driver `_00_contest_runner.py`, three builds, 27 assertion probes). Row 00's tester also runs every preset through this tree.
 
 | Operation | Group | Oracle |
 |---|---|---|
-| LazySegmentTree `set`, `get`, `apply` (point and range), `prod`, `allProd`, `values`, `fold`, `foldRight`, `maxRight`, `minLeft`, vector build, with the stored monoid | `lazy <Preset>` over `RangeAddRangeSum` (commutative), `RangeAssignRangeComposite` (noncommutative assignment), `RangeAffineRangeSumMinMaxIndex` (index-aware leaves) and a stateful struct (affine sums modulo a runtime modulus chosen by the seed) | A plain vector mutated by each action's meaning and brute aggregates, independent of `op`/`mapping`; all `O(n^2)` ranges after every step for `n <= 17`; sizes 0–100 (257 in stress), 300 steps per size (60 quick, 600 stress; four times as many for `n > 17`); searches with monotone threshold families and brute scans; `fold`/`foldRight` for `RangeAddRangeSum` (an `lng` carried through sums) and `RangeAssignRangeComposite` (a composite prepended or appended) against direct folds of the plain vector, each on its own copy and before any `prod` of the step so no earlier push helps it, at most `2 * (lg + 1)` act calls each; `foldOps`: an `op`-counting `RangeAddRangeSum` under pending range adds, every range up to 33 points, against sums with no `op` call |
+| LazySegmentTree `set`, `get`, `apply` (point and range), `prod`, `allProd`, `values`, `fold`, `foldRight`, `maxRight`, `minLeft`, vector build, with the stored monoid | `lazy <Preset>` over `RangeAddRangeSum` (commutative), `RangeAssignRangeComposite` (noncommutative assignment), `RangeAffineRangeSumMinMaxIndex` (index-aware leaves) and a stateful struct (affine sums modulo a runtime modulus chosen by the seed) | A plain vector mutated by each action's meaning and brute aggregates, independent of `op`/`mapping`; all `O(n^2)` ranges after every step for `n <= 17`; sizes 0–100 (257 in stress), 300 steps per size (60 quick, 600 stress; four times as many for `n > 17`); searches with monotone threshold families against brute scans. `fold`/`foldRight` for `RangeAddRangeSum` (an `lng` carried through sums) and `RangeAssignRangeComposite` (a composite prepended or appended) against direct folds of the plain vector, each on its own copy and before any `prod` of the step so no earlier push helps it, at most `2 * (lg + 1)` act calls each. `foldOps`: an `op`-counting `RangeAddRangeSum` under pending range adds, every range up to 33 points, against sums with no `op` call |
 | DualSegmentTree `apply`, `set`, `get`, `values`, size and vector builds; CommutativeDualSegmentTree `apply`, `get`, `values` | `dual` | Per-point affine pairs modulo P composed in order; per-point sums |
 | Empty tree (including empty folds), folds that must push the left or the right boundary, size constructor, copy and move | `edges` | Direct values |
-| Preconditions | `invalid` | 27 probes: negative/oversize sizes, `checkedSize`, out-of-range points and ranges, reversed ranges, searches with a false identity predicate, fold and foldRight ranges, dual variants |
+| Preconditions | `invalid` | 27 probes: negative and oversize sizes, `checkedSize`, out-of-range points and ranges, reversed ranges, searches with a false identity predicate, fold and foldRight ranges, dual variants |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 932 MB; optimized 0.2 s compile + 2.6 s run, checked 24.9 s compile + 4.0 s run, ASan-UBSan 28.9 s compile + 29.4 s run; MEMORY peak 1125 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 974 MB; optimized 0.2 s compile + 3.6 s run, checked 35.2 s compile + 4.8 s run, ASan-UBSan 45.9 s compile + 28.4 s run; MEMORY peak 1049 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 34.9 s compile + 0.1 s run, checked 31.4 s compile + 0.8 s run; MEMORY peak 922 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 931 MB; optimized 0.1 s compile + 2.8 s run, checked 10.5 s compile + 3.3 s run, ASan-UBSan 12.1 s compile + 33.1 s run; MEMORY peak 911 MB. Dated rows below stay those commands' latest results.
+Machine: Linux x86-64, Intel Core i9-11900H, GNU++20, CPython 3.14.7; the runner's optimized, checked and ASan/UBSan builds.
 
-Latest run 2026-10-18, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
+Library-wide runs of 2026-11-10 (P274; seed 42, beside the other suites, build cache emptied before each cold run), all passed. Times are compile + run seconds for this suite.
 
-| Command | Result |
-|---|---|
-| `12-lazysegmenttree_tester.py --mode full --seed 20261018` (GCC 16.2.1) | PASS, 3 configurations, 3,318,957 checks per configuration, 27 assertion probes, MEMORY peak 671 MB |
-| `CXX=g++-14 12-lazysegmenttree_tester.py --mode full --seed 20261018` (GCC 14.4.1, floor) | PASS, 3,318,957 checks per configuration, MEMORY peak 720 MB |
-| `12-lazysegmenttree_tester.py --mode stress --seed 7` | PASS, 9,264,545 checks per configuration, MEMORY peak 888 MB |
-| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1833 MB |
-| `03-consistency.py`, `plan.py check` | No errors |
+| Command | Pre-flight quick peak | Optimized | Checked | ASan-UBSan | MEMORY peak |
+|---|---|---|---|---|---|
+| `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1) | 932 MB | 0.2 + 2.6 | 24.9 + 4.0 | 28.9 + 29.4 | 1125 MB |
+| `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1) | 974 MB | 0.2 + 3.6 | 35.2 + 4.8 | 45.9 + 28.4 | 1049 MB |
+| `python3 '96-Local Testing/01-run.py' --mode quick` | | 34.9 + 0.1 | 31.4 + 0.8 | | 922 MB |
+| `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 931 MB | 0.1 + 2.8 | 10.5 + 3.3 | 12.1 + 33.1 | 911 MB |
 
-```bash
-python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py' --mode full --seed 20261018
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py' --mode full --seed 20261018
-python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/02-integration.py' --sanitizers
-python3 '96-Local Testing/03-consistency.py'
-python3 '00-Guidelines/13-Plan/plan.py' check
-```
+Package runs:
+
+| Date | Command | Result |
+|---|---|---|
+| 2026-10-27 (P030) | `python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py' --mode full --seed 20261027` (GCC 16.2.1) | passed (counts not recorded), MEMORY peak 678 MB |
+| 2026-10-27 (P030) | `CXX=g++-14 python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py' --mode full --seed 20261027` (GCC 14.4.1, floor) | passed (counts not recorded), MEMORY peak 716 MB |
+| 2026-10-18 | `python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py' --mode full --seed 20261018` (GCC 16.2.1) | PASS, 3 configurations, 3,318,957 checks per configuration, 27 assertion probes, MEMORY peak 671 MB |
+| 2026-10-18 | `CXX=g++-14 python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py' --mode full --seed 20261018` (GCC 14.4.1, floor) | PASS, 3,318,957 checks per configuration, MEMORY peak 720 MB |
+| 2026-10-18 | `python3 '96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.py' --mode stress --seed 7` | PASS, 9,264,545 checks per configuration, MEMORY peak 888 MB |
+| 2026-10-18 | `python3 '96-Local Testing/02-integration.py' --sanitizers` | PASS: 156 standalone and aggregate headers, scalar and available-AVX2 multi-TU, workspace, sanitizer self-tests; MEMORY peak 1833 MB |
+| 2026-10-18 | `python3 '96-Local Testing/03-consistency.py'`, `python3 '00-Guidelines/13-Plan/plan.py' check` | no errors |
 
 ## Sources
 
@@ -58,11 +66,13 @@ python3 '00-Guidelines/13-Plan/plan.py' check
 | maspypy `lazy_segtree.hpp`, `dual_segtree.hpp` | `get_all` (`values`), dual `set`. |
 | OI Wiki segment tree (https://oi-wiki.org/ds/seg/) | Lazy propagation reference. |
 
-Fetch dates and URLs: [00-sources.md](00-sources.md) (2026-10-08 section; the 2026-10-18 section for the folds).
+Fetch dates and URLs: [00-sources.md](00-sources.md) (the 2026-10-08 section, and the 2026-10-18 section for the folds).
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p027-omissions): rollback lazy tree, xor-index range apply, run-based range-assignment tree.
+- Row 12 is partial: `StarrySkyTree` and `RollbackLazySegmentTree` are listed under `missing:` in the inventory row.
+- The run-based range-assignment tree (MAS) stays out: it is rare, and `IntervalMap` (row 24) plus a point-update tree covers it.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## Aliases
 
@@ -72,10 +82,10 @@ Search aliases (P263, grab --find): lazy segtree, lazy propagation; Library Chec
 
 - 2026-10-08: P027 first verification; legacy `SegTree` replaced.
 - 2026-10-08: independent review (P027), 1 finding fixed.
-- 2026-10-08: P027 re-audit pass (second session), 1 finding fixed; full (seed 20261008) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-10-08: P027 re-audit (second session), 1 finding fixed; full (seed 20261008) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-17: P027 monoid pass: the trees store their acted monoid; full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1434/1437/1434 MB.
 - 2026-10-18: presets moved to row 00 and their tests to its tester; full (seed 20261018) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 540/558/540 MB.
 - 2026-10-18: `fold` and `foldRight` added, boundary pushes shared in `pushBounds`; independent review, 5 findings fixed (two test gaps, three document corrections); full (seed 20261018) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 671/720/888 MB.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-27: P030 (user decision 2026-10-27 to edit row 00): defaulted `operator==` on `AffineComposite<T>::S`; full (seed 20261027) on g++ and g++-14 passed for rows 00 and 12, MEMORY peak 678/716 MB (row 12).
+- 2026-11-07: P263 added the search aliases, including OI Wiki's page titles and common Chinese names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

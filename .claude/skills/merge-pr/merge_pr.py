@@ -138,14 +138,14 @@ def added(base, head):
 
 def decisions(base, head):
     """(path, line, text) of every line added from base to head that records a decision (DECISION) or sits under the
-    `## Recorded decisions` heading of a sweep ledger (headings aside); the generated 01-prompts.md is skipped, its
+    `## Recorded Decisions` heading of a sweep ledger (headings aside); the generated 01-prompts.md is skipped, its
     notes come from packages.json."""
     out, texts = [], {}
     for path, n, text in added(base, head):
         if path.startswith('00-Guidelines/23-Sweep Ledgers/') and path not in texts:
             texts[path] = git('show', f'{head}:{path}').split('\n')
         heading = next((h for h in reversed(texts.get(path, [])[:n - 1]) if h.startswith('## ')), '')
-        if text.strip() and (DECISION.search(text) or heading.strip() == '## Recorded decisions' and not text.startswith('#')):
+        if text.strip() and (DECISION.search(text) or heading.strip() == '## Recorded Decisions' and not text.startswith('#')):
             out.append((path, n, text))
     return out
 
@@ -404,7 +404,7 @@ def gates(n):
     packages = plan.load(ROOT)[1]['packages']
     own = {d for p in packages if p['id'] == st['package'] for d in p['evidence']}
     others = {d for p in packages if p['id'] != st['package'] for d in p['evidence']} - own
-    # 05-testing.md, Mutation testing: a header only /prune or /restyle commits changed, and another package's header, keep existing records only
+    # 05-testing.md, Mutation Testing: a header only /prune or /restyle commits changed, and another package's header, keep existing records only
     loose = [h for h in headers if all(MECHANICAL.fullmatch(s) for s in subjects(h) or [''])
              or f'{h.split("/")[0]}/Docs/{Path(h).stem}.md' in others]
     for name, flag, group in (('mutation records', [], [h for h in headers if h not in loose]),

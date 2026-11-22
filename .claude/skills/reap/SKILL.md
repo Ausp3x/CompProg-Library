@@ -3,6 +3,7 @@ name: reap
 description: End the processes ended Claude Code sessions of this project left running, delete stale test temporaries and, with --scratchpads, ended sessions' scratchpads; /package and /finish run its script last with --own --scratchpads.
 disable-model-invocation: true
 argument-hint: "[--dry-run] [--own] [--scratchpads [HOURS]]"
+effort: low
 ---
 
 The script's docstring holds the rules: what counts as a leftover, what is only reported, and what is deleted. Its result is below.

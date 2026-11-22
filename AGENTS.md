@@ -1,4 +1,4 @@
-# CompProg Library (entry for non-Claude agents)
+# CompProg Library (Entry for Non-Claude Agents)
 
 Read `CLAUDE.md`: everything in it applies, with the Claude Code features it relies on replaced as below. What Claude Code does automatically, do by hand.
 
@@ -17,4 +17,4 @@ Read `CLAUDE.md`: everything in it applies, with the Claude Code features it rel
 - **Subagents.** `@researcher`, `@reviewer` and `@speedscout` run with `.claude/agents/<name>.md` as their instructions, limited to its `tools` (read-only agents edit nothing); a skill's general-purpose agents get the brief its step gives. Run each in a fresh context with only the inputs the step names: your tool's subagent, or else a new session whose report you bring back. Never review your own work in the context that wrote it.
 - **Scratchpad.** Make the session scratchpad with `S="/tmp/claude-$(id -u)/$(git rev-parse --show-toplevel | sed 's/[^A-Za-z0-9]/-/g')/$(python3 -c 'import uuid; print(uuid.uuid4())')"; mkdir -p "$S"` and give its path to every subagent; `/reap` deletes it once it has been unchanged for 24 hours.
 - **Parallel worktrees.** In place of `--worktree <name>`, run `git worktree add -b 'worktree-<name>' '.claude/worktrees/<name>' origin/master` from the main checkout, with the package or batch id as `<name>`, and start the session in that folder.
-- **Hooks.** Obey the hook rules in `CLAUDE.md` yourself and run `python3 '96-Local Testing/03-consistency.py'` after each batch of edits to a Markdown, header, module or plan file. Of those hooks only the git pre-commit hook (`CLAUDE.md`, Start here) works outside Claude Code: enable it when `/setup-check` warns.
+- **Hooks.** Obey the hook rules in `CLAUDE.md` yourself and run `python3 '96-Local Testing/03-consistency.py'` after each batch of edits to a Markdown, header, module or plan file. Of those hooks only the git pre-commit hook (`CLAUDE.md`, Start Here) works outside Claude Code: enable it when `/setup-check` warns.

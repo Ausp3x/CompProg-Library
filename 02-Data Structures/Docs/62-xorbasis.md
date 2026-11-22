@@ -1,22 +1,22 @@
-# 62-xorbasis.hpp — evidence
+# 62-xorbasis.hpp — Evidence
 
-Package P032 (batch DS50). New header: an incremental GF(2) basis of 64-bit words kept in fully reduced form (`XorBasis<MASK>`), its offline range sweep (`XorBasisCompanion::rangeXorBasisQuery`) and the online timestamped prefix basis (`PrefixXorBasis<B>`). Contest profile: no ISA code and no Barrett or Montgomery reduction, so no benchmark is required; one is kept for the `MASK` choice (Benchmarks). The header depends only on `01-template.hpp`. Wide GF(2) matrices, nullspaces and orthogonal complements are Core row 12 (`01-Core/Docs/00-notes.md`, Ownership boundaries).
+Package P032 (batch DS50). New header: an incremental GF(2) basis of 64-bit words kept in fully reduced form (`XorBasis<MASK>`), its offline range sweep (`XorBasisCompanion::rangeXorBasisQuery`) and the online timestamped prefix basis (`PrefixXorBasis<B>`). The header depends only on `01-template.hpp`. The Contest profile requires no benchmark here (no ISA code or reduction); one is kept for the `MASK` choice ([Benchmarks](#benchmarks)). Wide GF(2) matrices and nullspaces are Core row 12 (`01-Core/Docs/00-notes.md`, Ownership Boundaries); this row's missing `XorBasis::orthogonalComplement` builds on Core `BitMatrix` `ker`.
 
 ## Contracts
 
 ### XorBasis
 
-`b` holds r = `size()` ≤ 64 nonzero words, sorted strictly decreasing and fully reduced: the leading bit (pivot) of each `b[i]` is clear in every other `b[j]`. `XorBasis<MASK = true>`. With `MASK`, `masks[i]` is the set of successful inserts, numbered 0, 1, … in the order they returned true, whose XOR is `b[i]`, and `represent` exists. `XorBasis<false>` keeps `masks` empty and has no `represent`; every other operation returns the same results, without the mask work (Graphs row 28 uses it). A default object is the zero space. Copies are independent. Callers may read `b` and `masks` but must not write them.
+`XorBasis<MASK = true>`. `b` holds r = `size()` ≤ 64 nonzero words, sorted strictly decreasing and fully reduced: the leading bit (pivot) of each `b[i]` is clear in every other `b[j]`. With `MASK`, `masks[i]` is the set of successful inserts (numbered 0, 1, … in the order they returned true) whose XOR is `b[i]`, and `represent` exists. `XorBasis<false>` keeps `masks` empty, has no `represent`, and returns the same results everywhere else without the mask work; Graphs row 28 uses it. A default object is the zero space, and copies are independent. Callers may read `b` and `masks` but must not write them.
 
-- `insert(x)`: returns false, and changes nothing, iff `x` already lies in the span (so `insert(0)` is false); otherwise adds `x` and returns true. O(r). Reduction clears from `x` every pivot it holds; its leading bit q is then a new pivot. Each `b[i]` holding bit q has a pivot above q (a vector holds no bit above its own pivot), so XORing the reduced `x` into it keeps its pivot and keeps every other pivot clear. The masks, when kept, follow the same XORs.
+- `insert(x)`: returns false and changes nothing iff `x` already lies in the span (so `insert(0)` is false); otherwise adds `x` and returns true, in O(r). Reduction clears from `x` every pivot it holds, so its leading bit q is a new pivot. Each `b[i]` holding bit q has a pivot above q, because a vector holds no bit above its own pivot, so XORing the reduced `x` into it keeps its pivot and keeps every other pivot clear. The masks, when kept, follow the same XORs.
 - `merge(o)`: inserts `o.b` in decreasing order, so the successful ones take the next insert numbers. `a.merge(a)` is a no-op: every vector of `a.b` is already spanned, so each `insert` returns false before changing `b`. O(r · r_o).
-- `reduce(x)`: the minimum of `x ^ span`. After reduction no pivot is set. Adding a nonzero span element whose highest pivot is p sets bit p and leaves the bits above p unchanged, because no vector holds a bit above its own pivot. So every other coset value is larger.
+- `reduce(x)`: the minimum of `x ^ span`. After reduction no pivot is set, and adding a nonzero span element whose highest pivot is p sets bit p and leaves the bits above it unchanged, so every other coset value is larger.
 - `contains(x)`: `reduce(x) == 0`.
-- `represent(x, mask)` (`MASK` only): returns true iff `x` is spanned and sets `mask` to the inserts whose XOR is `x` (0 for `x = 0`). When it returns false, `mask` is the partial mask of the reduction and has no meaning. This is the bool-plus-out-parameter form of `03-cpp.md`; every 64-bit mask is a legitimate answer, so no sentinel exists.
+- `represent(x, mask)` (`MASK` only): returns true iff `x` is spanned and sets `mask` to the inserts whose XOR is `x` (0 for `x = 0`). On false, `mask` holds the reduction's partial mask and has no meaning. Every 64-bit mask is a legitimate answer, so there is no sentinel and the operation takes the bool-plus-out-parameter form of `03-cpp.md`.
 - `max(x = 0)`: the maximum of `x ^ span`. Greedy over decreasing pivots: bit p of the running value is fixed once `b` at pivot p has been considered.
-- `kth(k)`: the k-th smallest span value, 0-based; asserts `k < 2^r` (any k when r = 64). Bit `r - 1 - i` of `k` selects `b[i]`. The value is increasing in `k`: when two indices first differ at the bit of pivot p, the values agree above p (only vectors whose pivot is p or below differ, and none of them holds a bit above p), and bit p comes from `b` at pivot p alone.
-- `rank(x)`: the number of span values below `x`, for any `x`. It is a binary search over the increasing map `k ↦ kth(k)`. Fixing the bits of `k` from the top, `cur ^ b[i]` is the smallest value of the block with that bit set. So the loop finds the largest k with `kth(k) < x` (0 when `x = 0`), and the count is that k plus one. For `x` in the span, `kth(rank(x)) == x`. The count fits in `ulng`: when r = 64, the span is every word and the count equals `x`.
-- `intersection(a, o)` (friend): returns a basis of span(a) ∩ span(o) of the same `MASK`, with its own masks (inserts into the result). O(64 · (r_o + 1)) with r_o = `o.size()`. Each vector y of `o` is reduced against pivot-indexed pairs (value, tag), seeded with `a`'s vectors and tag 0. The invariant: every tag lies in span(o), and every value XOR its tag lies in span(a).
+- `kth(k)`: the 0-based k-th smallest span value; asserts `k < 2^r` (any k when r = 64). Bit `r - 1 - i` of `k` selects `b[i]`. The value increases with `k`: where two indices first differ at the bit of pivot p, the values agree above p (only vectors with pivot p or below differ, and none holds a bit above p), and bit p comes from `b` at pivot p alone.
+- `rank(x)`: the number of span values below `x`, for any `x`, by binary search over the increasing map `k ↦ kth(k)`. Fixing the bits of `k` from the top, `cur ^ b[i]` is the smallest value of the block with that bit set, so the loop finds the largest k with `kth(k) < x` (0 when `x = 0`) and the count is that k plus one. For `x` in the span, `kth(rank(x)) == x`. The count fits in `ulng`: when r = 64, the span is every word and the count equals `x`.
+- `intersection(a, o)` (friend): a basis of span(a) ∩ span(o) with the same `MASK` and its own masks (inserts into the result), in O(64 · (r_o + 1)) for r_o = `o.size()`. Each vector y of `o` is reduced against pivot-indexed pairs (value, tag), seeded with `a`'s vectors and tag 0. Invariant: every tag lies in span(o), and every value XOR its tag lies in span(a).
   - A vector that reduces to 0 leaves a tag in both spaces.
   - Otherwise the pair joins the table.
   - Each kept tag is y plus earlier vectors of `o`, so the kept tags are independent.
@@ -24,34 +24,33 @@ Package P032 (batch DS50). New header: an incremental GF(2) basis of 64-bit word
 
 ### XorBasisCompanion::rangeXorBasisQuery
 
-`XorBasisCompanion::rangeXorBasisQuery(a, qs, f)` (static; it does not depend on `MASK`, so it sits in the companion, `03-cpp.md`): asserts `0 <= l <= r <= n` for every query `[l, r)`. It calls `f(i, e)` exactly once per query, in increasing order of r (ties in input order). `e` is a `const vector<ulng> &` holding an echelon basis of span(a[l, r)): distinct leading bits, strictly decreasing, not reduced. The reference is valid only during the call. Time O((n + q) · 64), memory O(n + q).
+`XorBasisCompanion::rangeXorBasisQuery(a, qs, f)` is static and independent of `MASK`, so it sits in the companion (`03-cpp.md`). It asserts `0 <= l <= r <= n` for every query `[l, r)` and calls `f(i, e)` exactly once per query, in increasing order of r (ties in input order). `e` is a `const vector<ulng> &`, valid only during the call, holding an echelon basis of span(a[l, r)): distinct, strictly decreasing leading bits, not reduced. Time O((n + q) · 64), memory O(n + q).
 
-The sweep keeps one basis indexed by pivot, each entry with a position. Inserting `a[r - 1]` at position `r - 1` walks the pivots downward. At a pivot it holds, if the stored position is older, the incoming vector and its position swap with the stored ones before XORing. This keeps at each pivot the vector whose position is latest among those that could stand there. The invariant: the stored vectors with position ≥ l span a[l, r).
+The sweep keeps one basis indexed by pivot, each entry with a position. Inserting `a[r - 1]` at position `r - 1` walks the pivots downward; at a held pivot whose stored position is older, the incoming vector and its position swap with the stored ones before XORing. Each pivot thus keeps the vector with the latest position among those that could stand there, and the stored vectors with position ≥ l span a[l, r).
 
-- Two invariants hold after every insertion (review argument, 2026-11-03): (I1) each stored `v[i]` lies in span(a[p[i], r)); (I2) each a[j], j < r, lies in span{v[i] : p[i] ≥ j}. A swap keeps both, because the carried vector's position is never below that of the vector it combines with: the XOR of two vectors with positions s ≤ t lies in span(a[s, r)) and keeps position s. For a query, (I1) puts {v[i] : p[i] ≥ l} inside span(a[l, r)) and (I2) puts every a[j], j ≥ l, inside its span; distinct pivots make it independent. (The stored vectors need not equal the reverse-order greedy basis; only the positions agree.)
+- Two invariants hold after every insertion (review argument, 2026-11-03): (I1) each stored `v[i]` lies in span(a[p[i], r)); (I2) each a[j], j < r, lies in span{v[i] : p[i] ≥ j}. A swap keeps both, because the carried vector's position is never below that of the vector it combines with: the XOR of two vectors with positions s ≤ t lies in span(a[s, r)) and keeps position s. For a query, (I1) puts {v[i] : p[i] ≥ l} inside span(a[l, r)), (I2) puts every a[j], j ≥ l, inside its span, and distinct pivots make it independent. The stored vectors need not equal the reverse-order greedy basis; only the positions agree.
 - The tester checks this invariant against an independent critical-position sweep: position i stays iff a[i] lies outside span(a[i + 1, r)).
 
 Range minimum, k-th and rank are composed by inserting `e` into an `XorBasis`, at O(64^2) per query.
 
 ### PrefixXorBasis
 
-`PrefixXorBasis<B>(a = {})`, `1 <= B <= 64` (`static_assert`); every value must be below 2^B (asserted). It stores the timestamped pivot table of every prefix: `v[r][i]` and `p[r][i]`, with -1 for an empty pivot. It answers range queries online in O(B), using O(n · B) memory: 12 · B bytes per prefix, 768 bytes at B = 64, so 154 MB at n = 2 · 10^5. A smaller B cuts both memory and query time when the values are narrow.
+`PrefixXorBasis<B>(a = {})`, `1 <= B <= 64` (`static_assert`); every value must be below 2^B (asserted). It stores the timestamped pivot table of every prefix, `v[r][i]` and `p[r][i]` with -1 for an empty pivot, and answers range queries online in O(B). Memory is O(n · B): 12 · B bytes per prefix, 768 bytes at B = 64, so 154 MB at n = 2 · 10^5. A smaller B cuts both memory and query time when the values are narrow.
 
-- `push(x)`: appends `x` as position `n()`. It copies the last prefix table, then runs the same timestamped insertion as the sweep. O(B) amortized.
-- `n()`: the number of values pushed.
-- `rangeMax(l, r, x = 0)`: the maximum of `x ^ span(a[l, r))`. The start value `x` may use any bit. Asserts `0 <= l <= r <= n()`.
+- `push(x)`: appends `x` as position `n()` by copying the last prefix table and running the sweep's timestamped insertion, O(B) amortized. `n()` is the number of values pushed.
+- `rangeMax(l, r, x = 0)`: the maximum of `x ^ span(a[l, r))`; the start value `x` may use any bit. Asserts `0 <= l <= r <= n()`.
 - `rangeContains(l, r, x)`: whether `x` lies in span(a[l, r)); a word with a bit at or above B is never spanned. Asserts the range.
 
-### Violated preconditions
+### Violated Preconditions
 
 Under `NDEBUG`:
 
 - `kth` with `k >= 2^r` ignores the high bits of `k`.
-- A bad range in `PrefixXorBasis` reads outside its tables. In `rangeXorBasisQuery`, an `r` above n writes outside the counting array, as with any unchecked index.
-- A value at or above 2^B in `PrefixXorBasis` may be stored with its high bits (pivots below B only), so later results are meaningless; every loop stays bounded.
+- A bad range in `PrefixXorBasis` reads outside its tables; in `rangeXorBasisQuery`, an `r` above n writes outside the counting array, as with any unchecked index.
+- A value at or above 2^B in `PrefixXorBasis` may be stored with its high bits (pivots below B only), so later results are meaningless.
 - Every loop is bounded by r, B or 64, so each operation terminates within its normal bound.
 
-### Aliases and catalog names
+### Aliases and Catalog Names
 
 No legacy source. Graphs row 28's private `cycle_basis_detail::insert` and `reduce` were the same reduced basis and are replaced by `XorBasis<false>` (migrated here).
 
@@ -70,7 +69,7 @@ No legacy source. Graphs row 28's private `cycle_basis_detail::insert` and `redu
 
 Search aliases (P263, grab --find): 线性基, 异或线性基, 前缀线性基, 区间线性基, 线性基求交, 线性基合并, 最大异或和, 第k小异或和.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/62-xorbasis_tester.cpp`, entry `62-xorbasis_tester.py` (driver `_00_contest_runner.py`; optimized, checked and ASan/UBSan builds; 17 assertion probes).
 
@@ -103,7 +102,7 @@ The checked build divides the full and stress sizes by 20 and ASan by 4.
 | full | 2500 | 600 | 2 · 10^5 | 2 · 10^5 | 2 · 10^5 |
 | stress | 12000 | 3000 | 5 · 10^5 | 2 · 10^5 | 5 · 10^5 |
 
-Mutation check (2026-11-03, quick mode, seed 3) caught all 7 mutants:
+A hand mutation check on 2026-11-03 (quick mode, seed 3) caught all 7 mutants:
 
 - the `p[i] < pos` swap dropped;
 - `rank` returning k instead of k + 1;
@@ -115,7 +114,7 @@ Mutation check (2026-11-03, quick mode, seed 3) caught all 7 mutants:
 
 ## Benchmarks
 
-Not required by the Contest profile; kept because Graphs row 28 moved from its mask-free basis to `XorBasis`, and the masks cost 18–41% there. Driver `96-Local Testing/02-Data Structures/62-xorbasis_benchmark.py` (`.cpp` beside it). It builds one binary per implementation (`-DIMPL`), so code layout is not shared, runs them in an order rotated per repetition, makes one untimed warmup pass per workload in each process, checks that all implementations of a workload return equal checksums, and records each benchmark process's own peak RSS (`wait4`). Latest run 2026-11-03 with `g++` 16.2.1 `-O2 -DNDEBUG`, Intel Core i9-11900H, seed 1, median of 5, under `merge_pr.py run` (bwrap, memory cap), load average about 2. Peak RSS is 110 MB for each basis binary and 154 MB end to end. The old column is `cycle_basis_detail` at master fc8de13, copied into the driver.
+Kept because Graphs row 28 moved from its mask-free basis to `XorBasis`, where the masks cost 18–41%. Driver `96-Local Testing/02-Data Structures/62-xorbasis_benchmark.py` (`.cpp` beside it). It builds one binary per implementation (`-DIMPL`) so code layout is not shared, rotates the order per repetition, makes one untimed warmup pass per workload in each process, checks that all implementations of a workload return equal checksums, and records each process's peak RSS (`wait4`). Run 2026-11-03 with `g++` 16.2.1 `-O2 -DNDEBUG`, Intel Core i9-11900H, seed 1, median of 5, under `merge_pr.py run` (bwrap, memory cap), load average about 2. Peak RSS is 110 MB for each basis binary and 154 MB end to end. The old column is `cycle_basis_detail` at master fc8de13, copied into the driver.
 
 | Workload | Old (no masks) | `XorBasis<true>` | `XorBasis<false>` |
 |---|---|---|---|
@@ -125,18 +124,20 @@ Not required by the Contest profile; kept because Graphs row 28 moved from its m
 
 End to end through row 28, which uses `XorBasis<false>`: the `XorWalk` build on n = 2 · 10^5, m = 10^6 takes 102 ms, and `CutSpaceHash::disconnects` on 2 · 10^5 sets of 40 distinct edges takes 469 ms.
 
-Run-to-run spread over four runs of this driver on the same machine (two by the maintainer, two by the review):
-- the mask cost of `XorBasis<true>` over the old basis is 18–41%;
-- `XorBasis<false>` is −9% to +7% against the old basis;
-- the end-to-end figures are 102–112 ms (`XorWalk` build) and 469–673 ms (`disconnects`).
+Over four runs of this driver on the same machine (two by the maintainer, two by the review), the mask cost of `XorBasis<true>` over the old basis spans 18–41%, `XorBasis<false>` spans −9% to +7% against it, and the end-to-end figures span 102–112 ms (`XorWalk` build) and 469–673 ms (`disconnects`). In cycles (`perf stat`, the review's single-implementation builds of the cuts loop, 7 repetitions), `XorBasis<false>` takes 8.98 · 10^9 against the old basis's 9.25 · 10^9, and `XorBasis<true>` 12.4 · 10^9. A driver timing all implementations in one binary showed a systematic 7–10% gap on cuts caused by the shared code layout, hence one binary per implementation. The selects use an all-ones mask `-ulng(cond)`, because the branch `if ((x ^ b[i]) < x)` is unpredictable on random words; the `/finish` review measured the branchy version 2–4 times slower.
 
-In cycles (`perf stat`, the review's single-implementation builds of the cuts loop, 7 repetitions), `XorBasis<false>` is 8.98 · 10^9 against the old basis's 9.25 · 10^9, and `XorBasis<true>` is 12.4 · 10^9. An earlier driver timed all implementations in one binary and showed a systematic 7–10% gap on cuts; that gap came from the shared code layout, which is why the driver now builds one binary per implementation. The selects use an all-ones mask `-ulng(cond)`, because the branch `if ((x ^ b[i]) < x)` is unpredictable on random words; the `/finish` review measured the branchy first version 2–4 times slower.
+## Commands and Results
 
-## Commands and results
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 941 MB; optimized 0.2 s compile + 49.0 s run, checked 32.7 s compile + 4.4 s run, ASan-UBSan 44.6 s compile + 34.6 s run; MEMORY peak 1299 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 971 MB; optimized 0.3 s compile + 57.8 s run, checked 41.4 s compile + 5.6 s run, ASan-UBSan 55.2 s compile + 40.6 s run; MEMORY peak 1349 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 44.0 s compile + 2.2 s run, checked 20.1 s compile + 21.1 s run; MEMORY peak 930 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 54 MB; optimized 0.1 s compile + 60.9 s run, checked 13.3 s compile + 6.0 s run, ASan-UBSan 17.5 s compile + 44.0 s run; MEMORY peak 978 MB. Dated rows below stay those commands' latest results.
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 941 MB; optimized 0.2 + 49.0 s, checked 32.7 + 4.4 s, ASan-UBSan 44.6 + 34.6 s; MEMORY peak 1299 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 971 MB; optimized 0.3 + 57.8 s, checked 41.4 + 5.6 s, ASan-UBSan 55.2 + 40.6 s; MEMORY peak 1349 MB |
+| `01-run.py --mode quick` | Optimized 44.0 + 2.2 s, checked 20.1 + 21.1 s; MEMORY peak 930 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 54 MB; optimized 0.1 + 60.9 s, checked 13.3 + 6.0 s, ASan-UBSan 17.5 + 44.0 s; MEMORY peak 978 MB |
 
-Latest run 2026-11-03, maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8; the quick and full rows are the maintainer gate's (`merge_pr.py gates 1`); `02-integration.py` is the contributor's run (Linux x86-64 WSL2, `g++` 16.0.1) before the `MASK` change, and the maintainer gate reruns it with `--sanitizers`:
+Latest per-header run 2026-11-03 by the maintainer under `merge_pr.py run 1` (bwrap, memory cap): Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8. The quick and full rows are the maintainer gate's (`merge_pr.py gates 1`). The `02-integration.py` row is the contributor's run before the `MASK` change (Linux x86-64 WSL2, `g++` 16.0.1); the maintainer gate reran it with `--sanitizers`.
 
 | Command | Result | Memory peak |
 |---|---|---|
@@ -167,19 +168,20 @@ python3 '96-Local Testing/03-consistency.py'
 
 The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds50-sweep)). The implementation was written from the contracts above; no catalog code was copied.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p032-omissions) (user decision 2026-11-02): `countRepresentable`, `reducedEchelon`, `min`, the online maximum-weight basis, `undo`, the orthogonal complement and a segment tree of bases.
+- Row 62 is partial: `XorBasis::orthogonalComplement` (on Core `BitMatrix` `ker`) is missing, returned by P275. The online maximum-weight basis is planned Esoteric row 72 (`MaxWeightXorBasis`).
+- Left out with reasons in [00-notes.md](00-notes.md#p032-omissions) (user decision 2026-11-02): `countRepresentable`, `reducedEchelon`, `min`, `undo` and a segment tree of bases.
 - `intersection`'s result masks refer to inserts into the result object, so they say nothing about `a` or `o`; the tester checks only their shape.
 - `PrefixXorBasis<64>` memory: built from a vector (reserved), n = 3 · 10^5 needs about 231 MB; built by `push` alone, vector doubling peaked at 334 MB at n = 262,145 (review measurement), so reserve `v` and `p` first or pass the vector. Beyond that, use a smaller B or the offline sweep.
-- The `NDEBUG` claims (Violated preconditions) rest on the loop bounds; no tester group runs violating inputs in optimized builds (`05-testing.md`, Memory safety).
-- Python `_22_bitset.py` keeps its own `XorBasis` (`02-Data Structures/Docs/00-notes.md`, Ownership boundaries); its `witness` corresponds to `represent`.
+- The `NDEBUG` claims (Violated Preconditions) rest on the loop bounds; no tester group runs violating inputs in optimized builds (`05-testing.md`, Memory Safety).
+- Python `_22_bitset.py` keeps its own `XorBasis` (`02-Data Structures/Docs/00-notes.md`, Ownership Boundaries); its `witness` corresponds to `represent`.
 
 ## History
 
-- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `PrefixXorBasis` `build` renamed `ctor` (its constructor), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves it; no code changed.
-- 2026-11-03: P032 DS50 first implementation; duplicates ask row and sweep candidates decided by the user (2026-11-02); Graphs row 28 migrated onto `XorBasis`; 7/7 mutants caught; independent review, 6 findings and 6 nits fixed (sweep correctness argument, `NDEBUG` wide values, `push` memory, `rangeContains` O(B), copy-free `merge`, integration result); quick, full (seed 1) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed after the fixes.
-- 2026-11-03: `/finish` audit, 6 defects fixed (branchless `insert` and `represent` with benchmarks, row 63 wording, stale mutant entry, decision and fetch dates, Library Checker target, nits); quick, full (seed 1) on g++ and g++-14, stress (seed 7), `28-cycle_basis` suites and `02-integration.py` passed.
-- 2026-11-03: maintainer fixes in `/merge-pr 1` (user decision 2026-11-03): `XorBasis<MASK>`, with `XorBasis<false>` for Graphs row 28 (the masks cost it 18–41%); `rangeXorBasisQuery` moved to `XorBasisCompanion`; `m` renamed `masks`; shared `reduceMasked`; `intersection(a, o)`; `B` defined; `merge`, prefix-query and `MASK` keeps; the tester covers `XorBasis<false>` and the callback order; benchmark driver committed; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-03: P032 DS50 first implementation; the duplicates question and the sweep candidates decided by the user (2026-11-02); Graphs row 28 migrated onto `XorBasis`; 7/7 mutants caught; the review's 6 findings and 6 nits fixed (sweep correctness argument, `NDEBUG` wide values, `push` memory, `rangeContains` O(B), copy-free `merge`, integration result); quick, full (seed 1) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed.
+- 2026-11-03: `/finish` audit, 6 defects fixed (branchless `insert` and `represent` with benchmarks, row 63 wording, a stale mutant entry, decision and fetch dates, Library Checker target, nits); quick, full (seed 1) on g++ and g++-14, stress (seed 7), the `28-cycle_basis` suites and `02-integration.py` passed.
+- 2026-11-03: maintainer fixes in `/merge-pr 1` (user decision 2026-11-03): `XorBasis<MASK>` with `XorBasis<false>` for Graphs row 28, `rangeXorBasisQuery` moved to `XorBasisCompanion`, `m` renamed `masks`, shared `reduceMasked`, `intersection(a, o)`, `B` defined, `merge`, prefix-query and `MASK` kept; the tester covers `XorBasis<false>` and the callback order; benchmark driver committed; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-06: P253 `/finish` (user decision 2026-11-06): the inventory's `PrefixXorBasis` `build` became `ctor`, so `96-Local Testing/05-extraction.py ops` resolves its constructor; no code changed.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

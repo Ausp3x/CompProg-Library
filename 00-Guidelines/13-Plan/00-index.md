@@ -1,10 +1,10 @@
-# Work plan
+# Work Plan
 
 The plan is one compact manifest plus CLIs. Batches are stable ownership units; packages are assignable sessions that run batches in order. The rendered checklist lives in [01-prompts.md](../../01-prompts.md).
 
 | File | Contents |
 |---|---|
-| [batches.json](batches.json) | Each batch's folder, owned targets, support targets, size, focus, prerequisite batches and tiers, including support passes SUP01–SUP19. |
+| [batches.json](batches.json) | Each batch's folder, owned targets, support targets, size, focus, prerequisite batches and tiers, including the support passes (SUPnn). |
 | [packages.json](packages.json) | Packages P001–Pn in schedule order: label, batches, phase, size, model, status, evidence and note. Package prerequisites are derived from batch prerequisites. |
 | [plan.py](plan.py) | Standard-library CLI; runs from any directory. |
 | [worktree.py](worktree.py) | Package worktrees: report (default), `--sync` (resolves `packages.json` entry by entry and the plan block; `--integration` also runs the integration build), `--finish` (sync, fast-forward `master`, remove) and `--remove`; all but the report run from the main checkout. |
@@ -16,6 +16,7 @@ Commands (`python3 '00-Guidelines/13-Plan/plan.py' <command>`):
 
 - `show Pxxx`, `show next` or `show <batch>`: compact brief with the launch command (and a session MISMATCH flag), prerequisites, focus, inventory rows, tests, legacy references and evidence; a package id with several open batches names the batch to run instead. Its second line is the claims line, followed by whether this clone may start the package (Claims, below).
 - `status`: counts per status and phase, the claims line and the next ready package that is not blocked (Claims, below); `next` prints only its ID.
+- `waiting`: what waits on this clone's user, then on others, derived from git, `gh` and the skills' ledgers: unpushed commits, open pull requests (by role: `/merge-pr`, the next batch, `gh pr ready`, requested changes), open `ask` rows of `/finish` ledgers, verified Core full headers whose optimization sweep is pending (maintainer), and `/merge-pr` checkouts.
 - `set Pxxx STATUS [--evidence PATH ...] [--note TEXT]`: update a package (evidence is appended), re-rank the schedule as `rank` does, and re-render the checklist.
 - `render`: rewrite the checklist between the `plan:begin`/`plan:end` markers in `01-prompts.md`; a verified package shows only its label.
 - `rank`: reorder the schedule and render. Phases keep their order; in each, started packages keep theirs, then planned ones go support passes first, then by most basic tier (Basic or Core, Advanced, Esoteric), then by most transitive open dependents, then by current position, each after its prerequisites unless one of the two is verified.

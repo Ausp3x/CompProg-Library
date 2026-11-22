@@ -1,4 +1,4 @@
-# Third-party material
+# Third-Party Material
 
 [LICENSE](LICENSE) (CC0-1.0) covers the original work in this repository. It does not cover:
 

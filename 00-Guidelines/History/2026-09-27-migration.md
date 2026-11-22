@@ -1,8 +1,8 @@
-# Migration and verification status — 2026-09-27
+# Migration and Verification Status — 2026-09-27
 
 This is an implementation-status record, separate from the agreed design in [10-decisions.md](../10-decisions.md). The later [monolith transfer](2026-09-27-monolith-transfer.md) updates the active-header count and records unchanged excerpts; the initial-pass checks below remain historical evidence for that pass. Inventories are future-work roadmaps, not declarations that the ultra library is already complete.
 
-## What this pass establishes
+## What This Pass Establishes
 
 - Replaced the active one-off prompts.txt instructions with a small AGENTS.md routing entry and focused Markdown guides. The original prompt is retained in OLD.
 - Created all approved numbered categories and concise feature inventories for 01–08, with Basic/Advanced/Esoteric sections outside Core and the fixed Core order. Empty categories have honest include-only aggregates; Python aggregates currently export nothing.
@@ -15,7 +15,7 @@ This is an implementation-status record, separate from the agreed design in [10-
 - Added the configurable cyan notebook browser/CLI, ordered canonical-source selection, Inter/JetBrains Mono settings, notes, LuaLaTeX generation and page-budget reporting.
 - Generated the standalone single-case Workspace template explicitly from current template/debug headers. No ordinary build/test regenerates it.
 
-## Small integration fixes made while moving code
+## Small Integration Fixes Made While Moving Code
 
 These are structural/build changes, not a claim to have performed the requested future maximal algorithm audits:
 
@@ -25,7 +25,7 @@ These are structural/build changes, not a claim to have performed the requested 
 - Dynamic-modint test's mixed `unsigned long`/`unsigned long long` initializer list given an explicit element type for GNU/Linux fixed-width aliases.
 - Test paths updated; big-integer differential seeds made configurable, and unavailable AVX2 execution explicitly skipped.
 
-## Verification record
+## Verification Record
 
 The migration was prepared and checked in an isolated staging copy before application. Compiler used here: GCC16; Python used here: CPython3.14. Python sources additionally pass parsing under Python3.10 grammar. The declared GCC14/Python3.10 floors and PyPy compatibility still need execution on those exact runtimes; passing on a newer version is not proof of those compatibility targets.
 
@@ -40,7 +40,7 @@ The migration was prepared and checked in an isolated staging copy before applic
 
 Final checks: all **31** current headers/aggregates passed standalone compilation; scalar and AVX2 combined headers linked across two translation units. ASan/UBSan self-tests passed outside the sandbox (LeakSanitizer cannot run under the sandbox process tracer). All **40** online source/expanded translation units passed GNU++20 syntax compilation. Three persistent tool regression entries are included under 96/00-Tools.
 
-## Remaining work and explicit limits
+## Remaining Work and Explicit Limits
 
 - Most inventoried algorithms are not yet implemented. Existing code retains legacy API/style/complexity details pending per-header audits. The reorganization was not maximal optimization, complete semantics review, or research verification.
 - Complete feature suites are still missing for Matrix, Montgomery, ordinary Mathematics and miscellaneous utilities. Available-suite modes describe actual coverage in 96/00-index.md; they do not cover nonexistent suites.

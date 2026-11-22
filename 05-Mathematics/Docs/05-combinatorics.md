@@ -1,4 +1,4 @@
-# 05-combinatorics.hpp — evidence
+# 05-combinatorics.hpp — Evidence
 
 `05-combinatorics.hpp` implements the Basic combinatorics scope of P012. The implementation uses ordinary contest arithmetic and the existing full Core modular integer types. It adds no Mathematics-specific reduction backend or ISA path.
 
@@ -51,7 +51,7 @@ Accuracy: each `logl(i)` is within half an ulp, at most `2^-64 * log(i)`, and th
 
 ### multiFactorial
 
-`multiFactorial<T>(n, m)` returns `n (n - m) (n - 2m) ...` over the positive terms in a caller-passed ring `T` with `T(ulng)` and `*=`, for `m >= 1` (asserted) and any `ulng n`, in `O(1 + n / m)` ring operations and `O(1)` memory (user decision 2026-11-14, GMP `mpz_mfac_uiui`): a modular type for `n!^(m) mod p` at any `m`, where `PrimeCombinatorics::doubleFactorial` covers only `m = 2` below its table bound, `InfInt` for the exact value, wrapping `ulng` for the value mod `2^64`. Signed builtins need the product to fit. Correctness: the loop multiplies exactly the terms `n - j m > 1`, and the omitted terms equal to 1 do not change the product. With `m = 0` and the assert compiled out, the step sets `n` to 0, so `multiFactorial` and `multiFactorialExact` stop after one factor instead of looping (`03-cpp.md`, Toolchain and judges).
+`multiFactorial<T>(n, m)` returns `n (n - m) (n - 2m) ...` over the positive terms in a caller-passed ring `T` with `T(ulng)` and `*=`, for `m >= 1` (asserted) and any `ulng n`, in `O(1 + n / m)` ring operations and `O(1)` memory (user decision 2026-11-14, GMP `mpz_mfac_uiui`): a modular type for `n!^(m) mod p` at any `m`, where `PrimeCombinatorics::doubleFactorial` covers only `m = 2` below its table bound, `InfInt` for the exact value, wrapping `ulng` for the value mod `2^64`. Signed builtins need the product to fit. Correctness: the loop multiplies exactly the terms `n - j m > 1`, and the omitted terms equal to 1 do not change the product. With `m = 0` and the assert compiled out, the step sets `n` to 0, so `multiFactorial` and `multiFactorialExact` stop after one factor instead of looping (`03-cpp.md`, Toolchain and Judges).
 
 ### FieldCombinatorics
 
@@ -95,13 +95,13 @@ For exact ballot counts fix `d=a-b >= 0` and build `B_i = (d+1)/(d+i+1) * C(d+2*
 
 Negative population or part counts, invalid table bounds, a composite factorial modulus and stale tables are precondition errors. Negative selection counts in the four preserved modular APIs are legitimate zero results. Exact APIs take counts as unsigned parameters, so they cannot be negative.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed (prune, 2026-10-12) | Replacement |
 |---|---|
 | `fibonacci<T>(n)` | `fibonacciPair<T>(n).first` |
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Runner: [`05-combinatorics_tester.py`](<../../96-Local Testing/05-Mathematics/05-combinatorics_tester.py>) driving [`05-combinatorics_tester.cpp`](<../../96-Local Testing/05-Mathematics/05-combinatorics_tester.cpp>). Oracles: exact Python integers, enumeration, inclusion-exclusion and matrix powers.
 
@@ -125,11 +125,9 @@ Runner: [`05-combinatorics_tester.py`](<../../96-Local Testing/05-Mathematics/05
 
 A compile-fail fixture checks, on every run, that narrow unsigned Fibonacci types are rejected. This is separate from the assertion probes.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 840 MB; optimized 0.2 s compile + 7.2 s run, checked 20.5 s compile + 2.8 s run, ASan-UBSan 22.7 s compile + 3.4 s run; MEMORY peak 1024 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 897 MB; optimized 0.2 s compile + 12.4 s run, checked 31.4 s compile + 3.6 s run, ASan-UBSan 35.1 s compile + 3.7 s run; MEMORY peak 1076 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 28.4 s compile + 14.9 s run, checked 27.8 s compile + 13.9 s run; MEMORY peak 847 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 836 MB; optimized 0.1 s compile + 4.7 s run, checked 7.5 s compile + 3.4 s run, ASan-UBSan 8.8 s compile + 4.0 s run; MEMORY peak 655 MB. Dated rows below stay those commands' latest results.
-
-P012 MA02 run, 2026-11-14 (experiment `none`): GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked and ASan/UBSan configurations.
+Latest runs on 2026-11-14 (P012 MA02, experiment `none`): GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked and ASan/UBSan configurations. Every command passed.
 
 | Command | Result |
 |---|---|
@@ -142,7 +140,7 @@ P012 MA02 run, 2026-11-14 (experiment `none`): GCC 16.2.1 and GCC 14.4.1 (`CXX=g
 
 ## Benchmarks
 
-Conditions (2026-11-14, P012 MA02 `/finish`): Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG`, Linux x86-64; the perf counts on the otherwise idle machine, the latest driver run beside another session (below); the driver run's peak was 470 MB (three `long double` tables of `10^7 + 1` entries, 160 MB each: the reference, the timed table and the timed `lgammal` copy). The factorial tables and doubling algorithms have their stated bounds and no other performance claim is made.
+Conditions (2026-11-14, P012 MA02 `/finish`): Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG`, Linux x86-64. The perf counts ran on the otherwise idle machine, the driver run beside another session (below). The driver run's peak was 470 MB: three `long double` tables of `10^7 + 1` entries, 160 MB each (the reference, the timed table and the timed `lgammal` copy). The factorial tables and doubling algorithms have their stated bounds, and no other performance claim is made.
 
 `LogCombinatorics` (user decision 2026-11-14) replaced one `lgammal` call per entry with a Kahan-compensated sum of `logl(i)`. Cycle and instruction counts (`perf stat -r 3`, user space, `-falign-functions=64 -falign-loops=32`, the table rebuilt 200,000, 2,000 and 20 times):
 
@@ -165,15 +163,15 @@ The [benchmark driver](<../../96-Local Testing/05-Mathematics/05-combinatorics_b
 | `primorial<InfInt>(n)` | 100,000 | 1.03 ms | 35,954 hex digits, the count of a Python product's (the tester's `pb` op checks the value) |
 | `primorial<InfInt>(n)` | 1,000,000 | 17.2 ms | 360,128 hex digits, the count of a Python product's |
 
-This latest run had another session's sanitizer tests on other cores; the earlier run on the idle machine, before the driver recorded memory, measured 2.07, 21.9 and 218 ms against 4.51, 46.0 and 461 ms for the log tables and 0.81 and 14.0 ms for `primorial`, the same ratios. The worst gap is measured against `lgammal`, itself within about an ulp, and stays inside the 3-ulp argument under [LogCombinatorics](#logcombinatorics).
+Another session's sanitizer tests ran on other cores during this run; an earlier run on the idle machine gave the same ratios. The worst gap is measured against `lgammal`, itself within about an ulp, and stays inside the 3-ulp argument under [LogCombinatorics](#logcombinatorics).
 
-## Mutation testing
+## Mutation Testing
 
 Record: mewt 4.0.0 on blob `50b9c58852eb59b4392912206ad14c50732afbce` (2026-11-14, seed 1, 3 lines changed since blob `156876d9c192`): 68 mutants, 63 caught (7 by timeout), 5 survived, 0 untested.
 
-The changed lines are the final review's fixes: the multifactorial step stops at `m = 0` under `NDEBUG` (lines 202 and 278), and `FieldCombinatorics::multinomial` multiplies with `*` only (line 122). Stage seconds: quick 426, full on the optimized build 21, full on the checked and ASan-UBSan builds 146. Its 5 survivors, `AS 559`, `COS 1848`, `COS 1853`, `COS 1958` and `COS 1963`, are the multifactorial rows of the table below, renumbered.
+The changed lines are the final review's fixes: the multifactorial step stops at `m = 0` under `NDEBUG` (lines 202 and 278), and `FieldCombinatorics::multinomial` multiplies with `*` only (line 122). Stage seconds: quick 426, full on the optimized build 21, full on the checked and ASan-UBSan builds 146. Its 5 survivors, `AS 559`, `COS 1848`, `COS 1853`, `COS 1958` and `COS 1963`, are the multifactorial rows of the first table below, renumbered.
 
-The campaign before it, mewt 4.0.0 on blob `156876d9c1927ebf33084f002276a1349acf524d` (2026-11-14, seed 1, 71 lines changed since blob `016ed07d5765`): 576 mutants, 560 caught (7 by timeout), 16 survived, 0 untested, covered the lines the MA02 `/finish` changed: `doubleFactorial`, `circularPermutation`, `combiNonAdjacent`, `FieldCombinatorics`, the compensated `LogCombinatorics` table, the large log forms and `multiFactorial`. Stage seconds: quick 1565, full on the optimized build 113, full on the checked and ASan-UBSan builds 766. A first campaign on blob `3a255e711b1a` left `CR 280`, the removal of a redundant `assert(t <= n)` in `combiNonAdjacent`, which `combiNR` already asserts; the assert was deleted. Of the 16 survivors, 11 are equivalent and 5 untestable until P288, whose death probes will name the expected assertion. They follow the precedent of Fenwick's `LOS 302` (user decision 2026-11-12), as `AOS 612` below does.
+The first table holds the survivors of the 2026-11-14 changed-lines campaign over the lines the MA02 `/finish` changed (`doubleFactorial`, `circularPermutation`, `combiNonAdjacent`, `FieldCombinatorics`, the compensated `LogCombinatorics` table, the large log forms and `multiFactorial`): 11 equivalent and 5 untestable until P288, whose death probes will name the expected assertion. The untestable ones follow the precedent of Fenwick's `LOS 302` (user decision 2026-11-12), as `AOS 612` below does.
 
 | Mutant | Line | Why it survives |
 |---|---|---|
@@ -181,20 +179,20 @@ The campaign before it, mewt 4.0.0 on blob `156876d9c1927ebf33084f002276a1349acf
 | `COS 1578`, `COS 1693`, `N < INT_MAX` → `!=` | 100, 133 | equivalent: `N` is an `int` |
 | `COS 1588`, `i > 0` → `!=` | 103 | equivalent: `i` steps down by 1 from `n >= 0` |
 | `COS 1644`, `a == 0` → `<=` | 113 | equivalent: `a >= 0` is asserted on the line above |
-| `CR 327` (assert removed), `AOS 877`, `AOS 878`, `AOS 880`, `AOS 881` (`lng(a) + b - 1 <= n` → `lng(a) + b % 1`, `lng(a) - b - 1`, `lng(a) / b - 1`, `lng(a) % b - 1`) | 114 | untestable until P288: as `AOS 612` in `PrimeCombinatorics::combiWR`, every pair the weakened assert admits calls `combiNR(a + b - 1, b)`, which asserts `a + b - 1 <= n`, or, when the sum overflows an `int` and wraps negative in practice, `a + b - 1 >= 0`; both forms die at a glibc assert, at different expressions. The probe `field-replacement-bound` (`combiWR(INT_MAX, INT_MAX)`) reaches it and kill it once probes name line 114's expression. |
+| `CR 327` (assert removed), `AOS 877`, `AOS 878`, `AOS 880`, `AOS 881` (`lng(a) + b - 1 <= n` → `lng(a) + b % 1`, `lng(a) - b - 1`, `lng(a) / b - 1`, `lng(a) % b - 1`) | 114 | untestable until P288: as `AOS 612` in `PrimeCombinatorics::combiWR`, every pair the weakened assert admits calls `combiNR(a + b - 1, b)`, which asserts `a + b - 1 <= n`, or, when the sum overflows an `int` and wraps negative in practice, `a + b - 1 >= 0`; both forms die at a glibc assert, at different expressions. The probe `field-replacement-bound` (`combiWR(INT_MAX, INT_MAX)`) reaches it and will kill it once probes name line 114's expression. |
 | `AOS 914`, `i + 0.0L` → `i - 0.0L` | 137 | equivalent: the same value |
 | `AS 559`, `__builtin_mul_overflow(r, n, &r)` → `(n, r, &r)` | 202 | equivalent: commutative, and the builtin detects overflow of the exact product |
-| `COS 1848`, `COS 1958` (`COS 1846`, `COS 1956` before), `n > 1` → `n >= 1` | 202, 278 | equivalent: one more factor 1, after which the step sets `n` to 0 (`1 > m` fails for every `m >= 1`, and `m = 0` past the assert sets it to 0 too) |
-| `COS 1853`, `COS 1963` (`COS 1851`, `COS 1961` before), `n > m` → `n >= m` | 202, 278 | equivalent: at `n == m` both set `n` to 0 |
+| `COS 1848`, `COS 1958`, `n > 1` → `n >= 1` | 202, 278 | equivalent: one more factor 1, after which the step sets `n` to 0 (`1 > m` fails for every `m >= 1`, and `m = 0` past the assert sets it to 0 too) |
+| `COS 1853`, `COS 1963`, `n > m` → `n >= m` | 202, 278 | equivalent: at `n == m` both set `n` to 0 |
 
-The survivors below are those of the whole-file campaign on blob `b715ba46521e99fb977c8b56ebde035079ebbf6d` (2026-11-14, seed 1, uniform sample of 1582): 500 mutants, 483 caught (6 by timeout), 17 survived, 0 untested; stage seconds (both runs together) quick 1144, full on the optimized build 101, full on the checked and ASan-UBSan builds 656. Its first run left 25 survivors; the `stale-*` probes for the modulus check, the smoke check `combiWR(0, INT_MAX) == 0` and the default-argument checks of `ballot`, `starsBars`, `ballotExact` and `starsBarsExact` closed 8. Their lines are unchanged since and are numbered as in the current header. The reviewer agreed that today's probes cannot tell `COS 1045` and `AOS 612`/`AOS 613` apart from the original.
+The second table holds the survivors of the 2026-11-14 whole-file campaign on the header before the MA02 `/finish`, on lines unchanged since and numbered as in the current header. The reviewer agreed that today's probes cannot tell `COS 1045` and `AOS 612`/`AOS 613` apart from the original.
 
 | Mutant | Line | Why it survives |
 |---|---|---|
 | `COS 1040`, `N < INT_MAX` → `!=` | 22 | equivalent: `N` is an `int` |
-| `COS 1045`, `ulng(N) < M::mod()` → `!=` | 22 | untestable until P288 (as Fenwick's `LOS 302`, user decision 2026-11-12): `N == mod` fails both. For `N > mod` the mutant's table has `fac[n] = 0`, and `inv` asserts a unit (`01-Core/05-modint.hpp`, `assert(ok)`), so both abort at a glibc assert, at different expressions, which today's death probe cannot tell apart. Probe `n-above-mod` (`setMod(7)`, `N = 8`) reaches it and kills it once probes name the expected expression. Under `NDEBUG` both asserts are gone and the code is the same. |
+| `COS 1045`, `ulng(N) < M::mod()` → `!=` | 22 | untestable until P288 (as Fenwick's `LOS 302`, user decision 2026-11-12): `N == mod` fails both. For `N > mod` the mutant's table has `fac[n] = 0`, and `inv` asserts a unit (`01-Core/05-modint.hpp`, `assert(ok)`), so both abort at a glibc assert, at different expressions, which today's death probe cannot tell apart. Probe `n-above-mod` (`setMod(7)`, `N = 8`) reaches it and will kill it once probes name the expected expression. Under `NDEBUG` both asserts are gone and the code is the same. |
 | `COS 1136`, `b == 0` → `<=` | 44 | equivalent: `b < 0` returned on the line above |
-| `AOS 612`, `AOS 613`, `lng(a) + b - 1 <= n` → `lng(a) / b - 1` / `lng(a) % b - 1` | 46 | untestable until P288 (as Fenwick's `LOS 302`): the line runs with `a, b >= 1`. Each pair the weakened assert admits calls `combiNR(a + b - 1, b)`. Where `a + b - 1` fits in an `int`, `combiNR` asserts it is at most `n`. Where it overflows, it wraps to a negative value in practice, and `combiNR` asserts it is nonnegative. Both forms therefore die at a glibc assert, and only a UBSan probe build, which the runner does not have, would see the overflow. Probe `replacement-bound` (`combiWR(INT_MAX, INT_MAX)`) reaches it and kills it once probes name line 46's expression. |
+| `AOS 612`, `AOS 613`, `lng(a) + b - 1 <= n` → `lng(a) / b - 1` / `lng(a) % b - 1` | 46 | untestable until P288 (as Fenwick's `LOS 302`): the line runs with `a, b >= 1`. Each pair the weakened assert admits calls `combiNR(a + b - 1, b)`. Where `a + b - 1` fits in an `int`, `combiNR` asserts it is at most `n`. Where it overflows, it wraps to a negative value in practice, and `combiNR` asserts it is nonnegative. Both forms therefore die at a glibc assert, and only a UBSan probe build, which the runner does not have, would see the overflow. Probe `replacement-bound` (`combiWR(INT_MAX, INT_MAX)`) reaches it and will kill it once probes name line 46's expression. |
 | `COS 1261`, `a == 0 && b == 0` → `a <= 0 && ...` | 73 | equivalent: `a >= 0` is asserted |
 | `COS 1276`, `strict && a == b` → `a <= b` | 74 | equivalent: `a < b` returned in the same test, so `a >= b` there |
 | `AS 452`, `min(b, a - b)` operands swapped | 187 | equivalent: symmetric |
@@ -221,7 +219,7 @@ All pages below were retrieved and their cited sections read on 2026-09-27. Code
 - MA02, 2026-11-14 (`@researcher`, and `/finish` for Nyaan `rational-binomial.hpp`), URLs in [00-sources.md](00-sources.md): GMP Number Theoretic Functions (`mpz_bin_ui` with negative `n`, `mpz_2fac_ui`, `mpz_mfac_uiui`, `mpz_primorial_ui`), FLINT `fmpz_primorial`, maspypy `modint_common.hpp` (`C_negative`, `C_inv`), Nyaan `float-binomial.hpp` and `rational-binomial.hpp` (`Binomial_rational`), hitonanode `big_combination_logarithm.hpp` and OI Wiki 排列组合 (圆排列, 不相邻的排列). Read for contracts only; code written independently.
 - [cp-algorithms: Fibonacci numbers](https://cp-algorithms.com/algebra/fibonacci-numbers.html), matrix representation and the two fast-doubling identities. Lucas's companion identity is verified from its initial values and recurrence.
 
-## Limits and handoffs
+## Limits and Handoffs
 
 - `OLD/5-Mathematics/12-combinatorics.hpp` and the `ModFac` block in `OLD/[1] algorithms.cpp` are preserved unchanged. The legacy factorial, inverse-factorial and four counting operations are accounted for; `ModFac` and its exposed `n`, `fac` and `inv_fac` remain available. The old `combiWR(0,0)=0` is corrected to one empty multiset, construction rejects invalid prime-factorial domains, and wide index checks avoid signed overflow before indexing. Legacy method-based modular inverse/power syntax remains only in its archive.
 - Factorial inversion at `n >= p` is invalid and rejected. Lucas-theorem (small prime, large index), prime-power and CRT composite-modulus binomials belong to `12-combinatorics_advanced.hpp`, together with general rising/falling factorials, Stirling/Bell/partition numbers, bounded partitions, q-binomials and combinatorial transforms. Fibonacci's companion **Lucas sequence** here is distinct from **Lucas's binomial theorem**.
@@ -236,10 +234,9 @@ Search aliases (P263, grab --find): binomial coefficient, nCr, derangement (Mont
 
 - 2026-09-27: initial P012 implementation and evidence.
 - 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
-- 2026-10-07: P012 re-audit, added `combiLarge`, `binomialTable` and `derangementTable`, 1 finding and 3 reviewer notes fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
-- 2026-10-12: prune, removed `fibonacci<T>` (`fibonacciExact` and the tests use `fibonacciPair<T>(n).first`); full suite passed on g++ and g++-14.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
-- 2026-11-14: P012 MA02 added `LogCombinatorics`, `combiNegative`, `combiInverse`, `primorial` and, from the sweep, `doubleFactorial`, `doubleFactorialExact`, `circularPermutation`; 35 probes, 17 of them from the mutation and review rounds; independent review: 10 findings fixed (log accuracy oracle tightened to 45-digit references, early returns past the table, identity checks on every Core type; changed-lines campaign, no mutants); full on g++ and g++-14, stress, extraction and integration passed; first mutation campaign recorded (14 equivalent, 3 untestable survivors).
-- 2026-11-14: P012 MA02 `/finish` (user decisions): added `combiNonAdjacent`, `multiFactorial`, `multiFactorialExact` (`doubleFactorialExact` now wraps it), `logFactorialLarge`, `logBinomialLarge`, `logPermutationLarge` and `FieldCombinatorics`; `LogCombinatorics` builds by a compensated sum; `circularPermutation` composes `permuNR` and asserts its bound at `b = 0`; review fixes (`doubleFactorial` without an inverse, the signed `primorial` contract, unrecorded timings replaced by a benchmark); 88 probes; full on g++ and g++-14, stress, extraction and integration passed; changed-lines mutation campaign (11 equivalent and 5 untestable-until-P288 survivors, a redundant assert removed); benchmarks recorded (compensated log table in 45% of the `lgammal` table's cycles); final review: the multifactorial step stops at `m = 0` under `NDEBUG`, `FieldCombinatorics::multinomial` uses `*` only, the benchmark records memory; full on g++ and g++-14, stress, extraction, integration and a changed-lines campaign (5 equivalent survivors) passed again.
+- 2026-10-07: P012 re-audit added `combiLarge`, `binomialTable` and `derangementTable` and fixed 1 finding and 3 reviewer notes; after `@reviewer`, full, stress (seed 1) and integration passed.
+- 2026-10-12: prune removed `fibonacci<T>` (`fibonacciExact` and the tests use `fibonacciPair<T>(n).first`); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases, then Chinese names from OI Wiki's page titles and common names of the row's operations (Simplified, plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; library-wide full (g++ and g++-14), quick and stress runs passed.
+- 2026-11-14: P012 MA02 added `LogCombinatorics`, `combiNegative`, `combiInverse`, `primorial` and, from the sweep, `doubleFactorial`, `doubleFactorialExact`, `circularPermutation`, with 35 probes; independent review fixed 10 findings (45-digit references for the log accuracy oracle, early returns past the table, identity checks on every Core type); first mutation campaigns; full on g++ and g++-14, stress, extraction and integration passed.
+- 2026-11-14: P012 MA02 `/finish` (user decisions) added `combiNonAdjacent`, `multiFactorial`, `multiFactorialExact` (`doubleFactorialExact` now wraps it), `logFactorialLarge`, `logBinomialLarge`, `logPermutationLarge` and `FieldCombinatorics`; `LogCombinatorics` builds by a compensated sum (45% of the `lgammal` table's cycles); `circularPermutation` composes `permuNR` and asserts its bound at `b = 0`; review fixes: `doubleFactorial` without an inverse, the signed `primorial` contract, a benchmark replacing unrecorded timings, a redundant assert removed, the multifactorial step stopping at `m = 0` under `NDEBUG`, `FieldCombinatorics::multinomial` using `*` only; 88 probes; changed-lines mutation campaigns; full on g++ and g++-14, stress, extraction and integration passed.

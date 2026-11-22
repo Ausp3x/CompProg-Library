@@ -1,4 +1,4 @@
-# 26-dynamic_connectivity.hpp — evidence
+# 26-dynamic_connectivity.hpp — Evidence
 
 Owned by package P047 / GR12; omissions are in [00-notes.md](00-notes.md#p047-omissions). Contest profile: offline time-segment connectivity over Data Structures 63 (`OfflineDeletion`) and 09 (`RollbackDSU`, `RollbackDSUAggregate`), online bridge maintenance after cp-algorithms, and an offline range edge component count. The pinned `OnlineBridges` excerpt (`OLD/algorithms.cpp:4906-5003`) was replaced; the monolith map records it as a P047 audited replacement.
 
@@ -17,7 +17,7 @@ Owned by package P047 / GR12; omissions are in [00-notes.md](00-notes.md#p047-om
 
 Each interval covers O(log T) segment-tree nodes. A run is a DFS that applies a node's updates on entry and undoes them on exit (LIFO), so at leaf `t` exactly the intervals containing `t` are applied. A `RollbackDSU` find is O(log n) (union by size, no compression) and an undo is O(1). With `k` intervals (edges, values, paired events), a run costs O(n + T + k·log T·log n) time and O(n + T + k·log T) memory.
 
-`componentValue` folds `x` into the current root's value; unions combine values with `op` in an arbitrary order, which is why `M` must be commutative, and undo restores them. For bipartiteness, `dsu` is a 2n-vertex double cover: an edge `(u, v)` unites `u` with `v + n` and `u + n` with `v`. It closes an odd cycle exactly when `u` and `v` already share a set, because an even walk joins them. A counter of such edges, kept on the undo stack, is zero exactly when the graph is bipartite. The first edge, in application order, that makes the graph non-bipartite is counted, and every counted edge certifies an odd closed walk.
+`componentValue` folds `x` into the current root's value; unions combine values with `op` in arbitrary order, which is why `M` must be commutative, and undo restores them. For bipartiteness, `dsu` is a 2n-vertex double cover: an edge `(u, v)` unites `u` with `v + n` and `u + n` with `v`, and closes an odd cycle exactly when `u` and `v` already share a set, since an even walk joins them. A counter of such edges, kept on the undo stack, is zero exactly when the graph is bipartite; the first edge in application order that makes the graph non-bipartite is counted, and every counted edge certifies an odd closed walk.
 
 Both calls can be repeated, and intervals added between calls accumulate.
 
@@ -40,7 +40,7 @@ Let edge `i` join `a` and `b`, and let `b(i)` be the least `j > i` such that `a`
 
 `b(i)` is the bottleneck (the minimum over paths of the maximum edge ID) between `a` and `b` among edges `(i, m)`. A divide and conquer `solve(l, r, t)` receives `t`, a forest on the endpoints `K` of edges `[l, r)` whose bottlenecks among `K` equal those of edges `[r, m)`, with weights ascending. The left half receives `compress(edges[mid, r) ++ t, K_left)` and the right half `compress(t, K_right)`. `compress` runs Kruskal over the ascending list on a DSU whose components carry one terminal representative, and emits `(rep, rep', w)` whenever two terminal-carrying components merge. This preserves the partition of the terminals at every threshold, so it preserves their bottlenecks. Edges `[mid, r)` have IDs `< r ≤` every weight in `t`, so the concatenation is already ascending. At a leaf, `t` holds at most one edge between the two endpoints, and its weight is `b(i)`. Each level handles O(m) list entries (`|t| < 2(r − l)`), for O(n + m·log m·α(n) + q·log m) time and O(n + m + q) memory.
 
-## Legacy mapping
+## Legacy Mapping
 
 | Legacy (`OLD/algorithms.cpp:4906-5003`, `OnlineBridges`) | Replacement |
 |---|---|
@@ -58,9 +58,9 @@ Let edge `i` join `a` and `b`, and let `b(i)` be the least `j > i` such that `a`
 
 Search aliases (P263, grab --find): 动态图连通性, 线段树分治, 离线动态连通性, 动态二分图, 加边求桥, 区间连通块数.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-`96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py` (shared contest runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress).
+`96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py` runs on the shared contest runner with `-Werror` warnings: optimized, checked with probes, and ASan/UBSan in full and stress.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -70,22 +70,26 @@ Search aliases (P263, grab --find): 动态图连通性, 线段树分治, 离线�
 | `rangeEdgeComponentCount` | 4,000 random multigraphs (n ≤ 7, m ≤ 14, loops, repeats) with every `[l, r)` in shuffled order; m = 250 with every range for random, sparse-vertex and cycle shapes; n = 100,000, m = 200,000 random, path and star with 125 sampled ranges | Union-find over the edges of each range |
 | Preconditions | 8 probes: vertex out of range (`addEdge`, `addValue`), interval past `T`, erase without insert, query at `T`, incremental vertex out of range, query `l > r`, directed graph | Expected assertion failure |
 
-Planted mutants (quick suite, optimized build), all killed: a wrong terminal representative after a `compress` union, an off-by-one leaf bottleneck, a prefix instead of a range Fenwick count, a path collapse that runs past the LCA, a missing odd-edge count, and dropped value events.
+Six planted mutants, quick suite, optimized build, all killed: a wrong terminal representative after a `compress` union, an off-by-one leaf bottleneck, a prefix instead of a range Fenwick count, a path collapse that runs past the LCA, a missing odd-edge count, and dropped value events.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 919 MB; optimized 0.2 s compile + 4.0 s run, checked 26.0 s compile + 14.7 s run, ASan-UBSan 32.1 s compile + 47.0 s run; MEMORY peak 1110 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 953 MB; optimized 0.3 s compile + 4.3 s run, checked 27.5 s compile + 17.6 s run, ASan-UBSan 34.2 s compile + 51.5 s run; MEMORY peak 1093 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 39.5 s compile + 0.1 s run, checked 29.7 s compile + 3.6 s run; MEMORY peak 910 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 919 MB; optimized 0.1 s compile + 5.7 s run, checked 10.3 s compile + 21.1 s run, ASan-UBSan 14.9 s compile + 60.4 s run; MEMORY peak 1609 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, GNU++20, CPython 3.14.8, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`, floor), the runner's optimized, checked and ASan/UBSan builds with `-Wall -Wextra -Wconversion -Werror`. The 2026-11-10 library-wide runs used seed 42, beside the other suites, with the build cache emptied before each cold run.
 
-2026-10-18, GCC 16.2.1 and GCC 14.4.1 (floor), CPython 3.14.8, Linux x86-64 (Intel Core i9-11900H), GNU++20, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds.
-
-| Command | Result |
-|---|---|
-| `26-dynamic_connectivity_tester.py --mode quick` | PASS 2 configurations, 900 cases, 253,645 checks per configuration, 8 probes |
-| `26-dynamic_connectivity_tester.py --mode full --seed 1` | PASS 3 configurations, 11,000 cases, 2,716,597 checks per configuration, 8 probes; MEMORY peak 979 MB |
-| `CXX=g++-14 26-dynamic_connectivity_tester.py --mode full --seed 2` | PASS 3 configurations, 11,000 cases, 2,614,197 checks per configuration, 8 probes; MEMORY peak 970 MB |
-| `26-dynamic_connectivity_tester.py --mode stress --seed 3` | PASS 3 configurations, 70,000 cases, 16,251,916 checks per configuration, 8 probes; MEMORY peak 1,569 MB |
-| `02-integration.py --sanitizers` | PASS: 159 standalone/aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
-| `03-consistency.py` | No errors |
+| Date | Command | Result |
+|---|---|---|
+| 2026-11-10 | `01-run.py --mode full` (P274, library-wide) | PASS (counts not recorded): pre-flight quick peak 919 MB; optimized 0.2 s compile + 4.0 s run, checked 26.0 + 14.7 s, ASan-UBSan 32.1 + 47.0 s; MEMORY peak 1110 MB |
+| 2026-11-10 | `CXX=g++-14 01-run.py --mode full` (P274) | PASS (counts not recorded): pre-flight quick peak 953 MB; optimized 0.3 + 4.3 s, checked 27.5 + 17.6 s, ASan-UBSan 34.2 + 51.5 s; MEMORY peak 1093 MB |
+| 2026-11-10 | `01-run.py --mode quick` (P274) | PASS (counts not recorded): optimized 39.5 + 0.1 s, checked 29.7 + 3.6 s; MEMORY peak 910 MB |
+| 2026-11-10 | `01-run.py --mode stress --rounds 1` (P274) | PASS (counts not recorded): pre-flight quick peak 919 MB; optimized 0.1 + 5.7 s, checked 10.3 + 21.1 s, ASan-UBSan 14.9 + 60.4 s; MEMORY peak 1609 MB |
+| 2026-11-10 | P276 rename: tester full, `CXX=g++-14` full, stress | PASS (counts not recorded) |
+| 2026-11-06 | P253: `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full; `02-integration.py` | PASS (counts not recorded) |
+| 2026-10-18 | `26-dynamic_connectivity_tester.py --mode quick` | PASS 2 configurations, 900 cases, 253,645 checks per configuration, 8 probes |
+| 2026-10-18 | `26-dynamic_connectivity_tester.py --mode full --seed 1` | PASS 3 configurations, 11,000 cases, 2,716,597 checks per configuration, 8 probes; MEMORY peak 979 MB |
+| 2026-10-18 | `CXX=g++-14 26-dynamic_connectivity_tester.py --mode full --seed 2` | PASS 3 configurations, 11,000 cases, 2,614,197 checks per configuration, 8 probes; MEMORY peak 970 MB |
+| 2026-10-18 | `26-dynamic_connectivity_tester.py --mode stress --seed 3` | PASS 3 configurations, 70,000 cases, 16,251,916 checks per configuration, 8 probes; MEMORY peak 1,569 MB |
+| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
+| 2026-10-18 | `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py' --mode quick
@@ -98,9 +102,9 @@ python3 '96-Local Testing/03-consistency.py'
 
 ## Benchmarks
 
-None required: contest profile, no threshold. One design measurement chose the union-find inside `compress`. The `compress` calls of a level touch O(m) entries but are O(m) calls, so allocating a Data Structures 01 `DSU` per call and remapping vertex IDs dominates. The header instead restarts a union-find on vertex IDs by a per-call stamp (union by size, path halving).
+None required: Contest profile, no threshold. One design measurement chose the union-find inside `compress`. The `compress` calls of a level touch O(m) entries but number O(m), so allocating a Data Structures 01 `DSU` per call and remapping vertex IDs dominates; the header instead restarts a union-find on vertex IDs by a per-call stamp (union by size, path halving).
 
-The measurement was a one-off scratch driver run through `_00_memory_cap.py`, not kept. Conditions: Intel Core i9-11900H, GCC 16.2.1 `-O2`, `rangeEdgeComponentCount` wall time, median of 5 runs, machine not idle (the review agent was running). Inputs: n = 200,000 with m = 400,000 random edges, and a path of 200,000 vertices with 400,000 edges; both use the same q = 200,000 uniform random ranges (seed 1), and the answer hashes matched across variants.
+The measurement was a one-off scratch driver run through `_00_memory_cap.py`, not kept: Intel Core i9-11900H, GCC 16.2.1 `-O2`, `rangeEdgeComponentCount` wall time, median of 5 runs, machine not idle (the review agent was running). Inputs: n = 200,000 with m = 400,000 random edges, and a path of 200,000 vertices with 400,000 edges; both use the same q = 200,000 uniform random ranges (seed 1), and the answer hashes matched across variants.
 
 | Variant | Random | Path |
 |---|---|---|
@@ -120,18 +124,21 @@ Fetched 2026-10-18; the ledger is [00-sources.md](00-sources.md#pages-fetched-on
 | [maspypy range_edge_connected_component_query](https://maspypy.github.io/library/graph/ds/range_edge_connected_component_query.hpp) | Max-ID forest characterisation with a Fenwick count (link-cut engine replaced) |
 | [Nyaan](https://nyaannyaan.github.io/library/graph/offline-dynamic-connectivity.hpp), [ei1333](https://ei1333.github.io/library/graph/connected-components/incremental-bridge-connectivity.hpp), [hitonanode](https://hitonanode.github.io/cplib-cpp/graph/incremental_bridge_connectivity.hpp) | Catalog comparison (see Aliases) |
 
-The bottleneck-forest compression is this package's derivation from Kruskal's invariant (terminal partitions agree at every threshold). It is validated only by the proof above and the tests.
+The bottleneck-forest compression is this package's derivation from Kruskal's invariant (terminal partitions agree at every threshold), validated only by the proof above and the tests.
 
-## Limits and handoffs
+## Limits and Handoffs
 
+- The row is `partial`: `OfflineDynamicConnectivityLct` (DS 37 link-cut, deletion-time maximum spanning forest) is missing.
 - Online fully dynamic connectivity is row 63; incremental SCC is row 70; offline dynamic MST is row 71.
 - `OfflineDynamicConnectivity` needs a commutative monoid; non-commutative or potential-valued components (XOR paths, parity with values) go through a weighted rollback DSU (Data Structures 29) in a custom `OfflineDeletion` run.
-- Grid decremental connectivity and offline 2-edge-connectivity over time are omitted ([00-notes.md](00-notes.md#p047-omissions)).
+- Grid decremental connectivity and offline 2-edge-connectivity over time stay out ([00-notes.md](00-notes.md#p047-omissions)).
+- There is no mutation record yet; the planted mutants are the only mutation evidence.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## History
 
 - 2026-10-18: verified (P047); pinned `OnlineBridges` excerpt replaced and removed from the row (recorded prune); `find` from the completeness sweep; LCT-free `rangeEdgeComponentCount` with a stamped union-find (measured 28% faster than a per-call `DSU`); independent review: monolith ledger entry completed, setup bound and `NDEBUG` vertex clamp corrected, CSR and empty-input tests added; 6 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
-- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; quick, full, `CXX=g++-14` full and integration passed; no mutation record, so no campaign.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.
 - 2026-11-10: P276 rename: the returned `RollbackDSUAggregate` offers `size` (formerly `getSize`); full, g++-14 full and stress passed.

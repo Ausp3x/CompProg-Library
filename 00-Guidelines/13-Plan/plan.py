@@ -326,7 +326,7 @@ def row_status(parts):
     return parts[-1].split(';')[0].split(' ')[0].strip('*').lower()
 
 
-CANDIDATES, VERDICTS = '### Optimization candidates', ('adopted', 'rejected', 'other owner', 'none found')
+CANDIDATES, VERDICTS = '### Optimization Candidates', ('adopted', 'rejected', 'other owner', 'none found')
 NO_SWEEP = ('01-Core/01-template.hpp', '01-Core/02-debug.hpp')  # boilerplate, not algorithms (01-principles.md, Profiles)
 
 
@@ -348,7 +348,7 @@ def sweeps(root=ROOT):
                 break
             if line.startswith('|'):
                 rows.append(cells(line))
-        where = f'Optimization candidates (05-testing.md, Benchmarks): {target}: '
+        where = f'Optimization Candidates (05-testing.md, Benchmarks): {target}: '
         if len(rows) < 3 or rows[0] != ['Operation', 'Candidate', 'Verdict', 'Evidence']:
             faults.append(where + 'no table `Operation | Candidate | Verdict | Evidence` with a row')
             continue

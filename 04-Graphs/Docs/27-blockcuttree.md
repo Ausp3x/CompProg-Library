@@ -1,4 +1,4 @@
-# 27-blockcuttree.hpp — evidence
+# 27-blockcuttree.hpp — Evidence
 
 Owned by package P047 / GR12; omissions are in [00-notes.md](00-notes.md#p047-omissions). Contest profile: extended block-cut and bridge forests built from the verified `lowlink` (row 09), with `EulerLCA` (row 07) for O(1) path tests, plus an incremental block forest over Data Structures 01 `DSU`. The row was a legacy reference to a non-compiling Team Notebook sketch.
 
@@ -23,7 +23,7 @@ Removal queries assert `x ≠ u, v` (or `v ≠ x`); vertex arguments are checked
 
 ### BridgeTree and bridgeTree
 
-`bridgeTree(g)` (undirected, loops and multiedges allowed) builds a forest on 2-edge-connected components (`lowlink` component IDs, numbered by increasing minimum vertex). `node[v]` is `v`'s component. Tree edge `i` is the bridge `edge[i]`; bridges are in ascending ID order and keep their input weights. `tree_edge[e]` maps back, −1 off bridges. This equals `simplify(contract(g, low.component, k))`; the user kept it as a dedicated builder. `lca` roots each component at its minimum node and `size[x]` counts the vertices in `x`'s subtree. Construction is O(n + m).
+`bridgeTree(g)` (undirected, loops and multiedges allowed) builds a forest on 2-edge-connected components (`lowlink` component IDs, numbered by increasing minimum vertex). `node[v]` is `v`'s component. Tree edge `i` is the bridge `edge[i]`; bridges are in ascending ID order and keep their input weights. `tree_edge[e]` maps back, −1 off bridges. This equals `simplify(contract(g, low.component, k))`; the user kept it as a dedicated builder (user decision 2026-10-18). `lca` roots each component at its minimum node and `size[x]` counts the vertices in `x`'s subtree. Construction is O(n + m).
 
 - `connectedAfterRemovingEdge(u, v, e)`: if `e` is not a bridge, this is plain connectivity. Otherwise `u` and `v` are separated exactly when one of them lies in the lower endpoint's subtree. O(1).
 - `componentSizeAfterRemovingEdge(v, e)`: the lower endpoint's subtree size or its complement within the tree. O(1).
@@ -32,10 +32,13 @@ Removal queries assert `x ≠ u, v` (or `v ≠ x`); vertex arguments are checked
 
 `twoEdgeConnectivityAugmentation(g)` (undirected) returns vertex pairs whose addition makes `G` connected and bridgeless. It returns no pairs when the bridge forest has at most one node (`n ≤ 1`, or `G` is already 2-edge-connected). Otherwise it returns `⌈p/2⌉ + q` pairs, where `p` is the number of leaves (degree 1) and `q` the number of isolated nodes of the bridge forest. That is optimal: each leaf needs one new incident edge, each isolated node two, and each edge serves two (Eswaran–Tarjan 1976).
 
-The construction first chains the components into one tree: the last leaf slot of each component connects to the first slot of the next, where an isolated node counts as two slots. It then pairs leaf `i` with leaf `i + ⌊p'/2⌋` in DFS preorder, for `i < p' − ⌊p'/2⌋`. This covers every tree edge. The leaves below an edge form a contiguous interval `[a, b]` of `1..p'−1` leaves, and no such interval is closed under the pairing, where `h = ⌊p'/2⌋`:
+The construction first chains the components into one tree: the last leaf slot of each component connects to the first slot of the next, an isolated node counting as two slots. It then pairs leaf `i` with leaf `i + ⌊p'/2⌋` in DFS preorder, for `i < p' − ⌊p'/2⌋`, which covers every tree edge: the leaves below an edge form a contiguous interval `[a, b]` of `1..p'−1` leaves, and with `h = ⌊p'/2⌋` no such interval is closed under the pairing.
+
 - `a ≥ h`: then `a − h` lies outside the interval.
 - `a < h`, `p'` even: then `a + h ∈ [a, b]` puts `h` inside, and `h`'s partner `0` forces `a = 0`; every `j < h` then pulls in `j + h`, so `b = p' − 1`.
-- `a < h`, `p'` odd: leaf `h` pairs with both `0` and `2h = p' − 1`, which forces the whole range. Chaining spends `c − 1` edges and removes `2(c − 1)` slots, so the total is `⌈(p + 2q)/2⌉`. Time O(n + m).
+- `a < h`, `p'` odd: leaf `h` pairs with both `0` and `2h = p' − 1`, which forces the whole range.
+
+Chaining spends `c − 1` edges and removes `2(c − 1)` slots, so the total is `⌈(p + 2q)/2⌉`. Time O(n + m).
 
 ### IncrementalBlockCutTree
 
@@ -47,7 +50,7 @@ The construction first chains the components into one tree: the last leaf slot o
 
 Rerooting the smaller tree costs O(n log n) in total. A within-tree insertion that passes `k` blocks costs O(k) and removes `k − 1` of them, and only cross-tree insertions create blocks. So `addEdge` is O(log n) amortized, `sameBlock` is O(α(n)) amortized, and memory is O(n). Both methods are non-const because the DSUs compress paths.
 
-## Legacy mapping
+## Legacy Mapping
 
 | Legacy (`OLD/Team Notebook/src/graph/old_block-cut-tree.cpp`, `tree`) | Replacement |
 |---|---|
@@ -68,9 +71,9 @@ Row names: `biconnectedQuery` left the row (`sameBlock`, decided 2026-10-18). `c
 
 Search aliases (P263, grab --find): BCC (biconnected components), round-square tree (圆方树, OI Wiki: block forest); 双连通分量, 广义圆方树, 块割树, 边双缩点, 点双缩点, 删点连通性.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
-`96-Local Testing/04-Graphs/27-blockcuttree_tester.py` (shared contest runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress). Oracles: BFS labels after deleting a vertex or an edge; blocks as the union classes of the edges of every simple cycle (2-cycles of parallel edges included) plus singletons; simple-path enumeration; and a direct bridgelessness check for augmentation, with exhaustive multisets for minimality.
+`96-Local Testing/04-Graphs/27-blockcuttree_tester.py` runs on the shared contest runner with `-Werror` warnings: optimized, checked with probes, and ASan/UBSan in full and stress. Oracles: BFS labels after deleting a vertex or an edge; blocks as the union classes of the edges of every simple cycle (2-cycles of parallel edges included) plus singletons; simple-path enumeration; and a direct bridgelessness check for augmentation, with exhaustive multisets for minimality.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -82,22 +85,26 @@ Search aliases (P263, grab --find): BCC (biconnected components), round-square t
 | `IncrementalBlockCutTree`: `addEdge`, `sameBlock` | 3,000 random insertion sequences n ≤ 7, all pairs after each insertion; large shapes, 20,000 pairs | Brute `sameBlock`; the static structure on large graphs |
 | Preconditions | 7 probes: directed graph (both builders), vertex out of range, removed endpoint, size query at the removed vertex, edge out of range, incremental vertex out of range | Expected assertion failure |
 
-Planted mutants (quick suite, optimized build), all killed: an edge-removal size that ignores the side, `simplePathVertexCount` off by one, a missing parent update for merged incremental blocks, an augmentation pairing offset of `⌈p/2⌉`, a path test without the LCA condition, and `sameBlock` without the parent-vertex case.
+Six planted mutants, quick suite, optimized build, all killed: an edge-removal size that ignores the side, `simplePathVertexCount` off by one, a missing parent update for merged incremental blocks, an augmentation pairing offset of `⌈p/2⌉`, a path test without the LCA condition, and `sameBlock` without the parent-vertex case.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 887 MB; optimized 0.1 s compile + 2.7 s run, checked 22.4 s compile + 9.3 s run, ASan-UBSan 24.4 s compile + 44.7 s run; MEMORY peak 1092 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 951 MB; optimized 0.4 s compile + 4.3 s run, checked 36.5 s compile + 15.1 s run, ASan-UBSan 40.6 s compile + 61.1 s run; MEMORY peak 1072 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 30.7 s compile + 0.3 s run, checked 24.7 s compile + 4.5 s run; MEMORY peak 877 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 890 MB; optimized 0.1 s compile + 4.7 s run, checked 10.9 s compile + 16.6 s run, ASan-UBSan 11.2 s compile + 62.2 s run; MEMORY peak 974 MB. Dated rows below stay those commands' latest results.
+Machine: Intel Core i9-11900H, GNU++20, CPython 3.14.8, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`, floor), the runner's optimized, checked and ASan/UBSan builds with `-Wall -Wextra -Wconversion -Werror`. The 2026-11-10 library-wide runs used seed 42, beside the other suites, with the build cache emptied before each cold run.
 
-2026-10-18, GCC 16.2.1 and GCC 14.4.1 (floor), CPython 3.14.8, Linux x86-64 (Intel Core i9-11900H), GNU++20, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds.
-
-| Command | Result |
-|---|---|
-| `27-blockcuttree_tester.py --mode quick` | PASS 2 configurations, 376 cases, 420,413 checks per configuration, 7 probes |
-| `27-blockcuttree_tester.py --mode full --seed 1` | PASS 3 configurations, 4,100 cases, 3,760,807 checks per configuration, 7 probes; MEMORY peak 793 MB |
-| `CXX=g++-14 27-blockcuttree_tester.py --mode full --seed 2` | PASS 3 configurations, 4,100 cases, 3,743,480 checks per configuration, 7 probes; MEMORY peak 810 MB |
-| `27-blockcuttree_tester.py --mode stress --seed 3` | PASS 3 configurations, 16,100 cases, 12,653,109 checks per configuration, 7 probes; MEMORY peak 953 MB |
-| `02-integration.py --sanitizers` | PASS: 159 standalone/aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
-| `03-consistency.py` | No errors |
+| Date | Command | Result |
+|---|---|---|
+| 2026-11-10 | `01-run.py --mode full` (P274, library-wide) | PASS (counts not recorded): pre-flight quick peak 887 MB; optimized 0.1 s compile + 2.7 s run, checked 22.4 + 9.3 s, ASan-UBSan 24.4 + 44.7 s; MEMORY peak 1092 MB |
+| 2026-11-10 | `CXX=g++-14 01-run.py --mode full` (P274) | PASS (counts not recorded): pre-flight quick peak 951 MB; optimized 0.4 + 4.3 s, checked 36.5 + 15.1 s, ASan-UBSan 40.6 + 61.1 s; MEMORY peak 1072 MB |
+| 2026-11-10 | `01-run.py --mode quick` (P274) | PASS (counts not recorded): optimized 30.7 + 0.3 s, checked 24.7 + 4.5 s; MEMORY peak 877 MB |
+| 2026-11-10 | `01-run.py --mode stress --rounds 1` (P274) | PASS (counts not recorded): pre-flight quick peak 890 MB; optimized 0.1 + 4.7 s, checked 10.9 + 16.6 s, ASan-UBSan 11.2 + 62.2 s; MEMORY peak 974 MB |
+| 2026-11-10 | P276 rename: tester full on g++ and g++-14, stress, `05-extraction.py` | PASS (counts not recorded) |
+| 2026-11-06 | P253: `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full; `02-integration.py` | PASS (counts not recorded) |
+| 2026-10-18 | `27-blockcuttree_tester.py --mode quick` | PASS 2 configurations, 376 cases, 420,413 checks per configuration, 7 probes |
+| 2026-10-18 | `27-blockcuttree_tester.py --mode full --seed 1` | PASS 3 configurations, 4,100 cases, 3,760,807 checks per configuration, 7 probes; MEMORY peak 793 MB |
+| 2026-10-18 | `CXX=g++-14 27-blockcuttree_tester.py --mode full --seed 2` | PASS 3 configurations, 4,100 cases, 3,743,480 checks per configuration, 7 probes; MEMORY peak 810 MB |
+| 2026-10-18 | `27-blockcuttree_tester.py --mode stress --seed 3` | PASS 3 configurations, 16,100 cases, 12,653,109 checks per configuration, 7 probes; MEMORY peak 953 MB |
+| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
+| 2026-10-18 | `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/04-Graphs/27-blockcuttree_tester.py' --mode quick
@@ -110,7 +117,7 @@ python3 '96-Local Testing/03-consistency.py'
 
 ## Benchmarks
 
-None required: contest profile, no threshold.
+None required: Contest profile, no threshold.
 
 ## Sources
 
@@ -125,19 +132,22 @@ Fetched 2026-10-18; the ledger is [00-sources.md](00-sources.md#pages-fetched-on
 | [NetworkX connectivity](https://networkx.org/documentation/stable/reference/algorithms/connectivity.html) | `k_edge_augmentation` |
 | [Nyaan](https://nyaannyaan.github.io/library/tree/block-cut-tree.hpp), [ei1333](https://ei1333.github.io/library/graph/others/block-cut-tree.hpp), [tko919](https://tko919.github.io/library/Graph/blockcut.hpp) | Catalog comparison (see Aliases) |
 
-Not inspected: the Eswaran–Tarjan and Westbrook–Tarjan papers. The augmentation bound and both proofs above are this package's arguments, validated by exhaustive minimality on small graphs.
+Not fetched: the Eswaran–Tarjan (1976) and Westbrook–Tarjan papers. The augmentation bound and both proofs above are this package's own arguments, validated by exhaustive minimality on small graphs.
 
-## Limits and handoffs
+## Limits and Handoffs
 
+- The row is `partial`: `BlockCutTree::mandatoryVertexCount` for a vertex set is missing.
 - The incremental structure answers only `sameBlock`; its block IDs change under merges.
-- Set-of-terminals queries are row 14 virtual trees over `tree`; three-edge-connectivity is row 74; cactus structure is row 41.
-- Vertex-biconnectivity augmentation is omitted ([00-notes.md](00-notes.md#p047-omissions)).
+- Other set-of-terminals queries are row 14 virtual trees over `tree`; three-edge-connectivity is row 74; cactus structure is row 41.
+- Vertex-biconnectivity augmentation stays out ([00-notes.md](00-notes.md#p047-omissions)).
+- There is no mutation record yet; the planted mutants are the only mutation evidence.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 
 ## History
 
 - 2026-10-18: verified (P047); Team Notebook reference replaced; user decisions applied (`bridgeTree` kept, `biconnectedQuery` removed, pair removal queries); size, mandatory, simple-path and augmentation queries from the completeness sweep; independent review: missing vertex checks in `connectedAfterRemovingVertex` added, singleton-block wording corrected, CSR tests added; 6 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
-- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; quick, full, `CXX=g++-14` full and integration passed; no mutation record, so no campaign.
+- 2026-11-07: P263 added the search aliases (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.
 - 2026-11-10: P276 rename (call sites of `lca`, `distanceWeighted`, `size`); full on g++ and g++-14, stress and extraction passed.

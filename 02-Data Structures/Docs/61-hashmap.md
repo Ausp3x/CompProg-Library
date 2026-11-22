@@ -1,22 +1,22 @@
-# 61-hashmap.hpp — evidence
+# 61-hashmap.hpp — Evidence
 
-Package P227 (batch DS49). New header; no legacy excerpt. Depends on `06-Miscellaneous/02-customhash.hpp` for the default hasher. Preconditions are `assert`s checked once per operation.
+Package P227 (batch DS49). New header; no legacy excerpt. The default hasher comes from `06-Miscellaneous/02-customhash.hpp`. Each operation asserts its preconditions once.
 
 ## Contracts
 
 ### HashTable<K, T, H, FIXED>
 
-The shared open-addressing engine behind `HashMap` and `HashSet`; `T` is `K` for a set and `pair<K, V>` for a map. Slots hold the element and a `uint` stamp next to each other, so one cache line serves the probe and the key comparison.
+The open-addressing engine behind `HashMap` and `HashSet`; `T` is `K` for a set and `pair<K, V>` for a map. Each slot holds the element beside a `uint` stamp, so one cache line serves the probe and the key comparison.
 
-- Domain: `K` and `T` default-constructible and move-assignable, `K` equality-comparable; `H` returns a `size_t` whose low bits are well mixed (the slot is `hash(k) & (cap - 1)`). The default `CustomHash` (SplitMix64 finalizer, process seed) qualifies; an identity hash on structured keys does not. At most 2^29 elements.
-- Capacity `cap` is a power of two (or 0 before the first insertion; a default-constructed table allocates nothing), and `size() <= cap / 2` always. Inserting into a full table doubles `cap` and reinserts every element. `reserve(m)` with `m` in `[0, 2^29]` raises `cap` to at least `max(4, bit_ceil(2 * m))` (no-op for `m = 0`), so the next `m - size()` insertions never rehash. Capacity never shrinks; `M` is O(cap) with `cap <= 4 * max(peak size, reserve)`.
+- Domain: `K` and `T` are default-constructible and move-assignable, and `K` is equality-comparable. `H` returns a `size_t` with well-mixed low bits, since the slot is `hash(k) & (cap - 1)`: the default `CustomHash` (SplitMix64 finalizer, process seed) qualifies, an identity hash on structured keys does not. At most 2^29 elements.
+- Capacity `cap` is a power of two, or 0 before the first insertion (a default-constructed table allocates nothing), and `size() <= cap / 2` always. Inserting into a full table doubles `cap` and reinserts every element. `reserve(m)` with `m` in `[0, 2^29]` raises `cap` to at least `max(4, bit_ceil(2 * m))` (no-op for `m = 0`), so the next `m - size()` insertions never rehash. Capacity never shrinks; memory is O(cap) with `cap <= 4 * max(peak size, reserve)`.
 - `size`, `empty`, `contains(k)`; `find(k)` returns an iterator to the element or `end()`.
-- `erase(k)` returns whether `k` was present. It uses backward-shift deletion: walking the cluster after the hole, an element at `j` with home `h` moves into the hole `i` when `i` lies cyclically in `[h, j)`, i.e. `(j - h) & mask >= (j - i) & mask`. This restores the invariant that every element is reachable from its home slot without crossing an empty slot, so there are no tombstones and lookups never slow down after erasures.
-- `clear()` is O(1) amortized: it increments the generation `gen`, so every slot whose stamp differs from `gen` is empty. When `gen` wraps to 0 every stamp is reset in O(cap) and `gen` restarts at 1. Cleared elements keep their storage until their slot is reused; insertion always overwrites the whole element, so `operator[]` after `clear` or `erase` sees `V()`, never a stale value.
-- Iteration (`begin`/`end`, forward iterators with standard traits; a map iterator converts to `const_iterator`) visits each element once in slot order, which depends on the seed; it costs O(cap). Map iterators give `pair<K, V> &` (the key must not be modified); set iterators are always const.
-- Aliasing: `operator[]`, `insert` and `HashSet::insert` build the new element before any rehash, so the key and value arguments may refer into the table (`p[p[x]]`, `m.insert(k, m[j])`). An expression whose other operand holds a reference across an insertion is still the caller's hazard: in `q[a] = q[b]` with `V = string`, the right side is evaluated first and `q[a]` may rehash before the assignment reads it; copy first.
-- Invalidation: any insertion may rehash (all iterators and references invalid) unless the table is `FIXED` or the insertion stays within a prior `reserve`; `erase` may move one element of the same cluster per step, so it invalidates iterators and references to other elements; `clear` invalidates everything.
-- Costs: O(1) expected per operation and amortized over rehashes, under the assumption that the hash behaves randomly for the key set; a seed known to an adversary permits collisions, which cost time (O(n) per operation worst case), never correctness. Load at most 1/2 gives expected probe counts about 1.5 (hit) and 2.5 (miss) for linear probing.
+- `erase(k)` returns whether `k` was present. It uses backward-shift deletion: walking the cluster after the hole `i`, an element at `j` with home `h` moves into the hole when `i` lies cyclically in `[h, j)`, i.e. `(j - h) & mask >= (j - i) & mask`. This keeps every element reachable from its home slot without crossing an empty slot, so there are no tombstones and lookups never slow down after erasures.
+- `clear()` is O(1) amortized: it increments the generation `gen`, and every slot whose stamp differs from `gen` is empty. When `gen` wraps to 0, every stamp is reset in O(cap) and `gen` restarts at 1. Cleared elements keep their storage until their slot is reused, but insertion overwrites the whole element, so `operator[]` after `clear` or `erase` sees `V()`, never a stale value.
+- Iteration (`begin`/`end`, forward iterators with standard traits; a map iterator converts to `const_iterator`) visits each element once in seed-dependent slot order and costs O(cap). Map iterators give `pair<K, V> &`, whose key must not be modified; set iterators are always const.
+- Aliasing: `operator[]`, `insert` and `HashSet::insert` build the new element before any rehash, so the key and value arguments may refer into the table (`p[p[x]]`, `m.insert(k, m[j])`). An expression whose other operand holds a reference across an insertion is still the caller's hazard: in `q[a] = q[b]` with `V = string`, the right side is evaluated first and `q[a]` may rehash before the assignment reads it, so copy first.
+- Invalidation: any insertion may rehash and invalidate all iterators and references, unless the table is `FIXED` or the insertion stays within a prior `reserve`. `erase` may move one element of the same cluster per step, so it invalidates iterators and references to other elements; `clear` invalidates everything.
+- Costs: O(1) expected per operation, amortized over rehashes, assuming the hash behaves randomly on the key set. A seed known to an adversary permits collisions, which cost time (O(n) per operation worst case), never correctness. Load at most 1/2 gives expected linear-probing counts of about 1.5 (hit) and 2.5 (miss).
 - Copies are independent snapshots, including the hasher and its seed.
 
 ### HashMap<K, V, H = CustomHash, FIXED = false>
@@ -32,13 +32,13 @@ The shared open-addressing engine behind `HashMap` and `HashSet`; `T` is `K` for
 
 ### HashMapFixed<K, V, H>, HashSetFixed<K, H>
 
-Aliases with `FIXED = true`: construct with the maximum size `m`; capacity `max(4, bit_ceil(2 * m))` is allocated once and never changes, so references and iterators survive insertions. An insertion that would exceed `cap / 2` (at least `m`) is a precondition violation (assert); with `NDEBUG` the table grows instead, so the violation stays bounded. Combined with the O(1) `clear` this is the multi-test pattern: one allocation, many cheap resets.
+Aliases with `FIXED = true`, constructed with the maximum size `m`: capacity `max(4, bit_ceil(2 * m))` is allocated once and never changes, so references and iterators survive insertions. An insertion beyond `cap / 2` (at least `m`) violates a precondition and asserts; under `NDEBUG` the table grows instead, so the violation stays bounded. With the O(1) `clear` this gives the multi-test pattern of one allocation and many cheap resets.
 
-### Correctness and cost
+### Correctness and Cost
 
-`locate(k)` walks from `home(k)` until it finds `k` or an empty slot; termination needs one empty slot, which load <= 1/2 guarantees (also under `NDEBUG` because a violated `FIXED` bound grows the table). `place(k)` locates first and grows only when it must claim a new slot, so a lookup of a present key in a full table never rehashes. `rehash` reinserts by probing only for empty slots (keys are distinct). The backward-shift condition is the standard one for linear probing (Knuth vol. 3, Algorithm 6.4R): an element may move into the hole exactly when the hole lies on its probe path from home, which is the cyclic interval `[home, j)`.
+`locate(k)` walks from `home(k)` until it finds `k` or an empty slot. Termination needs one empty slot, which load <= 1/2 guarantees, also under `NDEBUG`, where a violated `FIXED` bound grows the table. `place(k)` locates first and grows only when it must claim a new slot, so a lookup of a present key in a full table never rehashes. `rehash` reinserts by probing only for empty slots, since keys are distinct. The backward-shift condition is the standard one for linear probing (Knuth vol. 3, Algorithm 6.4R): an element may move into the hole exactly when the hole lies on its probe path from home, the cyclic interval `[home, j)`.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/61-hashmap_tester.cpp`, entry `61-hashmap_tester.py` (driver `_00_contest_runner.py`; three builds; 8 assertion probes). Oracles are `std::map`/`std::set`; a structural checker verifies after every 97th step and at the end that every live slot is reachable from its home without an empty slot, the live count equals `size()`, capacity is a power of two and load is at most 1/2.
 
@@ -51,29 +51,43 @@ Tester `96-Local Testing/02-Data Structures/61-hashmap_tester.cpp`, entry `61-ha
 | Structured keys `i << 20`, consecutive, `i * 1000000007` under the seeded hash; erase half | `adversarial` | Mean extra probes < 2 per key (2^18 keys in full), lookups after erasing every second key |
 | Preconditions | `invalid` | `at` missing (both overloads), fixed overflow via `operator[]`, `insert` and `HashSetFixed::insert`, zero-capacity fixed table, `reserve(-1)`, `reserve(2^30)` |
 
-Mutation check (2026-10-09, quick mode, temporary copies of the pre-review header): 11 of 11 injected faults detected: strict instead of non-strict shift condition, no shift, stale value on `operator[]`, missing stamp reset on generation wrap, load 3/4, rehash resurrecting cleared slots, iteration over cleared slots, lookup ignoring the generation, set insert without writing the key, `get` ignoring its default, `insert` overwriting.
+A hand mutation check on 2026-10-09 (quick mode, temporary copies of the pre-review header) detected 11 of 11 injected faults: strict instead of non-strict shift condition, no shift, stale value on `operator[]`, missing stamp reset on generation wrap, load 3/4, rehash resurrecting cleared slots, iteration over cleared slots, lookup ignoring the generation, set insert without writing the key, `get` ignoring its default, `insert` overwriting.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1001 MB; optimized 0.3 s compile + 2.5 s run, checked 32.5 s compile + 3.7 s run, ASan-UBSan 40.4 s compile + 26.0 s run; MEMORY peak 1277 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1034 MB; optimized 0.2 s compile + 2.9 s run, checked 42.0 s compile + 4.1 s run, ASan-UBSan 58.9 s compile + 20.5 s run; MEMORY peak 1207 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 43.5 s compile + 0.3 s run, checked 38.3 s compile + 1.2 s run; MEMORY peak 999 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1016 MB; optimized 0.1 s compile + 3.5 s run, checked 12.5 s compile + 5.0 s run, ASan-UBSan 17.3 s compile + 45.0 s run; MEMORY peak 832 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
+
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 1001 MB; optimized 0.3 + 2.5 s, checked 32.5 + 3.7 s, ASan-UBSan 40.4 + 26.0 s; MEMORY peak 1277 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 1034 MB; optimized 0.2 + 2.9 s, checked 42.0 + 4.1 s, ASan-UBSan 58.9 + 20.5 s; MEMORY peak 1207 MB |
+| `01-run.py --mode quick` | Optimized 43.5 + 0.3 s, checked 38.3 + 1.2 s; MEMORY peak 999 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 1016 MB; optimized 0.1 + 3.5 s, checked 12.5 + 5.0 s, ASan-UBSan 17.3 + 45.0 s; MEMORY peak 832 MB |
+
+Latest per-header run 2026-10-09 on the same machine with CPython 3.14, in the optimized, checked and ASan/UBSan builds; MEMORY peaks are dominated by the compiler.
+
+| Command (2026-10-09) | Result |
+|---|---|
+| `61-hashmap_tester.py --mode full --seed 20261009` (GCC 16.2.1) | PASS, 3,695,536 checks per configuration, 8 assertion probes, MEMORY peak 646 MB |
+| `CXX=g++-14 61-hashmap_tester.py --mode full --seed 20261009` (GCC 14.4.1, floor) | PASS, 3,695,536 checks per configuration, 8 assertion probes, MEMORY peak 665 MB |
+| `01-run.py --mode stress --seed 7 --rounds 1` | PASS, 3 configurations, 16,915,676 checks per configuration, MEMORY peak at most 835 MB |
+| `02-integration.py` on GCC 16.2.1 and 14.4.1 | PASS: 114 standalone/aggregate headers (this one alone, in `99-all.hpp` and in `98-basic.hpp`), scalar and AVX2 two-translation-unit builds, workspace |
+| `03-consistency.py` | No errors; the closing-brace rule and comment cap hold on this header, its tester and its benchmark |
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/61-hashmap_tester.py' --mode full --seed 20261009
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/61-hashmap_tester.py' --mode full --seed 20261009
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/6' --no-integration
+python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/61-' --no-integration
 python3 '96-Local Testing/02-Data Structures/61-hashmap_benchmark.py' --runs 5
 python3 '96-Local Testing/02-integration.py'
 CXX=g++-14 python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-09: full mode seed 20261009 passed on both compilers, 3,695,536 checks per configuration and 8 assertion probes (MEMORY peak 646 MB on g++, 665 MB on g++-14, both dominated by the compiler); stress mode seed 7 passed all three configurations with 16,915,676 checks per configuration (peak at most 835 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, in the runner's optimized, checked and ASan/UBSan builds, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`).
-
-`02-integration.py` passed on GCC 16.2.1 and 14.4.1: 114 standalone/aggregate headers (this one alone, in `99-all.hpp` and `98-basic.hpp`), the scalar and AVX2 two-translation-unit builds and the workspace. `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header, its tester and its benchmark.
 
 ## Benchmarks
 
-`61-hashmap_benchmark.py --runs 5`, seed 20261009, GCC 16.2.1 `-O2 -DNDEBUG`, i9-11900H. Per row: a pool of n keys, then q = 4e6 operations (40% `operator[] +=`, 40% `find`, 20% `erase`) on keys drawn uniformly from the pool; construction and destruction timed; all three containers use `CustomHash` with the default process seed; checksums agree across variants and runs. Medians of 5 runs in seconds (MEMORY peak 313 MB).
+`61-hashmap_benchmark.py --runs 5` after the review fixes (2026-10-09): seed 20261009, GCC 16.2.1 `-O2 -DNDEBUG`, i9-11900H. Each row builds a pool of n keys, then runs q = 4e6 operations (40% `operator[] +=`, 40% `find`, 20% `erase`) on keys drawn uniformly from the pool, timing construction and destruction. All three containers use `CustomHash` with the default process seed, and checksums agree across variants and runs. Medians of 5 runs in seconds; MEMORY peak 313 MB.
 
 | Keys | n | HashMap | gp_hash_table | unordered_map |
 |---|---|---|---|---|
@@ -84,7 +98,7 @@ Final run 2026-10-09: full mode seed 20261009 passed on both compilers, 3,695,53
 | `i << 20` | 1e5 | 0.118 | 0.124 | 0.196 |
 | `i << 20` | 2e6 | 0.322 | 0.314 | 0.596 |
 
-Measured after the review fixes. HashMap is 1.3–2.1 times faster than `unordered_map`, 3–14% faster than `gp_hash_table` up to 1e5 keys, and 1–3% slower at 2e6 keys, where both are bound by cache misses (24-byte slots here).
+HashMap is 1.3–2.1 times faster than `unordered_map`, 3–14% faster than `gp_hash_table` up to 1e5 keys, and 1–3% slower at 2e6 keys, where both are bound by cache misses (24-byte slots here).
 
 ## Sources
 
@@ -99,9 +113,9 @@ Measured after the review fixes. HashMap is 1.3–2.1 times faster than `unorder
 
 References inspected 2026-10-09 by the completeness sweep ([00-sources.md](00-sources.md)).
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Omissions with reasons in [00-notes.md](00-notes.md#p227-omissions): `count`, `forEach`, erase by iterator, `emplace`, shrinking.
+- Left out with reasons in [00-notes.md](00-notes.md#p227-omissions): `count`, `forEach`, erase by iterator, `emplace`, shrinking.
 - Iteration is O(cap), so iterating a large table that was cleared or mostly erased pays for its peak capacity.
 
 ## Aliases
@@ -110,6 +124,6 @@ Search aliases (P263, grab --find): 哈希表, 无序关联式容器, 手写哈�
 
 ## History
 
-- 2026-10-09: P227 first verification; independent review, 5 findings fixed; the floor check fixed `06-Miscellaneous/02-customhash.hpp` on GCC 14 with the user's approval; full (seed 20261009) on g++ and g++-14 and stress (seed 7) passed.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-09: P227 first verification; the review's 5 findings were fixed; the floor check fixed `06-Miscellaneous/02-customhash.hpp` on GCC 14 with the user's approval; full (seed 20261009) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

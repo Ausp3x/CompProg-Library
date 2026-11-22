@@ -1,36 +1,36 @@
-# 24-interval_set.hpp — evidence
+# 24-interval_set.hpp — Evidence
 
-Package P027 (batch DS47). New header; no legacy excerpt. Intervals are half-open over an integer type, preconditions are `assert`s checked once per operation, and both structures are plain `std::map` wrappers that copy and move like maps.
+Package P027 (batch DS47). New header; no legacy excerpt. Intervals are half-open over an integer type, each operation asserts its preconditions once, and both structures are `std::map` wrappers that copy and move like maps.
 
 ## Contracts
 
 ### IntervalSet<T = lng>
 
-A set of integers stored as maximal disjoint half-open intervals `[l, r)`; touching intervals (`r == l'`) are merged, so the stored intervals are exactly the maximal runs of covered points. `T` is a signed integer type (`int`, `lng`); coordinates may be any value of `T`, but every inserted or erased length `r - l` and `unionLength()` must fit `T` (the return values and the running total are kept in `T`; `IntervalSet<int>{}.insert(-2e9, 2e9)` overflows), and `next` uses `numeric_limits<T>::max()` as its "nothing" sentinel, which no interval can cover because `r` is exclusive.
+A set of integers stored as maximal disjoint half-open intervals `[l, r)`. Touching intervals (`r == l'`) are merged, so the stored intervals are exactly the maximal runs of covered points. `T` is a signed integer type (`int`, `lng`), and coordinates may be any value of `T`. Every inserted or erased length `r - l` and `unionLength()` must fit `T`, because the return values and the running total are kept in `T` (`IntervalSet<int>{}.insert(-2e9, 2e9)` overflows). `next` returns `numeric_limits<T>::max()` for nothing found; no interval covers it, because `r` is exclusive.
 
-- `count()` number of intervals, `unionLength()` total covered points (maintained, O(1)), `intervals()` the sorted list (O(n)).
-- `find(x)` the interval containing `x` or `{x, x}` when uncovered, so `find(x).second` is the smallest uncovered point `>= x`; `contains(x)`; `covers(l, r)` true when one interval contains `[l, r)` (vacuously for `l == r`); `next(x)` smallest covered point `>= x` or the sentinel.
-- `insert(l, r)` returns the number of newly covered points; `erase(l, r)` returns the number of removed points. Both are `O((k + 1) log n)` for `k` intervals touched, amortised `O(log n)` because every call creates at most two intervals and each interval is deleted once.
+- `count()` is the number of intervals, `unionLength()` the number of covered points (maintained, O(1)), and `intervals()` the sorted list (O(n)).
+- `find(x)` returns the interval containing `x`, or `{x, x}` when `x` is uncovered, so `find(x).second` is the smallest uncovered point `>= x`. `contains(x)` tests a point; `covers(l, r)` is true when one interval contains `[l, r)` (vacuously for `l == r`); `next(x)` returns the smallest covered point `>= x` or the sentinel.
+- `insert(l, r)` returns the number of newly covered points and `erase(l, r)` the number of removed points. Both cost `O((k + 1) log n)` for `k` intervals touched, amortised `O(log n)`, because every call creates at most two intervals and each interval is deleted once.
 
-### IntervalMap<K, V> (alias `ChthollyTree<K, V>`)
+### IntervalMap<K, V> (Alias `ChthollyTree<K, V>`)
 
-A piecewise-constant function on `[lo, hi)` stored as `start -> value`; the constructor takes the initial value for the whole universe (an empty universe has no pieces). `V` needs `==` (used by `assign` and `merge` to coalesce equal neighbours).
+A piecewise-constant function on `[lo, hi)` stored as `start -> value`. The constructor takes the initial value of the whole universe; an empty universe has no pieces. `V` needs `==`, which `assign` and `merge` use to coalesce equal neighbours.
 
-- `count()` pieces, `get(x)` the piece `{l, r, value}` containing `x`, `enumerate(l, r, visit)` the pieces of `[l, r)` clipped to it (const, no splitting), `fold(l, r, init, step)` accumulates `step(acc, l', r', value)` over the same pieces.
-- `split(x)` ensures a boundary at `x` and returns the map iterator of the piece starting there (`end()` for `x == hi`); `assign(l, r, v[, onRemoved])` replaces `[l, r)` by one piece, calling `onRemoved(l', r', old)` for each removed piece (clipped to `[l, r)`) and merging with equal neighbours; `apply(l, r, f)` splits at `l` and `r` and calls `f(l', r', V &)` on every piece inside; `merge(l, r)` coalesces equal adjacent pieces whose boundary lies in `[l, r]`.
-- Costs: `get`, `split` `O(log n)`; `assign` `O((k + 1) log n)` with `k` the removed pieces, amortised `O(log n)` because each assignment creates at most three pieces; `apply`, `enumerate`, `fold`, `merge` `O((k + 1) log n)` for the `k` pieces met, with no amortisation: without assignments the piece count never shrinks, so an adversary alternating `apply` on `[lo, hi)` over `n` distinct pieces pays `O(n)` per call. The classical ODT bound (expected `O(n log n)` pieces touched overall) holds only for uniformly random assignment ranges, as on CF 896C; it is not a worst-case guarantee.
+- `count()` is the number of pieces and `get(x)` the piece `{l, r, value}` containing `x`. `enumerate(l, r, visit)` visits the pieces of `[l, r)` clipped to it (const, no splitting), and `fold(l, r, init, step)` accumulates `step(acc, l', r', value)` over the same pieces.
+- `split(x)` ensures a boundary at `x` and returns the map iterator of the piece starting there (`end()` for `x == hi`). `assign(l, r, v[, onRemoved])` replaces `[l, r)` by one piece, calls `onRemoved(l', r', old)` for each removed piece clipped to `[l, r)`, and merges with equal neighbours. `apply(l, r, f)` splits at `l` and `r` and calls `f(l', r', V &)` on every piece inside. `merge(l, r)` coalesces equal adjacent pieces whose boundary lies in `[l, r]`.
+- Costs: `get` and `split` are `O(log n)`. `assign` is `O((k + 1) log n)` for `k` removed pieces, amortised `O(log n)` because each assignment creates at most three pieces. `apply`, `enumerate`, `fold` and `merge` are `O((k + 1) log n)` for the `k` pieces met, without amortisation: without assignments the piece count never shrinks, so alternating `apply` on `[lo, hi)` over `n` distinct pieces costs `O(n)` per call. The classical ODT bound (expected `O(n log n)` pieces touched overall) holds only for uniformly random assignment ranges, as on CF 896C, and is no worst-case guarantee.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
 | `IntervalSet::mex(x)` | `find(x).second` |
 
-### Correctness and cost
+### Correctness and Cost
 
-`insert` walks the predecessor that reaches `l` and every interval starting at or before `r`, takes the hull, and charges `hull length − previously covered length`, so touching intervals merge with a zero return. `erase` walks the predecessor that strictly overlaps `l` and every interval starting before `r`, re-inserting the clipped remnants `[a, l)` and `[r, b)`. `assign` splits at `r` and then at `l` (map iterators survive insertions, so the order is only the conventional ODT one), erases the range, emplaces the new piece and checks both neighbours. `split` on an existing boundary is a no-op lookup.
+`insert` walks the predecessor that reaches `l` and every interval starting at or before `r`, takes their hull and returns `hull length − previously covered length`, so touching intervals merge with a zero return. `erase` walks the predecessor that strictly overlaps `l` and every interval starting before `r`, and re-inserts the clipped remnants `[a, l)` and `[r, b)`. `assign` splits at `r` and then at `l` (map iterators survive insertions, so this is only the conventional ODT order), erases the range, emplaces the new piece and checks both neighbours. `split` at an existing boundary is a lookup.
 
-## Feature-to-test map
+## Feature-to-Test Map
 
 Tester `96-Local Testing/02-Data Structures/24-interval_set_tester.cpp`, entry `24-interval_set_tester.py` (driver `_00_contest_runner.py`; three builds; 11 assertion probes).
 
@@ -42,15 +42,22 @@ Tester `96-Local Testing/02-Data Structures/24-interval_set_tester.cpp`, entry `
 | IntervalMap `assign` with callback (lengths and old values) and without (3-argument form, half of the random assigns), neighbour merging on both sides for both forms, `apply` (piece chain covers `[l, r)`), `fold`, `merge` (no equal neighbours remain inside `[l, r]`; minimal piece count after a full merge), `split`, `get`, `enumerate`, `count`; `ChthollyTree` alias; empty universe | `mapTests` | Dense array over universes `[0,0)`, `[0,1)`, `[-5,7)`, `[0,40)`, `[-30,50)`; pieces must partition the universe and be uniform in the array |
 | Preconditions | `invalid` | 11 probes: reversed ranges on both structures, reversed universe, keys and ranges outside `[lo, hi)` for `get`, `assign`, `apply`, `enumerate`, `split`, `merge` |
 
-Mutation check (2026-10-08, quick mode, temporary copies): 6 of 9 injected faults detected (insert predecessor test, touching-interval loop bound, missing neighbour merges on both sides of `assign`, unclipped `enumerate`, `find` boundary); the three survivors are equivalent (an extra zero-length pass in `erase`, a redundant `break`, `emplace_hint` on an existing key).
+A hand mutation check on 2026-10-08 (quick mode, temporary copies) detected 6 of 9 injected faults: the insert predecessor test, the touching-interval loop bound, missing neighbour merges on both sides of `assign`, an unclipped `enumerate` and the `find` boundary. The three survivors are equivalent: an extra zero-length pass in `erase`, a redundant `break`, and `emplace_hint` on an existing key.
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 809 MB; optimized 0.3 s compile + 3.8 s run, checked 18.6 s compile + 6.5 s run, ASan-UBSan 22.7 s compile + 46.0 s run; MEMORY peak 1000 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 853 MB; optimized 0.1 s compile + 3.8 s run, checked 19.4 s compile + 4.8 s run, ASan-UBSan 22.1 s compile + 21.7 s run; MEMORY peak 1047 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 23.4 s compile + 0.7 s run, checked 21.4 s compile + 3.7 s run; MEMORY peak 809 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 809 MB; optimized 0.1 s compile + 6.8 s run, checked 7.5 s compile + 10.4 s run, ASan-UBSan 9.2 s compile + 93.9 s run; MEMORY peak 622 MB. Dated rows below stay those commands' latest results.
+Library-wide runs of 2026-11-10 (P274) on an Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, with the build cache emptied before each cold run. Each passed; the times are this tester's compile + run.
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
+| Command (2026-11-10) | Result |
+|---|---|
+| `01-run.py --mode full` (GCC 16.2.1) | Pre-flight quick peak 809 MB; optimized 0.3 + 3.8 s, checked 18.6 + 6.5 s, ASan-UBSan 22.7 + 46.0 s; MEMORY peak 1000 MB |
+| `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | Pre-flight quick peak 853 MB; optimized 0.1 + 3.8 s, checked 19.4 + 4.8 s, ASan-UBSan 22.1 + 21.7 s; MEMORY peak 1047 MB |
+| `01-run.py --mode quick` | Optimized 23.4 + 0.7 s, checked 21.4 + 3.7 s; MEMORY peak 809 MB |
+| `01-run.py --mode stress --rounds 1` | Pre-flight quick peak 809 MB; optimized 0.1 + 6.8 s, checked 7.5 + 10.4 s, ASan-UBSan 9.2 + 93.9 s; MEMORY peak 622 MB |
 
-| Command | Result |
+Latest per-header run 2026-10-17 (P027 monoid pass) on the same machine with CPython 3.14.7, in the optimized, checked and ASan/UBSan builds:
+
+| Command (2026-10-17) | Result |
 |---|---|
 | `24-interval_set_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 4,070,377 checks per configuration, 11 assertion probes, MEMORY peak 515 MB |
 | `CXX=g++-14 24-interval_set_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 4,070,377 checks per configuration, MEMORY peak 521 MB |
@@ -78,11 +85,12 @@ python3 '96-Local Testing/03-consistency.py'
 
 References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-sources.md)).
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p027-omissions): dense `IntervalsFast` over a fastset, splay-backed `PiecewiseConstant`, `toArray`, `maxExcluded`, iterator-returning `lowerBound`.
-- Dynamic mex over a *set of values* (the `DynamicMex` legacy note) is `IntervalSet::find(0).second` with `insert(x, x + 1)`.
-- `IntervalMap` with a monoid-weighted segment tree gives `O(log n)` amortised range-assign/range-composite, the alternative to row 00's `RangeAssignRangeComposite`.
+- Row 24 is partial: `RangeAssignSegmentTree` and `IntervalMap::values` are missing (returned by P275). The splay-backed sliding piecewise-constant function is planned Esoteric row 71 (`PiecewiseConstantSlide`).
+- Left out with reasons in [00-notes.md](00-notes.md#p027-omissions): `sameInterval`, `maxExcluded`, iterator-returning `lowerBound`, and `IntervalsFast` over a fastset (row 36 owns the fastset).
+- Dynamic mex over a set of values (the `DynamicMex` legacy note) is `IntervalSet::find(0).second` with `insert(x, x + 1)`.
+- `IntervalMap` with a monoid-weighted segment tree gives amortised `O(log n)` range assign with range composite, the alternative to row 00's `RangeAssignRangeComposite`.
 
 ## Aliases
 
@@ -95,7 +103,7 @@ Search aliases (P263, grab --find): ODT (old driver tree), Chtholly tree (珂朵
 - 2026-10-08: P027 re-audit pass (second session), 1 finding fixed.
 - 2026-10-12: re-audit, 1 finding fixed, full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `IntervalSet::mex` (cases moved to `find(x).second`); full suite passed on g++ and g++-14.
-- 2026-10-17: P027 monoid pass (headers and tests unchanged; rerun for the memory-peak record); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 515/521/558 MB.
-- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
-- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-17: P027 monoid pass (header and tests unchanged; rerun for the memory peaks); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 added the search aliases (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added the Chinese search aliases (`grab --find`); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, 10 s quick bound; full and stress inputs and checks unchanged; the library-wide runs above passed.

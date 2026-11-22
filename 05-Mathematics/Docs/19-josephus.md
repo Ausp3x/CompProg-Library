@@ -1,13 +1,6 @@
-# 19-josephus.hpp — evidence
+# 19-josephus.hpp — Evidence
 
-`19-josephus.hpp` answers Josephus queries:
-
-- the person removed at any step;
-- the survivor, and its `k = 2` closed form;
-- the step at which any person is removed;
-- the whole removal order.
-
-It depends only on `01-template.hpp`. Every query except `josephusOrder` uses `O(1)` memory.
+`19-josephus.hpp` answers Josephus queries: the person removed at any step, the survivor and its `k = 2` closed form, the step at which any person is removed, and the whole removal order. It depends only on `01-template.hpp`. Every query except `josephusOrder` uses `O(1)` memory.
 
 ## Contracts
 
@@ -44,7 +37,7 @@ Labels stay below `k n < 2^126` in `ulll`.
 
 `josephusOrder(n, k)` returns every person in removal order, so element `t` is `josephusKth(n, k, t)`; `n = 0` gives an empty vector. A Fenwick tree over `n` ones, built in `O(n)` as `i & -i`, finds the person of rank `(cur + k - 1) mod alive` by binary descent and decrements it: `O(n log(n))` time, `O(n)` memory.
 
-### Legacy mapping
+### Legacy Mapping
 
 | Removed | Replacement |
 |---|---|
@@ -52,11 +45,7 @@ Labels stay below `k n < 2^126` in `ulll`.
 | The plain `O(n)` survivor loop and `josephusLarge` (user decision 2026-10-18) | `josephus(n, k)`: the same recurrence with run skipping, no slower than the loop (Benchmarks) |
 | `josephusZeroBased`, `josephusOneBased` (row only; duplicate sweep, index base) | `josephus(n, k)` and `josephus(n, k) + 1` |
 
-Aliases: cp-algorithms `josephus`; OI Wiki 约瑟夫问题 (linear and `O(k log n)` forms); CSES Josephus Queries (`josephusKth` with `k = 2`, one-based); Library Checker has no Josephus problem.
-
-Search aliases (P263, grab --find): 约瑟夫环, 约瑟夫斯问题.
-
-## Feature-to-test map
+## Feature-to-Test Map
 
 Entry: [`19-josephus_tester.py`](<../../96-Local Testing/05-Mathematics/19-josephus_tester.py>).
 
@@ -68,22 +57,31 @@ Entry: [`19-josephus_tester.py`](<../../96-Local Testing/05-Mathematics/19-josep
 | Python oracle | A list simulation for `n <= 2000` with any `k`. For `n` up to `2^63 - 1` and `k <= 300`: the survivor by the Concrete Mathematics D-sequence closed form (`J = k n + 1 - D`), the unaccelerated forward recurrence for `t < 3000`, and the unaccelerated count-label walk. All three are validated by simulation first. |
 | Preconditions | Seven checked-build death probes: `n = 0`, `k = 0`, `josephusK2(0)`, `t = n`, `p < 0`, `josephusOrder` with `k = 0` and `n < 0`. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that these and the out-of-range `k`, `t` and `p` cases terminate. |
 
-## Commands and results
+## Commands and Results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 682 MB; optimized 0.1 s compile + 3.7 s run, checked 8.6 s compile + 3.9 s run, ASan-UBSan 9.1 s compile + 4.3 s run; MEMORY peak 740 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 704 MB; optimized 0.2 s compile + 4.5 s run, checked 15.4 s compile + 5.0 s run, ASan-UBSan 13.2 s compile + 6.1 s run; MEMORY peak 761 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 16.1 s compile + 1.5 s run, checked 18.1 s compile + 2.3 s run; MEMORY peak 654 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 681 MB; optimized 0.1 s compile + 10.6 s run, checked 3.5 s compile + 12.2 s run, ASan-UBSan 4.0 s compile + 12.9 s run; MEMORY peak 394 MB. Dated rows below stay those commands' latest results.
+Conditions as in [18-floorsum.md](18-floorsum.md#commands-and-results). Every command passed; times are compile + run.
 
-Run 2026-10-18; conditions as in [18-floorsum.md](18-floorsum.md).
+- 2026-11-10, P274 library-wide runs on the shared contest runner's optimized, checked and ASan-UBSan builds, seed 42, beside the other suites, build cache emptied before each cold run:
 
-| Command | Result |
-|---|---|
-| `19-josephus_tester.py --mode full --seed 1` | PASS, 1,381,967 C++ checks and 600 Python rows per configuration, 7 assertion probes, `MEMORY peak=354MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=387MB` |
-| `19-josephus_tester.py --mode stress --seed 7` | PASS, 3,160,504 C++ checks and 4000 Python rows per configuration, 7 assertion probes, `MEMORY peak=356MB` |
-| `19-josephus_benchmark.py 9` | PASS; table below |
+  | Command | Optimized | Checked | ASan-UBSan | MEMORY peak | Pre-flight quick peak |
+  |---|---|---|---|---|---|
+  | `python3 '96-Local Testing/01-run.py' --mode full` | 0.1 + 3.7 s | 8.6 + 3.9 s | 9.1 + 4.3 s | 740 MB | 682 MB |
+  | `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` | 0.2 + 4.5 s | 15.4 + 5.0 s | 13.2 + 6.1 s | 761 MB | 704 MB |
+  | `python3 '96-Local Testing/01-run.py' --mode quick` | 16.1 + 1.5 s | 18.1 + 2.3 s | — | 654 MB | — |
+  | `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` | 0.1 + 10.6 s | 3.5 + 12.2 s | 4.0 + 12.9 s | 394 MB | 681 MB |
+
+- 2026-10-18, P060, the latest run with check counts:
+
+  | Command | Result |
+  |---|---|
+  | `19-josephus_tester.py --mode full --seed 1` | PASS, 1,381,967 C++ checks and 600 Python rows per configuration, 7 assertion probes, `MEMORY peak=354MB` |
+  | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=387MB` |
+  | `19-josephus_tester.py --mode stress --seed 7` | PASS, 3,160,504 C++ checks and 4000 Python rows per configuration, 7 assertion probes, `MEMORY peak=356MB` |
+  | `19-josephus_benchmark.py 9` | PASS; table below |
 
 ## Benchmarks
 
-`19-josephus_benchmark.py`, GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 9 repetitions. The survivor for `n = 10^7` is compared against the plain loop it replaced, and the outputs are checked equal.
+`19-josephus_benchmark.py 9`, 2026-10-18: GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 9 repetitions. The survivor for `n = 10^7` is timed against the plain loop it replaced, with the outputs checked equal.
 
 | `k` | Plain loop | `josephus` |
 |---|---|---|
@@ -105,13 +103,21 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 - Wikipedia Josephus problem, Shahjalal Shohag's code library and CSES Josephus Queries: run skipping for the `m`-th removal and its bounds.
 - Concrete Mathematics 3.3 (count renumbering and the D-sequence) is cited by these pages. It was not consulted directly; both formulas were re-derived here and validated against simulation.
 
-## Limits and handoffs
+## Limits and Handoffs
 
-- Variable steps per round, `k = 3` closed forms and the Halbeisen–Hungerbühler matrix method are left out ([00-notes.md](00-notes.md), P060 research decisions).
+- Variable steps per round, `k = 3` closed forms and the Halbeisen–Hungerbühler matrix method stay out ([00-notes.md](00-notes.md), P060 Research Decisions).
 - `OLD/5-Mathematics/14-miscellaneous.hpp` stays in `OLD`; there was no `97-Legacy` excerpt.
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+Catalog aliases: cp-algorithms `josephus`; OI Wiki 约瑟夫问题 (linear and `O(k log n)` forms); CSES Josephus Queries (`josephusKth` with `k = 2`, one-based); Library Checker has no Josephus problem.
+
+Search aliases (P263, grab --find): 约瑟夫环, 约瑟夫斯问题.
+
 
 ## History
 
-- 2026-10-18: P060 initial implementation; `@reviewer` found 8 issues, all fixed, and `josephusLarge` was merged into `josephus` by user decision; full suite passed on g++ and g++-14, stress seed 7 passed.
-- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
-- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-10-18: P060 implementation; `@reviewer` found 8 issues, all fixed, and `josephusLarge` was merged into `josephus` by user decision; full passed on g++ and g++-14, stress seed 7 passed.
+- 2026-11-07: P263 added common Chinese names of the row's operations to the search aliases (Simplified plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner with `-Werror` and the 10 s quick bound; full and stress inputs unchanged; every library-wide run passed.
