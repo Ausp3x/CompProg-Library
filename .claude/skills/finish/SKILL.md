@@ -37,7 +37,7 @@ The run is one pass: collect, ask once, fix, verify, land. It never stops silent
    - `git rebase master`. A conflict inside the plan block of `01-prompts.md` is resolved by `python3 '00-Guidelines/13-Plan/plan.py' render`; any marker left after it, and any other conflict, by hand, keeping both sides' intent. After a rebase that applied master commits, rerun the validator and the target's quick suites; a failure goes to a new ledger and back to step 3.
    - Call ExitWorktree with action `keep`, then from the main checkout run `python3 '00-Guidelines/13-Plan/worktree.py' '<worktree path>' --finish`. On failure show the error and ask: retry, fix it (EnterWorktree with the worktree path, then repeat from the rebase) or stop. If ExitWorktree reports no active worktree session, print that command for the user to run from a terminal in the main checkout.
 8. **Reap** as `/package` step 12, from the checkout the run ends in, also after a stop.
-9. **Report**: fixes, decisions recorded, accepted contracts, commands with results, the landing result with the push commands the user runs, the reap's ENDED, LEFT and FAIL lines. No file dumps.
+9. **Report**: fixes, decisions recorded, accepted contracts, commands with results, the landing result with the push commands the user runs, the reap's ENDED, LEFT and FAIL lines, and last the list `01-principles.md` (Scope Discipline) ends every report with. No file dumps.
 
 ## Facts
 
