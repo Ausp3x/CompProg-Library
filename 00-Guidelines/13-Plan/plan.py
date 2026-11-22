@@ -461,7 +461,7 @@ def show(root, ident):
         out.append(('Claims unknown: check the open pull requests, then claim' if 'SKIP' in line else 'Unclaimed: claim')
                    + (' it on this branch: `' if here == b else f" it in the checkout the session will work in, from an up-to-date master: `git switch -c {b} && ")
                    + f"git commit "
-                   f"--allow-empty -m '{p['id']}: claim {batch}' && git push -u origin {b} && gh pr create --draft --fill "
+                   f"--allow-empty -m '{p['id']}: claim {batch}' && CP_USER=1 git push -u origin {b} && gh pr create --draft --fill "
                    f"--repo {config(root, 'compprog.repo') or REPO}`.")
     out.append('')
     if len(p['batches']) > 1:

@@ -9,7 +9,8 @@ Oracles: the server's request log, the saved configuration and its mode, hand-wr
 recomputation of selections.
 quick: login and token refresh, states, selection, the AC flow and its record, green and red verdicts on a terminal only.
 full: also WA, refusal at the confirmation, missing or mismatched logins, record rewrites, a failing expander, +dirty,
-ID tokens renewed by age, network errors retried while waiting and reported without a traceback elsewhere.
+ID tokens renewed by age, network errors retried while waiting and reported without a traceback elsewhere, and main()
+refused in a shell Claude Code started unless the user's override is set (test_claude_shell_guard).
 stress: full plus --rounds x 200 seeded random selections against the oracle.
 """
 import argparse
@@ -328,6 +329,24 @@ class Submit(unittest.TestCase):
             S.submit(['all'], yes=True)
         self.assertIn('boom', str(caught.exception))
         self.assertEqual(self.posts('/submit'), [], 'nothing submitted after a failed expansion')
+
+    def test_claude_shell_guard(self):
+        """main() refuses in a shell Claude Code started unless CP_USER=1 (SUP32), before any argument is read."""
+        S.LIBRARY = self.saved['LIBRARY']  # the real .claude/hooks/shell.py
+        refused = ("04-submit.py refused: this shell was started by Claude Code, and submitting is the user's "
+                   "(01-principles.md, Scope Discipline). Typed yourself with `!`? Prefix CP_USER=1.")
+        saved = {k: os.environ.get(k) for k in ('CLAUDE_CODE_CHILD_SESSION', 'CP_USER')}
+        try:
+            for child, user, ok in (('1', None, False), ('1', '1', True), ('1', '0', False), (None, None, True), ('0', None, True)):
+                for k, v in (('CLAUDE_CODE_CHILD_SESSION', child), ('CP_USER', user)):
+                    os.environ.pop(k, None) if v is None else os.environ.__setitem__(k, v)
+                with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as caught:
+                    S.main(['--no-such-option'])
+                self.assertEqual(caught.exception.code, 2 if ok else refused, (child, user))
+        finally:
+            for k, v in saved.items():
+                os.environ.pop(k, None) if v is None else os.environ.__setitem__(k, v)
+        self.assertEqual(self.posts('/submit'), [])
 
     def test_random_pick(self):
         if MODE != 'stress':

@@ -36,7 +36,7 @@ def main():
     resume = module('resume_hook', root / '.claude/hooks/resume.py')
     gaps = module('finish_gaps', root / '.claude/skills/finish/gaps.py')
     transcript = next(Path.home().glob(f'.claude/projects/*/{session}.jsonl'), None) if session else None
-    key = gaps.target(root, resume.last_command_id(transcript))[0]
+    key = gaps.target(root, resume.last_command(transcript)[1])[0]
     handoff = root / '.claude/pause' / f'{key}.md'
     written = (f'exists, written {datetime.datetime.fromtimestamp(handoff.stat().st_mtime):%Y-%m-%d %H:%M}; replace it'
                if handoff.is_file() else 'none yet')

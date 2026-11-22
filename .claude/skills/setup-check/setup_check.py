@@ -65,6 +65,9 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
     Tool('libclang', 'grab pruning and extraction checks', ('python3',), None, 'python3-clang', 'clang'),  # import clang.cindex (09-Contest Testing/10-grab.py)
     Tool('clipboard', 'grab copying', ('wl-copy', 'xclip', 'xsel', 'pbcopy'), None, 'wl-clipboard xclip', 'wl-clipboard xclip'),
     Tool('bash', 'grab alias tests', ('bash',), None, 'bash', 'bash'),  # oracle of 09-setup_tester.py's alias tests
+    Tool('desktop notifier', 'session notifications', ('notify-send', 'terminal-notifier', 'osascript', 'powershell.exe', 'powershell'),
+         None, 'libnotify-bin', 'libnotify'),  # .claude/hooks/notify.py: Linux, macOS, Windows and WSL
+    Tool('VS Code CLI', 'notification click to focus', ('code',), None, 'code (Microsoft apt repository)', 'AUR: visual-studio-code-bin'),
     Tool('PyPy', 'PyPy runs', ('pypy3',), (3, 10), 'pypy3', 'pypy3'),
     Tool('arm64 cross g++', 'arm64 check', ('aarch64-linux-gnu-g++',), None, 'g++-aarch64-linux-gnu',
          'aarch64-linux-gnu-gcc'),

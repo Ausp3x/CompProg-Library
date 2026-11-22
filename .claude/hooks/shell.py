@@ -10,10 +10,18 @@ content at the old HEAD is blocked with the restore commands, as is a 99-Workspa
 Results are checked, not the command text, so no spelling of a command escapes; staging changes no content and runs
 nothing. A background command is compared when it starts, so edits it makes later are not checked. `pre` also refuses a
 `git push` in command position (after a separator, variable assignments and env/sudo/command/exec/nohup/time, with git's
-own options between), since pushing is the user's (CLAUDE.md, Git), and `97-Online Testing/04-submit.py` run in command position
-(directly or after a python or pypy interpreter and its options), since submitting is the user's (01-principles.md, Scope
-discipline); quoted text and heredoc bodies are not commands, and an encoded command can still get past these checks, which
-only stop the plain spellings.
+own options between, and the options of env and sudo), since pushing is the user's (CLAUDE.md, Git), and `97-Online
+Testing/04-submit.py` run in command position (directly or after a python or pypy interpreter and its options), since
+submitting is the user's (01-principles.md, Scope discipline); quoted text and heredoc bodies are not commands, and an
+encoded command can still get past these checks, which only stop the plain spellings. It also refuses any command whose
+text names CP_USER (the user's override below), CLAUDE_CODE_CHILD_SESSION, `--no-verify`, a value for core.hooksPath or
+its removal, or `env -i` (which would clear the environment the guards read) (GUARD_TEXT). `pre` runs for the Monitor tool too, whose commands carry the same environment; only Bash commands get the
+snapshot, since `post` runs for Bash alone.
+
+`push` is the git pre-push hook (.claude/githooks/pre-push) and `claude_shell()` the guard 04-submit.py loads (SUP32, user
+decision 2026-11-23): both refuse in a shell Claude Code started (CLAUDE_CODE_CHILD_SESSION=1), which closes the spellings
+`pre` misses (`sh -c "git push"`, `g=git; $g push`). A `!` command the user types shares that environment exactly (all 89
+variables compared, 2026-11-22), so the user's own push or submission inside a session sets CP_USER=1 (CLAUDE.md, Git).
 
 `commit` is the git pre-commit hook (.claude/githooks/pre-commit), which holds every commit, by any agent or person, to the
 same rules (user decision 2026-11-16): it refuses a commit whose staged changes, against HEAD, touch a protected file, stage
@@ -83,6 +91,12 @@ def protected(rel, now):
 
 SEPARATORS = {';', '&&', '||', '|', '&', '(', ')', '{', '}', '!', '|&', ';;'}
 PREFIXES = {'env', 'sudo', 'command', 'exec', 'nohup', 'time', 'then', 'do', 'else'}
+OPTARG = {'-u', '-C', '-g', '-S', '--unset', '--chdir', '--split-string', '--user', '--group'}  # prefix options taking a word
+# the override, the variable the guards read, and the ways around the git hooks: refused wherever they appear (SUP32)
+GUARD_TEXT = re.compile(r'\b(?:%s|CLAUDE_CODE_CHILD_SESSION)\b|--no-verify\b|(?i:core\.hookspath)(?:[\'"]?\s*=|\s+[^\s;&|)-])'
+                        r'|(?i:(?:--unset(?:-all)?|\bunset)\s+core\.hookspath|--remove-section\s+[\'"]?core\b)'
+                        r'|\benv(?:\s+(?:-[uCS]\s+\S+|--\w[\w-]*=\S*|-\S+|\w+=\S*))*?\s+(?:-i|--ignore-environment|-)(?=\s|$)'
+                        % ('CP' + '_USER'))
 
 
 HEREDOC = re.compile(r'(?<!<)<<(-?)\s*([\'"]?)([A-Za-z_]\w*)\2')
@@ -112,13 +126,18 @@ def words(command):
 
 
 def commands(command):
-    """(index, word) of each word in command position, after separators, prefixes and variable assignments."""
-    ws, start = words(command) or [], True
+    """(index, word) of each word in command position, after separators, prefixes with their options, and variable
+    assignments."""
+    ws, start, prefixed, skip = words(command) or [], True, False, False
     for i, w in enumerate(ws):
         if w in SEPARATORS:
-            start = True
+            start, prefixed, skip = True, False, False
+        elif skip:
+            skip = False
         elif start and (w in PREFIXES or re.fullmatch(r'[A-Za-z_]\w*=.*', w)):
-            continue
+            prefixed = prefixed or w in PREFIXES
+        elif start and prefixed and w.startswith('-') and w != '-':
+            skip = w in OPTARG
         elif start:
             start = False
             yield ws, i, w
@@ -149,20 +168,34 @@ def submits(command):
     return False
 
 
+def claude_shell(env=None):
+    """True in a shell Claude Code started, unless the command set CP_USER=1 (the user's own `!` command)."""
+    env = os.environ if env is None else env
+    return env.get('CLAUDE_CODE_CHILD_SESSION') == '1' and env.get('CP_USER') != '1'
+
+
 def state_file(data):
     key = ''.join(c for c in str(data.get('tool_use_id') or data.get('session_id') or 'session') if c.isalnum() or c in '-_')
     return STATE / f'{key or "session"}.json'
 
 
+def deny(reason):
+    print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason': reason}}))
+
+
 def pre(data):
-    if pushes(str((data.get('tool_input') or {}).get('command', ''))):
-        print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
-                          'Pushing is the user\'s (CLAUDE.md, Git): print the push command for them to run instead.'}}))
-        return
-    if submits(str((data.get('tool_input') or {}).get('command', ''))):
-        print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
-                          "Submitting is the user's (01-principles.md, Scope Discipline): ask them to run 04-submit.py themselves, "
-                          "for example with `! python3 '97-Online Testing/04-submit.py'`."}}))
+    """Bash and Monitor: the text checks; Bash alone also the snapshot `post` compares against."""
+    command = str((data.get('tool_input') or {}).get('command', ''))
+    if m := GUARD_TEXT.search(command):
+        return deny(f'This command names {m[0]!r}, which would get past the push and submit guards or the git hooks '
+                    '(CLAUDE.md, Git and Start Here): pushing and submitting are the user\'s, and the hooks are never bypassed. '
+                    'Read, search or edit such text with the Read, Grep or Edit tools.')
+    if pushes(command):
+        return deny("Pushing is the user's (CLAUDE.md, Git): print the push command for them to run instead.")
+    if submits(command):
+        return deny("Submitting is the user's (01-principles.md, Scope Discipline): ask them to run 04-submit.py themselves, "
+                    "for example with `! CP_USER=1 python3 '97-Online Testing/04-submit.py'`.")
+    if data.get('tool_name', 'Bash') != 'Bash':  # post runs for Bash only
         return
     STATE.mkdir(parents=True, exist_ok=True)
     for old in STATE.glob('*.json'):  # snapshots of commands that never finished
@@ -259,6 +292,11 @@ def commit():
 if __name__ == '__main__':
     if sys.argv[1:2] == ['range'] and len(sys.argv) == 3:
         sys.exit(pushed(sys.argv[2]))
+    if sys.argv[1:2] == ['push']:  # git passes the remote's name and URL
+        if claude_shell():
+            sys.exit('Push refused by .claude/githooks/pre-push: this shell was started by Claude Code, and pushing is the '
+                     "user's (CLAUDE.md, Git). Typed yourself with `!`? Run it as `CP_USER=1 git push ...`.")
+        sys.exit(0)
     if sys.argv[1:] == ['commit']:
         try:
             sys.exit(commit())

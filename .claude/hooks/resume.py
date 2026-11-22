@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""SessionStart hook. After a compaction (argument `compact`) it re-injects what the summary may lose, namely this
-target's /finish ledger (open rows), the git state and the package or batch brief, in that order of priority. The
-target is the argument of the session's last /package, /prune or /finish call, else the id in the branch or worktree
-name (gaps.py, target). At startup and after /clear (argument `startup` or `clear`) it injects the newest /pause
-handoff with the git state, and nothing when there is none. Plain stdout becomes context; output over 10,000
-characters would be replaced by a file path, so it stays below that."""
+"""SessionStart and PreCompact hook. After a compaction (argument `compact`) it re-injects what the summary may lose,
+namely this target's /finish ledger (open rows), the git state and the package or batch brief, in that order of
+priority. The target is the argument of the session's last /package, /prune or /finish call, else the id in the branch
+or worktree name (gaps.py, target). At startup and after /clear (argument `startup` or `clear`) it injects the newest
+/pause handoff with the git state, and nothing when there is none. Before a compaction (argument `precompact`) it
+prints instructions for the summary: the target, the skill to resume at its step, the ledger path and what to keep
+(CLAUDE.md, Compact Instructions). Plain stdout becomes context, or the summary's instructions; output over 10,000
+characters would be replaced by a file path or cut, so it stays below that."""
 import datetime
 import importlib.util
 import json
@@ -24,9 +26,10 @@ def run(*cmd, cwd):
         return ''
 
 
-def last_command_id(transcript):
-    """First argument of the session's last /package, /prune or /finish call, or '' (it names the target)."""
-    found = ''
+def last_command(transcript):
+    """(skill, first argument, the command that gave it) of the session's last /package, /prune or /finish call (a call
+    without an argument keeps the earlier one's), or ('', '', '') (it names the target)."""
+    found = ('', '', '')
     try:
         for line in open(transcript, errors='replace'):
             if '<command-name>/' not in line:
@@ -35,13 +38,44 @@ def last_command_id(transcript):
                 e = json.loads(line)
             except ValueError:
                 continue
-            content = (e.get('message') or {}).get('content') if e.get('type') == 'user' else None
+            m = e.get('message') if isinstance(e, dict) and e.get('type') == 'user' else None
+            content = m.get('content') if isinstance(m, dict) else None
             if isinstance(content, str):  # typed commands only, never tool output that quotes them
-                for args in re.findall(r'<command-name>/(?:package|prune|finish)</command-name>.*?<command-args>([^<]*)</command-args>', content, re.S):
-                    found = args.split()[0] if args.split() else found
+                for skill, args in re.findall(r'<command-name>/(package|prune|finish)</command-name>.*?<command-args>([^<]*)</command-args>', content, re.S):
+                    found = (skill, args.split()[0], f'/{skill} {args.split()[0]}') if args.split() else (skill, *found[1:])
     except (OSError, TypeError):
         pass
     return found
+
+
+def ledgers(root, arg):
+    """(key, package, existing /finish ledgers, whether arg named the target); /finish without an argument keys its ledger by
+    the names."""
+    spec = importlib.util.spec_from_file_location('finish_gaps', root / '.claude/skills/finish/gaps.py')
+    gaps = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gaps)
+    key, pkg, _, warning = gaps.target(root, arg)
+    keys = dict.fromkeys([key, gaps.target(root)[0]])
+    return key, pkg, [l for l in (root / '.claude/finish' / f'{k}.txt' for k in keys) if l.is_file()], bool(arg and pkg and not warning)
+
+
+def precompact(root, transcript):
+    """Instructions for the compaction summary (CLAUDE.md, Compact Instructions)."""
+    skill, arg, given = last_command(transcript)
+    key, pkg, found, typed = ledgers(root, arg)
+    lines = ['Compaction instructions from .claude/hooks/resume.py (CLAUDE.md, Compact Instructions).']
+    if pkg:
+        lines.append(f'Target: {key} (package {pkg["id"]}, from '
+                     + (f'the typed command {given[:80]}).' if typed else 'the branch or worktree name).'))
+    if skill:
+        lines.append(f'Skill in progress: /{skill}. State the number of its step in progress and the exact next step.')
+    if pkg or found:
+        lines.append('/finish ledger: ' + (', '.join(str(l.relative_to(root)) for l in found) + ' (its rows hold the state)'
+                                           if found else f'.claude/finish/{key}.txt, not written yet') + '.')
+    lines.append('Keep the package or batch id, the skill and step in progress, decisions made and by whom, operations done '
+                 'and remaining, failing reproducers with seeds, and the exact next step. Drop file contents, passing test '
+                 'output and superseded attempts.')
+    return '\n'.join(lines)[:CAP]
 
 
 def git_state(root):
@@ -68,19 +102,19 @@ def main():
         hook = json.load(sys.stdin)
     except ValueError:
         hook = {}
+    hook = hook if isinstance(hook, dict) else {}
     root = Path(run('git', 'rev-parse', '--show-toplevel', cwd=hook.get('cwd') or '.') or Path(__file__).resolve().parents[2])
-    if (sys.argv[1] if len(sys.argv) > 1 else hook.get('source', 'compact')) in ('startup', 'clear'):
+    mode = sys.argv[1] if len(sys.argv) > 1 else hook.get('source', 'compact')
+    if mode in ('startup', 'clear'):
         print(handoff(root), end='')
         return
-    spec = importlib.util.spec_from_file_location('finish_gaps', root / '.claude/skills/finish/gaps.py')
-    gaps = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(gaps)
-    key, pkg, _, _ = gaps.target(root, last_command_id(hook.get('transcript_path')))
-    keys = dict.fromkeys([key, gaps.target(root)[0]])  # /finish without an argument keys its ledger by the names
-    ledgers = [l for l in (root / '.claude/finish' / f'{k}.txt' for k in keys) if l.is_file()]
+    if mode == 'precompact':
+        print(precompact(root, hook.get('transcript_path')), end='')
+        return
+    key, pkg, found, _ = ledgers(root, last_command(hook.get('transcript_path'))[1])
     parts = ['Restored after compaction by .claude/hooks/resume.py. The plan note and evidence documents hold the recorded state; '
              're-read a file before editing it again.']
-    for ledger in ledgers:
+    for ledger in found:
         rows = ledger.read_text().strip().splitlines()
         open_rows = [r for r in rows if not CLOSED.search(r)]
         parts.append(f'If /finish was running, continue it from its ledger {ledger.relative_to(root)} '
@@ -98,6 +132,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except Exception:  # Never break session start because the hook failed.
+    except Exception:  # Never break a session start or a compaction (exit 2 would block it) because the hook failed.
         pass
     sys.exit(0)

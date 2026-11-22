@@ -42,7 +42,7 @@
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Monitor",
         "hooks": [
           {
             "type": "command",
@@ -171,6 +171,52 @@
           }
         ]
       }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/resume.py\" precompact",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/notify.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "prompt_input_exit|logout|other",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/skills/reap/reap.py\" --own",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PreModelSwitch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness.py\" hook",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -181,5 +227,23 @@
   "autoCompactWindow": 400000,
   "enabledPlugins": {
     "session-report@anthropic-plugin-directory": true
+  },
+  "worktree": {
+    "baseRef": "head"
+  },
+  "enableArtifact": false,
+  "skillOverrides": {
+    "claude-api": "user-invocable-only",
+    "dataviz": "user-invocable-only",
+    "artifact-design": "user-invocable-only",
+    "artifact-diagramming": "user-invocable-only",
+    "artifact-capabilities": "user-invocable-only",
+    "run": "user-invocable-only",
+    "init": "user-invocable-only",
+    "schedule": "user-invocable-only",
+    "plugin-authoring": "user-invocable-only",
+    "security-review": "user-invocable-only",
+    "workflow-authoring": "on",
+    "update-config": "on"
   }
 }

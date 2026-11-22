@@ -230,7 +230,7 @@ def o_claim_line(skip, pid, batch, b, repo, here=False):
     """show's claim line; `here` when the current branch is already the claim branch b."""
     head = 'Claims unknown: check the open pull requests, then claim' if skip else 'Unclaimed: claim'
     where = ' it on this branch: `' if here else ' it in the checkout the session will work in, from an up-to-date master: `git switch -c ' + b + ' && '
-    return (head + where + 'git commit --allow-empty -m \'' + pid + ': claim ' + batch + '\' && git push -u origin ' + b
+    return (head + where + 'git commit --allow-empty -m \'' + pid + ': claim ' + batch + '\' && CP_USER=1 git push -u origin ' + b
             + ' && gh pr create --draft --fill --repo ' + repo + '`.')
 
 

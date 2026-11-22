@@ -435,7 +435,7 @@ def land(n):
     shutil.rmtree(STATE / str(n), ignore_errors=True)
     (STATE / f'{n}.json').unlink()
     sha = git('rev-parse', 'master')
-    print(f'Landed #{n} on master at {sha[:12]}. For the user to run:\n  git push origin master\n'
+    print(f'Landed #{n} on master at {sha[:12]}. For the user to run:\n  CP_USER=1 git push origin master\n'
           f'  gh pr close {n} --repo {st["repo"]} --comment "Landed on master as {sha[:12]} (rebased onto master)."')
     return 0
 

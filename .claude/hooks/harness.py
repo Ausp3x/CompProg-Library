@@ -8,7 +8,7 @@ integrity(), pre_integrity()); evidence and limits: 00-Guidelines/13-Plan/Docs/0
   harness.py --selftest                            exit 1 unless the guard is active: hooks registered in the effective
                                                    settings, none disabled, a guard heartbeat in the last two minutes
   harness.py hook                                  hook entry, JSON on stdin (see hook()), also the context-integrity
-                                                   checks (SUP30)
+                                                   checks (SUP30) and the model-switch check (SUP32)
 
 Read-only and never on the network: it reads file tails only (and asks git which paths it ignores), writes nothing but its own state under
 .claude/hooks/.state/harness/ (heartbeats, Stop records, the session's warned, hide-text and /effort lists, the newest
@@ -1285,8 +1285,24 @@ def outward_items(a):
     return [m.group(1) for s in strings(a) for m in OUTWARD_RE.finditer(s)]
 
 
+def model_switch(data):
+    """PreModelSwitch (SUP32): deny a `to_model` outside the allowed set, checked here because a target without a
+    canonical name runs every hook whatever its matcher; otherwise warn when the switch drops a warm prompt cache."""
+    to, ids = data.get('to_model'), allowed()[0]
+    if not (isinstance(to, str) and base(to) in ids):
+        return {'hookSpecificOutput': {'hookEventName': 'PreModelSwitch', 'permissionDecision': 'deny', 'permissionDecisionReason': redact(
+            f'Model guard: {cut(to)} is outside the allowed set {", ".join(sorted(ids)) or "(empty)"}. {HOW}')}}
+    if data.get('prompt_cache_warm') is True:
+        tokens, usd = data.get('context_tokens'), data.get('estimated_cache_write_usd')
+        size = f' re-sends about {tokens // 1000}k tokens' if type(tokens) is int and tokens > 0 else ' re-sends the context'
+        cost = f' (about ${usd:.2f} to cache)' if type(usd) in (int, float) and 0 <= usd < float('inf') else ''
+        return {'systemMessage': redact(f'Harness: switching to {cut(to)} drops the warm prompt cache; the next request{size}'
+                                        f'{cost} uncached. A fresh session of the matching preset avoids it (01-prompts.md, Workflow).')}
+    return None
+
+
 def hook(data):
-    """PreToolUse: deny the call and stop the turn when the newest request asks for a model outside the allowed set, or
+    """PreModelSwitch: model_switch(). PreToolUse: deny the call and stop the turn when the newest request asks for a model outside the allowed set, or
     the newest reply on disk was served by a model other than its requested one or either lies outside it; the
     calling reply itself reaches the transcript only after its tools ran, so its served model is checked at the next
     call or by the Stop hook. Warn once per session about the other issues. Stop and SubagentStop: warn when the
@@ -1299,6 +1315,8 @@ def hook(data):
     event, session = data.get('hook_event_name'), data.get('session_id')
     if event in ('PostToolUse', 'PostToolUseFailure'):
         return integrity(data)
+    if event == 'PreModelSwitch':
+        return model_switch(data)
     note = ''
     if event == 'UserPromptSubmit':
         try:  # a new turn: the flag of the last one no longer warns
@@ -1431,6 +1449,7 @@ def selftest(session):
     checks += [(registered(ls, e, every=True), f'a {e} hook for every tool runs harness.py hook (context integrity)')
                for e in ('PostToolUse', 'PostToolUseFailure')]
     checks += [(registered(ls, e), f'a {e} hook runs harness.py hook') for e in ('Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart')]
+    checks.append((registered(ls, 'PreModelSwitch', every=True), 'a PreModelSwitch hook for every model runs harness.py hook'))
     checks += [(False, f'{t} could disable hooks') for t in hooks_off(ls)]
     last = STATE / safe(session) / 'last.json' if safe(session) else None
     age = time.time() - last.stat().st_mtime if last and last.is_file() else None

@@ -4,6 +4,7 @@ description: Sweeps reference catalogs (Library Checker, cp-algorithms, ACL, KAC
 tools: Read, Grep, Glob, WebFetch, WebSearch
 model: claude-opus-5-5
 effort: high
+omitClaudeMd: true
 ---
 
 You research completeness for a competitive-programming library. You are given a folder, a header or module name and its current operation list from `00-index.md`.

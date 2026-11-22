@@ -39,7 +39,13 @@ mappings (any depth, in lists, any key name, report line, map warning only for t
 model before the newest, boolean-valued and model-keyed objects as unknown-shape notes, family-keyed and mixed objects
 ignored) -> test_mappings, test_random;
 model check (served != requested, served or requested off-list, the newest request off-list with a good reply, aliases
-and unknown shapes, context suffix, deny JSON shape) -> test_model_check, test_random; allowed set from packages.json,
+and unknown shapes, context suffix, deny JSON shape) -> test_model_check, test_random; PreModelSwitch (SUP32): allowed ids
+and context-suffixed forms pass silently, off-list, dated-unlisted, alias, empty, missing and non-string to_model denied
+with the exact PreModelSwitch deny JSON (also when warm), the warm-cache systemMessage with and without context_tokens
+and estimated_cache_write_usd, cold and non-True warm flags silent, wrong-typed (bool, string, float, negative) tokens
+and costs left out, the set re-read and empty, e-mail addresses redacted in to_model and the listed set, in process and
+through the subprocess hook -> test_model_switch; status line `miss N` (warm, cold, no ttl; absent at 0, missing, bool,
+negative and non-int) -> test_experiment_latch, test_statusline_broken; allowed set from packages.json,
 agent and skill front matter and harness.json, re-read at every call in and out of process -> test_allowed_sources;
 migration to a new model id by fixture edits only -> test_migration; front-matter alias as a note, `inherit` ignored,
 quoted ids -> test_front_matter_alias;
@@ -66,13 +72,13 @@ managed settings (managed-settings.json and .d, remote-settings.json, policy-lim
 project and local settings, allowManagedHooksOnly only when managed) -> test_managed;
 heartbeat (marker per tool_use_id, last.json fields, guard idle for a finished call without a marker, other sessions'
 markers, unfinished calls) -> test_heartbeat; --selftest PASS (process and in-process, hooks in any layer, empty
-matcher) -> test_selftest_pass; FAIL (no hooks, narrower matcher, no Stop, another command, hooks off, no session,
+matcher) -> test_selftest_pass; FAIL (no hooks, narrower matcher, no Stop or PreModelSwitch, another command, hooks off, no session,
 missing or stale marker, no allowed model) -> test_selftest_fail;
 client version against audited_version, status JSON version first -> test_client_version;
 redaction of e-mail addresses, UUIDs, sk-ant tokens, msg_/req_/toolu_ ids and message text in every output (hook JSON,
 report, --experiment, --selftest, status line, errors.log) -> test_redaction;
 broken input (invalid, empty, non-object and binary stdin, errors.log lines) -> test_broken_stdin; wrong payload types
-for every event -> test_wrong_types; missing, binary, truncated, non-dict and over-1-MiB transcripts, corrupt
+for every event, PreModelSwitch included -> test_wrong_types; missing, binary, truncated, non-dict and over-1-MiB transcripts, corrupt
 .claude.json, harness.json and packages.json -> test_broken_files; status line on broken status JSON and a raising or
 unimportable harness -> test_statusline_broken;
 launch.py: atis and experimentKey removed from every slot (object and list forms) and nothing else (JSON-equal, nested
@@ -95,7 +101,10 @@ test_dated_snapshot; heartbeat ids of another shape -> test_selftest_any_call_id
 at Stop -> test_stop_record; a lone surrogate, a failed write, the temporary name -> test_launch_write; /finish audit:
 the previous turn's reply at the next prompt -> test_prompt_check; provider ids in harness.json -> test_provider_ids;
 the guard's own texts never read as hide-text -> test_guard_texts_not_hide; one state folder for a worktree and its
-main checkout -> test_main_checkout; the real settings.json registers every hook event -> test_real_settings;
+main checkout -> test_main_checkout; the real settings.json registers every hook event, and (SUP32) PreCompact
+resume.py precompact, Notification notify.py on permission_prompt|idle_prompt, SessionEnd reap.py --own on exit only
+(timeout 10 to 60 s, never --scratchpads), PreModelSwitch harness.py hook without matcher, worktree.baseRef head,
+enableArtifact false and the skillOverrides -> test_real_settings;
 a subagent's last reply, written after SubagentStop, checked from the main thread (the first check after a change included), refused once per reply, re-checked against the current set, the session from the transcript -> test_subagent_end; diff review: the Stop warning names the reply by position -> test_stop_wording; an unparseable global config -> test_unparseable_config.
 
 context integrity (SUP30): block shapes (harness, custom, role and one-word names), nesting, malformed, glued and
@@ -261,7 +270,7 @@ def settings(pre='*', stop=True, post='*', **extra):
     for e in ('PostToolUse', 'PostToolUseFailure') if post is not None else ():
         hooks[e] = [{'matcher': post, 'hooks': [{'type': 'command', 'command': HOOK, 'timeout': 10}]}]
     if stop:
-        for e in ('Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart'):
+        for e in ('Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart', 'PreModelSwitch'):
             hooks[e] = [{'hooks': [{'type': 'command', 'command': HOOK, 'timeout': 10}]}]
     return {'autoCompactWindow': 400000, **({'hooks': hooks} if hooks else {}), **extra}
 
@@ -503,6 +512,11 @@ class Harness(Fixture):
         self.records(latch(ATIS2), request(), reply())
         line = self.status()
         self.assertRegex(line, r'^Opus 5\.5 · high · ctx 12k/400k · cache 1h warm to \d\d:\d\d · exp 20ad9e · 5h 12% · 7d 40% · \$1\.23$')
+        for cache, part in (({'ttl': '1h', 'warm': True, 'expires_at': 1794302068, 'misses': 3}, r'cache 1h warm to \d\d:\d\d miss 3'),
+                            ({'ttl': '5m', 'warm': True, 'misses': 1}, 'cache 5m warm miss 1'), ({'ttl': '1h', 'warm': False, 'misses': 12}, 'cache 1h cold miss 12'),
+                            ({'warm': False, 'misses': 2}, r'cache +cold miss 2'), ({'ttl': '1h', 'warm': True, 'misses': 0}, 'cache 1h warm'),
+                            ({'ttl': '1h', 'warm': False}, 'cache 1h cold')):
+            self.assertRegex(self.status(prompt_cache=cache), rf'^Opus 5\.5 · high · ctx 12k/400k · {part} · exp 20ad9e · 5h', f'misses: {cache}')
 
     def test_experiment_slot(self):
         self.gconf(slot(OPUS, 'cli', 100, ATIS, KEY), slot(OPUS, 'claude-vscode', 300, ATIS2, KEY2),
@@ -620,6 +634,66 @@ class Harness(Fixture):
         self.assertDeny(self.event(proc=False), 'the newest request model opus')
         self.records(request(model=OPUS + '[1m]'), reply(OPUS + '[1m]', OPUS))
         self.assertNoDeny(self.event(proc=False), 'a context suffix is the same model')
+
+    def test_model_switch(self):
+        how = ('To allow a model, name it in `models` of 00-Guidelines/13-Plan/packages.json, in the agent files or skill front '
+               'matter that use it, or in `models` of .claude/harness.json (CLAUDE.md, Models and Delegation).')
+        tail = ' uncached. A fresh session of the matching preset avoids it (01-prompts.md, Workflow).'
+        ids = f'{FABLE}, {HAIKU}, {OPUS}'
+        self.records(request(), reply())
+
+        def switch(proc=False, **kw):
+            return self.hook({'hook_event_name': 'PreModelSwitch', 'session_id': 's1', 'transcript_path': str(self.path)} | kw, proc=proc)
+
+        def denied(shown, listed=ids):
+            return {'hookSpecificOutput': {'hookEventName': 'PreModelSwitch', 'permissionDecision': 'deny',
+                                           'permissionDecisionReason': f'Model guard: {shown} is outside the allowed set {listed}. {how}'}}
+
+        def warm(shown, middle):
+            return {'systemMessage': f'Harness: switching to {shown} drops the warm prompt cache; the next request{middle}{tail}'}
+        for proc in (False, True):
+            for to in (OPUS, FABLE, HAIKU, OPUS + '[1m]', FABLE + '[200k]'):
+                self.assertIsNone(switch(proc, to_model=to), f'{to} is allowed; proc={proc}')
+                self.assertIsNone(switch(proc, to_model=to, prompt_cache_warm=False, context_tokens=5000), f'cold; {to}')
+            self.assertEqual(switch(proc, to_model=OLD), denied(OLD), proc)
+            self.assertEqual(switch(proc, to_model=FABLE, prompt_cache_warm=True, context_tokens=123456, estimated_cache_write_usd=1.234),
+                             warm(FABLE, ' re-sends about 123k tokens (about $1.23 to cache)'), proc)
+        for to, shown in ((SONNET, SONNET), (OPUS + '-20261101', OPUS + '-20261101'), ('opus', 'opus'), ('', ''),
+                          (OPUS + '[1m]x', OPUS + '[1m]x'), ('claude-' + 'x' * 60, ('claude-' + 'x' * 60)[:40]), (5, '5'), (True, 'True'),
+                          (None, 'None'), ([OPUS], f"['{OPUS}']"), ({'id': OPUS}, f"{{'id': '{OPUS}'}}")):
+            self.assertEqual(switch(to_model=to), denied(shown), f'off-list or not a string: {to!r}')
+            self.assertEqual(switch(to_model=to, prompt_cache_warm=True, context_tokens=9000), denied(shown), f'deny before the cache note: {to!r}')
+        self.assertEqual(switch(), denied('None'), 'to_model missing')
+        self.assertEqual(switch(to_model=OLD + '[1m]', prompt_cache_warm=True), denied(OLD + '[1m]'))
+        for kw, middle in (({}, ' re-sends the context'), ({'context_tokens': 999}, ' re-sends about 0k tokens'),
+                           ({'context_tokens': 1000}, ' re-sends about 1k tokens'), ({'estimated_cache_write_usd': 2}, ' re-sends the context (about $2.00 to cache)'),
+                           ({'context_tokens': 400000, 'estimated_cache_write_usd': 0.0}, ' re-sends about 400k tokens (about $0.00 to cache)')):
+            self.assertEqual(switch(to_model=OPUS + '[1m]', prompt_cache_warm=True, **kw), warm(OPUS + '[1m]', middle), kw)
+        for bad in (0, -5, '123456', 12.5, None, [1000], False, True):
+            self.assertEqual(switch(to_model=OPUS, prompt_cache_warm=True, context_tokens=bad), warm(OPUS, ' re-sends the context'),
+                             f'context_tokens={bad!r} is no positive int')
+        for bad in ('1.5', None, True, False, [1], {'usd': 1}, float('nan'), float('inf'), -1.0):
+            self.assertEqual(switch(to_model=OPUS, prompt_cache_warm=True, estimated_cache_write_usd=bad), warm(OPUS, ' re-sends the context'),
+                             f'estimated_cache_write_usd={bad!r} is no number')
+        for flag in (1, 'true', [True], {'warm': True}, None):
+            self.assertIsNone(switch(to_model=OPUS, prompt_cache_warm=flag, context_tokens=5000), f'prompt_cache_warm={flag!r} is not True')
+        self.wjson('.claude/harness.json', CONF | {'models': [HAIKU, OLD]})
+        self.assertIsNone(switch(to_model=OLD), 'the allowed set is re-read at every call')
+        self.assertEqual(switch(to_model=SONNET), denied(SONNET, f'{FABLE}, {HAIKU}, {OLD}, {OPUS}'))
+        self.wjson('00-Guidelines/13-Plan/packages.json', {})
+        shutil.rmtree(self.repo / '.claude/agents')
+        self.wjson('.claude/harness.json', CONF | {'models': []})
+        self.assertEqual(switch(to_model=OPUS), denied(OPUS, '(empty)'), 'no allowed model')
+        email = 'ada.lovelace@example.org'
+        self.wjson('.claude/harness.json', CONF | {'models': [HAIKU, f'team-{email}']})
+        for to, kw in ((f'claude-opus-{email}', {}), ('x' * 34 + f' {email}', {}), (f'team-{email}', {'prompt_cache_warm': True})):
+            for proc in (False, True):
+                out = json.dumps(switch(proc, to_model=to, **kw))
+                self.assertIn('<redac', out, to)
+                for s in ('ada', 'lovelace', 'example.org'):
+                    self.assertNotIn(s, out, f'{to}; proc={proc}')
+        self.assertTrue(json.dumps(switch(to_model=OLD)).count('<redacted>') >= 1, 'an e-mail address in the listed set')
+        self.assertFalse((self.state / 'errors.log').exists(), 'no internal error on any PreModelSwitch payload')
 
     def test_allowed_sources(self):
         pk = '00-Guidelines/13-Plan/packages.json'
@@ -1067,11 +1141,17 @@ class Harness(Fixture):
         self.wjson('.claude/settings.json', s)
         self.assertEqual([x for x in selftest('--session', 's1') if x.startswith('FAIL')],
                          ['FAIL a PostToolUseFailure hook for every tool runs harness.py hook (context integrity)'])
-        for e in ('Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart'):
+        for e in ('Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart', 'PreModelSwitch'):
             s = settings()
             del s['hooks'][e]
             self.wjson('.claude/settings.json', s)
-            self.assertEqual([x for x in selftest('--session', 's1') if x.startswith('FAIL')], [f'FAIL a {e} hook runs harness.py hook'], e)
+            want = 'FAIL a PreModelSwitch hook for every model runs harness.py hook' if e == 'PreModelSwitch' else f'FAIL a {e} hook runs harness.py hook'
+            self.assertEqual([x for x in selftest('--session', 's1') if x.startswith('FAIL')], [want], e)
+        s = settings()
+        s['hooks']['PreModelSwitch'][0]['matcher'] = OPUS  # an off-list target with a canonical name would never reach the deny
+        self.wjson('.claude/settings.json', s)
+        self.assertEqual([x for x in selftest('--session', 's1') if x.startswith('FAIL')],
+                         ['FAIL a PreModelSwitch hook for every model runs harness.py hook'], 'a narrowed PreModelSwitch matcher')
         other = settings()
         other['hooks']['PreToolUse'][0]['hooks'][0]['command'] = 'python3 other.py hook'
         self.wjson('.claude/settings.json', other)
@@ -1172,7 +1252,7 @@ class Harness(Fixture):
                     {'transcript_path': ''}, {'session_id': ['s1']}, {'session_id': 7}, {'session_id': None}, {'tool_use_id': ['x']},
                     {'tool_use_id': 9}, {'agent_id': ['a']}, {'agent_id': 5}, {'agent_transcript_path': 5}, {'hook_event_name': ['PreToolUse']},
                     {'hook_event_name': 3}]
-        for ev in ('PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart'):
+        for ev in ('PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart', 'PreModelSwitch'):
             for v in variants:
                 out = self.hook(base | {'hook_event_name': ev} | v, proc=False)
                 self.assertTrue(out is None or set(out) <= {'systemMessage', 'continue', 'stopReason', 'hookSpecificOutput'}, (ev, v, out))
@@ -1217,6 +1297,10 @@ class Harness(Fixture):
                      {'workspace': 'x'}, {'context_window': {'current_usage': {'input_tokens': 'x'}}}, {'prompt_cache': 'warm'},
                      {'rate_limits': [1]}, {'cost': 'x'}, {'effort': {'level': 5}}, {'transcript_path': str(self.tmp / 'nowhere.jsonl')}):
             self.status(**over)
+        for bad in (True, False, -1, '3', 2.0, None, [3], {'n': 3}):  # `miss N` only for an int (no bool) above 0
+            line = self.status(prompt_cache={'ttl': '1h', 'warm': False, 'misses': bad})
+            self.assertIn(' · cache 1h cold · ', line, f'misses={bad!r}')
+            self.assertNotIn('miss', line, f'misses={bad!r}')
         for body in ('def status(d):\n    raise RuntimeError("boom")\n', 'def status(d:\n'):
             stub = self.tmp / 'stub'
             self.write('statusline.py', (HOOKS / 'statusline.py').read_text(), stub)
@@ -1576,9 +1660,30 @@ class Harness(Fixture):
         ls = [('project settings', s)]
         self.assertTrue(self.mod.registered(ls, 'PreToolUse', every=True))
         self.assertTrue(self.mod.registered(ls, 'PostToolUse', every=True) and self.mod.registered(ls, 'PostToolUseFailure', every=True))
-        for e in ('Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart'):
+        for e in ('Stop', 'SubagentStop', 'UserPromptSubmit', 'SessionStart', 'PreModelSwitch'):
             self.assertTrue(self.mod.registered(ls, e), e)
         self.assertEqual(self.mod.hooks_off(ls), [])
+        run = 'python3 "$CLAUDE_PROJECT_DIR/'
+        entries = {e: [(g.get('matcher'), h.get('command'), h.get('timeout')) for g in s['hooks'].get(e, []) for h in g['hooks']]
+                   for e in ('PreCompact', 'Notification', 'SessionEnd', 'PreModelSwitch')}
+        for e, matcher, cmd in (('PreCompact', None, run + '.claude/hooks/resume.py" precompact'),
+                                ('Notification', 'permission_prompt|idle_prompt', run + '.claude/hooks/notify.py"'),
+                                ('SessionEnd', 'prompt_input_exit|logout|other', run + '.claude/skills/reap/reap.py" --own'),
+                                ('PreModelSwitch', None, run + '.claude/hooks/harness.py" hook')):
+            self.assertIn((matcher, cmd), [x[:2] for x in entries[e]], e)
+            self.assertTrue((ROOT / cmd.split('/', 1)[1].split('"')[0]).is_file(), cmd)
+        reap = [t for _, c, t in entries['SessionEnd'] if 'reap.py' in c]
+        self.assertEqual(len(reap), 1, entries['SessionEnd'])
+        self.assertTrue(isinstance(reap[0], int) and 10 <= reap[0] <= 60, f'SessionEnd reap timeout {reap[0]!r} (10 to 60 s)')
+        self.assertFalse([c for _, c, _ in entries['SessionEnd'] if '--scratchpads' in c], 'SessionEnd never reaps scratchpads')
+        self.assertFalse([m for m, _, _ in entries['SessionEnd'] if m is None or {'clear', 'resume'} & set(m.split('|'))],
+                         'SessionEnd reaps on exit only, never on /clear or resume')
+        self.assertEqual(s.get('worktree'), {'baseRef': 'head'})
+        self.assertIs(s.get('enableArtifact'), False)
+        over = s.get('skillOverrides')
+        self.assertIsInstance(over, dict)
+        self.assertEqual(sorted(over.values()).count('user-invocable-only'), 10, over)
+        self.assertEqual({k: v for k, v in over.items() if v != 'user-invocable-only'}, {'workflow-authoring': 'on', 'update-config': 'on'})
 
     def test_subagent_end(self):
         sub = self.path.with_suffix('') / 'subagents/agent-a1.jsonl'

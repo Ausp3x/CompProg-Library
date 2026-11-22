@@ -1825,7 +1825,7 @@ class MergePR(Base):
         self.assertFalse((self.main / '.claude/merge-pr/7').exists(), info)
         lines = r.stdout.splitlines()
         i = lines.index(f'Landed #7 on master at {head[:12]}. For the user to run:')
-        self.assertEqual(lines[i + 1:], ['  git push origin master',
+        self.assertEqual(lines[i + 1:], ['  CP_USER=1 git push origin master',
                                          f'  gh pr close 7 --repo {REPO} --comment "Landed on master as {head[:12]} (rebased onto master)."'], info)
         self.assertEqual(self.remote_refs(), before, 'land pushed')
         self.assertEqual(self.calls(), [view], 'land asks gh exactly once, for state and head')

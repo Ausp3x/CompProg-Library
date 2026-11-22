@@ -2,7 +2,8 @@
 """Submit expanded Library Checker sources as the maintainer and record each acceptance in its source (06-online.md).
 
 The maintainer runs this, never Claude: `.claude/hooks/shell.py` refuses it for Claude's shell (01-principles.md,
-Scope discipline; user decision 2026-11-15).
+Scope discipline; user decision 2026-11-15), and this script refuses any shell Claude Code started unless CP_USER=1 is set
+(`shell.py`, claude_shell(); typed with `!` inside a session: `! CP_USER=1 python3 '97-Online Testing/04-submit.py'`).
 
   04-submit.py login           sign in once: email and password are prompted and never stored; the refresh token goes to
                                ~/.config/compprog/yosupo.json (mode 0600; CP_SUBMIT_CONFIG overrides)
@@ -271,7 +272,17 @@ def submit(words, lang='cpp', yes=False, ask=input):
     return failed
 
 
+def claude_shell():
+    spec = importlib.util.spec_from_file_location('shell_hook', LIBRARY / '.claude/hooks/shell.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.claude_shell()
+
+
 def main(argv=None):
+    if claude_shell():
+        raise SystemExit("04-submit.py refused: this shell was started by Claude Code, and submitting is the user's "
+                         "(01-principles.md, Scope Discipline). Typed yourself with `!`? Prefix CP_USER=1.")
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('select', nargs='*', help='login, list, or what to submit (see above)')
     parser.add_argument('--lang', default='cpp', help='judge language id (default cpp: C++23)')

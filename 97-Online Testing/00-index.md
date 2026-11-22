@@ -12,7 +12,7 @@ python3 "/path/to/library/97-Online Testing/01-expander.py"
 
 It bundles through [`10-grab.py`](<../09-Contest Testing/10-grab.py>); measured bundle sizes are in [00-extraction.md](<../96-Local Testing/Docs/00-extraction.md>). Without libclang grab inlines whole headers and says so. `--bundler oj-bundle` (or a path to it) runs `oj-bundle` with a per-file timeout of 120 seconds (`--timeout`); install it with `python -m pip install online-judge-verify-helper`. Generated files that were modified by hand are never overwritten or deleted. Python sources may stay standalone under `src/`; the expander reports them and bundles C++ only.
 
-`04-submit.py` is the maintainer's submission tool: `python3 '97-Online Testing/04-submit.py' login` once, `list` for every Yosupo source with its state, and `python3 '97-Online Testing/04-submit.py' <selection>` to submit; with no selection it lists and asks. Evidence: [judge sources](Docs/00-judge-sources.md).
+`04-submit.py` is the maintainer's submission tool: `python3 '97-Online Testing/04-submit.py' login` once, `list` for every Yosupo source with its state, and `python3 '97-Online Testing/04-submit.py' <selection>` to submit; with no selection it lists and asks. It refuses the shells Claude Code starts, so a `!` command inside a session prefixes `CP_USER=1` ([CLAUDE.md](../CLAUDE.md), Git). Evidence: [judge sources](Docs/00-judge-sources.md).
 
 `03-workspace.py` regenerates `99-Workspace/template.cpp`; `--check` prints a diff and exits nonzero when the snapshot is stale. Evidence: [workspace verification](Docs/00-workspace-verification.md).
 

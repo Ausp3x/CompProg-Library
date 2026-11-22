@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Status line: model, effort, context against the auto-compact window, prompt cache, the experiment id, plan usage,
-session cost (a list-price estimate), `audit N new` while the weekly audit has unreviewed findings, and the harness
-warnings of harness.py, which also keeps the plan usage for the audit's canary. Reads Claude Code's status JSON on
-stdin; a missing field is left out."""
+"""Status line: model, effort, context against the auto-compact window, prompt cache (`miss N` once it has missed), the
+experiment id, plan usage, session cost (a list-price estimate), `audit N new` while the weekly audit has unreviewed
+findings, and the harness warnings of harness.py, which also keeps the plan usage for the audit's canary. Reads Claude
+Code's status JSON on stdin; a missing field is left out."""
 import datetime
 import json
 import sys
@@ -44,7 +44,8 @@ def main():
     cache = d.get('prompt_cache') or {}
     if cache:
         until = clock(cache.get('expires_at'))
-        parts.append(f'cache {cache.get("ttl") or ""} ' + (('warm to ' + until if until else 'warm') if cache.get('warm') else 'cold'))
+        parts.append(f'cache {cache.get("ttl") or ""} ' + (('warm to ' + until if until else 'warm') if cache.get('warm') else 'cold')
+                     + (f' miss {cache["misses"]}' if type(cache.get('misses')) is int and cache['misses'] > 0 else ''))
     try:
         import harness
         exp, warnings = harness.status(d)

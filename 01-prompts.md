@@ -7,9 +7,10 @@ How to run the work on this library; the package list below is rendered by `plan
 Start one fresh session per task with the preset of its work:
 
 - Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort high` (the brief prints the command)
-- Everything else, sweeps included: `claude --agent contest-session --effort high`
+- Everything else: `claude --agent contest-session --effort high`
+- `/tidy`, `/duplicate-sweep` and `/omission-sweep` pin Opus and `/speed-sweep` Fable in their front matter: start each in a fresh session of the matching preset (contest-session, or core-session for `/speed-sweep`), since a skill whose model differs from the session's makes that turn re-read the whole context uncached (user decision 2026-11-19).
 - To start without the cached experiment ids (user decision 2026-11-11), put `python3 .claude/launch.py` in place of `claude` in either command ([00-harness-audit.md](00-Guidelines/13-Plan/Docs/00-harness-audit.md), Launcher).
-- Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from `origin/master` by default (`worktree.baseRef`), so push `master` before launching them. Only one session at a time is in a testing or mutation step (`/package` steps 5 and 6, `/finish` step 5); the others implement, document or wait (user decision 2026-11-12, `00-Guidelines/10-decisions.md`).
+- Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from the local `HEAD` (`worktree.baseRef: "head"` in `.claude/settings.json`), so unpushed commits on `master` carry over. Only one session at a time is in a testing or mutation step (`/package` steps 5 and 6, `/finish` step 5); the others implement, document or wait (user decision 2026-11-12, `00-Guidelines/10-decisions.md`).
 - Packages with several batches run one batch per session under its batch id (`/package`, Batches); `/package Pxxx` names the next one.
 - Contributors (`CLAUDE.md`, Git) claim a package before `/package` with the commands its brief prints.
 
@@ -60,7 +61,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P275 — SUP26** (opus, L): Duplicate re-review under the 2026-11-08 One API rule.
 - [x] **P276 — SUP27** (opus, L): Operation-name renames under the 2026-11-08 vocabulary.
 - [x] **P287 — SUP28, SUP29, SUP30** (opus, XL): Harness audit: model guard, experiment ids, weekly scan.
-- [ ] **P289 — SUP32, SUP33, SUP34** (opus, XL): Harness review: settings, hooks, scripts, measurements. Status: planned.
+- [ ] **P289 — SUP32, SUP33, SUP34** (opus, XL): Harness review: settings, hooks, scripts, measurements. Status: in-progress. Note: SUP32 verified 2026-11-23 and landed (all nine items; evidence 00-Guidelines/13-Plan/Docs/00-harness-review.md, live-check limits there). Next batch: SUP33. SUP34 open. [evidence](00-Guidelines/13-Plan/Docs/00-harness-review.md)
 
 ### Core full types
 

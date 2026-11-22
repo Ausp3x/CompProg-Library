@@ -425,9 +425,11 @@
       "phase": "Foundations re-audit",
       "size": "XL",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "status": "in-progress",
+      "evidence": [
+        "00-Guidelines/13-Plan/Docs/00-harness-review.md"
+      ],
+      "note": "SUP32 verified 2026-11-23 and landed (all nine items; evidence 00-Guidelines/13-Plan/Docs/00-harness-review.md, live-check limits there). Next batch: SUP33. SUP34 open."
     },
     {
       "id": "P025",

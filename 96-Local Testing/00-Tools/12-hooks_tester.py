@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Checks for .claude/hooks/shell.py (the Bash pre/post hook) and the validator entry of .claude/hooks/consistency.py.
+"""Checks for .claude/hooks/shell.py (the Bash pre/post hook), the validator entry of .claude/hooks/consistency.py, and
+(SUP32) the PreCompact mode of .claude/hooks/resume.py and the Notification hook .claude/hooks/notify.py.
 
 Every case runs copies of both hooks in a temporary `git init` repository with a stub `96-Local Testing/03-consistency.py`
 (logs each run to HOOK_LOG; fails with the lines of HOOK_FAIL when that file exists) and a stub
 `97-Online Testing/03-workspace.py` (`--check` passes only for template.cpp reading 'generated'). A "command" is
 `shell.py pre`, then file operations done here, then `shell.py post`, with the same tool_use_id. The real repository is
-only read (its .claude/settings.json).
+only read (its .claude/settings.json). resume.py runs as a copy in the same repository beside a stub
+.claude/skills/finish/gaps.py whose target(root, arg='') has the real return shape (key, package dict, batch ids,
+warning) over the fixed ids SUP32 (a batch of P900), P900 and P018, a batch id winning, arg before the branch name;
+notify.py runs as a copy with a fake notify-send first on PATH that logs its argv (NOTIFY_EXIT, NOTIFY_SLEEP), or is
+imported for its macOS and Windows argv.
 quick: every fixed case. full: quick plus 40 seeded random rounds of 6 commands over random writes, deletions,
 restores, new files, staging and commits, with outside changes between commands. stress: full with --rounds rounds
 (default 300). Modes/seeds also come from CP_TEST_MODE/CP_TEST_SEED.
@@ -38,6 +43,11 @@ bodies (quoted, <<- with tabs, two on one line), other git subcommands and unpar
 04-submit.py refused by pre without a snapshot when run directly or through python/pypy (versioned, by path, with options
 and -X/-W values between, after separators, prefixes and assignments); reading, staging, compiling or testing it, other
 scripts, quoted text and heredoc bodies allowed -> test_submit;
+the pre-push hook through real pushes to a bare remote (plain, `sh -c` and variable forms): refused with
+CLAUDE_CODE_CHILD_SESSION=1 unless CP_USER=1, allowed outside it, with CLAUDECODE alone or another CP_USER value refused,
+the remote untouched by refusals; pre, for Bash and Monitor, refuses commands naming CP_USER, CLAUDE_CODE_CHILD_SESSION,
+--no-verify or a core.hooksPath value (also quoted, heredoc, git config environment), not longer names or a read of the
+key; pushes after env and sudo options; a Monitor call gets no snapshot -> test_pre_push;
 the real settings wire shell.py pre/post to Bash beside guard.py, and consistency.py to PostToolBatch only -> test_settings;
 random command sequences against the oracle -> test_random;
 shell.py commit through the real .claude/githooks/pre-commit as git runs it (core.hooksPath absolute): staged OLD/ and
@@ -49,9 +59,36 @@ checkout; a /merge-pr worktree (.claude/worktrees/PR<N>) gets the path rules onl
 runs; an internal error refuses -> test_commit, test_commit_worktrees, test_commit_error; shell.py range <base> (the CI
 path check) over commits made without the hook: protected changes named with exit 1, an excerpt deletion and other
 paths exit 0, the CI workflow calls it -> test_range; random staging and commits
-against a model of HEAD, index and working tree -> test_commit_random.
+against a model of HEAD, index and working tree -> test_commit_random;
+resume.py precompact (expected lines written here from the hook's specification): the target from the newest typed
+/package, /prune or /finish command (first argument; /finish without one keeps the earlier target), never from tool
+results, user text blocks, assistant text, system or attachment records quoting one, a broken line or other commands;
+else from the branch name, with no skill line; the skill line; the /finish ledger line (not written yet, existing, the
+typed target's and the branch's both, an existing ledger without a package, none without either); the payload's cwd,
+else the working directory; the 9000-character cap; exit 0 and no stderr on garbage, empty, binary, non-object and
+wrong-typed stdin; the compact mode reading the same target and ledger -> test_precompact;
+notify.py: title from the newest custom-title record (compact or spaced JSON, escapes, whitespace stripped), not from a
+tool result quoting one, nor from one before the transcript's last MiB; fallback '<checkout folder> (<branch>)' for a
+missing, title-less or wrong-typed transcript, a subfolder, another branch, detached HEAD (folder only), a non-git
+folder, a missing or wrong-typed cwd (the working directory); why-text per notification_type with and without message;
+header and body cuts at 120 and 300 characters; garbage stdin still notifies 'needs attention'; no notify-send on PATH,
+notify-send failing or hanging -> exit 0, no output -> test_notify; in VS Code's terminal on Linux (fake notify-send
+answering --help with NOTIFY_HELP, held by NOTIFY_GATE, logging its session id, writing NOTIFY_TOKEN to the token fd and
+printing NOTIFY_ACTION; fake code logging its argv, token variables and which session variables reached it), the hook
+returns before the helper notifies, the helper runs in its own session with a default action, a click runs code on the
+deepest open window folder of storage.json holding cwd (deeper listed first or last, a percent-encoded space, a
+sibling sharing a name prefix; unreadable or odd storage: the main checkout, also from a linked worktree), with the
+token, none, or without the fd option on an older notify-send, stale token and session variables dropped
+(VSCODE_IPC_HOOK_CLI kept), a dismissal runs nothing; outside VS Code, without code or without --action the plain
+notification -> test_notify_click; command() with stubbed notifiers: macOS terminal-notifier with and without the
+`open -b` click, osascript without one, none; WSL and Windows PowerShell toasts decoded (protocol launch URI with distro
+and quoting, an ASCII-only XML literal without quote marks for any title, no click without focus or distro), the fixed
+powershell.exe path from WSL, no PowerShell; detect() on WSL kernels and variables; the helper giving up after WAIT
+-> test_notify_platforms.
 """
 import argparse
+import base64
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -61,7 +98,10 @@ import subprocess
 import sys
 import tempfile
 import time
+import types
 import unittest
+import unittest.mock
+from urllib.parse import quote
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
 
@@ -86,6 +126,57 @@ WORKSPACE = '''import pathlib, sys
 p = pathlib.Path(__file__).resolve().parents[1] / '99-Workspace/template.cpp'
 sys.exit(0 if sys.argv[1:] == ['--check'] and p.is_file() and p.read_text() == 'generated\\n' else 1)
 '''
+GAPS = '''import re, subprocess
+BATCHES, PACKAGES = {'SUP32': 'P900'}, ('P900', 'P018')
+
+
+def target(root, arg=''):
+    """The real return shape: (key, package dict, batch ids, warning when arg names no package); a batch id wins, arg before the branch."""
+    branch = subprocess.run(['git', 'branch', '--show-current'], cwd=root, capture_output=True, text=True).stdout.strip()
+
+    def find(name):
+        tokens = [t.upper() for t in re.findall(r'[A-Za-z]+\\d+', name)]
+        batch = next((t for t in tokens if t in BATCHES), None)
+        return batch, BATCHES[batch] if batch else next((t for t in tokens if t in PACKAGES), None)
+    batch, pid = find(arg)
+    warning = f'no package or batch id in "{arg}": the branch and worktree names decide' if arg and not pid else ''
+    if not pid:
+        batch, pid = find(branch + ' ' + root.name)
+    key = batch or pid or re.sub(r'[^\\w.-]', '_', branch or 'detached')
+    pkg = {'id': pid, 'batches': [b for b, p in BATCHES.items() if p == pid]} if pid else None
+    return key, pkg, [batch] if batch else pkg['batches'] if pkg else [], warning
+'''
+FAKE_NOTIFY = '''#!/bin/sh
+if [ "$1" = --help ]; then printf '%s\\n' "${NOTIFY_HELP---action --activation-token-fd}"; exit 0; fi
+i=0
+while [ -n "$NOTIFY_GATE" ] && [ ! -e "$NOTIFY_GATE" ] && [ $i -lt 400 ]; do sleep 0.05; i=$((i + 1)); done
+printf '%s\\0' "$@" >> "$NOTIFY_LOG"
+printf '\\036' >> "$NOTIFY_LOG"
+[ -n "$NOTIFY_SID" ] && ps -o sid= -p $$ | tr -d ' ' > "$NOTIFY_SID"
+[ -n "$NOTIFY_SLEEP" ] && exec sleep "$NOTIFY_SLEEP"
+for a; do case $a in --activation-token-fd=*) eval "printf '%s' \\"\\$NOTIFY_TOKEN\\" >&${a#*=}";; esac; done
+case " $* " in *" --action=default=Open "*) printf '%s\\n' "${NOTIFY_ACTION-default}";; esac
+exit "${NOTIFY_EXIT:-0}"
+'''
+FAKE_CODE = '''#!/bin/sh
+{
+printf '%s\\0' "$@" "token=$XDG_ACTIVATION_TOKEN" "startup=$DESKTOP_STARTUP_ID"
+for v in CLAUDECODE CLAUDE_PID CP_USER AI_AGENT VSCODE_GIT_IPC_HANDLE VSCODE_IPC_HOOK_CLI; do eval "[ -n \\"\\${$v+x}\\" ]" && printf '%s\\0' $v; done
+} > "$CODE_LOG.part"
+mv "$CODE_LOG.part" "$CODE_LOG"
+'''
+TOOLS = ('git', 'mv', 'ps', 'tr', 'sleep')  # what the fakes and notify.py run besides themselves, without the real code
+SESSION_VARS = {v: 'x' for v in ('CLAUDECODE', 'CLAUDE_PID', 'CP_USER', 'AI_AGENT', 'VSCODE_GIT_IPC_HANDLE', 'VSCODE_IPC_HOOK_CLI')}
+PRE_HEAD = 'Compaction instructions from .claude/hooks/resume.py (CLAUDE.md, Compact Instructions).'
+PRE_KEEP = ('Keep the package or batch id, the skill and step in progress, decisions made and by whom, operations done and '
+            'remaining, failing reproducers with seeds, and the exact next step. Drop file contents, passing test output and '
+            'superseded attempts.')
+
+
+def typed(skill, args=''):
+    """A user record of a typed slash command, as Claude Code writes it."""
+    return {'type': 'user', 'message': {'role': 'user', 'content': f'<command-message>{skill}</command-message>\n'
+                                        f'<command-name>/{skill}</command-name>\n<command-args>{args}</command-args>'}}
 
 
 def git(root, *args):
@@ -121,9 +212,9 @@ class Hooks(unittest.TestCase):
         git(self.repo, 'config', 'user.email', 't@example.invalid')
         git(self.repo, 'add', '-A')
         git(self.repo, 'commit', '-q', '-m', 'init')
-        self.log, self.fail = self.tmp / 'log', self.tmp / 'fail'
+        self.log, self.fail_file = self.tmp / 'log', self.tmp / 'fail'
         self.env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')} | {
-            'HOOK_LOG': str(self.log), 'HOOK_FAIL': str(self.fail), 'GIT_CONFIG_GLOBAL': os.devnull, 'GIT_CONFIG_NOSYSTEM': '1'}
+            'HOOK_LOG': str(self.log), 'HOOK_FAIL': str(self.fail_file), 'GIT_CONFIG_GLOBAL': os.devnull, 'GIT_CONFIG_NOSYSTEM': '1'}
         self.n = 0
 
     def tearDown(self):
@@ -210,14 +301,14 @@ class Hooks(unittest.TestCase):
             self.assertEqual(self.command(self.edit(rel, 'v1\n')), (None, True), rel)
         for rel in ('tools/t.py', 'notes.txt', '05-M/x.cpp'):
             self.assertEqual(self.command(self.edit(rel, 'v1\n')), (None, False), rel)
-        self.fail.write_text('Missing row: x\nBad link: y\n')
+        self.fail_file.write_text('Missing row: x\nBad link: y\n')
         out, ran = self.command(self.edit('05-M/00-index.md', 'v2\n'))
         self.assertTrue(ran)
         self.assertEqual(out, {'hookSpecificOutput': {'hookEventName': 'PostToolUse',
                                                       'additionalContext': 'Consistency validator FAILED:\nMissing row: x\nBad link: y'}})
 
     def test_block_and_context(self):
-        self.fail.write_text('E\n')
+        self.fail_file.write_text('E\n')
         out, ran = self.command(self.edit('OLD/a.cpp', 'c\n'), self.edit('05-M/00-index.md', 'c\n'))
         self.assertTrue(ran and self.blocked(out))
         self.assertEqual(out['hookSpecificOutput']['additionalContext'], 'Consistency validator FAILED:\nE')
@@ -314,7 +405,7 @@ class Hooks(unittest.TestCase):
             self.assertEqual(runs(payload, out=notice), 0, payload)
         for raw in ('', '[', '{"tool_calls": [', 'not json'):  # unreadable input: silent
             self.assertEqual(runs(raw=raw), 0, raw)
-        self.fail.write_text('F\n')
+        self.fail_file.write_text('F\n')
         self.assertEqual(self.hook('consistency.py', payload=batch(('Edit', 'notes.txt'), ('Edit', '05-M/00-index.md'))),
                          {'hookSpecificOutput': {'hookEventName': 'PostToolBatch', 'additionalContext': 'Consistency validator FAILED:\nF'}})
 
@@ -342,7 +433,7 @@ class Hooks(unittest.TestCase):
     def test_submit(self):
         deny = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
                                        "Submitting is the user's (01-principles.md, Scope Discipline): ask them to run 04-submit.py themselves, "
-                                       "for example with `! python3 '97-Online Testing/04-submit.py'`."}}
+                                       "for example with `! CP_USER=1 python3 '97-Online Testing/04-submit.py'`."}}
         state = self.repo / '.claude/hooks/.state'
         script = "'97-Online Testing/04-submit.py'"
         for cmd in (f'python3 {script}', f'python3 {script} list', f'python3 -I -u {script} all --yes', f'python3 -X dev {script}',
@@ -359,10 +450,391 @@ class Hooks(unittest.TestCase):
             self.assertIsNone(self.hook('shell.py', 'pre', payload=payload), cmd)
             self.assertIsNone(self.hook('shell.py', 'post', payload=payload), cmd)
 
+    def test_pre_push(self):
+        """The pre-push hook (`shell.py push`) end to end through git, and `pre` on commands naming CP_USER (SUP32)."""
+        self.write('.claude/githooks/pre-push', (ROOT / '.claude/githooks/pre-push').read_text())
+        (self.repo / '.claude/githooks/pre-push').chmod(0o755)
+        git(self.repo, 'config', 'core.hooksPath', str(self.repo / '.claude/githooks'))
+        remote = self.tmp / 'remote.git'
+        subprocess.run(['git', 'init', '-q', '--bare', str(remote)], check=True, capture_output=True)
+        base = {k: v for k, v in self.env.items() if k not in ('CLAUDE_CODE_CHILD_SESSION', 'CP_USER', 'CLAUDECODE')}
+        refused = ("Push refused by .claude/githooks/pre-push: this shell was started by Claude Code, and pushing is the user's "
+                   '(CLAUDE.md, Git). Typed yourself with `!`? Run it as `CP_USER=1 git push ...`.\n')
+        forms = (['git', 'push'], ['sh', '-c', 'git push "$@"', 'sh'], ['sh', '-c', 'g=git; $g push "$@"', 'sh'])
+        cases = (({}, True), ({'CLAUDE_CODE_CHILD_SESSION': '1'}, False), ({'CLAUDE_CODE_CHILD_SESSION': '1', 'CP_USER': '1'}, True),
+                 ({'CLAUDE_CODE_CHILD_SESSION': '0'}, True), ({'CLAUDE_CODE_CHILD_SESSION': '1', 'CP_USER': '0'}, False),
+                 ({'CLAUDE_CODE_CHILD_SESSION': '1', 'CP_USER': ''}, False), ({'CLAUDECODE': '1'}, True))
+        expect = set()
+        for n, (extra, ok) in enumerate(cases):
+            for k, form in enumerate(forms):
+                ref = f'b{n}-{k}'
+                r = subprocess.run([*form, '-q', str(remote), f'HEAD:refs/heads/{ref}'], cwd=self.repo, env=base | extra,
+                                   capture_output=True, text=True, timeout=60)
+                self.assertEqual(r.returncode == 0, ok, (extra, form, r.stderr))
+                self.assertEqual(r.stderr.startswith(refused), not ok, (extra, form, r.stderr))
+                expect |= {ref} if ok else set()
+        have = set(git(self.repo, '-C', str(remote), 'for-each-ref', '--format=%(refname:short)').split())
+        self.assertEqual(have, expect, 'refused pushes leave the remote untouched')
+        def deny(text):
+            return {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
+                    f'This command names {text!r}, which would get past the push and submit guards or the git hooks (CLAUDE.md, Git '
+                    "and Start Here): pushing and submitting are the user's, and the hooks are never bypassed. Read, search or edit "
+                    'such text with the Read, Grep or Edit tools.'}}
+        bypass = (('CP_USER=1 git status', 'CP_USER'), ('export CP_USER=1', 'CP_USER'), ('echo $CP_USER', 'CP_USER'),
+                  ("sh -c 'CP_USER=1 git push'", 'CP_USER'), ('env CP_USER=1 make', 'CP_USER'), ("cat <<'EOF'\nCP_USER\nEOF", 'CP_USER'),
+                  ('env -u CLAUDE_CODE_CHILD_SESSION git status', 'CLAUDE_CODE_CHILD_SESSION'),
+                  ("sh -c 'unset CLAUDE_CODE_CHILD_SESSION; ls'", 'CLAUDE_CODE_CHILD_SESSION'),
+                  ('git commit -q --no-verify -m x', '--no-verify'), ("sh -c 'git push --no-verify o b'", '--no-verify'),
+                  ('git -c core.hooksPath=/x push', 'core.hooksPath='), ("sh -c 'git -c core.hookspath = /x push'", 'core.hookspath ='),
+                  ('git config core.hooksPath /x', 'core.hooksPath /'), ("GIT_CONFIG_PARAMETERS=\"'core.hooksPath'='/x'\" ls", "core.hooksPath'="),
+                  ('GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/x ls', 'core.hooksPath G'),
+                  ('git config --unset core.hooksPath', '--unset core.hooksPath'), ('git config unset core.hookspath', 'unset core.hookspath'),
+                  ('git config --unset-all core.hooksPath', '--unset-all core.hooksPath'), ('git config --remove-section core', '--remove-section core'),
+                  ("env -i sh -c 'git push o b'", 'env -i'), ('env -u X -i git status', 'env -u X -i'), ('env --ignore-environment ls', 'env --ignore-environment'),
+                  ('env - PATH=/bin sh', 'env -'), ('env A=1 -i ls', 'env A=1 -i'), ('env -i git' + ' push', 'env -i'))
+        for tool in ('Bash', 'Monitor'):
+            for cmd, text in bypass:
+                payload = {'session_id': 's', 'tool_use_id': 'toolu_u', 'tool_name': tool, 'tool_input': {'command': cmd}}
+                self.assertEqual(self.hook('shell.py', 'pre', payload=payload), deny(text), (tool, cmd))
+                self.assertFalse((self.repo / '.claude/hooks/.state/toolu_u.json').exists(), cmd)
+        for cmd in ('echo CP_USERS', 'echo XCP_USER', 'echo MY_CP_USER_2', 'git config core.hooksPath', 'git config --get core.hooksPath; ls',
+                    'echo --no-verifyx', 'echo CLAUDE_CODE_CHILD_SESSIONS', 'env A=1 grep -i x f', 'environ -i', 'env -u X ls',
+                    'git config --get-regexp core'):
+            payload = {'session_id': 's', 'tool_use_id': 'toolu_v', 'tool_name': 'Bash', 'tool_input': {'command': cmd}}
+            self.assertIsNone(self.hook('shell.py', 'pre', payload=payload), cmd)
+            self.assertIsNone(self.hook('shell.py', 'post', payload=payload), cmd)
+        push = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
+                                       "Pushing is the user's (CLAUDE.md, Git): print the push command for them to run instead."}}
+        git_push = 'git' + ' push'
+        for cmd in ('env -u X ' + git_push, 'env A=1 ' + git_push + ' o b', 'sudo -u root ' + git_push,
+                    'time -p ' + git_push, 'env --unset=X ' + git_push, 'env -C /tmp ' + git_push):
+            for tool in ('Bash', 'Monitor'):
+                payload = {'session_id': 's', 'tool_use_id': 'toolu_w', 'tool_name': tool, 'tool_input': {'command': cmd}}
+                self.assertEqual(self.hook('shell.py', 'pre', payload=payload), push, (tool, cmd))
+        payload = {'session_id': 's', 'tool_use_id': 'toolu_m', 'tool_name': 'Monitor', 'tool_input': {'command': 'tail -f log'}}
+        self.assertIsNone(self.hook('shell.py', 'pre', payload=payload))
+        self.assertFalse((self.repo / '.claude/hooks/.state/toolu_m.json').exists(), 'Monitor gets no snapshot: post runs for Bash only')
+
+    def script(self, name, *args, raw='', cwd=None, env=None):
+        """(exit code, stdout, stderr) of a hook copy run with raw on stdin."""
+        r = subprocess.run([sys.executable, str(self.repo / '.claude/hooks' / name), *args], input=raw.encode() if isinstance(raw, str) else raw,
+                           capture_output=True, cwd=cwd or self.repo, env=env or self.env, timeout=60)
+        return r.returncode, r.stdout.decode(), r.stderr.decode()
+
+    def transcript(self, *recs, extra=b''):
+        p = self.tmp / 'session.jsonl'
+        p.write_bytes(''.join(json.dumps(r) + '\n' for r in recs).encode() + extra)
+        return p
+
+    def precompact(self, path, **extra):
+        payload = {'session_id': 's1', 'hook_event_name': 'PreCompact', 'trigger': 'auto', 'custom_instructions': '',
+                   'cwd': str(self.repo), 'transcript_path': str(path)} | extra
+        rc, out, err = self.script('resume.py', 'precompact', raw=json.dumps(payload), cwd=self.tmp)
+        self.assertEqual((rc, err), (0, ''), payload)
+        return out
+
+    def test_precompact(self):
+        self.write('.claude/hooks/resume.py', (HOOKS / 'resume.py').read_text())
+        self.write('.claude/skills/finish/gaps.py', GAPS)
+        step = 'Skill in progress: /{}. State the number of its step in progress and the exact next step.'.format
+        sup, p018 = 'Target: SUP32 (package P900, from the typed command /package SUP32).', '/finish ledger: .claude/finish/P018.txt, not written yet.'
+
+        def want(*middle):
+            return '\n'.join([PRE_HEAD, *middle, PRE_KEEP])
+        quote = '<command-name>/prune</command-name>\n<command-args>P018</command-args>'
+        quoted = [{'type': 'user', 'message': {'role': 'user', 'content': [{'type': 'tool_result', 'tool_use_id': 'toolu_1', 'content': quote}]}},
+                  {'type': 'user', 'message': {'role': 'user', 'content': [{'type': 'text', 'text': quote}]}},
+                  {'type': 'assistant', 'message': {'content': [{'type': 'text', 'text': quote}]}}, {'type': 'system', 'content': quote},
+                  {'type': 'attachment', 'attachment': {'type': 'text', 'content': quote}}, {'type': 'assistant', 'message': {'content': quote}}]
+        p = self.transcript({'type': 'summary', 'summary': 'x'}, typed('package', 'SUP32'), *quoted,
+                            extra=b'{"type": "user", "message": {"content": "<command-name>/prune</command-name><command-args>P018</command-args>"\n')
+        self.assertEqual(self.precompact(p), want(sup, step('package'), '/finish ledger: .claude/finish/SUP32.txt, not written yet.'),
+                         'typed /package SUP32; quoted commands and a broken line do not count')
+        self.write('.claude/finish/SUP32.txt', 'a | open\nb | fixed\n')
+        have = '/finish ledger: .claude/finish/SUP32.txt (its rows hold the state).'
+        self.assertEqual(self.precompact(p), want(sup, step('package'), have))
+        rc, out, err = self.script('resume.py', 'compact', raw=json.dumps({'cwd': str(self.repo), 'transcript_path': str(p)}), cwd=self.tmp)
+        self.assertEqual((rc, err), (0, ''))
+        self.assertIn('continue it from its ledger .claude/finish/SUP32.txt (1 closed rows not shown; open rows):\na | open\n', out,
+                      'compact mode reads the same target and ledger')
+        p = self.transcript(typed('package', 'SUP32'), typed('prune', ' P018  extra words'))
+        self.assertEqual(self.precompact(p), want('Target: P018 (package P018, from the typed command /prune P018).', step('prune'), p018))
+        p = self.transcript(typed('package', 'SUP32'), typed('finish'))
+        self.assertEqual(self.precompact(p), want('Target: SUP32 (package P900, from the typed command /package SUP32).', step('finish'), have),
+                         '/finish without an argument keeps the earlier target and names the command that typed it')
+        p = self.transcript(typed('pause', 'SUP32'), typed('package-x', 'P018'), typed('packages', 'P018'), typed('prune-all', 'P018'))
+        self.assertEqual(self.precompact(p), want(), 'other commands name no target')
+        git(self.repo, 'checkout', '-q', '-b', 'P018-fix')
+        self.assertEqual(self.precompact(self.transcript(typed('finish'))),
+                         want('Target: P018 (package P018, from the branch or worktree name).', step('finish'), p018))
+        self.assertEqual(self.precompact(self.transcript(typed('package', 'foo'))),
+                         want('Target: P018 (package P018, from the branch or worktree name).', step('package'), p018),
+                         'a typed argument naming no package is not the source')
+        p = self.transcript('<command-name>/package</command-name>', {'type': 'user', 'message': '<command-name>/prune</command-name>'},
+                            typed('package', 'P018'))
+        self.assertEqual(self.precompact(p), want('Target: P018 (package P018, from the typed command /package P018).', step('package'), p018),
+                         'records that are no object, or whose message is no object, are skipped')
+        self.write('.claude/finish/P018.txt', 'c | open\n')
+        self.assertEqual(self.precompact(self.transcript(typed('package', 'SUP32'))),
+                         want(sup, step('package'), '/finish ledger: .claude/finish/SUP32.txt, .claude/finish/P018.txt (its rows hold the state).'),
+                         'the ledger of the typed target and the one of the branch')
+        git(self.repo, 'checkout', '-q', '-b', 'SUP32-work')
+        self.assertEqual(self.precompact(self.tmp / 'missing.jsonl'), want('Target: SUP32 (package P900, from the branch or worktree name).', have))
+        git(self.repo, 'checkout', '-q', 'master')
+        self.assertEqual(self.precompact(self.transcript()), want())
+        self.write('.claude/finish/master.txt', 'd | open\n')
+        self.assertEqual(self.precompact(self.transcript()), want('/finish ledger: .claude/finish/master.txt (its rows hold the state).'),
+                         'an existing ledger without a package')
+        (self.repo / '.claude/finish/master.txt').unlink()
+        rc, out, err = self.script('resume.py', 'precompact', raw=json.dumps({'transcript_path': str(self.transcript(typed('prune', 'P018')))}),
+                                   cwd=self.repo / '05-M')
+        self.assertEqual((rc, err, out), (0, '', want('Target: P018 (package P018, from the typed command /prune P018).', step('prune'),
+                                                      '/finish ledger: .claude/finish/P018.txt (its rows hold the state).')),
+                         'no cwd in the payload: the working directory')
+        out = self.precompact(self.transcript(typed('package', 'SUP32-' + 'x' * 20000)))
+        self.assertEqual(out, want('Target: SUP32 (package P900, from the typed command ' + ('/package SUP32-' + 'x' * 100)[:80] + ').',
+                                   step('package'), have), 'a long typed argument is cut, so every fixed line survives')
+        for raw, dict_like in (('not json', True), ('', True), (b'\xff\xfe\x00garbage', True), ('{"transcript_path": 5.5}', True),
+                               ('{"transcript_path": ["x"]}', True), ('{"hook_event_name": "PreCompact"', True), ('[]', False), ('null', False),
+                               ('5', False), ('{"cwd": 7}', False)):
+            rc, out, err = self.script('resume.py', 'precompact', raw=raw)
+            self.assertEqual((rc, err), (0, ''), raw)
+            self.assertIn(out, (want(),) if dict_like else ('', want()), raw)
+
+    def notify(self, payload=None, raw=None, cwd=None, path=None, **env):
+        """(exit code, stdout and stderr, [argv of each notify-send call]) of notify.py, the fake notify-send first on PATH."""
+        log = self.tmp / 'notify.log'
+        log.unlink(missing_ok=True)
+        e = {k: v for k, v in self.env.items() if k not in ('TERM_PROGRAM', 'WSL_DISTRO_NAME')} | {
+            'PATH': path or f'{self.tmp / "bin"}{os.pathsep}{Path(shutil.which("git")).parent}', 'NOTIFY_LOG': str(log),
+            'XDG_CONFIG_HOME': str(self.tmp / 'config')} | env
+        rc, out, err = self.script('notify.py', raw=raw if raw is not None else json.dumps(payload), cwd=cwd or self.tmp / 'plain dir', env=e)
+        calls = [c.split('\0')[:-1] for c in log.read_text().split('\x1e')[:-1]] if log.exists() else []
+        return rc, out + err, calls
+
+    def test_notify(self):
+        self.write('.claude/hooks/notify.py', (HOOKS / 'notify.py').read_text())
+        fake = self.tmp / 'bin/notify-send'
+        fake.parent.mkdir()
+        fake.write_text(FAKE_NOTIFY)
+        fake.chmod(0o755)
+        for d in ('plain dir', 'empty'):
+            (self.tmp / d).mkdir()
+        app, base = '--app-name=Claude Code', {'session_id': 's1', 'hook_event_name': 'Notification', 'cwd': str(self.repo)}
+
+        def title(name, compact=False):
+            return json.dumps({'type': 'custom-title', 'customTitle': name, 'sessionId': 's1'}, separators=(',', ':') if compact else None) + '\n'
+
+        def sent(header, body, **kw):
+            self.assertEqual(self.notify(base | kw), (0, '', [[app, f'Claude Code · {header}', body]]), (header, body, kw))
+        t = self.tmp / 'session.jsonl'
+        quote = {'type': 'user', 'message': {'role': 'user', 'content': [{'type': 'tool_result', 'tool_use_id': 'toolu_1',
+                                                                          'content': '{"type": "custom-title", "customTitle": "quoted"}'}]}}
+        t.write_text(title('Old name') + json.dumps({'type': 'assistant', 'message': {'content': 'x'}}) + '\n' + title('SUP32 tests', True)
+                     + json.dumps(quote) + '\n')
+        sent('SUP32 tests', 'waits for your permission: Claude needs your permission to use Bash', transcript_path=str(t),
+             notification_type='permission_prompt', message='Claude needs your permission to use Bash')
+        for message in (None, '', 5, ['x']):
+            sent('SUP32 tests', 'waits for your input', transcript_path=str(t), notification_type='idle_prompt',
+                 **({} if message is None else {'message': message}))
+        sent('SUP32 tests', 'needs attention: Signed in', transcript_path=str(t), notification_type='auth_success', message='Signed in')
+        sent('SUP32 tests', 'needs attention', transcript_path=str(t))
+        sent('SUP32 tests', 'needs attention', transcript_path=str(t), notification_type=7)
+        t.write_text(title('  Fix "quotes" – ü\\path  '))
+        sent('Fix "quotes" – ü\\path', 'waits for your input', transcript_path=str(t), notification_type='idle_prompt')
+        t.write_text(title('T' * 200))
+        rc, out, calls = self.notify(base | {'transcript_path': str(t), 'notification_type': 'idle_prompt', 'message': 'm' * 400})
+        self.assertEqual((rc, out, calls), (0, '', [[app, ('Claude Code · ' + 'T' * 200)[:120], ('waits for your input: ' + 'm' * 400)[:300]]]))
+        filler = json.dumps({'type': 'assistant', 'message': {'content': 'y' * (1 << 20)}}) + '\n'
+        t.write_text(title('Lost') + filler)
+        sent('repo (master)', 'waits for your input', transcript_path=str(t), notification_type='idle_prompt')
+        t.write_text(title('Lost') + filler + title('Found'))
+        sent('Found', 'waits for your input', transcript_path=str(t), notification_type='idle_prompt')
+        for tp in ({}, {'transcript_path': str(self.tmp / 'missing.jsonl')}, {'transcript_path': str(self.transcript(quote))}, {'transcript_path': 5.5}):
+            sent('repo (master)', 'waits for your input', notification_type='idle_prompt', **tp)
+        sent('repo (master)', 'waits for your input', notification_type='idle_prompt', cwd=str(self.repo / '05-M'))
+        git(self.repo, 'checkout', '-q', '-b', 'P900-SUP32-x')
+        sent('repo (P900-SUP32-x)', 'waits for your input', notification_type='idle_prompt')
+        git(self.repo, 'checkout', '-q', '--detach')
+        sent('repo', 'waits for your input', notification_type='idle_prompt')
+        git(self.repo, 'checkout', '-q', 'master')
+        sent('plain dir', 'waits for your input', notification_type='idle_prompt', cwd=str(self.tmp / 'plain dir'))
+        self.assertEqual(self.notify(raw='{}', cwd=self.tmp / 'plain dir'), (0, '', [[app, 'Claude Code · plain dir', 'needs attention']]),
+                         'no cwd outside git: the working directory\'s name, never empty')
+        sent('repo (master)', 'needs attention', notification_type=['idle_prompt'])
+        for cwd in (str(self.tmp / 'gone'), 7, None):  # the hook's working directory, as Claude Code starts it in the project
+            self.assertEqual(self.notify(base | {'notification_type': 'idle_prompt', 'cwd': cwd}, cwd=self.repo),
+                             (0, '', [[app, 'Claude Code · repo (master)', 'waits for your input']]), cwd)
+        for raw in ('not json', '', b'\xff\xfe\x00garbage', '[]', 'null', '5', '{"cwd": '):
+            self.assertEqual(self.notify(raw=raw, cwd=self.repo), (0, '', [[app, 'Claude Code · repo (master)', 'needs attention']]), raw)
+        payload = base | {'notification_type': 'idle_prompt'}
+        self.assertEqual(self.notify(payload, path=str(self.tmp / 'empty')), (0, '', []), 'no notify-send on PATH')
+        self.assertFalse((self.tmp / 'notify.log').exists())
+        self.assertEqual(self.notify(payload, NOTIFY_EXIT='3'), (0, '', [[app, 'Claude Code · repo (master)', 'waits for your input']]),
+                         'notify-send failing')
+        start = time.monotonic()
+        self.assertEqual(self.notify(payload, NOTIFY_SLEEP='30'), (0, '', [[app, 'Claude Code · repo (master)', 'waits for your input']]),
+                         'notify-send hanging')
+        self.assertLess(time.monotonic() - start, 15, 'a hanging notify-send is cut off')
+
+    def fakes(self):
+        """The fake notify-send and code in tmp/bin beside links to TOOLS: a PATH without the real code."""
+        (self.tmp / 'bin').mkdir(exist_ok=True)
+        for name, text in (('notify-send', FAKE_NOTIFY), ('code', FAKE_CODE)):
+            (self.tmp / 'bin' / name).write_text(text)
+            (self.tmp / 'bin' / name).chmod(0o755)
+        for tool in TOOLS:
+            if not (self.tmp / 'bin' / tool).exists():
+                (self.tmp / 'bin' / tool).symlink_to(shutil.which(tool))
+        return str(self.tmp / 'bin')
+
+    @staticmethod
+    def wait(path, seconds=20):
+        end = time.monotonic() + seconds
+        while not path.exists() and time.monotonic() < end:
+            time.sleep(0.05)
+        return path.exists()
+
+    def test_notify_click(self):
+        """Linux in VS Code's terminal: the hook returns at once, a detached helper in its own session notifies with a
+        default action and, on a click, runs `code <window folder>` with the daemon's token and without the session's
+        variables."""
+        self.write('.claude/hooks/notify.py', (HOOKS / 'notify.py').read_text())
+        path = self.fakes()
+        log, code_log, gate, sid = self.tmp / 'notify.log', self.tmp / 'code.log', self.tmp / 'gate', self.tmp / 'sid'
+        spaced = self.repo / 'My Repo'
+        for d in (self.repo / '05-M', spaced / 'sub', self.tmp / 'plain dir', self.tmp / 'repo2'):
+            d.mkdir(parents=True, exist_ok=True)
+        payload = {'notification_type': 'idle_prompt', 'cwd': str(self.repo / '05-M')}
+        kept = ['VSCODE_IPC_HOOK_CLI']
+
+        def uri(d):
+            return 'file://' + quote(str(d))
+
+        def clicked(want, cwd=None, windows=None, storage=None, header='repo (master)', fd=True, **env):
+            for f in (code_log, gate, sid):
+                f.unlink(missing_ok=True)
+            config = self.tmp / 'config'
+            shutil.rmtree(config, ignore_errors=True)
+            if windows is not None:
+                storage = json.dumps({'windowsState': {'lastActiveWindow': {'folder': uri(windows[0])},
+                                                       'openedWindows': [{'folder': uri(d)} for d in windows[1:]]}})
+            if storage is not None:
+                (config / 'Code/User/globalStorage').mkdir(parents=True)
+                (config / 'Code/User/globalStorage/storage.json').write_text(storage)
+            env = SESSION_VARS | {'TERM_PROGRAM': 'vscode', 'CODE_LOG': str(code_log), 'NOTIFY_TOKEN': 'tok', 'NOTIFY_GATE': str(gate),
+                                  'NOTIFY_SID': str(sid), 'XDG_ACTIVATION_TOKEN': 'stale', 'DESKTOP_STARTUP_ID': 'stale'} | env
+            self.assertEqual(self.notify(payload | ({'cwd': cwd} if cwd else {}), path=path, **env), (0, '', []),
+                             'the hook returns before the helper notifies')
+            gate.touch()
+            self.assertTrue(self.wait(sid), 'the helper notifies')
+            self.assertNotEqual(sid.read_text().strip(), str(os.getsid(0)), 'the helper runs in its own session')
+            argv = log.read_text().split('\x1e')[0].split('\0')[:-1]
+            self.assertEqual([a for a in argv if not a.startswith('--activation-token-fd=')],
+                             ['--app-name=Claude Code', '--action=default=Open', f'Claude Code · {header}', 'waits for your input'])
+            self.assertEqual(len(argv), 5 if fd else 4)
+            if fd:
+                self.assertRegex(argv[2], r'^--activation-token-fd=\d+$')
+            if want is None:
+                time.sleep(1)
+                self.assertFalse(code_log.exists(), 'no click: VS Code is left alone')
+            else:
+                self.assertTrue(self.wait(code_log), 'a click runs code')
+                self.assertEqual(code_log.read_text().split('\0')[:-1], want)
+        tok = ['token=tok', 'startup=tok'] + kept
+        clicked([str(self.repo)] + tok)
+        clicked([str(self.repo), 'token=', 'startup='] + kept, NOTIFY_TOKEN='')
+        clicked([str(self.repo), 'token=', 'startup='] + kept, fd=False, NOTIFY_HELP='--action')
+        clicked(None, NOTIFY_ACTION='')
+        clicked([str(self.repo / '05-M')] + tok, windows=[self.tmp, self.repo / '05-M'])
+        clicked([str(self.repo / '05-M')] + tok, windows=[self.repo / '05-M', self.tmp], cwd=str(self.repo / '05-M/'))
+        clicked([str(self.tmp)] + tok, windows=[self.tmp], cwd=str(self.repo))
+        clicked([str(spaced)] + tok, windows=[self.tmp, spaced], cwd=str(spaced / 'sub'))
+        clicked([str(self.tmp / 'repo2')] + tok, windows=[self.repo], cwd=str(self.tmp / 'repo2'), header='repo2')
+        for bad in ('not json', '[]', '{"windowsState": 5}', '{"windowsState": {"openedWindows": 5}}',
+                    json.dumps({'windowsState': {'openedWindows': [{'folder': 'vscode-remote://x/y'}, {}, 5]}})):
+            clicked([str(self.repo)] + tok, storage=bad)
+        wt = self.tmp / 'wt'
+        git(self.repo, 'worktree', 'add', '-q', '-b', 'P900-SUP32-wt', str(wt))
+        clicked([str(self.repo)] + tok, cwd=str(wt), header='wt (P900-SUP32-wt)')
+        plain = [['--app-name=Claude Code', 'Claude Code · repo (master)', 'waits for your input']]
+        no_code = self.tmp / 'nocode'
+        no_code.mkdir()
+        for f in ('notify-send', *TOOLS):
+            (no_code / f).symlink_to(self.tmp / 'bin' / f)
+        for env, why in (({'path': path}, 'outside VS Code'), ({'TERM_PROGRAM': 'vscode', 'path': str(no_code)}, 'no code on PATH'),
+                         ({'TERM_PROGRAM': 'vscode', 'path': path, 'NOTIFY_HELP': '--urgency'}, 'notify-send without --action')):
+            self.assertEqual(self.notify(payload, CODE_LOG=str(code_log), **env), (0, '', plain), why)
+
+    def test_notify_platforms(self):
+        """command() with stubbed notifiers on macOS, Windows and WSL; detect(); the helper's wait bound."""
+        spec = importlib.util.spec_from_file_location('notify_copy', HOOKS / 'notify.py')
+        n = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(n)
+        which = n.shutil.which
+        tools = {}
+        n.shutil = types.SimpleNamespace(which=tools.get)
+        head, body = 'Claude Code · <a&b> "q" it\'s ’‘‚‛ ü', 'waits for your input'
+        folder = self.tmp / 'My Repo'
+        folder.mkdir()
+        n.STORAGE = self.tmp / 'no-storage'
+
+        def argv(system, focus=True, **t):
+            n.SYSTEM = system
+            tools.clear()
+            tools.update(t)
+            return n.command(head, body, str(folder), focus)
+
+        def script(a):
+            self.assertEqual(a[1:4], ['-NoProfile', '-NonInteractive', '-EncodedCommand'])
+            s = base64.b64decode(a[4]).decode('utf-16-le')
+            literal = s.split("LoadXml('")[1].split("')\n")[0]
+            self.assertTrue(literal.isascii() and "'" not in literal, literal)
+            return s
+        tn = [head, '-message', body, '-group', head]
+        self.assertEqual(argv('darwin', **{'terminal-notifier': '/tn'}),
+                         ['/tn', '-title', *tn, '-execute', f"open -b com.microsoft.VSCode '{folder}'"])
+        self.assertEqual(argv('darwin', False, **{'terminal-notifier': '/tn'}), ['/tn', '-title', *tn])
+        self.assertEqual(argv('darwin', osascript='/osa'), ['/osa', '-e', 'on run argv', '-e', 'display notification (item 2 of argv) with title '
+                                                             '(item 1 of argv)', '-e', 'end run', head, body], 'osascript: no click')
+        self.assertFalse(argv('darwin'), 'macOS without a notifier')
+        xml = ('<text>Claude Code &#183; &lt;a&amp;b&gt; &quot;q&quot; it&#39;s &#8217;&#8216;&#8218;&#8219; &#252;</text>'
+               '<text>waits for your input</text>')
+        with unittest.mock.patch.dict(os.environ, {'WSL_DISTRO_NAME': 'Ubuntu 24'}):
+            s = script(argv('wsl', **{'powershell.exe': '/ps.exe'}))
+            self.assertIn(f'<toast activationType="protocol" launch="vscode://vscode-remote/wsl+Ubuntu%2024{quote(str(folder))}">', s)
+            self.assertIn(xml, s)
+            self.assertIn("CreateToastNotifier('" + n.AUMID + "')", s)
+            self.assertIn('<toast><visual>', script(argv('wsl', False, **{'powershell.exe': '/ps.exe'})))
+            n.WIN_PS = self.tmp / 'powershell.exe'
+            self.assertFalse(argv('wsl'), 'WSL without powershell.exe')
+            n.WIN_PS.touch()
+            self.assertEqual(argv('wsl')[0], str(n.WIN_PS), 'the fixed Windows path from WSL')
+        with unittest.mock.patch.dict(os.environ, {}):
+            os.environ.pop('WSL_DISTRO_NAME', None)
+            self.assertIn('<toast><visual>', script(argv('wsl', **{'powershell.exe': '/ps.exe'})), 'no distro name: no click')
+        a = argv('win32', powershell='/ps')
+        self.assertEqual(a[0], '/ps')
+        self.assertIn(f'launch="vscode://file{quote(str(folder))}"', script(a))
+        self.assertEqual(n.link(Path('C:/Users/x/My Repo')), 'vscode://file/C:/Users/x/My%20Repo')
+        self.assertFalse(argv('win32'), 'Windows without PowerShell')
+        for env, release, plat, want in (({}, '6.6.87.2-microsoft-standard-WSL2', 'linux', 'wsl'), ({'WSL_DISTRO_NAME': 'U'}, '7.2', 'linux', 'wsl'),
+                                         ({}, '7.2.11-arch1-1', 'linux', 'linux'), ({}, '24.1.0', 'darwin', 'darwin'), ({}, '10', 'win32', 'win32')):
+            self.assertEqual(n.detect(env, release, plat), want, (env, release, plat))
+        n.shutil.which = which
+        self.fakes()
+        code_log = self.tmp / 'code.log'
+        n.WAIT = 1
+        with unittest.mock.patch.dict(os.environ, {'NOTIFY_LOG': str(self.tmp / 'n.log'), 'NOTIFY_SLEEP': '30', 'CODE_LOG': str(code_log)}):
+            start = time.monotonic()
+            n.click(str(self.tmp / 'bin/notify-send'), str(self.tmp / 'bin/code'), str(folder), '1', 'h', 'b')
+            self.assertLess(time.monotonic() - start, 8, 'the helper gives up after WAIT')
+        self.assertFalse(code_log.exists(), 'no click before the wait ended')
+
     def test_settings(self):
         hooks = json.loads((ROOT / '.claude/settings.json').read_text())['hooks']
         cmds = {ev: {(h.get('matcher'), x['command']) for h in hooks[ev] for x in h['hooks']} for ev in ('PreToolUse', 'PostToolUse', 'PostToolBatch')}
-        self.assertIn(('Bash', 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/shell.py" pre'), cmds['PreToolUse'])
+        self.assertIn(('Bash|Monitor', 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/shell.py" pre'), cmds['PreToolUse'])
         self.assertIn(('Bash', 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/shell.py" post'), cmds['PostToolUse'])
         self.assertIn(('Edit|Write|Read|NotebookEdit', 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py"'), cmds['PreToolUse'])
         validator = 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/consistency.py"'
@@ -428,13 +900,13 @@ class Hooks(unittest.TestCase):
             self.assertEqual(self.stage((rel, 'v1\n')), (0, '', True), rel)
         for rel in ('tools/t.py', 'notes.txt', '05-M/x.cpp'):
             self.assertEqual(self.stage((rel, 'v2\n')), (0, '', False), rel)
-        self.fail.write_text('Missing row: x\nBad link: y\n')
+        self.fail_file.write_text('Missing row: x\nBad link: y\n')
         got = self.stage(('05-M/00-index.md', 'v3\n'))
         self.refused(got, 'Consistency validator FAILED:\nMissing row: x\nBad link: y')
         self.assertTrue(got[2])
         git(self.repo, 'reset', '-q', '--', '05-M/00-index.md')
         self.assertEqual(self.stage(('notes.txt', 'v3\n')), (0, '', False), 'unwatched paths commit while the validator fails')
-        self.fail.unlink()
+        self.fail_file.unlink()
         self.write('05-M/02-b.md', 'broken\n')
         git(self.repo, 'add', '05-M/02-b.md')
         self.write('05-M/02-b.md', 'fixed\n')  # fixed after a refusal but not staged again
@@ -475,7 +947,7 @@ class Hooks(unittest.TestCase):
         self.enable_commit_hook()
         self.write('.gitignore', FILES['.gitignore'] + '.claude/worktrees/\n')
         git(self.repo, 'commit', '-q', '-am', 'ignore worktrees')
-        self.fail.write_text('E\n')
+        self.fail_file.write_text('E\n')
         for name, trusted in (('DS07', True), ('PR7', False)):
             wt = self.repo / '.claude/worktrees' / name
             git(self.repo, 'worktree', 'add', '-q', '-b', name.lower(), str(wt))
@@ -550,7 +1022,7 @@ class Hooks(unittest.TestCase):
                         index[p] = work.get(p)
                     history.append((kind, p))
                 failing = rng.random() < 0.3
-                self.fail.write_text('E\n') if failing else self.fail.unlink(missing_ok=True)
+                self.fail_file.write_text('E\n') if failing else self.fail_file.unlink(missing_ok=True)
                 staged = {p for p in set(head) | set(index) if head.get(p) != index.get(p)}
                 bad = {p for p in staged if p != TEMPLATE and o_blocked(p, index.get(p), head)}
                 template = TEMPLATE in staged and (index.get(TEMPLATE) != work.get(TEMPLATE) or work.get(TEMPLATE) != 'generated\n')
