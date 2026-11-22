@@ -157,7 +157,7 @@ The 2026-10-17 completeness sweep (`@researcher`) read cp-algorithms, OI Wiki, K
 - Non-decimal radix conversion is O(L^2); the Library Checker hexadecimal problems at full size need the full type.
 - P025 (`16-poly.hpp`): since P018 stage 1 (2026-10-26) `poly_detail::BigInt` requires `n.size() -> int` and `n.data() -> ulng *` (base-2^64 words). `InfIntMini`'s `vector<uint> n` of base-10^5 limbs does not satisfy it, so `Poly<InfIntMini>` takes Poly's generic `karatsuba` path (user decision 2026-10-26).
 - The judge wrappers `97-Online Testing/src/01-Yosupo/02-Big Integers/02-additionmini.cpp`, `04-multiplicationmini.cpp` and `06-divisionmini.cpp` use only `>>`, `+=`, `*=`, `divMod` and `<<`, which keep their meaning.
-- Verified before the mutation rule of 2026-11-03; no record yet.
+- Verified before the mutation rule of 2026-11-03; no record yet. P256 (InfIntMini parity) records it (user decision 2026-11-22).
 
 ## Aliases
 

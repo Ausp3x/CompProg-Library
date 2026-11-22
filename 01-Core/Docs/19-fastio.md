@@ -189,12 +189,12 @@ These are shared-host observations, not timing gates. The whole-stream reader pa
 - `FastInput<0>` holds the whole stream: a mapping of a regular file, else a vector that may reach twice the stream while it grows. Pipes and terminals take the vector path; interactive protocols use `FastInput<1>` with explicit flushes ([50-interactive.md](../../06-Miscellaneous/Docs/50-interactive.md)).
 - `parseInt` takes only views this reader returned (its window precondition); other strings go through the integer types' own parsing.
 - The short-token kernels repeat InfInt's on purpose (no Core type includes another for I/O); a change to one is measured and mirrored in the other.
-- ModInt reading and writing (`rd`/`wt` of the archived modint) are not adopted: reading an integer and constructing the residue is a wrapper of `readInt` and the ModInt constructor ([03-cpp.md](../../00-Guidelines/03-cpp.md), One API per operation; [05-modint.md](05-modint.md)).
+- ModInt reading and writing (`rd`/`wt` of the archived modint) are not adopted: reading an integer and constructing the residue is a wrapper of `readInt` and the ModInt constructor ([03-cpp.md](../../00-Guidelines/03-cpp.md), One API per Operation; [05-modint.md](05-modint.md)).
 - Not owned, with reasons in [00-notes.md](00-notes.md#fast-io): count-returning and separator forms, lenient skipping, `bool` reading, fixed-length string reads, declare-and-read macros, `close`, stream setup.
 - `readText` takes every type with `read(string_view, base)` (InfInt, InfIntMini, Rational), `writeText` only types with `charsBound` and `toChars` (InfInt): `print` and `writeValue` of an InfIntMini or a Rational do not compile, so such values print through `toString`.
 - When the room left in the block lies between `toChars`' early lower bound and the exact length (in base 10 one digit below 152,234 bits and at most two within the default block, one more per about 217K bits beyond; about 1% of the digits in base 3), InfInt's `toCharsRest` converts and then refuses, and `writeText` converts again after its drain: a long value at a block boundary can cost two conversions.
 - No Barrett or Montgomery reduction is involved.
-- Verified before the mutation rule of 2026-11-03; no record yet.
+- Verified before the mutation rule of 2026-11-03; no record yet. P018's re-pass records it and writes its Optimization Candidates table (user decision 2026-11-22).
 
 ## Aliases
 

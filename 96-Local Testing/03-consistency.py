@@ -27,7 +27,7 @@ def read_json(name):
 
 def ignored(paths):
     """Recorded paths that are absent and git-ignored: archive binaries, caches and benchmark logs that only the maintainer's
-    main checkout holds and requires; a linked worktree, a contributor's clone and CI lack them (05-testing.md, Layout and modes)."""
+    main checkout holds and requires; a linked worktree, a contributor's clone and CI lack them (05-testing.md, Layout and Modes)."""
     missing = [p for p in paths if not (ROOT / p).exists()]
     dirs = subprocess.run(['git', 'rev-parse', '--git-dir', '--git-common-dir'], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
     role = subprocess.run(['git', 'config', '--get', 'compprog.role'], cwd=ROOT, capture_output=True, text=True).stdout.strip()
@@ -270,7 +270,7 @@ for p in [*tests_root.glob('*/*_tester.py'), *tests_root.glob('*/*_benchmark.py'
     via = set(re.findall(r'^from (\w+) import', text, re.M))
     require('_00_memory_cap.ensure(' in text or bool(via & capped_runners),
             'Uncapped test entry point (call _00_memory_cap.ensure()): ' + str(p.relative_to(ROOT)))
-# Every C++ test build goes through Builder (05-testing.md, Layout and modes); benchmarks time their own builds.
+# Every C++ test build goes through Builder (05-testing.md, Layout and Modes); benchmarks time their own builds.
 spec = importlib.util.spec_from_file_location('library_test_builds', tests_root / '_00_cpp_test_runner.py')
 test_builds = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(test_builds)
@@ -281,7 +281,7 @@ for p in [*tests_root.glob('0[1-7]-*/*_tester.py'), *tests_root.glob('0[1-7]-*/_
     require(not test_builds.runs_in_order(text) or p.name == '_00_foundation_runner.py',
             f'Builds compiled at once but run one at a time (Builder.concurrently): {p.relative_to(ROOT)}')
 
-# Mini first (03-cpp.md, Headers; 02-structure.md, Inventory contract): findings on support targets of open 2026-11-05
+# Mini first (03-cpp.md, Headers; 02-structure.md, Inventory Contract): findings on support targets of open 2026-11-05
 # batches and on rows or packages not yet verified are reported in mini_first_pending; the rest are errors.
 spec = importlib.util.spec_from_file_location('library_extraction_check', ROOT / '96-Local Testing/05-extraction.py')
 extraction = importlib.util.module_from_spec(spec)
@@ -309,7 +309,7 @@ for target, parts in inventories.items():
     if lacking:
         mini_first(target, f'Mini row lacks operations of {full} (list them, after internals: or missing:): {target}: ' + ', '.join(lacking))
 
-# Status cells (02-structure.md, Inventory contract) start with a status word; every other entry is a link, a `missing:`
+# Status cells (02-structure.md, Inventory Contract) start with a status word; every other entry is a link, a `missing:`
 # operation, a `legacy:` path or one of the library's source keys (00-Guidelines/09-sources.md, Source Keys) with an
 # optional parenthesized detail. A row with neither a link nor a key or path is reported in unsourced_rows.
 sources_text = (ROOT / '00-Guidelines/09-sources.md').read_text()
@@ -351,11 +351,11 @@ for target, parts in inventories.items():
             if n[0].isupper() and '::' not in n:
                 py_type_rows[n].add(target)
 for n, rows in sorted(py_type_rows.items()):
-    require(len(rows) == 1, f'Python type name in two modules (02-structure.md, Operation names): {n}: ' + ', '.join(sorted(rows)))
+    require(len(rows) == 1, f'Python type name in two modules (02-structure.md, Operation Names): {n}: ' + ', '.join(sorted(rows)))
 name_collisions = []
 for n, rows in sorted(name_rows.items()):
     if len(rows) > 1 and (n in type_names or '01-Core/01-template.hpp' in rows):
-        require(False, f'Type or template name in two inventory rows (02-structure.md, Operation names): {n}: ' + ', '.join(sorted(rows)))
+        require(False, f'Type or template name in two inventory rows (02-structure.md, Operation Names): {n}: ' + ', '.join(sorted(rows)))
     elif len(rows) > 1:
         name_collisions.append(f'{n}: ' + ', '.join(sorted(rows)))
 

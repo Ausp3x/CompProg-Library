@@ -19,7 +19,7 @@
 | Python 3.10 `fractions` | https://docs.python.org/3.10/library/fractions.html | 2026-10-06 | Constructor forms, `limit_denominator`, `as_integer_ratio`; exact-float caveat |
 | Python 3.10 `functools` | https://docs.python.org/3.10/library/functools.html | 2026-10-06 | `cache`, `lru_cache`, `cmp_to_key`, `reduce`, `partial`; memoization replaces PyRival `memoize` |
 
-Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys); OI here means the OI Wiki pages recorded in the 2026-09-27 ledger, STDLIB the Python 3.10 reference.
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source Keys); OI here means the OI Wiki pages recorded in the 2026-09-27 ledger, STDLIB the Python 3.10 reference.
 
 ## Previous Ledger (2026-09-27, Condensed)
 

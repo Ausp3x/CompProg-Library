@@ -161,7 +161,7 @@ def pre(data):
         return
     if submits(str((data.get('tool_input') or {}).get('command', ''))):
         print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
-                          "Submitting is the user's (01-principles.md, Scope discipline): ask them to run 04-submit.py themselves, "
+                          "Submitting is the user's (01-principles.md, Scope Discipline): ask them to run 04-submit.py themselves, "
                           "for example with `! python3 '97-Online Testing/04-submit.py'`."}}))
         return
     STATE.mkdir(parents=True, exist_ok=True)
@@ -197,7 +197,7 @@ def post(data):
         fix += [f'rm -- {" ".join(map(shlex.quote, fresh))}'] * bool(fresh)
         out = {'decision': 'block', 'reason': (
             'This command changed protected files: ' + ', '.join(bad) + '. OLD/ and 97-Legacy/ excerpts are immutable '
-            '(01-principles.md, Scope discipline) and template.cpp is generated (97-Online Testing/03-workspace.py). Restore: '
+            '(01-principles.md, Scope Discipline) and template.cpp is generated (97-Online Testing/03-workspace.py). Restore: '
             + '; '.join(fix) + ('; then amend or revert the commit that holds them' if new != old else '') + '.')}
     if any(consistency.watched(p) for p in changed) and (err := consistency.validate()):
         out['hookSpecificOutput'] = {'hookEventName': 'PostToolUse', 'additionalContext': 'Consistency validator FAILED:\n' + err}
@@ -224,7 +224,7 @@ def pushed(base):
     """Exit code of the CI path check (.github/workflows/checks.yml): the protected files HEAD changes against base."""
     if bad := offending(changes(Path.cwd(), base, 'HEAD')):
         print(f'Protected files changed since {base[:12]}: ' + ', '.join(bad) + '. OLD/ and 97-Legacy/ excerpts are immutable '
-              '(01-principles.md, Scope discipline).', file=sys.stderr)
+              '(01-principles.md, Scope Discipline).', file=sys.stderr)
     return int(bool(bad))
 
 
@@ -252,7 +252,7 @@ def commit():
         elif err := consistency.validate(root):
             errors.append('Consistency validator FAILED:\n' + err)
     if errors:
-        print('Commit refused by .claude/hooks/shell.py commit (CLAUDE.md, Start here):', *errors, sep='\n', file=sys.stderr)
+        print('Commit refused by .claude/hooks/shell.py commit (CLAUDE.md, Start Here):', *errors, sep='\n', file=sys.stderr)
     return int(bool(errors))
 
 

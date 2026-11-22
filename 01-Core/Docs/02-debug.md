@@ -110,7 +110,7 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 - The bit-proxy rule treats any class convertible to bool with a `flip()` member as a proxy; a `debugString` hook overrides it.
 - `long double` prints the shortest 80-bit x87 text on x86-64; `__float128` has no `to_chars` and is outside the domain.
 - A user `operator<<` for a byte-wide unscoped enum that prints exactly the raw byte cannot be told apart from promotion, so the number is printed.
-- Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
+- Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and Debug").
 - Verified before the mutation rule of 2026-11-03; no record yet.
 
 ## Aliases

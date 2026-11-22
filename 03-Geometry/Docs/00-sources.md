@@ -261,7 +261,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 
 ## Source Keys Used in the Inventory
 
-Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys). The HIGHNAM85 and KIMROTE16 URLs are in [Fetched 2026-11-08](#fetched-2026-11-08-omission-sweep); what was read of CL86, GR13, WANG22, HPM05, MEGIDDO83, OAMB86, STVWE95, ROTE19, BPR17, GUTING84, AST94, SCHIEBER98 and CP10 is in [P037 round-3 audit sources](#p037-round-3-audit-sources-fetched-2026-10-19). CGAL supplies breadth and contracts, never an automatic dependency.
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source Keys). The HIGHNAM85 and KIMROTE16 URLs are in [Fetched 2026-11-08](#fetched-2026-11-08-omission-sweep); what was read of CL86, GR13, WANG22, HPM05, MEGIDDO83, OAMB86, STVWE95, ROTE19, BPR17, GUTING84, AST94, SCHIEBER98 and CP10 is in [P037 round-3 audit sources](#p037-round-3-audit-sources-fetched-2026-10-19). CGAL supplies breadth and contracts, never an automatic dependency.
 
 ## 2026-09-27 Audit Provenance
 

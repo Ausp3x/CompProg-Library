@@ -351,7 +351,7 @@ class _Admission:
 
 
 def over_half(label: str, seconds: float, limit: float) -> None:
-    """Print the line ``01-run.py`` lists as a problem to fix: a command that took over half its limit (05-testing.md, Layout and modes)."""
+    """Print the line ``01-run.py`` lists as a problem to fix: a command that took over half its limit (05-testing.md, Layout and Modes)."""
     if seconds * 2 > limit:
         print(f"OVERHALF {label}: {seconds:.0f} s of its {limit:.0f} s limit\n", end="", flush=True)
 
@@ -371,5 +371,5 @@ def timed_run(label: str, command: list[str], *, timeout: float, **options) -> s
 
 
 def timing(name: str, mode: str, compile_seconds: float, run_seconds: float, extra: str = "") -> None:
-    """Print one build's times: ``01-run.py --mode quick`` lists the builds whose run exceeds 10 s (05-testing.md, Layout and modes)."""
+    """Print one build's times: ``01-run.py --mode quick`` lists the builds whose run exceeds 10 s (05-testing.md, Layout and Modes)."""
     print(f"TIMING {name} mode={mode} compile={compile_seconds:.2f}s run={run_seconds:.2f}s{extra}", flush=True)

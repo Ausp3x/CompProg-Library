@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Library Checker fetch, reproduce and compare tool for /speed-sweep (00-Guidelines/09-sources.md, Fastest submissions).
+"""Library Checker fetch, reproduce and compare tool for /speed-sweep (00-Guidelines/09-sources.md, Fastest Submissions).
 
   problems [filter]                         problem names and titles
   fastest <problem> [--limit 30]            fastest distinct users, deduplicated by source similarity

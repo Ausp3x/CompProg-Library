@@ -68,7 +68,7 @@ SOURCE_KEYS = {'path', 'displayPath', 'filename', 'filePath', 'file_path', 'outp
                'hookName', 'hookEvent'}  # an attachment holding a file, a typed prompt or a local hook's output
 MANAGED = ('/etc/claude-code', '/Library/Application Support/ClaudeCode', 'C:/Program Files/ClaudeCode', 'C:/ProgramData/ClaudeCode')
 HOW = ('To allow a model, name it in `models` of 00-Guidelines/13-Plan/packages.json, in the agent files or skill front '
-       'matter that use it, or in `models` of .claude/harness.json (CLAUDE.md, Models and delegation).')
+       'matter that use it, or in `models` of .claude/harness.json (CLAUDE.md, Models and Delegation).')
 UNDO = ('/rewind to the message before that reply restores the files its Edit, Write and NotebookEdit calls changed; '
         'git status and git diff show what its Bash calls changed.')
 REAUDIT = 'package P287, 00-Guidelines/13-Plan/Docs/00-harness-audit.md'
@@ -480,7 +480,7 @@ def chosen_efforts(recs, main_recs, reply, model, meta, live, sid=None, root=ROO
     else the launch flag, every /effort command of the session (remembered once seen, so none scrolls out of the
     tail), the effort settings for the model, and a per-turn change (a skill's front matter, or a reply whose per-turn
     effort differs from the session effort). The session agent's front matter is no source: the client ignores it for
-    a main session (CLAUDE.md, Models and delegation). Empty when none was chosen explicitly. The launch flag comes
+    a main session (CLAUDE.md, Models and Delegation). Empty when none was chosen explicitly. The launch flag comes
     from this process, so it is read only for the live session (`live`); for any other transcript the session effort
     the reply records counts as chosen instead."""
     out = []

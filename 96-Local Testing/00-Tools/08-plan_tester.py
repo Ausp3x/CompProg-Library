@@ -1303,7 +1303,7 @@ class Real(Base):
             self.assertEqual(PLAN.show(ROOT, p['id']).split('\n')[1:3], ['Role: maintainer; claims: none open', ''])
 
     def test_real_launch_one_effort_per_preset(self):
-        """Every package's brief prints its preset's own effort, whatever its size (CLAUDE.md, Models and delegation)."""
+        """Every package's brief prints its preset's own effort, whatever its size (CLAUDE.md, Models and Delegation)."""
         want = {}
         for f in (ROOT / '.claude/agents').glob('*-session.md'):
             head = [l.split(':', 1) for l in f.read_text().split('---')[1].strip().split('\n')]

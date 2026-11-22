@@ -1,3 +1,3 @@
 #!/bin/sh
-# Git pre-commit hook for every agent and person; enable it once per clone as CLAUDE.md (Start here) says.
+# Git pre-commit hook for every agent and person; enable it once per clone as CLAUDE.md (Start Here) says.
 exec python3 "$(dirname "$0")/../hooks/shell.py" commit

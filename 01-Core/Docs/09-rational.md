@@ -153,9 +153,9 @@ GMP `mpq` and FLINT `fmpq` (canonical form, Knuth addition, cross-cancelled prod
 ## Limits and Handoffs
 
 - `read` on `lng` and `lll` follows the bounded component rule above; text whose unreduced components overflow is read only by `Rational<InfInt>`.
-- `16-poly.hpp`: `Poly<Frac>` compiles and its product, `divMod`, `eval` and `deriv` match hand results (this tester's consumer step); overflow in `Frac` coefficients asserts. Rational coefficients stay outside Poly's row domain until they are added with Poly-suite tests ([16-poly.md](16-poly.md#limits-and-handoffs)).
+- `16-poly.hpp`: `Poly<Frac>` compiles and its product, `divMod`, `eval` and `deriv` match hand results (this tester's consumer step); overflow in `Frac` coefficients asserts. P258 adds Rational coefficients to Poly's row with Poly-suite tests (user decision 2026-11-22) ([16-poly.md](16-poly.md#limits-and-handoffs)).
 - `Rational<InfInt>` costs the InfInt gcd per operation; long sums of InfInt rationals are dominated by gcds, as in GMP.
-- Verified before the mutation rule of 2026-11-03; no record yet.
+- Verified before the mutation rule of 2026-11-03; no record yet. P019's re-pass records it and writes its Optimization Candidates table (user decision 2026-11-22).
 
 ## Aliases
 

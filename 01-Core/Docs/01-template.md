@@ -70,7 +70,7 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 ## Limits and Handoffs
 
 - No concurrency safety is claimed.
-- Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
+- Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and Debug").
 - Verified before the mutation rule of 2026-11-03; no record yet.
 
 ## Aliases

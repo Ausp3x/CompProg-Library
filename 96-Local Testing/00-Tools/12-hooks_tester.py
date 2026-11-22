@@ -341,7 +341,7 @@ class Hooks(unittest.TestCase):
 
     def test_submit(self):
         deny = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
-                                       "Submitting is the user's (01-principles.md, Scope discipline): ask them to run 04-submit.py themselves, "
+                                       "Submitting is the user's (01-principles.md, Scope Discipline): ask them to run 04-submit.py themselves, "
                                        "for example with `! python3 '97-Online Testing/04-submit.py'`."}}
         state = self.repo / '.claude/hooks/.state'
         script = "'97-Online Testing/04-submit.py'"

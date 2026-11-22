@@ -38,7 +38,7 @@ Rows `03` (fast I/O) and planned `17` (advanced fast I/O) moved to `01-Core/19-f
 | Algorithmica HPC | https://en.algorithmica.org/hpc/ | 2026-10-06 | External memory (external sorting, list ranking, cache-oblivious), binary search/Eytzinger and static B-trees (`44`), SIMD and arithmetic chapters (Core profile) |
 | AtCoder Library documentation | https://atcoder.github.io/ac-library/production/document_en/ | 2026-10-06 | No miscellaneous component; all twelve components are owned by other folders |
 
-Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys).
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source Keys).
 
 ## P013 Re-Audit Sweep (2026-10-07)
 

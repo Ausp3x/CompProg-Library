@@ -1,6 +1,6 @@
 # 00-monoids.hpp — Evidence
 
-Package P027 (batch DS05). The header replaces the unchanged extractions `MonAlg`/`MonBin`/`MonGcd`/`MonSar`/`MonSet` (`OLD/algorithms.cpp:937–1316`) with presets, adapters and acted presets for the monoid rule of `03-cpp.md` (API contracts).
+Package P027 (batch DS05). The header replaces the unchanged extractions `MonAlg`/`MonBin`/`MonGcd`/`MonSar`/`MonSet` (`OLD/algorithms.cpp:937–1316`) with presets, adapters and acted presets for the monoid rule of `03-cpp.md` (API Contracts).
 
 ## Contracts
 

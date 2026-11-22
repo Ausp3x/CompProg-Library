@@ -380,7 +380,7 @@ def batch_done(b, inv, done=frozenset()):
 
 def launch(root, model):
     """(launch command, session check) for a package model id: the `*-session` agent preset in `.claude/agents` with
-    that model and its effort (one per preset, whatever the package size; CLAUDE.md, Models and delegation), compared
+    that model and its effort (one per preset, whatever the package size; CLAUDE.md, Models and Delegation), compared
     with the running session's preset and effort when Claude Code exports them."""
     preset = None
     for f in sorted((root / '.claude/agents').glob('*-session.md')):
@@ -414,7 +414,7 @@ def batch_brief(root, b, inv):
 
 
 def hook_warning(root):
-    """The brief's last line while git does not run the commit hook here (CLAUDE.md, Start here), else None; /setup-check's
+    """The brief's last line while git does not run the commit hook here (CLAUDE.md, Start Here), else None; /setup-check's
     hook_check decides, and a checkout without it gets none."""
     path = root / '.claude/skills/setup-check/setup_check.py'
     if not path.is_file():

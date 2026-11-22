@@ -1,4 +1,4 @@
-# Server-side rerun of the commit hook's checks (CLAUDE.md, Start here) on every push and pull request, so a commit made
+# Server-side rerun of the commit hook's checks (CLAUDE.md, Start Here) on every push and pull request, so a commit made
 # with --no-verify or in a clone without the hook is still caught.
 name: checks
 on:

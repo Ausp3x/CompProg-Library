@@ -10,7 +10,7 @@ typo set (seed --seed) over the cp queries. full: quick with ten times each rand
 the lc and cp queries. stress: full with --rounds (default 3) times the full random cases and --rounds generated sets
 (seeds --seed .. --seed + rounds - 1) over lc and cp. Modes/seeds also come from CP_TEST_MODE/CP_TEST_SEED.
 --tune all|even [--start JSON] [--jobs N] runs no check: it searches the ranking constants on the full-mode --seed 1
-list (00-search.md, Weights and cutoffs) and prints them, with the FLOORS they give or the odd half's results.
+list (00-search.md, Weights and Cutoffs) and prints them, with the FLOORS they give or the odd half's results.
 Oracles (written here, independent of the module): hand tables for names, aliases, rows, stem (derived from the Porter2
 rules), simplified and shortened; the Snowball Porter2 document's published R1/R2 and short-syllable examples; a
 character scanner for words over NFKC text with Chinese characters told by their Unicode names, after a scan
@@ -1507,7 +1507,7 @@ class Real(unittest.TestCase):
         self.assertEqual(set(FLOORS) - set(stats), set(), 'FLOORS sources without queries')
 
 
-# ---------------------------------------------------------------- --tune (00-search.md, Weights and cutoffs)
+# ---------------------------------------------------------------- --tune (00-search.md, Weights and Cutoffs)
 OBJECTIVE = ('cp', 'oi', 'abbr', 'typo', 'simple', 'py', 'lc', 'generated', 'zhs', 'zht')  # zh: the titles in the aliases
 GRID = {'stem': [0.5, 1, 1.5, 2, 3], 'ident': [0.5, 1, 1.5, 2, 3], 'ops': [0.5, 0.75, 1, 1.5, 2], 'qual': [0, 0.1, 0.25, 0.5, 1],
         'aliases': [1, 1.5, 2, 2.5, 3, 4], 'folder': [0, 0.3, 0.6, 0.9, 1.2], 'b': [0.2, 0.3, 0.5, 0.75, 0.9],

@@ -18,7 +18,7 @@ text, NOTE before a task whose failed run beside others was rerun, nothing after
 sweep over the recorded intervals, never wall-clock speedups. Modes/seeds also come from CP_TEST_MODE/CP_TEST_SEED.
 Failing tests print the seed, mode and retained fixture directory.
 
-Feature map: 96-Local Testing/Docs/00-parallel.md (Feature-to-test map).
+Feature map: 96-Local Testing/Docs/00-parallel.md (Feature-to-Test Map).
 """
 import argparse
 import contextlib
@@ -158,7 +158,7 @@ class Fixture:
                         'rerun alone:\n' + ''.join(f'| {line}\n' for line in body(P, s, False)) if i in notes else '')
                        + f'RUN {rel} mode={mode} seed={s}\n' + ''.join(f'{line}\n' for line in body(P, s, True))
                        for i, (rel, P, s) in enumerate(tasks)) + ('' if upto is not None else
-            (f'NOTE {len(notes)} problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n'
+            (f'NOTE {len(notes)} problem(s) to fix, each within a passing run (05-testing.md, Layout and Modes):\n'
              + ''.join(f"  {mode} {tasks[i][0]}: exited {tasks[i][1].get('code') or 3} beside other suites, passed alone\n" for i in sorted(notes)) if notes else '')
             + f'PASS: {len(order)} available suites x {len(seeds)} round(s); see 00-index.md for coverage gaps\n')
 
@@ -392,7 +392,7 @@ class Runner(Base):
         (f.root / '02-Data Structures/03-c_tester.py').write_text("print('TIMING c optimized mode=full compile=0.10s run=99.00s')\n")
         code, out, err = f.run('--mode', 'quick', '-j', '2')
         self.assertEqual(code, 0, err)
-        self.assertIn('NOTE 2 quick build(s) over 10 s, timed beside other suites (05-testing.md, Layout and modes):\n'
+        self.assertIn('NOTE 2 quick build(s) over 10 s, timed beside other suites (05-testing.md, Layout and Modes):\n'
                       '  30.2 s b optimized\n  12.5 s a optimized\nPASS:', out, 'sorted, exactly over the bound, never a failure')
         if not _00_memory_cap.available(): self.skipTest('SKIP: no systemd user scope for the pre-flight half')
         child = ("import os\nif os.environ['CP_TEST_MODE'] == 'quick':\n    print('TIMING d optimized mode=quick compile=0.10s run=11.00s')\n"
@@ -404,9 +404,9 @@ class Runner(Base):
         for mode in ('full', 'stress'):
             code, out, err = f.run('--mode', mode, '--rounds', '2', '-j', '2', CP_MEMORY_CAPPED='', CP_TEST_MEMORY_MB='256')
             self.assertEqual(code, 0, err)
-            self.assertIn('NOTE 1 quick build(s) over 10 s, timed beside other suites (05-testing.md, Layout and modes):\n  11.0 s d optimized\n', out,
+            self.assertIn('NOTE 1 quick build(s) over 10 s, timed beside other suites (05-testing.md, Layout and Modes):\n  11.0 s d optimized\n', out,
                           f'{mode}: from the pre-flight, once though every stress round runs one')
-            self.assertIn('NOTE 1 problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n'
+            self.assertIn('NOTE 1 problem(s) to fix, each within a passing run (05-testing.md, Layout and Modes):\n'
                           '  pre-flight quick d run: 70 s of its 120 s limit\n', out, f'{mode}: labelled as the pre-flight, once')
 
     def test_problems_note(self):
@@ -421,7 +421,7 @@ class Runner(Base):
                                                                   "if m.exists(): sys.exit(0)\nm.touch(); time.sleep(0.5); sys.exit(3)\n")
         code, out, err = f.run('--mode', 'full', '-j', '2', '--memory-mb', '99999')
         self.assertEqual(code, 0, err)
-        self.assertIn('NOTE 2 problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n', out)
+        self.assertIn('NOTE 2 problem(s) to fix, each within a passing run (05-testing.md, Layout and Modes):\n', out)
         problems = out[out.index('NOTE 2 problem'):out.index('PASS:')].splitlines()[1:]
         self.assertEqual(sorted(problems), ['  a ASan-UBSan: 400 s of its 720 s limit',
                                             '  full 02-Data Structures/02-f_tester.py: exited 3 beside other suites, passed alone'],
@@ -441,7 +441,7 @@ class Runner(Base):
         r = subprocess.run([sys.executable, f.root / '01-run.py', '--mode', 'quick', '-j', '1', '--memory-mb', '999'],
                            env=f.env(), capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn('NOTE 1 problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n  x.o: 100 s of its 180 s limit\n', r.stdout)
+        self.assertIn('NOTE 1 problem(s) to fix, each within a passing run (05-testing.md, Layout and Modes):\n  x.o: 100 s of its 180 s limit\n', r.stdout)
 
     def test_over_half(self):
         out = io.StringIO()

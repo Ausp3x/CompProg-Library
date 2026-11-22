@@ -102,7 +102,7 @@ def main(stem, invalid, oracle=None, extra=(), timeout=720, checked='-D_GLIBCXX_
             builder.concurrently([(need, functools.partial(one, label, flags)) for label, flags in variants])
         peak, cap = (_00_memory_cap.cgroup_stats() or (0, 0))[0] >> 20, os.environ.get('CP_MEMORY_CAPPED', '')
         if len(variants) > 1 and cap.isdigit() and peak >= int(cap) * 9 // 10:
-            print(f'NOTE {stem}: builds at once peaked at {peak} of {cap} MB; declare one build\'s peak with memory= (05-testing.md, Memory safety)', flush=True)
+            print(f'NOTE {stem}: builds at once peaked at {peak} of {cap} MB; declare one build\'s peak with memory= (05-testing.md, Memory Safety)', flush=True)
         print(('\033[32m' if color else '') + f'PASS {stem}: {len(variants)} configurations'
               + ('\033[0m' if color else ''), flush=True)
         return 0

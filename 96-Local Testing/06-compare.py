@@ -37,7 +37,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CORE = '01-Core'
 FLAGS = {'scalar': ['-O2'], 'isa': ['-O2', '-mavx2', '-mbmi2', '-mfma'], 'layout': ['-O2', '-falign-functions=64', '-falign-loops=32']}
 GATE = {'native': ['-O2', '-march=native']}  # with --gate on the deciding compiler, as AtCoder compiles; a group of its own in the summary
-COMPILERS = 'g++-15,g++-14,g++'  # the deciding compiler first (03-cpp.md, Toolchain and judges), then the floor and the local one
+COMPILERS = 'g++-15,g++-14,g++'  # the deciding compiler first (03-cpp.md, Toolchain and Judges), then the floor and the local one
 BUILD_MB = 2600  # measured: one -O2 build of the modint rig peaks near 2.5 GB
 
 

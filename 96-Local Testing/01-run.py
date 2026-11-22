@@ -19,7 +19,7 @@ STATS = HERE / '.run-stats.json'  # git-ignored: last peak MB and seconds per mo
 CAP_MB = int(os.environ.get('CP_TEST_MEMORY_MB', '4096'))
 SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)  # each stops every job as Ctrl-C does
 OVERHALF = re.compile(rb'^OVERHALF (.+)$', re.M)  # printed by _00_cpp_test_runner.over_half
-QUICK_SECONDS = 10.0  # a build's quick run alone (05-testing.md, Layout and modes); here measured beside other suites, so a NOTE only
+QUICK_SECONDS = 10.0  # a build's quick run alone (05-testing.md, Layout and Modes); here measured beside other suites, so a NOTE only
 
 
 def available_mb():
@@ -230,7 +230,7 @@ def main():
     if code: return code
     slow = sorted({name: seconds for seconds, name in sorted(slow)}.items(), key=lambda item: -item[1])  # each round's pre-flight repeats them
     if slow:
-        print(f'NOTE {len(slow)} quick build(s) over {QUICK_SECONDS:.0f} s, timed beside other suites (05-testing.md, Layout and modes):\n'
+        print(f'NOTE {len(slow)} quick build(s) over {QUICK_SECONDS:.0f} s, timed beside other suites (05-testing.md, Layout and Modes):\n'
               + ''.join(f'  {seconds:.1f} s {name}\n' for name, seconds in slow), end='', flush=True)
     if not a.no_integration:
         command = [sys.executable, str(HERE / '02-integration.py'), '--jobs', str(a.jobs)]
@@ -239,7 +239,7 @@ def main():
         if code: return code
     flagged = worst(flagged)
     if flagged:
-        print(f'NOTE {len(flagged)} problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n'
+        print(f'NOTE {len(flagged)} problem(s) to fix, each within a passing run (05-testing.md, Layout and Modes):\n'
               + ''.join(f'  {line}\n' for line in flagged), end='', flush=True)
     print(f'PASS: {len(suites)} available suites x {runs} round(s); see 00-index.md for coverage gaps')
     return 0

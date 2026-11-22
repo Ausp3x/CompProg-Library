@@ -37,7 +37,7 @@
 
 ## Source Keys
 
-Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys); a row's keys name the catalogs above whose Used-for entry names that row or one of its operations.
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source Keys); a row's keys name the catalogs above whose Used-for entry names that row or one of its operations.
 
 ## P012 Re-Audit Sweep (Fetched 2026-10-07)
 
@@ -255,7 +255,7 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 
 ## Fetched 2026-11-08 (Omission Sweep)
 
-Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission Sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission Sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
 
 | URL | Used for |
 |---|---|

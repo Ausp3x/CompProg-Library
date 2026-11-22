@@ -1,6 +1,6 @@
 # Library Checker Judge Tool — Evidence
 
-Scope: [`07-judge.py`](../00-Tools/07-judge.py) fetches the fastest submissions, regenerates the judge's tests and times solutions for `/speed-sweep` (`00-Guidelines/09-sources.md`, Fastest submissions; user decision 2026-10-25). Its tester is [`07-judge_tester.py`](../00-Tools/07-judge_tester.py).
+Scope: [`07-judge.py`](../00-Tools/07-judge.py) fetches the fastest submissions, regenerates the judge's tests and times solutions for `/speed-sweep` (`00-Guidelines/09-sources.md`, Fastest Submissions; user decision 2026-10-25). Its tester is [`07-judge_tester.py`](../00-Tools/07-judge_tester.py).
 
 ## Design
 

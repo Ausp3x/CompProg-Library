@@ -155,7 +155,7 @@ Independently written from the algorithms in the cited references; no code copie
 ## Limits and Handoffs
 
 - The mini has no transform-limit fallback: products beyond `2^v` terms for `2^v || p - 1` assert, where the full type switches to its block product.
-- Verified before the mutation rule of 2026-11-03; no record yet.
+- Verified before the mutation rule of 2026-11-03; no record yet. P257 (PolyMini parity) records it (user decision 2026-11-22).
 
 ## Aliases
 

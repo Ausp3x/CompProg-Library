@@ -91,7 +91,7 @@ Inspected on 2026-09-28; the implementations are written independently from the 
 ## Limits and Handoffs
 
 - Legacy `OLD/Team Notebook/src/algsbetter.cpp` lines 3567–3608 and `algs.cpp` lines 2486–2508 (`knapsack01`, `knapsackComplete`, binary-grouped `knapsackMultiple`) are covered; their `lng` overflow, unchecked domains and zero-weight unboundedness are corrected here. No active callers; archives preserved.
-- Advanced knapsack variants belong to row `29` (MI18), Boolean bitset subset sum to `22` and meet-in-the-middle to `30` ([00-notes.md](00-notes.md), Advanced and Esoteric contracts).
+- Advanced knapsack variants belong to row `29` (MI18), Boolean bitset subset sum to `22` and meet-in-the-middle to `30` ([00-notes.md](00-notes.md), Advanced and Esoteric Contracts).
 - Not adopted in the 2026-10-08 sweep: [00-notes.md](00-notes.md), Basic contracts (Knapsack); swept sources in [00-sources.md](00-sources.md).
 - Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 

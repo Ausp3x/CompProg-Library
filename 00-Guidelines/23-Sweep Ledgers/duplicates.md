@@ -184,7 +184,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P006 | `SegmentTree::apply` (`03-segmenttree.hpp`) | As the recorded keep `SqrtDecomp::apply` |
 | P006 | `DifferenceArray(2D)::clear` (`05-prefix_sum.hpp`) | Named special case, in place |
 | P006 | `PrefixSum` beside `PrefixProduct<Sum<T>>` (`05-prefix_sum.hpp`) | Named special case: the same results for an additive group, taken as a plain `T` with `+` and `-` instead of a group struct, with `prefixSum` and the braced-list constructor; `PrefixProduct` serves noncommutative groups (DS02 review, 2026-11-12) |
-| P006 | Braced-list constructors (`02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp`, `06-sqrt_decomposition.hpp`) | Without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md`, Common foundation contracts) |
+| P006 | Braced-list constructors (`02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp`, `06-sqrt_decomposition.hpp`) | Without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md`, Common Foundation Contracts) |
 | P006 | `CoordinateCompression::decode` (`07-ordered_set.hpp`) | Named inverse of `encode`; replaces P013's `value` |
 | P006 | `previousGreater`, `nextGreater`, `slidingMaximum` (`08-monotone_stack.hpp`) | Named special cases |
 | P007 | `signedAreaApprox` (`03-polygon.hpp`) | Another scale: half the doubled area (clarified rule) |
@@ -279,7 +279,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P047 | `blockOf` (`27-blockcuttree.hpp`) | Maps a vertex to its unique block, -1 at articulation points |
 | P047 | `maximumBranching` (`25-directedmst.hpp`) beside `DirectedMst::arborescence` | Different problem: no root, any number of roots, only positive arcs; built on the contraction engine, not a sign mirror |
 | P047 | `OfflineDynamicConnectivity::insertEdge`, `eraseEdge` beside `addEdge` (`26-dynamic_connectivity.hpp`) | Larger domain: unpaired per-pair events with multiplicities, as P034 `OfflineDeletion::insert`, `erase` |
-| P047 | `OfflineDynamicConnectivity` (`26-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (Data Structures `Docs/00-notes.md`, Ownership boundaries, reworded) |
+| P047 | `OfflineDynamicConnectivity` (`26-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (Data Structures `Docs/00-notes.md`, Ownership Boundaries, reworded) |
 | P060 | `ceilSum` (`18-floorsum.hpp`) | Named special case (ruling 3) |
 | P060 | `enumerateQuotients` (`18-floorsum.hpp`) | Stored form beside the callback `forEachQuotientBlock`, as the kept `factorize()` (clarified rule) |
 | P060 | `maxOfModOfLinear` (`18-floorsum.hpp`) beside `minOfModOfLinear` | Mirror (ruling 3) |
@@ -335,7 +335,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P066 | `vectorHash` (row 19) | Different algorithm: random-base polynomial hash (clarified rule) |
 | P066 | `pairHash` (row 19) | Different algorithm: random-base polynomial hash (MAS `hash_pair`), not `CustomHash` splitmix mixing |
 | P066 | `kWayMerge` (rows 15, 44) | Heap merge, O(N log k), a larger domain than a two-way merge (ALG external sorting); row 44 `externalMergeSort` calls it |
-| P066 | `hilbertIndex2D` (row 16) | Row 16 owns Hilbert order (`Docs/00-notes.md`, Advanced and Esoteric contracts); see P067 |
+| P066 | `hilbertIndex2D` (row 16) | Row 16 owns Hilbert order (`Docs/00-notes.md`, Advanced and Esoteric Contracts); see P067 |
 | P062 | `grundySum` (row 25) | Composition over whole games (`grundy`, then `nimSum`) returning a winning component move; NYA, CPALG |
 | P062 | `nimWin` (row 25) | Named special case (ruling 1) |
 | P077 | `evaluateExpression` (row 37) | Named composition (OIW expression): calls `tokenize`, `shuntingYard`, `evaluatePostfix` |
@@ -426,7 +426,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 
 ## Conventions
 
-Locations are relative to the package's folder and tests to `96-Local Testing/<folder>/`; "row NN" is the `00-index.md` row of header `NN-`, "clarified rule" cites `03-cpp.md`, One API per operation, and "ruling N" the Nth of the Rulings above. A `remove (row only)` item has no code to change, or its code is a pinned extraction whose body stays until the package rewrites it.
+Locations are relative to the package's folder and tests to `96-Local Testing/<folder>/`; "row NN" is the `00-index.md` row of header `NN-`, "clarified rule" cites `03-cpp.md`, One API per Operation, and "ruling N" the Nth of the Rulings above. A `remove (row only)` item has no code to change, or its code is a pinned extraction whose body stays until the package rewrites it.
 
 ## P020 — 01-Core — matrix (planned)
 

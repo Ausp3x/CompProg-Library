@@ -41,7 +41,7 @@
         "01-Core/Docs/02-debug.md",
         "01-Core/Docs/18-bitset.md"
       ],
-      "note": ""
+      "note": "Re-pass owed for `18-bitset.hpp` (template and debug are exempt): its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22). Candidates named in `18-bitset.md`: AVX-512 VPOPCNTDQ, Harley–Seal popcount, AVX2 edge handling for `combineRange`."
     },
     {
       "id": "P003",
@@ -72,7 +72,7 @@
         "01-Core/Docs/03-barrett.md",
         "01-Core/Docs/04-montgomery.md"
       ],
-      "note": "Handed over by P005's sweep (2026-11-18, GCC 15): Montgomery32::mul8 (04-montgomery.hpp:81) carries no always_inline, so a caller's lane loop called a local clone of it once per lane group (dynamic 32-bit batchInv 2.0-4.5% slower at sizes 80-384, +3.65 instructions an element); with always_inline on mul8 alone 20 calls remained through red8 and red4. Candidate for P004's own sweep, to be measured on its rows: always_inline on mul8, red8, red4, load and store. 05-modint.hpp no longer depends on it (its lane product is inlined from its own side). User decision 2026-11-19: done in P004's sweep, not in P005's landing. Also handed over by P005 (01-Core/Docs/05-modint.md, Dependent-owner handoff; GCC 15, 2026-11-18 to 2026-11-21): Montgomery64::redc's correction mispredicts 0.22 times a product in batch chains (a branch-free correction is the candidate; 05-modint.hpp carries its own branch-free product until then); Montgomery64 built from a known 2^128 mod m measured setmod-p30-given64 0.79-0.84. From 2026-11-16 (GCC 16): Barrett32::divMod's correction compiles to a branch that mispredicts on dividends near 2^63 and GCC stops inlining divMod into a larger caller; a branch-free multiplier select in Montgomery64::powMont measured 0.72-0.78 on random exponents. From P005 (01-Core/Docs/05-modint.md cites this note): Barrett32::pow and Barrett64::pow reduce their base redundantly (equivalent mutants CR 61 and CR 92 at 03-barrett.hpp lines 26 and 111), a removal candidate; this sweep reruns the Barrett mutation campaign under the current sample rule (05-testing.md, Mutation Testing). A change to Barrett or Montgomery code here triggers the P005 re-measurements its note lists."
+      "note": "Handed over by P005's sweep (2026-11-18, GCC 15): Montgomery32::mul8 (04-montgomery.hpp:81) carries no always_inline, so a caller's lane loop called a local clone of it once per lane group (dynamic 32-bit batchInv 2.0-4.5% slower at sizes 80-384, +3.65 instructions an element); with always_inline on mul8 alone 20 calls remained through red8 and red4. Candidate for P004's own sweep, to be measured on its rows: always_inline on mul8, red8, red4, load and store. 05-modint.hpp no longer depends on it (its lane product is inlined from its own side). User decision 2026-11-19: done in P004's sweep, not in P005's landing. Also handed over by P005 (01-Core/Docs/05-modint.md, Dependent-Owner Handoff; GCC 15, 2026-11-18 to 2026-11-21): Montgomery64::redc's correction mispredicts 0.22 times a product in batch chains (a branch-free correction is the candidate; 05-modint.hpp carries its own branch-free product until then); Montgomery64 built from a known 2^128 mod m measured setmod-p30-given64 0.79-0.84. From 2026-11-16 (GCC 16): Barrett32::divMod's correction compiles to a branch that mispredicts on dividends near 2^63 and GCC stops inlining divMod into a larger caller; a branch-free multiplier select in Montgomery64::powMont measured 0.72-0.78 on random exponents. From P005 (01-Core/Docs/05-modint.md cites this note): Barrett32::pow and Barrett64::pow reduce their base redundantly (equivalent mutants CR 61 and CR 92 at 03-barrett.hpp lines 26 and 111), a removal candidate; this sweep reruns the Barrett mutation campaign under the current sample rule (05-testing.md, Mutation Testing). A change to Barrett or Montgomery code here triggers the P005 re-measurements its note lists."
     },
     {
       "id": "P005",
@@ -350,7 +350,7 @@
       "evidence": [
         "00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md"
       ],
-      "note": "Sweep 02–07 applied 2026-11-08: 243 row edits and 21 new rows (batches DS54–56, GE52–58, GR77–79, MA55–58, MI36, ST42–44; packages P264–P273), 48 verified rows reopened as partial and 29 packages reopened (P027, P028 partial; P029, P032 in-progress with rows verified for their doc-only notes; P034, P035 for those notes and their partial rows; P033's reversed omission lands in P027's row 11; P115 widened; P014 and P017 moved to Contest core); omissions in the folders' `Docs/00-notes.md` (Omission sweep 2026-11-08), sources in `Docs/00-sources.md` (Fetched 2026-11-08). User follow-ups the same day (`10-decisions.md`, 2026-11-08 One API by Context, Operation Names, Source Keys): One API per context, wrappers, named compositions and catalogued one-problem algorithms; operation-name vocabulary and the collision check, with the clashes fixed; one library source key list. Re-review planned as P275, renames as P276. /finish P254 (2026-11-08): evidence in `00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md`."
+      "note": "Sweep 02–07 applied 2026-11-08: 243 row edits and 21 new rows (batches DS54–56, GE52–58, GR77–79, MA55–58, MI36, ST42–44; packages P264–P273), 48 verified rows reopened as partial and 29 packages reopened (P027, P028 partial; P029, P032 in-progress with rows verified for their doc-only notes; P034, P035 for those notes and their partial rows; P033's reversed omission lands in P027's row 11; P115 widened; P014 and P017 moved to Contest core); omissions in the folders' `Docs/00-notes.md` (Omission Sweep 2026-11-08), sources in `Docs/00-sources.md` (Fetched 2026-11-08). User follow-ups the same day (`10-decisions.md`, 2026-11-08 One API by Context, Operation Names, Source Keys): One API per context, wrappers, named compositions and catalogued one-problem algorithms; operation-name vocabulary and the collision check, with the clashes fixed; one library source key list. Re-review planned as P275, renames as P276. /finish P254 (2026-11-08): evidence in `00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md`."
     },
     {
       "id": "P274",
@@ -380,7 +380,7 @@
       "evidence": [
         "00-Guidelines/23-Sweep Ledgers/Docs/00-duplicate-rereview.md"
       ],
-      "note": "Open questions left for owners in duplicates.md and omissions.md (Open questions). Follow-ups: Matrix<ModInt<MOD>> MOD>=2^31 int(T(-1)) defect (P020 note); P276 rename list; one-problem /omission-sweep pass for unrecorded candidates (evidence Limits)."
+      "note": "Open questions left for owners in duplicates.md and omissions.md (Open Questions). Follow-ups: Matrix<ModInt<MOD>> MOD>=2^31 int(T(-1)) defect (P020 note); P276 rename list; one-problem /omission-sweep pass for unrecorded candidates (evidence Limits)."
     },
     {
       "id": "P276",
@@ -442,7 +442,7 @@
       "evidence": [
         "01-Core/Docs/16-poly.md"
       ],
-      "note": "Open, with no owning open package: the Karatsuba candidate for convolution_F_2_64 (8.9 s on judge submission #417051 against the 10 s limit; `97-Online Testing/Docs/00-judge-sources.md`); the user decides who takes it."
+      "note": "Re-pass owed: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22). Candidates named so far: Karatsuba for `convolution_F_2_64` (8.9 s on judge submission #417051 against the 10 s limit; `97-Online Testing/Docs/00-judge-sources.md`), and from `16-poly.md` (Limits and Handoffs) the Lin–Chung–Han additive transform for `convolutionGF2k`, a polynomial-matrix `composeMod`, a half-gcd Berlekamp–Massey and baby-step giant-step distinct-degree factorization. Rational on Poly's row is P258's."
     },
     {
       "id": "P026",
@@ -473,7 +473,7 @@
         "01-Core/Docs/07-infint.md",
         "01-Core/Docs/19-fastio.md"
       ],
-      "note": "Stages 1-4 and the Core fast I/O header verified (/finish 2026-11-02); HUGE_FROM back to 2 MiB after the judge (07-infint.md, Benchmarks); the judge results of the final revision are in 07-infint.md, Library Checker reproduction. P275 handoff 2026-11-10: `Docs/07-infint.md` still says `nextPrime`/`prevPrime` have no owner; Mathematics row 36 `nextPrimeBig`/`prevPrimeBig` and row 05 `primorial` own them now."
+      "note": "Stages 1-4 and the Core fast I/O header verified (/finish 2026-11-02); HUGE_FROM back to 2 MiB after the judge (07-infint.md, Benchmarks); the judge results of the final revision are in 07-infint.md, Library Checker reproduction. P275 handoff 2026-11-10: `Docs/07-infint.md` still says `nextPrime`/`prevPrime` have no owner; Mathematics row 36 `nextPrimeBig`/`prevPrimeBig` and row 05 `primorial` own them now. Re-pass owed for `07-infint.hpp` and `19-fastio.hpp`: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22)."
     },
     {
       "id": "P019",
@@ -490,7 +490,7 @@
         "01-Core/Docs/08-infintmini.md",
         "01-Core/Docs/09-rational.md"
       ],
-      "note": ""
+      "note": "Re-pass owed for `09-rational.hpp`: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22)."
     },
     {
       "id": "P255",
@@ -512,11 +512,11 @@
         "C20"
       ],
       "phase": "Core full types",
-      "size": "M",
+      "size": "L",
       "model": "fable",
       "status": "planned",
       "evidence": [],
-      "note": "P276 handoff 2026-11-10 (Core renames need Fable): `InfInt::getBaseId` -> `baseId` and `divModSlow` (Knuth D only) -> `divModQuadratic` or `divModKnuth`, with rows, testers and evidence mappings (`02-structure.md`, Operation Names). Also `Poly::sparseMul` puts the variant word first (`02-structure.md`, Operation Names; P276 decision 2026-11-10): rename it, as `mulSparse` for example. From P025: remove the diagnostic pragmas around `#include \"../../01-Core/07-infint.hpp\"` in `96-Local Testing/01-Core/16-poly_tester.cpp` (lines 2-7)."
+      "note": "P276 handoff 2026-11-10 (Core renames need Fable): `InfInt::getBaseId` -> `baseId` and `divModSlow` (Knuth D only) -> `divModQuadratic` or `divModKnuth`, with rows, testers and evidence mappings (`02-structure.md`, Operation Names). Also `Poly::sparseMul` puts the variant word first (`02-structure.md`, Operation Names; P276 decision 2026-11-10): rename it, as `mulSparse` for example. From P025: remove the diagnostic pragmas around `#include \"../../01-Core/07-infint.hpp\"` in `96-Local Testing/01-Core/16-poly_tester.cpp` (lines 2-7). Rational on Poly's row (user decision 2026-11-22): `Poly<Rational>` joins Poly's coefficient domains with Poly-suite tests, its row cell and `16-poly.md`/`09-rational.md` Limits updated; it lands before P025's re-pass, so the sweep measures the final row, and before P257, whose parity follows the row."
     },
     {
       "id": "P256",
@@ -647,7 +647,7 @@
         "02-Data Structures/Docs/24-interval_set.md",
         "02-Data Structures/Docs/00-monoids.md"
       ],
-      "note": "Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned. Follow-up (user decision 2026-11-04): add historic acted-monoid presets to 00-monoids (row 00): range add with historic max, historic min and historic sum (tick); regular acted monoids (no fail), so row 12 LazySegmentTree and row 13 DynamicLazySegmentTree host them, giving the generic and the dynamic (lng-key) historic trees beside row 14 HistoricSegTree (see the P028 note). Reversed omissions (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants) in row 11: (1) hash-map dynamic Fenwick over lng keys on row 61 HashMap (add, get, prefixSum, sum), benchmarked against row 13 DynamicSegmentTree; (2) dynamic 2D Fenwick (hash map, group T, point add, rectangle sum) over lng coordinates, O(log^2 U) time and entries per update, memory bound documented; (3) dual CompressedFenwick2D: rectangle add, point get on registered points, O(log^2 k) (MAS Dual_FenwickTree_2D); (4) rectangle add, rectangle sum over grid cells with corner coordinates registered up front, four compressed Fenwick arrays (1, x, y, xy weights), O(log^2 k) online. Rewrite the Docs/00-notes.md entries they resolve when they land: P027 omissions \"Hash-map dynamic Fenwick\" and \"Compressed rectangle-add/rectangle-sum, compressed dual 2D Fenwick\", P028 \"Online rectangle-apply/point-get on registered points\", P033 \"Online rectangle-add rectangle-sum\". Also reversed (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): (5) one-node-per-key dynamic segment tree (MAS dynamic_segtree_sparse), O(q) nodes instead of O(q log U), as row 13 DynamicSegmentTree's representation: benchmark against the current tree and keep the winner, keeping both with a recorded reason only if meld, split or the persistent mode cannot carry over; (6) persistent Fenwick in row 11 (SUI): time-stamped histories per slot, updates on the latest version, past prefix sums in O(log n log q), O(log n) entries per update, its trade-off against row 18 PersistentSegmentTree recorded. Rewrite the P027 omissions \"Persistent Fenwick\" and \"Dynamic tree one-node-per-key sparse variant\" when they land; \"2D dual Fenwick (rectangle add, point get)\" stays left out (four Fenwick2D corner adds plus prefixSum). Omission sweep 2026-11-08: implement RangeAddRangeHistoricMax, RangeAddRangeHistoricMin, RangeAddRangeHistoricSum, RangeAddAssignRangeMaxHistoricMax in `00-monoids.hpp`; DualCompressedFenwick2D, CompressedFenwick2DRangeAdd, DynamicFenwick, DynamicFenwick2D, PersistentFenwick, FenwickRangeMax in `11-fenwick_tree_advanced.hpp`; StarrySkyTree in `12-lazysegmenttree.hpp`; DynamicLazySegmentTree::enumerate in `13-dynamicsegmenttree.hpp`. P275 re-review 2026-11-10: implement Assign, monoidPow, PairActedMonoid, AddFloorDivComposite, RangeAssignRangePowerSums in `00-monoids.hpp`; DualFenwick2D in `11-fenwick_tree_advanced.hpp`; RollbackLazySegmentTree in `12-lazysegmenttree.hpp`; DynamicLazySegmentTree::meld, DynamicDualSegmentTree::values in `13-dynamicsegmenttree.hpp`; RangeAssignSegmentTree, IntervalMap::values in `24-interval_set.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing. The next run rechecks the probe passes of rows 11, 12, 13 that predate the 2026-11-12 runner fix."
+      "note": "Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned. Follow-up (user decision 2026-11-04): add historic acted-monoid presets to 00-monoids (row 00): range add with historic max, historic min and historic sum (tick); regular acted monoids (no fail), so row 12 LazySegmentTree and row 13 DynamicLazySegmentTree host them, giving the generic and the dynamic (lng-key) historic trees beside row 14 HistoricSegTree (see the P028 note). Reversed omissions (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants) in row 11: (1) hash-map dynamic Fenwick over lng keys on row 61 HashMap (add, get, prefixSum, sum), benchmarked against row 13 DynamicSegmentTree; (2) dynamic 2D Fenwick (hash map, group T, point add, rectangle sum) over lng coordinates, O(log^2 U) time and entries per update, memory bound documented; (3) dual CompressedFenwick2D: rectangle add, point get on registered points, O(log^2 k) (MAS Dual_FenwickTree_2D); (4) rectangle add, rectangle sum over grid cells with corner coordinates registered up front, four compressed Fenwick arrays (1, x, y, xy weights), O(log^2 k) online. Rewrite the Docs/00-notes.md entries they resolve when they land: P027 omissions \"Hash-map dynamic Fenwick\" and \"Compressed rectangle-add/rectangle-sum, compressed dual 2D Fenwick\", P028 \"Online rectangle-apply/point-get on registered points\", P033 \"Online rectangle-add rectangle-sum\". Also reversed (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): (5) one-node-per-key dynamic segment tree (MAS dynamic_segtree_sparse), O(q) nodes instead of O(q log U), as row 13 DynamicSegmentTree's representation: benchmark against the current tree and keep the winner, keeping both with a recorded reason only if meld, split or the persistent mode cannot carry over; (6) persistent Fenwick in row 11 (SUI): time-stamped histories per slot, updates on the latest version, past prefix sums in O(log n log q), O(log n) entries per update, its trade-off against row 18 PersistentSegmentTree recorded. Rewrite the P027 omissions \"Persistent Fenwick\" and \"Dynamic tree one-node-per-key sparse variant\" when they land; \"2D dual Fenwick (rectangle add, point get)\" stays left out (four Fenwick2D corner adds plus prefixSum). Omission sweep 2026-11-08: implement RangeAddRangeHistoricMax, RangeAddRangeHistoricMin, RangeAddRangeHistoricSum, RangeAddAssignRangeMaxHistoricMax in `00-monoids.hpp`; DualCompressedFenwick2D, CompressedFenwick2DRangeAdd, DynamicFenwick, DynamicFenwick2D, PersistentFenwick, FenwickRangeMax in `11-fenwick_tree_advanced.hpp`; StarrySkyTree in `12-lazysegmenttree.hpp`; DynamicLazySegmentTree::enumerate in `13-dynamicsegmenttree.hpp`. P275 re-review 2026-11-10: implement Assign, monoidPow, PairActedMonoid, AddFloorDivComposite, RangeAssignRangePowerSums in `00-monoids.hpp`; DualFenwick2D in `11-fenwick_tree_advanced.hpp`; RollbackLazySegmentTree in `12-lazysegmenttree.hpp`; DynamicLazySegmentTree::meld, DynamicDualSegmentTree::values in `13-dynamicsegmenttree.hpp`; RangeAssignSegmentTree, IntervalMap::values in `24-interval_set.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. The next run rechecks the probe passes of rows 11, 12, 13 that predate the 2026-11-12 runner fix."
     },
     {
       "id": "P014",
@@ -787,7 +787,7 @@
         "04-Graphs/Docs/23-assignment.md",
         "04-Graphs/Docs/24-dominatortree.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement graphPathGame in `21-matching_bipartite.hpp`; dominatorTreeDag in `24-dominatortree.hpp`. P275 re-review 2026-11-10: implement TwoSat::addNand in `18-twosat.hpp`; maximumMatchingLexicographic, konigVertexCoverLexicographic in `21-matching_bipartite.hpp`; bottleneckAssignment in `23-assignment.hpp`; DominatorTree::dominatedCount, postDominatorTree in `24-dominatortree.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing. The next run rechecks the probe passes of rows 18, 21, 23, 24 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement graphPathGame in `21-matching_bipartite.hpp`; dominatorTreeDag in `24-dominatortree.hpp`. P275 re-review 2026-11-10: implement TwoSat::addNand in `18-twosat.hpp`; maximumMatchingLexicographic, konigVertexCoverLexicographic in `21-matching_bipartite.hpp`; bottleneckAssignment in `23-assignment.hpp`; DominatorTree::dominatedCount, postDominatorTree in `24-dominatortree.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. The next run rechecks the probe passes of rows 18, 21, 23, 24 that predate the 2026-11-12 runner fix."
     },
     {
       "id": "P055",
@@ -899,7 +899,7 @@
         "03-Geometry/Docs/16-circle_polygon.md",
         "03-Geometry/Docs/17-polygon_distance.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement halfplaneIntersectionSorted, chebyshevCenterLpApprox in `10-halfplaneintersection.hpp`. P275 re-review 2026-11-10: implement minkowskiSumReducedConvolution in `11-minkowskisum.hpp`; widestSeparatingStripApprox, commonTangents, polygonsIntersect (rings) in `17-polygon_distance.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing. At /finish, add a mewt record for verified row 16; partial rows 10, 11 and 17 get their campaigns when completed. The next run rechecks the probe passes of rows 10, 11, 16, 17 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement halfplaneIntersectionSorted, chebyshevCenterLpApprox in `10-halfplaneintersection.hpp`. P275 re-review 2026-11-10: implement minkowskiSumReducedConvolution in `11-minkowskisum.hpp`; widestSeparatingStripApprox, commonTangents, polygonsIntersect (rings) in `17-polygon_distance.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. At /finish, add a mewt record for verified row 16; partial rows 10, 11 and 17 get their campaigns when completed. The next run rechecks the probe passes of rows 10, 11, 16, 17 that predate the 2026-11-12 runner fix."
     },
     {
       "id": "P029",
@@ -1165,7 +1165,7 @@
         "06-Miscellaneous/Docs/54-kbest_enumeration.md",
         "06-Miscellaneous/Docs/55-fractional_programming.md"
       ],
-      "note": "KnapsackItem::weight is lng in 13 (P015 files migrated). P275 re-review 2026-11-10: implement connectedSetKnapsack, modularSubsetSum in `29-knapsack_advanced.hpp`; kSmallestSortedMatrix, kSmallestSortedLists, kSmallestSubarrayXors, kthSmallestPairProduct in `54-kbest_enumeration.hpp`; linearFractionalProgramming in `55-fractional_programming.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing. The next run rechecks the probe passes of rows 29, 54, 55 that predate the 2026-11-12 runner fix."
+      "note": "KnapsackItem::weight is lng in 13 (P015 files migrated). P275 re-review 2026-11-10: implement connectedSetKnapsack, modularSubsetSum in `29-knapsack_advanced.hpp`; kSmallestSortedMatrix, kSmallestSortedLists, kSmallestSubarrayXors, kthSmallestPairProduct in `54-kbest_enumeration.hpp`; linearFractionalProgramming in `55-fractional_programming.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. The next run rechecks the probe passes of rows 29, 54, 55 that predate the 2026-11-12 runner fix."
     },
     {
       "id": "P035",
@@ -1282,7 +1282,7 @@
         "02-Data Structures/Docs/32-static_range_queries.md",
         "02-Data Structures/Docs/62-xorbasis.md"
       ],
-      "note": "Sparse ids (user decision 2026-11-04): RadixHeapArray takes ids [0, n) for its key-indexed decrease. Record in 31-radixheap.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use RadixHeap with payloads and skip stale entries. Omission sweep 2026-11-08 (user decision): reopened only for the sparse-id documentation above; rows stay verified. P275 re-review 2026-11-10: implement RadixHeap (floating keys), RadixMaxHeap, RadixHeapArray::chmin in `31-radixheap.hpp`; XorBasis::orthogonalComplement in `62-xorbasis.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing. Implement MonotoneCHT::merge in `22-convexhulltrick.hpp` (hitonanode; user decision 2026-11-22); row 22 is partial until then. /finish runs the mewt campaign for `62-xorbasis.hpp`, which has no record."
+      "note": "Sparse ids (user decision 2026-11-04): RadixHeapArray takes ids [0, n) for its key-indexed decrease. Record in 31-radixheap.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use RadixHeap with payloads and skip stale entries. Omission sweep 2026-11-08 (user decision): reopened only for the sparse-id documentation above; rows stay verified. P275 re-review 2026-11-10: implement RadixHeap (floating keys), RadixMaxHeap, RadixHeapArray::chmin in `31-radixheap.hpp`; XorBasis::orthogonalComplement in `62-xorbasis.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. Implement MonotoneCHT::merge in `22-convexhulltrick.hpp` (hitonanode; user decision 2026-11-22); row 22 is partial until then. /finish runs the mewt campaign for `62-xorbasis.hpp`, which has no record."
     },
     {
       "id": "P048",
@@ -1913,7 +1913,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement reportIntersections, reportIntersectionsNaive, intersectionPoints, countIntersections in `12-segmentintersection.hpp`. P275 re-review 2026-11-10: implement firstSelfIntersection in `12-segmentintersection.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
+      "note": "Omission sweep 2026-11-08: implement reportIntersections, reportIntersectionsNaive, intersectionPoints, countIntersections in `12-segmentintersection.hpp`. P275 re-review 2026-11-10: implement firstSelfIntersection in `12-segmentintersection.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing."
     },
     {
       "id": "P134",
@@ -2554,7 +2554,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Planned operation (user decision 2026-10-24, from P072): minimumRatioSpanningTree (POJ 2728), 06-Miscellaneous/55 dinkelbach over a dense Prim (06-mst primDense) oracle with weights a - t * b, exact rational result and tree witness; add it to the row 56 operations beside minimumRatioCycle and update 06-Miscellaneous/Docs/00-notes.md (Ownership boundaries) when implemented. Omission sweep 2026-11-08: implement GomoryHuTree::kEdgeComponents in `46-gomoryhutree.hpp`; stoerWagnerDense, stoerWagnerSparse in `47-stoerwagner.hpp`; vertexCoverAtMost, cliqueCover in `49-maximumclique.hpp`."
+      "note": "Planned operation (user decision 2026-10-24, from P072): minimumRatioSpanningTree (POJ 2728), 06-Miscellaneous/55 dinkelbach over a dense Prim (06-mst primDense) oracle with weights a - t * b, exact rational result and tree witness; add it to the row 56 operations beside minimumRatioCycle and update 06-Miscellaneous/Docs/00-notes.md (Ownership Boundaries) when implemented. Omission sweep 2026-11-08: implement GomoryHuTree::kEdgeComponents in `46-gomoryhutree.hpp`; stoerWagnerDense, stoerWagnerSparse in `47-stoerwagner.hpp`; vertexCoverAtMost, cliqueCover in `49-maximumclique.hpp`."
     },
     {
       "id": "P158",
@@ -2609,7 +2609,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement fpsComposeExp, bivariateRationalCoefficient, countLabeledGraphs in `40-generating_functions.hpp`. P275 re-review 2026-11-10: implement fpsComposeExpMinusOne, fpsComposeOneMinusExp, fpsComposeLogOneMinusX, simplePermutationTable in `40-generating_functions.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
+      "note": "Omission sweep 2026-11-08: implement fpsComposeExp, bivariateRationalCoefficient, countLabeledGraphs in `40-generating_functions.hpp`. P275 re-review 2026-11-10: implement fpsComposeExpMinusOne, fpsComposeOneMinusExp, fpsComposeLogOneMinusX, simplePermutationTable in `40-generating_functions.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing."
     },
     {
       "id": "P188",
@@ -4094,7 +4094,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Handoff from P006 (2026-11-13): `96-Local Testing/00-Tools/15-harness_tester.py` `test_effort_launch` failed beside other suites in a 01-run quick run on 2026-11-12 and passed alone; find the shared state or timing it depends on and fix it, since a suite that passes only alone is not passing (05-testing.md, Layout and Modes). Also add a validator check for the wrapped-list forms (`03-cpp.md`, Style, Wrapped lists; `04-python.md`) to `96-Local Testing/03-consistency.py`, in the --braces and verified-header passes, for C++ and Python, with tests in `96-Local Testing/00-Tools`; a file stays exempt until it is next edited (user decision 2026-11-21: rule first, check later)."
+      "note": "Handoff from P006 (2026-11-13): `96-Local Testing/00-Tools/15-harness_tester.py` `test_effort_launch` failed beside other suites in a 01-run quick run on 2026-11-12 and passed alone; find the shared state or timing it depends on and fix it, since a suite that passes only alone is not passing (05-testing.md, Layout and Modes). Also add a validator check for the wrapped-list forms (`03-cpp.md`, Style, Wrapped lists; `04-python.md`) to `96-Local Testing/03-consistency.py`, in the --braces and verified-header passes, for C++ and Python, with tests in `96-Local Testing/00-Tools`; a file stays exempt until it is next edited (user decision 2026-11-21: rule first, check later). Also a Markdown table-shape check in the validator (user decision 2026-11-22): in every table the separator row comes second and every row has the header's column count; a `/tidy` on 2026-11-22 found four inventory tables with a misplaced separator that nothing flagged."
     },
     {
       "id": "P226",

@@ -123,7 +123,7 @@ No external source code was copied into this header. The 2026-10-06 catalog swee
 
 - `combineRange` has no dedicated AVX2 edge handling (two masked scalar edge words plus the shared kernel); a self-aliased `combineRange` allocates a copy of the source range.
 - BitMatrix (`12-bitmatrix.hpp`) may adopt `combineRange<Op::Xor>` for row elimination when its package runs.
-- Verified before the mutation rule of 2026-11-03; no record yet.
+- Verified before the mutation rule of 2026-11-03; no record yet. P002's re-pass records it and writes its Optimization Candidates table (user decision 2026-11-22).
 
 ## Aliases
 
