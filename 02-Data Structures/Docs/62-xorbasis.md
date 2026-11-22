@@ -170,7 +170,7 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 
 ## Limits and Handoffs
 
-- Row 62 is partial: `XorBasis::orthogonalComplement` (on Core `BitMatrix` `ker`) is missing, returned by P275. The online maximum-weight basis is planned Esoteric row 72 (`MaxWeightXorBasis`).
+- Row 62 is partial: `XorBasis::orthogonalComplement` (on Core `BitMatrix` `ker`) is missing, returned by P275. The online maximum-weight basis is planned Esoteric row 72 (`MaxWeightXorBasis`). P032 finds the online deletion that Codeforces blog 149993 links (about O(B^2) per operation) and adopts it or records why it stays out (user decision 2026-11-22).
 - Left out with reasons in [00-notes.md](00-notes.md#p032-omissions) (user decision 2026-11-02): `countRepresentable`, `reducedEchelon`, `min`, `undo` and a segment tree of bases.
 - `intersection`'s result masks refer to inserts into the result object, so they say nothing about `a` or `o`; the tester checks only their shape.
 - `PrefixXorBasis<64>` memory: built from a vector (reserved), n = 3 · 10^5 needs about 231 MB; built by `push` alone, vector doubling peaked at 334 MB at n = 262,145 (review measurement), so reserve `v` and `p` first or pass the vector. Beyond that, use a smaller B or the offline sweep.

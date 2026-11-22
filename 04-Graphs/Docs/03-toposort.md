@@ -99,6 +99,7 @@ Retrieved and inspected on 2026-09-27; no source code was copied. The 2026-11-14
 | Source | Inspected claims and use |
 |---|---|
 | [OI Wiki, 拓扑排序](https://oi-wiki.org/graph/topo/) (updated 2026-04-23) | Kahn, DFS and heap-based lexicographic ordering. |
+| Varol and Rotem (1981) and Knuth, TAOCP 4A §7.2.1.2, Algorithm V, read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)) | `allTopologicalSorts` follows Algorithm V step by step. Varol and Rotem run their procedure in this direction in their Table 2 and allow at most N − 1 rotations between two outputs. The cost argument under Contracts is this package's own. |
 
 The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit); omitted candidates are in [00-notes.md](00-notes.md#p010-re-audit-omissions). Legacy: the old Team Notebook `old_topo.cpp` was inspected; its recursive reverse postorder is replaced by the iterative implementation.
 

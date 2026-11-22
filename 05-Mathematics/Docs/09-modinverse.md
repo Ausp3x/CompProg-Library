@@ -16,7 +16,7 @@ Asserts `m >= 2`; the caller promises `m` is prime (not checked). Returns `a^(m-
 
 ### inversePierce
 
-The legacy `getInvP` (prime modulus, asserted `p >= 2`), made iterative. It uses `inv(a) = -(p / a) * inv(p mod a)`, accumulating `res *= p - p / a` while `a > 1`. Each step strictly decreases `a`, and `p mod a` is nonzero because `p` is prime and `1 < a < p`. The number of steps is `O(p^(1/3 + e))` for every `e > 0` (Erdős–Shallit bound on Pierce-expansion length, cited from memory; conjectured `O(log(p))`). Returns -1 when `p | a`.
+The legacy `getInvP` (prime modulus, asserted `p >= 2`), made iterative. It uses `inv(a) = -(p / a) * inv(p mod a)`, accumulating `res *= p - p / a` while `a > 1`. Each step strictly decreases `a`, and `p mod a` is nonzero because `p` is prime and `1 < a < p`. The sequence of values of `a` is the Pierce sequence `a_(i+1) = p mod a_i` of Erdős and Shallit, and the loop stops one step before it reaches 0. So the number of steps is below their `P(a, p)`, which is `O(p^(1/3 + e))` for every `e > 0` (Theorem 2; [00-sources.md](00-sources.md#fetched-2026-11-22-source-check)). The paper proves no better bound; the authors believe `O((log p)^2)`. Returns -1 when `p | a`.
 
 ### inverseTable
 
@@ -75,7 +75,7 @@ None required: the scalar paths use `extendedGcd` and `modPow`, and the vector p
 
 ## Sources
 
-[00-sources.md](00-sources.md), P052 sweep: cp-algorithms modular inverse (linear table, batch trick), ACL `inv_mod`, KACTL `ModInverse.h`, maspypy `power_table`. Written independently. Legacy: `OLD/5-Mathematics/06-phiandinverse.hpp` (`getInvE` becomes `inverseXgcd`; `getInvP` becomes `inversePierce`).
+[00-sources.md](00-sources.md), P052 sweep: cp-algorithms modular inverse (linear table, batch trick), ACL `inv_mod`, KACTL `ModInverse.h`, maspypy `power_table`. Erdős–Shallit (1991), read on 2026-11-22, for the `inversePierce` step bound ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)). Written independently. Legacy: `OLD/5-Mathematics/06-phiandinverse.hpp` (`getInvE` becomes `inverseXgcd`; `getInvP` becomes `inversePierce`).
 
 ## Limits and Handoffs
 

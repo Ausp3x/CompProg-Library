@@ -171,9 +171,9 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 ## Limits and Handoffs
 
 - Row 31 is partial: `RadixHeap` with floating keys, `RadixMaxHeap` and `RadixHeapArray::chmin` are missing (returned by P275).
-- Left out with reasons in [00-notes.md](00-notes.md#p032-omissions) (user decision 2026-11-02): `clear`, `swap`, bounded-gap heaps, the Rust crate's extras.
+- Left out with reasons in [00-notes.md](00-notes.md#p032-omissions) (user decision 2026-11-02): `clear`, `swap`, bounded-gap heaps, the Rust crate's extras. P032 benchmarks the two-level and Fibonacci-heap forms of Ahuja et al. (§3–4) against this row and adopts the faster or records the measured reason (user decision 2026-11-22).
 - The `NDEBUG` boundedness claims (Violated Preconditions) have no tester group, because optimized builds receive only in-domain inputs (`05-testing.md`, Memory Safety). The `/finish` review checked them on 2026-11-02 with an `-DNDEBUG` ASan/UBSan fuzz of 12,000 violating histories on all four key types: all stayed bounded, and the element count always matched the bucket totals. `top()` on an empty heap under `NDEBUG` stays undefined, as for `std::priority_queue`.
-- suisen (its heap folder lists only binary and interval heaps), tko919 and ACL have no radix heap (index pages checked 2026-11-02). The bounded-gap omission rests on scrapbox, not the primary Ahuja et al. paper. AOJ GRL_1_A and yukicoder 1288 and 1320 were not fetched, and no `97-Online Testing` solution uses these structs yet.
+- suisen (its heap folder lists only binary and interval heaps), tko919 and ACL have no radix heap (index pages checked 2026-11-02). The bounded-gap omission cites Ahuja et al. §2, read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)). The statements of AOJ GRL_1_A and yukicoder 1288 and 1320 were read the same day; no `97-Online Testing` solution uses these structs yet.
 - Graphs row 13 `radixHeapDijkstra` (planned) consumes `RadixHeap`.
 
 ## Aliases

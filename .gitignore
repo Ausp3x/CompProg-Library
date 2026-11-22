@@ -26,6 +26,10 @@
 96-Local Testing/**/*_compare.json
 /99-Workspace/*
 /95-Resources/00-Inbox/
+/95-Resources/13-Papers/*
+!/95-Resources/13-Papers/06-optimal_preprocessing_for_online_product_queries-alon_1987.pdf
+/95-Resources/14-Web Pages/*
+!/95-Resources/14-Web Pages/06-ac_library-convolution.pdf
 !/99-Workspace/template.cpp
 96-Local Testing/.run-stats.json
 96-Local Testing/.run-stats.json.*

@@ -80,8 +80,9 @@ Code is independently implemented from the cited descriptions.
 - [Wikipedia, Burrows–Wheeler transform](https://en.wikipedia.org/wiki/Burrows%E2%80%93Wheeler_transform) (fetched 2026-10-10): sentinel and primary-index forms, LF inversion, the bijective variant with its example (`SIX.MIXED.PIXIES.SIFT.SIXTY.PIXIE.DUST.BOXES`, reproduced by the smoke test).
 - [Princeton COS226 Burrows–Wheeler specification](https://www.cs.princeton.edu/courses/archive/fall20/cos226/assignments/burrows/specification.php) (fetched 2026-10-10): primary index (`first`), linear inverse with the `next` array (psi).
 - [Rosalind BA9I/BA9J/BA9K](https://rosalind.info/problems/list-view/?location=bioinformatics-textbook-track) (fetched 2026-10-10): BWT, inverse BWT and LF mapping exercises.
-- [Kufleitner, arXiv 0908.0239](https://arxiv.org/abs/0908.0239) (abstract, fetched 2026-10-10): bijective BWT correctness via the standard permutation.
-- SPOJ BWHEELER (inverse from a primary row; statement returned 403, search snippet only).
+- [Kufleitner, arXiv 0908.0239](https://arxiv.org/abs/0908.0239), read 2026-11-22 ([ledger](00-sources.md#fetched-2026-11-22-source-check)). §4 (pp. 6–7) defines the bijective BWT as `bijectiveBwt` computes it: Lyndon factors `v_s ≥ … ≥ v_1`, all their rotations sorted by ω-order, the last symbol of each. The proof of Theorem 8 is the argument for `inverseBijectiveBwt` above: the cycles of the standard permutation of `L` (our `psi`), taken by smallest element, read `L[psi(i)], L[psi(psi(i))], …` and spell `v_1 ≤ v_2 ≤ …` (Lemma 7), so `s` is the cycles in reverse. §2 (p. 3) shows that two words equal in ω-order are powers of one root, which backs the tie argument for `bijectiveBwt`.
+- Boucher, Cenzato, Lipták, Rossi, Sciortino, arXiv 2106.11191, read 2026-11-22 ([ledger](00-sources.md#fetched-2026-11-22-source-check)): the conjugate array breaks ties between equal rotations by start, as `sortCyclicRotations` does, and `BWT(S^k)` repeats each symbol of `BWT(S)` `k` times (p. 4).
+- SPOJ BWHEELER, read 2026-11-22 ([ledger](00-sources.md#fetched-2026-11-22-source-check)): the input is the last column and the 1-based row `R` of the original among its sorted rotations, so the answer is `inverseBwtPrimary(Col, R - 1)`. A scratch inverse with `primary = R - 1` reproduces its three samples (`abcba`, `rbwl`, `baaabbbbaaaaaab`).
 - Catalog sweep in [00-sources.md](00-sources.md#p084-sweeps-2026-10-10).
 
 ## Limits and Handoffs
@@ -89,6 +90,7 @@ Code is independently implemented from the cited descriptions.
 - Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): the extended BWT of a string collection and its inverse, the sort transform, the run count `r`.
 - `36` builds FM-index backward search on `bwt` and `lfMapping`; `46` counts runs of `bwt` or `bwtPrimary`.
+- `bijectiveBwt` is O(n log n) by prefix doubling, but Boucher et al. (p. 6; [ledger](00-sources.md#fetched-2026-11-22-source-check)) cite Bannai, Kärkkäinen, Köppl and Piatkowski, "Constructing the bijective and the extended Burrows–Wheeler transform in linear time" (CPM 2021), for a linear-time construction. That paper was not read. Until the owning package settles it, the row does not claim the best known bound for this operation.
 
 ## Aliases
 

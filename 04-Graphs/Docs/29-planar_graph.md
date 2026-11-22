@@ -38,7 +38,7 @@ Three lists of edge IDs, ascending, that partition `[0, m)`:
 - `cotree`: a spanning forest of the dual taken greedily over the remaining edges, by their dual endpoints.
 - `leftover`: the rest.
 
-Euler's formula gives `|leftover| = 2 · Σ genus[c]` (Eppstein's tree–cotree decomposition), so planar embeddings have no leftovers, and the dual of the complement of a primal spanning tree is then a spanning tree. O((n + m + F) · α).
+Euler's formula gives `|leftover| = 2 · Σ genus[c]`, so planar embeddings have no leftovers, and the dual of the complement of a primal spanning tree is then a spanning tree. This is Eppstein's tree–cotree decomposition (2003, §3); he notes the planar case and reads the genus off the leftover count, but does not write the count out. O((n + m + F) · α).
 
 ### PlanarCut and planarMinCutDual
 
@@ -110,7 +110,13 @@ None required (Contest profile, no Barrett or Montgomery reduction).
 
 ## Sources
 
-[00-sources.md](00-sources.md#pages-fetched-on-2026-10-28-p048-gr13): maspypy planar_graph, cp-algorithms planar faces, OI Wiki planar graphs, NetworkX PlanarEmbedding, Boost planar graphs, OGDF embedding, dual graph, flow and separator pages. The code was written independently from the algorithm descriptions; no catalog code was copied. Not fetched: the papers of Hassin (1981, known here through the OGDF flow page), Eppstein (tree–cotree) and Reif / Italiano et al., and BZOJ 1001, NOI2010 海拔 and Luogu P7916 (search snippets only).
+[00-sources.md](00-sources.md#pages-fetched-on-2026-10-28-p048-gr13): maspypy planar_graph, cp-algorithms planar faces, OI Wiki planar graphs, NetworkX PlanarEmbedding, Boost planar graphs, OGDF embedding, dual graph, flow and separator pages. The code was written independently from the algorithm descriptions; no catalog code was copied. Read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)):
+
+- Hassin (1981) sets the flow to `u(j′) − u(i′)` from dual shortest-path distances and proves saturation, the capacity bound and conservation, as argued for `flow[e]` above.
+- Reif (1983) and Italiano et al. (2011) handle any `s`, `t` in undirected planar graphs, in O(n log² n) and O(n log log n).
+- The NOI2010 海拔 statement (Luogu P2046) is a directed cut between two outer-face vertices of a grid, the case `planarMinCutDual` covers.
+
+Luogu P7916 (CSP-S 2021 交通规划), read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)), places up to 50 terminals on the outer face of a grid. That needs more than the two-terminal `planarMinCutDual`, and no claim here rests on it. Not fetched: BZOJ 1001 (search snippets only).
 
 ## Limits and Handoffs
 

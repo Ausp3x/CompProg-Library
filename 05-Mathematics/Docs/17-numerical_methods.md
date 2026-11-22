@@ -31,7 +31,7 @@ The result type of the root finders:
 - Preconditions (asserted): finite coefficients that are not all zero.
 - `a = 0` gives the linear root `-c / b`, or no root when `b = 0` too.
 - Otherwise all three coefficients are first multiplied by `2^-e`, `e = ilogb(max |coefficient|)`. That is exact and leaves the roots unchanged, and it puts the largest coefficient in `[1, 2)`, so `b^2` and `4 a c` cannot overflow, and underflow only where they are negligible against the largest coefficient squared. A coefficient more than `2^1074` below the largest one is lost, a limit of the double range.
-- The discriminant is Kahan's: `w = 4 a c`, `d = fma(b, b, -w) + fma(-4 a, c, w)`. The second `fma` is the exact rounding error of `w`, because `4 a` is exact. So `d` is accurate to a few ulps of `max(b^2, |4 a c|)` and keeps its sign near a double root, where `b * b - 4 * a * c` cancels.
+- The discriminant uses Kahan's two-`fma` form: `w = 4 a c`, `d = fma(b, b, -w) + fma(-4 a, c, w)`. This form is not in Kahan (2004), whose FMA scheme splits both products exactly and adds four terms (§5); the argument here is this document's own, and the tester's exact-discriminant oracle checks it. The second `fma` is the exact rounding error of `w`, because `4 a` is exact. So `d` is accurate to a few ulps of `max(b^2, |4 a c|)` and keeps its sign near a double root, where `b * b - 4 * a * c` cancels.
 - The roots are `q / a` and `c / q` with `q = -(b + sign(b) sqrt(d)) / 2`, which never subtracts nearly equal numbers. Each root therefore has a relative error of a few ulps, plus the discriminant's absolute error, which is amplified only near a double root (conditioning `sqrt(eps)`).
 - `q = 0` happens only for `b = 0, d = 0`. That means `c = 0`, so the double root is 0.
 - `std::fma` is a correctly rounded fused multiply-add by the C standard, also in software without hardware FMA, only slower. The judges' libm implementations were not run here.
@@ -68,9 +68,9 @@ The sorted roots then get at most two Newton steps on the scaled polynomial. A s
 
 All three take a `vector<double>` and return its sum; an empty vector gives 0.
 
-- `kahanSum`: compensated summation. The error is at most `2 eps sum |a_i| + O(n eps^2) sum |a_i|`, independent of `n` to first order.
-- `neumaierSum`: Kahan–Babuška–Neumaier. It has the same bound, but also keeps the error when a term is larger than the running sum (`[1, 1e100, 1, -1e100]` gives 2, where Kahan gives 0). The correction is added once at the end.
-- `pairwiseSum`: recursive halving down to blocks of at most 128 summed in order. The error is at most `(128 + ceil(log2(n / 128))) eps sum |a_i|`, with recursion depth `log2(n / 128)`. It is faster than the compensated sums and has no data dependence on a correction term.
+- `kahanSum`: compensated summation. The error is at most `2 eps sum |a_i| + O(n eps^2) sum |a_i|`, independent of `n` to first order. Higham (4.9) gives the sharper `(eps + O(n eps^2)) sum |a_i|`, since `eps = 2u`.
+- `neumaierSum`: Kahan–Babuška–Neumaier. Its bound has the same first-order term, but the second-order term is `O(n^2 eps^2) sum |a_i|` for `n eps <= 0.2` (Higham (4.10)); it stays below `eps sum |a_i|` while `n <= 10^8`. It also keeps the error when a term is larger than the running sum (`[1, 1e100, 1, -1e100]` gives 2, where Kahan gives 0). The correction is added once at the end.
+- `pairwiseSum`: recursive halving down to blocks of at most 128 summed in order. The error is at most `(128 + ceil(log2(n / 128))) eps sum |a_i|`, with recursion depth `log2(n / 128)`: each term takes part in at most `127 + ceil(log2(n / 128))` additions (Higham (4.4), (4.6)). It is faster than the compensated sums and has no data dependence on a correction term.
 
 ### bisectionRoot
 
@@ -110,7 +110,7 @@ All three take a `vector<double>` and return its sum; an empty vector gives 0.
 - It returns `b`, the best point, once the half-bracket `|c - b| / 2 <= t` or `f(b) = 0`.
 - At the default `itr = 100`, a high-multiplicity root converges slowly: on `(x - 1)^9` over `[0, 3]`, `brentRoot` reports `converged = false` after 100 steps and `newtonSafeRoot` needs 97 (measured 2026-11-03); pass a larger `itr` for such roots.
 - The defaults are a user decision of 2026-11-03: 100 iterations, zero tolerances meaning machine precision through the 4-ulp floor, the `DBL_MIN` Brent floor, `simpsonAdaptive` depth 50, tanh-sinh range `|t| < 7`, and a Romberg minimum of 5 levels.
-- Each step either interpolates inside the bracket or bisects. The bracket keeps a sign change, and Brent's bound gives at most about `(log2(width / t))^2` steps.
+- Each step either interpolates inside the bracket or bisects. The bracket keeps a sign change, and Brent (1973) bounds the steps by about `(log2(width / t))^2` (his book is not on file).
 
 ### fixedPointIterate
 
@@ -244,15 +244,17 @@ No timing benchmark: the Contest profile asks for optimal complexity and a direc
 
 ## Sources
 
+The sources read on 2026-11-22 are recorded in [00-sources.md](00-sources.md#fetched-2026-11-22-source-check).
+
 | Reference | Inspected claim and use |
 |---|---|
-| [Numerical Recipes 3rd ed., contents](https://numerical.recipes/book.html) (fetched 2026-11-03: table of contents only) | Sections 4.5, 4.6, 5.6, 9.3, 9.4 locate the DE rule, `gauleg`, the cubic formulas, `zbrent` and `rtsafe`. The algorithms themselves are written from knowledge of the book, not from a fetched text. |
+| Numerical Recipes 3rd ed., §4.5, §4.6, §5.6, §9.3, §9.4, read 2026-11-22 | Match the code: the DE substitution, the `gauleg` start `cos(pi (i + 3/4) / (n + 1/2))`, the quadratic and cubic formulas (5.6.4)–(5.6.17), the `zbrent` tolerance `2 eps \|b\| + tol / 2` and the `rtsafe` midpoint start. The `(log2(width / t))^2` step bound of `brentRoot` is attributed to Brent (1973), not fetched; §9.3 states only that the method is "guaranteed (by Brent) to converge". |
 | [KACTL numerical](https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical) | `Integrate.h` (fixed Simpson) and `IntegrateAdaptive.h` (adaptive Simpson with the 15-fold Richardson test). |
 | [cp-algorithms, Simpson's rule](https://cp-algorithms.com/num_methods/simpson-integration.html); [Newton's method](https://cp-algorithms.com/num_methods/roots_newton.html) | Composite Simpson error, Newton convergence. |
 | [OI Wiki, numerical integration](https://oi-wiki.org/math/numerical/integral/) | Adaptive Simpson recursion. |
-| W. Kahan, "On the Cost of Floating-Point Computation Without Extra-Precise Arithmetic" (2004), from knowledge, not fetched | The fma discriminant; the tester's exact-discriminant oracle checks it independently. |
-| N. J. Higham, *Accuracy and Stability of Numerical Algorithms*, ch. 4, from knowledge, not fetched | Error bounds of the compensated and pairwise sums; the exact-sum oracle checks them. |
-| J. N. Lyness (1969) adaptive Simpson; H. Takahasi, M. Mori (1974) double-exponential formulas, from knowledge, not fetched | The 15-fold Richardson test and the tanh-sinh substitution; both checked against closed forms in the tester. |
+| W. Kahan, "On the Cost of Floating-Point Computation Without Extra-Precise Arithmetic" (2004), read 2026-11-22 | The root formulas `q / a`, `c / q` match §1. The two-`fma` discriminant is not in the paper (see `solveQuadratic`), and §6 gives no proofs. The tester's exact-discriminant oracle checks the discriminant. |
+| N. J. Higham, *Accuracy and Stability of Numerical Algorithms*, 2nd ed., §4.1–4.3, read 2026-11-22 | Error bounds (4.4), (4.6), (4.9) and (4.10) of the three sums; the exact-sum oracle checks them. |
+| J. N. Lyness (1969), Modifications 1–3; H. Takahasi, M. Mori (1974), (3.2)–(3.3); read 2026-11-22 | The bisection tolerance `15 eps 2^-r`, the `(S2 - S) / 15` correction, and the substitution `x = tanh(pi / 2 sinh u)`; the tester checks both against closed forms. Lyness handles round-off in §5 (Modification 4) by raising the tolerance once the difference stops shrinking; the fixed rounding floor `15 * 16 eps M` of `simpsonAdaptive` is this library's. |
 | [hitonanode, dual number](https://hitonanode.github.io/cplib-cpp/) | `DualNumber` interface. |
 
 ## Limits and Handoffs

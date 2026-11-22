@@ -149,7 +149,7 @@ Candidates from the 2026-10-17 sweep ([00-sources.md](00-sources.md#fetched-2026
 - PersistentArray in-place set (SUI `mut_set`, MAS `make_copy = false`): it writes into nodes shared with other versions. `size` (SUI): the public `n`. Node pools, reset and garbage collection (SUI, MAS): Miscellaneous row 43 owns persistent arenas. Fat-node partially persistent array (EI internals): `PartiallyPersistentDSU` keeps its own attach times. Persistent block array (OI): O(sqrt(n)) per operation.
 - RollbackDSU `makeSet` and an `undo` reporting what it reverted: no catalog has them. Union by rank (CPA): `size` needs sizes. History-clearing `snapshot` (EI, SUI) and `reset` (MAS, HIT): `rollback` to a token and `rollback(0)`.
 - PersistentDSU `dump` (SUI): debug output.
-- Priority-queue undo (Codeforces blog 111117) and deque undo (blog 154645): both tutorials returned 403, so neither the algorithm nor its amortized proof could be checked; `OfflineDeletion` covers deletions with known times and `QueueUndo` the FIFO case.
+- Deque undo (Codeforces blog 154645, read on 2026-11-22, [00-sources.md](00-sources.md#fetched-2026-11-22-source-check)): the blog sketches it and states that it has no proof (p. 2). Priority-queue undo (blog 111117) joined row 63 as `PriorityUndo` (user decision 2026-11-22): it undoes the highest-priority update online in O(T(n) log(n)) amortized time, with a proof (pp. 2–4), which neither `OfflineDeletion` nor `QueueUndo` provides.
 
 ## P035 Omissions
 
@@ -172,14 +172,14 @@ Candidates from the 2026-10-28 DS11 sweep ([00-sources.md](00-sources.md#fetched
 
 - Real x coordinates (cp-algorithms): `LiChaoTreeCompressed` takes any finite point set of `lng`; real points need a rank mapping inside `F::eval`, which a stored function cannot capture.
 - Line deletion: `undo` with row 63 `OfflineDeletion`. Node-pool reset (maspypy): a new object.
-- Rollback CHT with binary-search insertion (CEOI 2009 Harbingers, named by the sweep, not fetched; CF blog 51684 returned 403): `LiChaoTree` and `LiChaoTreeCompressed` with `UNDO` answer the same tree DP at O(log(C)) per operation.
+- Rollback CHT with binary-search insertion (CF blog 51684 and its comments, CEOI 2009 Harbingers; both read on 2026-11-22, [00-sources.md](00-sources.md#fetched-2026-11-22-source-check)): `LiChaoTree` and `LiChaoTreeCompressed` with `UNDO` answer the same tree DP at O(log(C)) per operation.
 - `empty`, `size`, `clear` (ei1333, maspypy): the public deque, and a new object.
 - Max of `a x + b y` over points (maspypy `CHT_XY`, Nyaan `LineContainer2D`) and static envelope pieces (maspypy `line_min_function`): Geometry rows 20 and 41.
 
 Candidates from the 2026-11-02 DS27 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds27-sweep)) left out of row 31 (user decision 2026-11-02):
 
 - `clear` (hitonanode, iwiwi): a new object, as in rows 22 and 36; `swap`: `std::swap`.
-- Bounded-gap radix heaps with O(log(C)) buckets (Ahuja et al., scrapbox): the xor buckets already give O(b), and Graphs `dialDijkstra` covers small `C`.
+- Bounded-gap radix heaps with O(log(C)) buckets (Ahuja et al. §2, read on 2026-11-22, [00-sources.md](00-sources.md#fetched-2026-11-22-source-check); scrapbox): the xor buckets already give O(b), and Graphs `dialDijkstra` covers small `C`. The paper's two-level form and its Fibonacci-heap variant (§3–4: Dijkstra in O(m + n log(C) / log(log(C))) and O(m + n sqrt(log(C)))) were not weighed in this decision; P032 benchmarks them and adopts the faster or records the measured reason (user decision 2026-11-22).
 - Rust `radix-heap` extras (start bound, `constrain`, iterators, `shrink_to_fit`): no contest use.
 
 Candidates from the 2026-11-02 DS28 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds28-sweep)) left out of row 32 (user decision 2026-11-02; `PersistentRangeMex` was added, the threshold query lists values with count at least `t`, and the majority candidate comes from a Boyer–Moore segment tree):
@@ -190,7 +190,7 @@ Candidates from the 2026-11-02 DS28 sweep ([00-sources.md](00-sources.md#fetched
 Candidates from the 2026-11-02 DS50 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds50-sweep)) left out of row 62 (user decision 2026-11-02; `represent` and `PrefixXorBasis::push` were added):
 
 - `countRepresentable`, `reducedEchelon`, `min`: `1ull << size()`, the stored reduced basis `b`, and `reduce(x)` or `kth(1)` (duplicates ledger, Keeps).
-- Undo of `insert` for row 63 `OfflineDeletion`: a client keeps its own pivot-indexed basis with an undo history (row 63's test client `UndoXorBasis`) or snapshots the at most 64-word `b` and `masks`.
+- Undo of `insert` for row 63 `OfflineDeletion`: a client keeps its own pivot-indexed basis with an undo history (row 63's test client `UndoXorBasis`) or snapshots the at most 64-word `b` and `masks`. Codeforces blog 149993 (read on 2026-11-22, [00-sources.md](00-sources.md#fetched-2026-11-22-source-check)) gives the same offline deletion, divide and conquer over time with a rollback basis. It also points to an online deletion method at about O(B^2) per operation, which the copy does not include; P032 finds it and adopts it or records why it stays out (user decision 2026-11-22).
 - A segment tree of bases: a segment tree over `merge`. Range minimum or k-th: `rangeXorBasisQuery`'s echelon basis inserted into an `XorBasis`. k-th with multiplicities over n inserted values: `kth(k >> (n - size()))` when `n - size() < 64`, else 0.
 
 ## Planned-Row Omissions

@@ -119,7 +119,7 @@ Retrieved and inspected on 2026-09-27. The code was written independently from t
 | Source | Inspected claim and application |
 |---|---|
 | [cp-algorithms, Strongly connected components and the condensation graph](https://cp-algorithms.com/graph/strongly-connected-components.html), last update 2025-12-26 | Kosaraju finishing-order theorem, Tarjan active-stack argument, SCC partition and condensation acyclicity. This condensation also deduplicates arcs. |
-| [AtCoder Library, internal_scc.hpp](https://raw.githubusercontent.com/atcoder/ac-library/master/atcoder/internal_scc.hpp), retrieved 2026-09-27 | Tarjan lowlink handling and reversing sink-first IDs to source-first IDs. Its reference cites Tarjan, *Depth-First Search and Linear Graph Algorithms*, which was not inspected separately. This implementation uses explicit stacks. |
+| [AtCoder Library, internal_scc.hpp](https://raw.githubusercontent.com/atcoder/ac-library/master/atcoder/internal_scc.hpp), retrieved 2026-09-27 | Tarjan lowlink handling and reversing sink-first IDs to source-first IDs. Its reference cites Tarjan, *Depth-First Search and Linear Graph Algorithms*, read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)): §4's point stack and LOWLINK rules are the ones under Contracts. This implementation uses explicit stacks. |
 
 Legacy: `OLD/Team Notebook/src/graph/old_kosaraju.cpp` was inspected; its two DFS passes and component listing are covered by `kosarajuScc`, while its recursion, unnecessary parent exclusion and repeated-run append behaviour are not kept. The `TarjanSCC` sections of `OLD/Team Notebook/src/algsbetter.cpp` (line 1429), `algs.cpp` (1449) and `test.cpp` (212) provide SCC members, representative-root labels and a condensation adjacency list with duplicates; `component`, `groups` and `condensationDag` cover them with compact ordered IDs and deduplication. Archived names and signatures are not compatibility APIs. The unrelated `Tarjan` in `OLD/algorithms.cpp:4865` is articulation and bridge lowlink, not SCC coverage.
 
@@ -127,7 +127,7 @@ Legacy: `OLD/Team Notebook/src/graph/old_kosaraju.cpp` was inspected; its two DF
 
 Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure and reduction belong to `40-reachability.hpp`; fully dynamic SCC has no row. None is claimed here.
 
-Eswaran–Tarjan (1976), the source of the augmentation bound, is named but not fetched ([00-sources.md](00-sources.md#fetched-2026-11-15-p011-gr03)); the proof under `strongConnectivityAugmentation` stands alone and the closure oracle checks it.
+Eswaran and Tarjan (1976, §2), read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)), prove the same bound: Theorem 2 needs `max(s, t) + q` arcs, where their sources and sinks exclude the `q` isolated components; that equals `max(s, t)` as counted here, with an isolated component counted as both. Their construction differs. Their search explores everything reachable from a source and records the first sink it meets, and the surplus sinks and isolated components join the cycle as one chain. The header stops each search at its first sink and routes the surplus through the first pair. So the construction proof under `strongConnectivityAugmentation` is this package's own, and the closure oracle checks it.
 
 ## Aliases
 

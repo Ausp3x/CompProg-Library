@@ -112,7 +112,7 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 
 - [maspypy `alg/monoid/rolling_hash.hpp`](https://raw.githubusercontent.com/maspypy/library/main/alg/monoid/rolling_hash.hpp) and [`string/deque_rolling_hash.hpp`](https://raw.githubusercontent.com/maspypy/library/main/string/deque_rolling_hash.hpp) (fetched 2026-10-16 by the researcher): the `(B^len, hash)` monoid and the inverse-base front push.
 - [suisen `DynamicRollingHash`](https://suisen-cp.github.io/cp-library-cpp/library/string/dynamic_rolling_hash.hpp) and [Nyaan `rolling-hash-on-segment-tree`](https://nyaannyaan.github.io/library/string/rolling-hash-on-segment-tree.hpp) (fetched 2026-10-16): point replace and equality on dynamic sequences.
-- BZOJ 1014 / Luogu P4036 (insert, replace, LCQ), CF 580E (range assignment), CSES Palindrome Queries (point update, palindrome check): the target problems, from write-ups only; statements were not fetched.
+- The target problems, statements read 2026-11-22 ([ledger](00-sources.md#fetched-2026-11-22-source-check)). Luogu P4036 (BZOJ 1014) asks to insert after a position, replace a symbol, and give the longest common prefix of two suffixes: `SequenceHash` `insert`, `set` and `lcp`. CF 580E assigns a digit to a range and asks whether `s[l, r]` has period `d`: `apply` with `assignment`, then `get(l - 1, r - d) == get(l - 1 + d, r)`. CSES Palindrome Queries updates a point and tests a palindrome: `PointUpdateHash` `set` and `get == reverseGet`.
 
 ## Limits and Handoffs
 

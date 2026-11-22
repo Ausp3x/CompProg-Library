@@ -104,7 +104,7 @@ None required (Contest profile, no Barrett or Montgomery reduction). On 2026-11-
 
 ## Sources
 
-[00-sources.md](00-sources.md#pages-fetched-on-2026-10-28-p048-gr13): NetworkX cycles, maspypy fundamental cut, OI Wiki linear basis, AtCoder ABC451 G and the ABC419 editorial, the Gloid BZOJ 3569 post. The code was written independently from the algorithm descriptions; no catalog code was copied. Not fetched: the Codeforces 845G statement (HTTP 403), Luogu P4151 and CF 1889E, which the Aliases cite as problem names only.
+[00-sources.md](00-sources.md#pages-fetched-on-2026-10-28-p048-gr13): NetworkX cycles, maspypy fundamental cut, OI Wiki linear basis, AtCoder ABC451 G and the ABC419 editorial, the Gloid BZOJ 3569 post. The code was written independently from the algorithm descriptions; no catalog code was copied. The CF 845G and Luogu P4151 statements, read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)), ask for the minimum and the maximum XOR over walks with repeated edges counted and loops and parallel edges allowed, as `minXorWalk` and `maxXorWalk` define them. CF 1889E, read the same day, names no operation of this row.
 
 ## Limits and Handoffs
 

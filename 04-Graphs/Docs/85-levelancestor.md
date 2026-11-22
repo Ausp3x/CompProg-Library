@@ -105,7 +105,7 @@ None is required (Contest profile, no reduction, no threshold). A scratch timing
 
 ## Sources
 
-[00-sources.md](00-sources.md#pages-fetched-on-2026-11-04-p042-gr70): the ladder and jump-pointer method (OI Wiki, Wikipedia), suisen's depth-bucket form (row operation `PreorderLevelAncestor`, missing) and the path-jump catalogs (row operation `jump`, missing). The header was written independently; no catalog code was copied.
+[00-sources.md](00-sources.md#pages-fetched-on-2026-11-04-p042-gr70): the ladder and jump-pointer method (OI Wiki, Wikipedia), suisen's depth-bucket form (row operation `PreorderLevelAncestor`, missing) and the path-jump catalogs (row operation `jump`, missing). The header was written independently; no catalog code was copied. Bender and Farach-Colton (2004), read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)), confirm the layout: ladders that double each long path (§3.3, Lemma 5), one jump and one ladder per query (Theorem 8), and jump pointers kept only at leaves (Observation 9).
 
 ## Limits and Handoffs
 

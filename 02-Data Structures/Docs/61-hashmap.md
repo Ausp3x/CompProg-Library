@@ -109,7 +109,7 @@ HashMap is 1.3–2.1 times faster than `unordered_map`, 3–14% faster than `gp_
 | yosupo `container/hashmap.hpp`, `hashset.hpp`, `hash.hpp` | HashSet `find`; seeded hashing of composite keys (CustomHash already covers it). |
 | hitonanode `fast_hash_map.hpp` | Version-stamp O(1) `clear`. |
 | KACTL `HashMap.h`, tko919 `hashmap.hpp`, OI Wiki hash | Baselines; none uses backward-shift deletion. |
-| Knuth, TAOCP vol. 3, §6.4 Algorithm R | Deletion with linear probing (from memory of the algorithm, not re-read for this package). |
+| Knuth, TAOCP vol. 3, §6.4 Algorithm R, pp. 533–534, read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)) | Deletion with linear probing. Knuth probes downward and leaves the entry at slot i in place when its home r lies cyclically in [i, j), j being the hole (step R3). Mirrored to upward probing, an entry moves exactly when the hole lies in `[home, slot)`, the condition in Correctness and Cost and in `erase`. |
 
 References inspected 2026-10-09 by the completeness sweep ([00-sources.md](00-sources.md)).
 

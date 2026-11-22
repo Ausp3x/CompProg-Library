@@ -45,7 +45,7 @@ Chaining spends `c − 1` edges and removes `2(c − 1)` slots, so the total is 
 `IncrementalBlockCutTree(n)` maintains the extended block forest under online `addEdge(u, v)`; loops are ignored. Vertex `v`'s parent is a raw block ID resolved through the `merged` DSU, a representative block's parent is a vertex, and roots are vertices. At most `n − 1` blocks are created.
 
 - An edge between trees (the `comp` DSU) reroots the smaller tree at its endpoint and creates block `{u, v}` with `u` below it and the block below `v`.
-- An edge inside a tree walks both endpoints up alternately with stamps to the LCA. It merges every block on the path, and the LCA too if it is a block, into one block whose parent becomes the LCA's parent (block LCA) or the LCA itself (vertex LCA). Interior path vertices then hang below the merged block through their resolved parent IDs. These blocks form a cycle with the new edge and are exactly the ones that merge (incremental biconnectivity, Westbrook–Tarjan).
+- An edge inside a tree walks both endpoints up alternately with stamps to the LCA. It merges every block on the path, and the LCA too if it is a block, into one block whose parent becomes the LCA's parent (block LCA) or the LCA itself (vertex LCA). Interior path vertices then hang below the merged block through their resolved parent IDs. These blocks form a cycle with the new edge and are exactly the ones that merge (Westbrook–Tarjan 1992, §3).
 - `sameBlock(u, v)` uses the same parent test as the static structure.
 
 Rerooting the smaller tree costs O(n log n) in total. A within-tree insertion that passes `k` blocks costs O(k) and removes `k − 1` of them, and only cross-tree insertions create blocks. So `addEdge` is O(log n) amortized, `sameBlock` is O(α(n)) amortized, and memory is O(n). Both methods are non-const because the DSUs compress paths.
@@ -132,7 +132,10 @@ Fetched 2026-10-18; the ledger is [00-sources.md](00-sources.md#pages-fetched-on
 | [NetworkX connectivity](https://networkx.org/documentation/stable/reference/algorithms/connectivity.html) | `k_edge_augmentation` |
 | [Nyaan](https://nyaannyaan.github.io/library/tree/block-cut-tree.hpp), [ei1333](https://ei1333.github.io/library/graph/others/block-cut-tree.hpp), [tko919](https://tko919.github.io/library/Graph/blockcut.hpp) | Catalog comparison (see Aliases) |
 
-Not fetched: the Eswaran–Tarjan (1976) and Westbrook–Tarjan papers. The augmentation bound and both proofs above are this package's own arguments, validated by exhaustive minimality on small graphs.
+Read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)):
+
+- Eswaran and Tarjan (1976, §3.1) prove the bound `⌈p/2⌉ + q` (Theorem 5) and build the same augmentation: the components are chained through pendant or isolated slots (Lemma 4), then pendant `i` in preorder is paired with pendant `i + ⌊p'/2⌋`. Their Lemma 7 covers each tree edge by the same three cases as the interval argument above, but needs a root that is not a pendant; the interval argument does not, and the header's search may start at a leaf. They also assume at least three vertices because they forbid parallel edges, while the header returns a parallel pair when `n = 2`. Exhaustive minimality on small graphs checks the header.
+- Westbrook and Tarjan (1992, §3) maintain the block forest under insertions as `IncrementalBlockCutTree` does. A linking edge reroots the smaller tree under a new block. A cycle-closing edge condenses the blocks on the path into one, placed under the parent of a block nearest common ancestor or under a vertex one. The total is O(n log n + m) (Theorem 2).
 
 ## Limits and Handoffs
 

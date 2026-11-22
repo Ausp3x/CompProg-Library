@@ -154,7 +154,7 @@ Package runs:
 | AtCoder Library lazysegtree (https://atcoder.github.io/ac-library/production/document_en/lazysegtree.html) | `op/e/mapping/composition/id` contract and the flip/inversion example. ACL is CC0. |
 | maspypy `alg/monoid`, `alg/acted_monoid`, `alg/acted_set` | Clamp, top-two, bitwise-function and monoid-as-action presets; min-with-count. |
 | ei1333 `structure/class` (`monoid.hpp`, `acted-monoid.hpp`, `act.hpp`), hitonanode `segmenttree/trees`, suisen `algebra/monoid`, Nyaan lazy utility, KACTL LazySegmentTree | Adapter shapes, `Range<Action>Range<Fold>` naming, clamp and assign/add presets. |
-| Contest problems (AtCoder ABC 223F, 261E, 285F, 322F, 343F, 357F, 360F; practice2 L; CF 380C, 718C, 145E, 2057D; Luogu P1471, P2572, P7453, P6327; SDOI2011 coloring) | Which presets recur; listed per preset above. |
+| Contest problems (AtCoder ABC 223F, 261E, 285F, 322F, 343F, 357F, 360F; practice2 L; CF 380C, 718C, 145E, 2057D; Luogu P1471, P2572, P7453, P6327; SDOI2011 coloring) | Which presets recur; listed per preset above. CF 2057D (`MaxGain`) and SDOI2011 coloring (`RangeAssignRangeRunCount`) were read on 2026-11-22 and agree ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)). |
 
 Fetch dates, URLs and failed fetches: [00-sources.md](00-sources.md) (2026-10-08 and 2026-10-17 sections).
 

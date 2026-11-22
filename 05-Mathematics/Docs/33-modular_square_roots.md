@@ -201,7 +201,7 @@ From [00-sources.md](00-sources.md), P178 sweep:
 - Nyaan `quadratic-equation.hpp`: the discriminant-1 case, tested;
 - maspypy `mod_kth_root`.
 
-The cluster lifting follows Berthomieu, Lecerf and Quintin, "Polynomial root finding over local rings and application to error correcting codes" (2013), cited from its published statement; the paper was not fetched. Cantor–Zassenhaus root splitting is the textbook algorithm. Everything was written independently. Legacy: `OLD/5-Mathematics/08-modlogandmodroot.hpp` (Legacy Mapping). Research decisions are in [00-notes.md](00-notes.md), P178.
+The cluster lifting follows Berthomieu, Lecerf and Quintin, "Polynomial root finding over local rings and application to error correcting codes" (2013), read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)). `liftRoots` is their naive solver (§2.3, Algorithm 1) over the p-adic integers, with Newton lifting added for simple roots. The counts in `polynomialCongruenceRoots` match the paper: at most the degree of classes (Proposition 1), a child degree at most the root multiplicity (Lemma 3), and at most `|f| e` shifts (Lemma 8). Cantor–Zassenhaus root splitting is the textbook algorithm. Everything was written independently. Legacy: `OLD/5-Mathematics/08-modlogandmodroot.hpp` (Legacy Mapping). Research decisions are in [00-notes.md](00-notes.md), P178.
 
 ## Limits and Handoffs
 

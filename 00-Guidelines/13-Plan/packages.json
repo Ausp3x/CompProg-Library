@@ -442,7 +442,7 @@
       "evidence": [
         "01-Core/Docs/16-poly.md"
       ],
-      "note": "Re-pass owed: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22). Candidates named so far: Karatsuba for `convolution_F_2_64` (8.9 s on judge submission #417051 against the 10 s limit; `97-Online Testing/Docs/00-judge-sources.md`), and from `16-poly.md` (Limits and Handoffs) the Lin–Chung–Han additive transform for `convolutionGF2k`, a polynomial-matrix `composeMod`, a half-gcd Berlekamp–Massey and baby-step giant-step distinct-degree factorization. Rational on Poly's row is P258's."
+      "note": "Re-pass owed: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22). Candidates named so far: Karatsuba for `convolution_F_2_64` (8.9 s on judge submission #417051 against the 10 s limit; `97-Online Testing/Docs/00-judge-sources.md`), and from `16-poly.md` (Limits and Handoffs) the Lin–Chung–Han additive transform for `convolutionGF2k`, a polynomial-matrix `composeMod`, a half-gcd Berlekamp–Massey and baby-step giant-step distinct-degree factorization. Rational on Poly's row is P258's. Also from the 2026-11-22 source check: `compose` pads to N = max(n, |f|) and runs in O(M(N) log N), while Kinoshita–Li (Theorem 1) give O(M(n) log m + M(m)) for |f| = m; and from Codeforces blog 142063 (`95-Resources/14-Web Pages/04-codeforces_blog_142063-ntt_convolution_with_avx2.pdf`) on-the-fly twiddles from O(log n) stored ratios with `tzcnt` (p. 3), bottom levels as products modulo x^8 − w_i (pp. 6–7, which also lifts the 998244353 length limit from 2^23 to 2^26 and so touches the `nttMaxLength` contract) and a recursive, cache-friendly level order (pp. 7–8)."
     },
     {
       "id": "P026",
@@ -701,7 +701,7 @@
         "05-Mathematics/Docs/09-modinverse.md",
         "05-Mathematics/Docs/10-crt.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement nextPrime, prevPrime in `07-primality_factorization.hpp`; phiTrial, phiTableSimple, dirichletConvolutionTableMultiplicative in `08-multiplicative_functions.hpp`; inverseO1 in `09-modinverse.hpp`. P275 re-review 2026-11-10: implement lcmMod, divisorProductMod, coprimeFactorization in `07-primality_factorization.hpp`; garnerExact in `10-crt.hpp`. Settle the twins isPrimeCompact, pollardRhoBrentCompact and factorizeCompact under Core type parameters (`10-decisions.md`, 2026-11-05 Mini-First, Completeness First, Extraction). The next run rechecks the probe passes of rows 07, 08, 09, 10 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement nextPrime, prevPrime in `07-primality_factorization.hpp`; phiTrial, phiTableSimple, dirichletConvolutionTableMultiplicative in `08-multiplicative_functions.hpp`; inverseO1 in `09-modinverse.hpp`. P275 re-review 2026-11-10: implement lcmMod, divisorProductMod, coprimeFactorization in `07-primality_factorization.hpp`; garnerExact in `10-crt.hpp`. Settle the twins isPrimeCompact, pollardRhoBrentCompact and factorizeCompact under Core type parameters (`10-decisions.md`, 2026-11-05 Mini-First, Completeness First, Extraction). The next run rechecks the probe passes of rows 07, 08, 09, 10 that predate the 2026-11-12 runner fix. Source check 2026-11-22: run row 07's seven-base Miller–Rabin path over Feitsma's list of base-2 pseudoprimes below 2^64, which Core fetched on 2026-11-17 (`01-Core/Docs/05-modint.md`), so its correctness above 2^32 stops resting on the appspot record alone."
     },
     {
       "id": "P231",
@@ -879,7 +879,7 @@
         "07-Strings/Docs/20-subsequence_automaton.md",
         "07-Strings/Docs/29-bwt.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement myersSearch in `17-bitap.hpp`; shortestUncommonSubsequence in `20-subsequence_automaton.hpp`. P275 re-review 2026-11-10: implement countDistinctCommonSubsequences in `20-subsequence_automaton.hpp`. The next run rechecks the probe passes of rows 16, 17, 20, 29 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement myersSearch in `17-bitap.hpp`; shortestUncommonSubsequence in `20-subsequence_automaton.hpp`. P275 re-review 2026-11-10: implement countDistinctCommonSubsequences in `20-subsequence_automaton.hpp`. The next run rechecks the probe passes of rows 16, 17, 20, 29 that predate the 2026-11-12 runner fix. Source check 2026-11-22: row 29 `bijectiveBwt` runs in O(n log n) by prefix doubling, while Bannai, Kärkkäinen, Köppl and Piatkowski (CPM 2021, cited by Boucher et al. p. 6) give a linear-time bijective BWT; adopt it or record why not (the paper is not on file yet)."
     },
     {
       "id": "P036",
@@ -1112,7 +1112,7 @@
         "02-Data Structures/Docs/35-persistentarray.md",
         "02-Data Structures/Docs/63-offline_deletion.md"
       ],
-      "note": "Sparse keys (user decision 2026-11-04): RollbackDSU, PersistentDSU and PersistentArray take [0, n). Record in 09-rollbackdsu.md, 10-persistentdsu.md and 35-persistentarray.md: offline, compress keys with row 07 CoordinateCompression; online, map keys to ids with row 61 HashMap and size n by the distinct-key bound (at most 2 per union, 1 per set); PersistentArray over lng indices is row 13 DynamicSegmentTree<M, true> or row 18 PersistentSegmentTree. Optional: RollbackDSU::makeSet (a new singleton needs no undo entry) if the sweep finds a catalog use. Omission sweep 2026-11-08: implement SqrtTree::assign in `34-sqrttree.hpp`. The sparse-key documentation above is part of this reopening (user decision 2026-11-08). P275 re-review 2026-11-10: implement PersistentDSU::groups, PersistentDSUOffline in `10-persistentdsu.hpp`. The next run rechecks the probe passes of rows 09, 10 that predate the 2026-11-12 runner fix."
+      "note": "Sparse keys (user decision 2026-11-04): RollbackDSU, PersistentDSU and PersistentArray take [0, n). Record in 09-rollbackdsu.md, 10-persistentdsu.md and 35-persistentarray.md: offline, compress keys with row 07 CoordinateCompression; online, map keys to ids with row 61 HashMap and size n by the distinct-key bound (at most 2 per union, 1 per set); PersistentArray over lng indices is row 13 DynamicSegmentTree<M, true> or row 18 PersistentSegmentTree. Optional: RollbackDSU::makeSet (a new singleton needs no undo entry) if the sweep finds a catalog use. Omission sweep 2026-11-08: implement SqrtTree::assign in `34-sqrttree.hpp`. The sparse-key documentation above is part of this reopening (user decision 2026-11-08). P275 re-review 2026-11-10: implement PersistentDSU::groups, PersistentDSUOffline in `10-persistentdsu.hpp`. The next run rechecks the probe passes of rows 09, 10 that predate the 2026-11-12 runner fix. Row 63 gains `PriorityUndo` under `missing:` (user decision 2026-11-22): online priority-queue undo from Codeforces blog 111117, saved as `95-Resources/14-Web Pages/08-codeforces_blog_111117-priority_queue_like_undoing.pdf`."
     },
     {
       "id": "P047",
@@ -1132,7 +1132,7 @@
         "04-Graphs/Docs/27-blockcuttree.md",
         "04-Graphs/Docs/31-path_cover.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement chuLiuEdmonds, directedMstDense in `25-directedmst.hpp`; OfflineDynamicConnectivityLct in `26-dynamic_connectivity.hpp`. P275 re-review 2026-11-10: implement kBestArborescences, maximumArborescence, DirectedMst::arborescenceAnyRoot in `25-directedmst.hpp`; BlockCutTree::mandatoryVertexCount (vertex set) in `27-blockcuttree.hpp`; minimumChainCover in `31-path_cover.hpp`. The next run rechecks the probe passes of rows 25, 26, 27, 31 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement chuLiuEdmonds, directedMstDense in `25-directedmst.hpp`; OfflineDynamicConnectivityLct in `26-dynamic_connectivity.hpp`. P275 re-review 2026-11-10: implement kBestArborescences, maximumArborescence, DirectedMst::arborescenceAnyRoot in `25-directedmst.hpp`; BlockCutTree::mandatoryVertexCount (vertex set) in `27-blockcuttree.hpp`; minimumChainCover in `31-path_cover.hpp`. The next run rechecks the probe passes of rows 25, 26, 27, 31 that predate the 2026-11-12 runner fix. The directed-MST expansion has no proof on file: Tarjan 1977 states it without proof and Camerini–Fratta–Maffioli 1979 defer it to \"The k best spanning arborescences of a network\" (Networks 10(2), 1980), requested from the user as A4 on 2026-11-22 (`25-directedmst.md`)."
     },
     {
       "id": "P082",
@@ -1282,7 +1282,7 @@
         "02-Data Structures/Docs/32-static_range_queries.md",
         "02-Data Structures/Docs/62-xorbasis.md"
       ],
-      "note": "Sparse ids (user decision 2026-11-04): RadixHeapArray takes ids [0, n) for its key-indexed decrease. Record in 31-radixheap.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use RadixHeap with payloads and skip stale entries. Omission sweep 2026-11-08 (user decision): reopened only for the sparse-id documentation above; rows stay verified. P275 re-review 2026-11-10: implement RadixHeap (floating keys), RadixMaxHeap, RadixHeapArray::chmin in `31-radixheap.hpp`; XorBasis::orthogonalComplement in `62-xorbasis.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. Implement MonotoneCHT::merge in `22-convexhulltrick.hpp` (hitonanode; user decision 2026-11-22); row 22 is partial until then. /finish runs the mewt campaign for `62-xorbasis.hpp`, which has no record."
+      "note": "Sparse ids (user decision 2026-11-04): RadixHeapArray takes ids [0, n) for its key-indexed decrease. Record in 31-radixheap.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use RadixHeap with payloads and skip stale entries. Omission sweep 2026-11-08 (user decision): reopened only for the sparse-id documentation above; rows stay verified. P275 re-review 2026-11-10: implement RadixHeap (floating keys), RadixMaxHeap, RadixHeapArray::chmin in `31-radixheap.hpp`; XorBasis::orthogonalComplement in `62-xorbasis.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. Implement MonotoneCHT::merge in `22-convexhulltrick.hpp` (hitonanode; user decision 2026-11-22); row 22 is partial until then. /finish runs the mewt campaign for `62-xorbasis.hpp`, which has no record. Source check 2026-11-22 (user decisions 2026-11-22): benchmark the two-level radix heap and the radix heap with Fibonacci heaps (Ahuja et al. §3–4) against row 31, then adopt the faster or record the measured reason they stay out; find the online XOR-basis deletion (about O(B^2) per operation) that Codeforces blog 149993 links and adopt it in row 62 or record why it stays out (`Docs/00-notes.md`)."
     },
     {
       "id": "P048",
@@ -1318,7 +1318,7 @@
         "05-Mathematics/Docs/21-integer_roots.md",
         "05-Mathematics/Docs/17-numerical_methods.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement falsePositionRoot in `17-numerical_methods.hpp`; floorLog, ceilLog in `21-integer_roots.hpp`. P275 re-review 2026-11-10: implement doubleExponentialIntegrateInfinite, hornerDerivativeTable, DualNumber::sqrt, DualNumber::exp, DualNumber::log, DualNumber::sin, DualNumber::cos in `17-numerical_methods.hpp`. The next run rechecks the probe passes of rows 17, 21 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement falsePositionRoot in `17-numerical_methods.hpp`; floorLog, ceilLog in `21-integer_roots.hpp`. P275 re-review 2026-11-10: implement doubleExponentialIntegrateInfinite, hornerDerivativeTable, DualNumber::sqrt, DualNumber::exp, DualNumber::log, DualNumber::sin, DualNumber::cos in `17-numerical_methods.hpp`. The next run rechecks the probe passes of rows 17, 21 that predate the 2026-11-12 runner fix. Source check 2026-11-22: the comment at `17-numerical_methods.hpp:92` gives the Kahan bound as 2 eps sum |a_i| without its O(n eps^2) term and claims the same for Neumaier, which Higham (4.10) gives only with an n^2 u^2 term and n u <= 0.1; `Docs/00-notes.md:241` calls `neumaierSum` never worse than `kahanSum`, which Higham does not state. Correct both. The `brentRoot` step bound (about (log2(width / t))^2) is cited to Brent 1973, chapter 4, requested from the user as A5 on 2026-11-22."
     },
     {
       "id": "P251",
@@ -1847,7 +1847,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P030 (user decision 2026-10-27, 02-Data Structures/Docs/00-notes.md P030 omissions); sources in 02-Data Structures/Docs/00-sources.md (P030 sweep). SPOJ COT was not fetched; read it first. Omission sweep 2026-11-08: implement TreePathKth::countEqual, TreePathKth::sumLess, TreePathKth::kthSum, TreeWaveletMatrix in `88-tree_path_kth.hpp`."
+      "note": "Filed by P030 (user decision 2026-10-27, 02-Data Structures/Docs/00-notes.md P030 omissions); sources in 02-Data Structures/Docs/00-sources.md (P030 sweep). SPOJ COT is saved as `95-Resources/14-Web Pages/21-spoj_cot-count_on_a_tree.pdf` (2026-11-22); read it first. Omission sweep 2026-11-08: implement TreePathKth::countEqual, TreePathKth::sumLess, TreePathKth::kthSum, TreeWaveletMatrix in `88-tree_path_kth.hpp`."
     },
     {
       "id": "P264",
@@ -3728,7 +3728,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). HPM05 was not fetched and WANG22 only as an abstract; obtain them first."
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). HPM05 and WANG22 are saved in `95-Resources/13-Papers/` (11 and 10; 2026-11-22); read them first. HPM05 Theorem 4.7 needs Matoušek's O(n log n + nk) algorithm per cluster; that paper is not on file yet."
     },
     {
       "id": "P234",
@@ -3741,7 +3741,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Megiddo and OAMB86 were not read yet; obtain them first. Omission sweep 2026-11-08: implement minimumEnclosingCircleWeighted, minimumWidth3, minimumVolumeBoundingBox3 in `57-enclosing_shapes.hpp`. The minimum enclosing parallelogram left row 57: row 07 `minimumAreaParallelogramApprox` already runs Rote's linear algorithm (/finish P254, 2026-11-08)."
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Omission sweep 2026-11-08: implement minimumEnclosingCircleWeighted, minimumWidth3, minimumVolumeBoundingBox3 in `57-enclosing_shapes.hpp`. The minimum enclosing parallelogram left row 57: row 07 `minimumAreaParallelogramApprox` already runs Rote's linear algorithm (/finish P254, 2026-11-08). Source check 2026-11-22: Megiddo 1983 §4.4 (p. 769) gives O(n) only for the weighted rectilinear 1-center and O(n (log n)^2) for the weighted Euclidean one, so row 57 now reads `minimumEnclosingCircleWeighted (prune and search; bound set by P234)` (user decision 2026-11-22): find an O(n) source (Dyer 1986, SIAM J. Comput. 15, is an unread lead) or state the bound reached; OAMB86 is about planar triangles, while `minimumVolumeBoundingBox3` needs O'Rourke's 1985 paper on minimal enclosing boxes."
     },
     {
       "id": "P235",
@@ -3807,7 +3807,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P042 (user decision 2026-11-09, 04-Graphs/Docs/00-notes.md P042 GR70 omissions); sources in 04-Graphs/Docs/00-sources.md (P042 GR70 sweep). Bender–Farach-Colton (TCS 2004) returned 403; obtain it first."
+      "note": "Filed by P042 (user decision 2026-11-09, 04-Graphs/Docs/00-notes.md P042 GR70 omissions); sources in 04-Graphs/Docs/00-sources.md (P042 GR70 sweep). Bender–Farach-Colton (TCS 2004) is saved as `95-Resources/13-Papers/22-level_ancestor_problem_simplified-bender_2004.pdf` (2026-11-22); read it first. The Bender–Farach-Colton paper is now on file (`95-Resources/13-Papers/22-level_ancestor_problem_simplified-bender_2004.pdf`, 2026-11-22; `04-Graphs/Docs/00-sources.md`)."
     },
     {
       "id": "P265",

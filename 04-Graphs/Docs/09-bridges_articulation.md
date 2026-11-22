@@ -173,7 +173,7 @@ Sources for `cut_components` (fetched 2026-10-07) are in [00-sources.md](00-sour
 
 Block-cut and bridge-tree queries and two-edge-connectivity augmentation are row 27, incremental bridge maintenance is row 26, and dominators, st-numbering and ear decomposition, triconnectivity/SPQR and three-edge components are rows 24, 60, 61 and 74; static lowlink implies none of them.
 
-Named but not fetched ([00-sources.md](00-sources.md#fetched-2026-11-15-p011-gr03)): Nishizeki–Poljak's two-forest certificate and the LOJ #2788 statement behind `BridgesStreaming`, and the CSES Even Outdegree Edges task page; the proofs under Contracts stand alone and the oracles check them. `localBridges` ignores a loop as a common neighbour, which NetworkX counts. The runtime-only measurements (Mutation Testing) used scratch drivers that are not kept; their graphs are described there.
+Named in the GR03 sweep ([00-sources.md](00-sources.md#fetched-2026-11-15-p011-gr03)) and read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)): Nishizeki and Poljak (1994) prove the two-forest step for graphs that are k-edge-connected as a whole (Theorem 1.2). The per-edge statement under `BridgesStreaming` is this package's own argument, the same exchange as their proof. The LOJ #2788 statement (bridges of a loopless multigraph with up to 6,000,000 edges in 16 MiB) and the CSES Even Outdegree Edges statement match their contracts; `evenOutdegreeOrientation` also accepts loops and parallel edges. The oracles check both. `localBridges` ignores a loop as a common neighbour, which NetworkX counts. The runtime-only measurements (Mutation Testing) used scratch drivers that are not kept; their graphs are described there.
 
 ## Aliases
 

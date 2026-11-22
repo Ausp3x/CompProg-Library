@@ -23,11 +23,11 @@ Construction is iterative and O(n). It asserts the root and that every entry lie
 3. `link(parent, w)`;
 4. for every `v` in the parent's bucket, set `dom[v] = eval(v)` if its semi is smaller, else the parent.
 
-A final pass sets `dom[w] = dom[dom[w]]` where `dom[w] ≠ semi[w]`. `eval` and `link` are Tarjan's balanced versions with child chains and subtree sizes. `eval` returns `label[v]` even at a virtual-tree root, where the code differs from the simple compression-only variant; path compression is iterative. Time O((V + E)·α(E, V)), memory O(V + E). The semidominator theorem and the idom corollary are those of Lengauer and Tarjan (1979).
+A final pass sets `dom[w] = dom[dom[w]]` where `dom[w] ≠ semi[w]`. `eval` and `link` are Tarjan's balanced versions with child chains and subtree sizes. `eval` returns `label[v]` even at a virtual-tree root, where the code differs from the simple compression-only variant; path compression is iterative. Time O((V + E)·α(E, V)), memory O(V + E). The semidominator theorem and the idom corollary are Theorem 4 and Corollary 1 of Lengauer and Tarjan (1979).
 
 ### dominatorTreeSimple
 
-`dominatorTreeSimple(g, root)` has the same input domain and returns the same tree. For each reachable `d ≠ root`, a BFS from the root that skips `d` marks the vertices that `d` strictly dominates: the reachable vertices left unreached. The strict dominators of `w` form a chain whose dominated sets strictly shrink, so `idom(w)` is the one dominating the fewest vertices; `w` defaults to the root when nothing else strictly dominates it. Time O(V·(V + E)), memory O(V + E). Cooper–Harvey–Kennedy iteration is simpler to state but has no O(V·E) worst case.
+`dominatorTreeSimple(g, root)` has the same input domain and returns the same tree. For each reachable `d ≠ root`, a BFS from the root that skips `d` marks the vertices that `d` strictly dominates: the reachable vertices left unreached. The strict dominators of `w` form a chain whose dominated sets strictly shrink, so `idom(w)` is the one dominating the fewest vertices; `w` defaults to the root when nothing else strictly dominates it. Time O(V·(V + E)), memory O(V + E). Cooper–Harvey–Kennedy iteration is simpler to state but has no known O(V·E) bound (the paper bounds it by d(G) + 3 passes of O(N + E·D)).
 
 ## Feature-to-Test Map
 
@@ -84,7 +84,10 @@ Fetched 2026-10-09; the ledger is [00-sources.md](00-sources.md#pages-fetched-on
 | [NetworkX, dominance](https://networkx.org/documentation/stable/reference/algorithms/dominance.html) and [dominance_frontiers](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.dominance.dominance_frontiers.html) | `immediate_dominators`, `dominance_frontiers` definitions |
 | [maspypy, dominator_tree](https://maspypy.github.io/library/graph/dominator_tree.hpp), [ei1333, dominator-tree](https://ei1333.github.io/library/graph/others/dominator-tree.hpp), [Koosaga, dominator](https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/dominator.cpp) | Catalog comparison; all use compression-only Lengauer–Tarjan |
 
-Not fetched: the Lengauer–Tarjan paper (1979) and the Cooper–Harvey–Kennedy report (fetch returned 403). The balanced `link`/`eval` follow the published procedure as reproduced from memory and are validated only by the tests above.
+Read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)):
+
+- Lengauer and Tarjan (1979). Steps 2–4 (§3) and the sophisticated `EVAL` and `LINK` (§4, Appendix B) match `dominatorTree` line by line; only `COMPRESS` is made iterative. The §4 listing of `LINK` (p. 132) writes `parent` where Appendix B and the code use `ancestor`. The sophisticated version costs O(m·α(m, n)).
+- Cooper, Harvey and Kennedy (2001) bound their iteration by d(G) + 3 passes of O(N + E·D) each and give no O(V·E) bound, as the `dominatorTreeSimple` remark says. Their Figure 5 is the walk of `dominanceFrontier`, applied there only to join points; the header walks from every reachable target, which also covers a loop into the root.
 
 ## Limits and Handoffs
 

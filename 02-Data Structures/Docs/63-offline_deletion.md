@@ -1,6 +1,6 @@
 # 63-offline_deletion.hpp — Evidence
 
-Package P034 (batch DS51). New header; no legacy source. A generic add/remove-over-time engine (segment tree on time) and the queue-undo adapter, both driving any undo-only structure through callbacks. Each call asserts its preconditions once.
+Package P034 (batch DS51). New header; no legacy source. A generic add/remove-over-time engine (segment tree on time) the queue-undo adapter and the planned priority-undo adapter (`PriorityUndo`, missing), all driving any undo-only structure through callbacks. Each call asserts its preconditions once.
 
 ## Contracts
 
@@ -27,7 +27,10 @@ Times `[0, n)`, `0 <= n <= 2^29`, so the time tree's `2 * bit_ceil(n)` cells sta
   - Entries are B (pushed) or A (reordered). When no A remains, it undoes everything and reapplies it in reverse as A, oldest on top.
   - It then takes the shortest top segment holding at least one A and as many A as B, or every A. It undoes the segment, stably moves the segment's B before its A, drops the topmost A (the oldest), and reapplies the rest.
   - Invariant: A entries are older than every B, the topmost A is the oldest live update, and the applied set equals the stack. So each call removes the oldest update.
-- Bound: O(log(n)) amortized `add`/`undo` calls per operation for n live updates, as Noam527's tutorial (Codeforces blog 83467) states for this procedure. The blog returned 403 on 2026-10-17, so the statement comes from the sweep's search snippets and no proof was checked.
+- Bound: O(log(n)) amortized `add`/`undo` calls per operation, n the peak number of live updates. Noam527's tutorial (Codeforces blog 83467, read on 2026-11-22, [00-sources.md](00-sources.md#fetched-2026-11-22-source-check)) describes this procedure: its fixing step pops until it has popped as many A as B entries or no A remains, pushes the B entries back first, and reverses the stack when no A remains (pp. 2–3).
+  - The tutorial claims O(U log U) stack operations for U updates (p. 3). Its phase sum charges each phase O((s_i + s_(i+1)) log(s_i + s_(i+1))), where s_i and s_(i+1) are live counts, so the factor is the logarithm of the peak live count, as stated here. That per-phase lemma (n pops of A interleaved with n pushes of B take O(n log n) stack operations) is proved in a collapsed spoiler that the copy does not show, so it remains unchecked.
+  - The bound is tight: alternating pushes and pops cost Θ(n log n), the i-th fixing costing the lowest set bit of i: 1, 2, 1, 4, … (p. 2). The tutorial also argues, informally, that no method for a general commutative structure does better (p. 4).
+  - The bound counts calls. A structure whose add is cheap only amortized, such as path compression, loses that bound when its updates are undone and reapplied (comment thread, pp. 6–7).
   - Argued here: a segment with s B entries has at most `max(s, 1)` A entries, so a call makes at most `4(s + 1)` calls, and each update is reversed at most once, since after a reversal it leaves only by removal. Open: that each B entry is popped O(log(n)) times, amortized, before its reversal.
   - Measured: the tester bounds total calls by `4 ops (1 + log2(peak + 1))` on five access patterns and prints the worst ratio ([Commands and Results](#commands-and-results)). The review probe found 10.6, 15.9 and 19.4 calls per operation in the steady state at n = 2^10, 2^16, 2^20, tracking log2(n), and a worst ratio of 1.13 over 27 patterns.
 - Memory O(n).
@@ -101,13 +104,14 @@ python3 '96-Local Testing/03-consistency.py'
 |---|---|
 | cp-algorithms *Deleting from a data structure in O(T(n) log n)*, OI Wiki 线段树分治 | Segment tree over time with queries at leaves; amortized structures invalid. |
 | hitonanode `offline_dynamic_connectivity.hpp`, maspypy `add_remove_query.hpp`, Nyaan and ei1333 `offline-dynamic-connectivity.hpp` | Observations, insert/erase pairing into half-open intervals with multiplicities, callbacks. |
-| ShahjalalShohag `Queue Undo Trick.cpp` (via the sweep) | The queue-undo procedure. Noam527's Codeforces tutorial (blog 83467) returned 403; its O(log(n)) amortized bound is known only from search snippets and is supported here by measurement. |
+| ShahjalalShohag `Queue Undo Trick.cpp` (via the sweep) | The queue-undo procedure. |
+| Noam527, Codeforces blog 83467, pp. 1–10, read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)) | The same procedure, its O(log) amortized factor and the matching lower bound; the upper-bound proof is missing from the copy, so the bound rests on the argument and measurements under `QueueUndo`. |
 
 Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-17-p034-sweep)); the implementation was written from the contract.
 
 ## Limits and Handoffs
 
-- Left out with reasons in [00-notes.md](00-notes.md#p034-omissions): priority-queue undo and deque undo.
+- `PriorityUndo` (priority-queue undo, Codeforces blog 111117) is missing; P034 adds it (user decision 2026-11-22). Deque undo stays out, with its reason in [00-notes.md](00-notes.md#p034-omissions).
 - Graphs `26-dynamic_connectivity.hpp` owns edge-interval connectivity orchestration and may build on `OfflineDeletion` with row 09; Miscellaneous row 42 owns generic undo logs.
 
 ## Aliases

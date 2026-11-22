@@ -131,7 +131,7 @@ Code is independently implemented from the cited descriptions.
 - [OI Wiki, Boyer–Moore](https://oi-wiki.org/string/bm/) and [字符串匹配](https://oi-wiki.org/string/match/) (fetched 2026-10-10): Galil rule for linear worst case, Horspool/Sunday variants.
 - [cp-algorithms, Rabin–Karp](https://cp-algorithms.com/string/rabin-karp.html) (fetched 2026-10-10): rolling hash windows.
 - [maspypy `is_substring.hpp`](https://raw.githubusercontent.com/maspypy/library/main/string/is_substring.hpp) and [PyRival `kmp.py`](https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/strings/kmp.py) (fetched 2026-10-10): boolean substring predicate.
-- Z. Galil, "On improving the worst case running time of the Boyer–Moore string matching algorithm", CACM 22(9), 1979 (cited for the linear bound; not fetched).
+- Z. Galil, "On improving the worst case running time of the Boyer–Moore string matching algorithm", CACM 22(9), 1979, read 2026-11-22 ([ledger](00-sources.md#fetched-2026-11-22-source-check)). Its `BM'` (p. 507) uses the strong match shift and the shift to the rightmost pattern occurrence of the mismatched symbol, the two tables of `boyerMoore`. After a match it shifts by the smallest period `k` and compares only the last `k` pattern positions until the next mismatch, which is the `bound = m - p` rule. Theorem 6 bounds `BM'` by `O(n)` comparisons, by counting chunks of overlapping occurrences on top of Knuth's `7n` bound for a text with no occurrence, and p. 506 gives the `O(m + q)` table cost. The contract above agrees.
 - Catalog sweep in [00-sources.md](00-sources.md#p084-sweeps-2026-10-10).
 
 ## Limits and Handoffs

@@ -58,7 +58,7 @@ None: every operation is one formatted line or one extraction, and interactive p
 Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sources.md)); the code was written independently:
 
 - CSES [3139](https://cses.fi/problemset/task/3139) and [3305](https://cses.fi/problemset/task/3305), AtCoder [practice_2](https://atcoder.jp/contests/language-test-202001/tasks/practice_2): the `? …`/`! …`, `F i`/`S i` and `<`/`>` protocols motivate the free prefix argument and range expansion.
-- The Codeforces interactive-problem guide (blog 45307) and the 1999G1 statement, seen only in search snippets (direct fetches returned 403): flush before reading, exit after `-1`, per-test budgets, verdict after the answer.
+- The Codeforces interactive-problem guide (blog 45307) and the 1999G1 statement, read 2026-11-22 ([ledger](00-sources.md#fetched-2026-11-22-source-check)). The guide: the judge's reply can be read only after the program flushes, so flush after every output. 1999G1: the query limit holds per test case, and an extra or invalid query or a wrong answer is answered `-1`, after which the program must terminate at once, since reading on would hit a closed stream. These back the flush before every read, `reset` per test and `judgeErrorExit`. Neither page sends a verdict after a correct answer: in 1999G1 the next test simply begins, and a wrong answer surfaces as `-1` at the next read; the verdict reads in the contract serve protocols that do send one. The guide also advises `scanf`/`printf` over `cin`/`cout` for speed; the wrapper keeps `iostream`, because the round trip bounds these problems (Benchmarks).
 
 ## Limits and Handoffs
 

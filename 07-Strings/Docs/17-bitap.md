@@ -89,7 +89,7 @@ Code is independently implemented from the cited descriptions.
 - [Lecroq, Shift-Or](https://www-igm.univ-eiffel.fr/~lecroq/string/node6.html) (fetched 2026-10-10): Shift-Or with complemented masks, `m <= w`.
 - [Wikipedia, Bitap algorithm](https://en.wikipedia.org/wiki/Bitap_algorithm) (fetched 2026-10-10): exact, k-mismatch and Wu–Manber k-error recurrences; character classes credited to Baeza-Yates–Gonnet.
 - [G. Navarro, "Pattern Matching", J. Applied Statistics 2004](https://users.dcc.uchile.cl/~gnavarro/ps/jstat04.pdf) (pages 1–6 and 8–13 read 2026-10-10): classes, multiword simulation, error recurrences.
-- Codeforces 914F (bitset per character, occurrences by AND of shifted bitsets, point updates): statement not fetched (403); technique from search results only.
+- Codeforces 914F, statement read 2026-11-22 ([ledger](00-sources.md#fetched-2026-11-22-source-check)): point updates `1 i c` and queries `2 l r y` counting the occurrences of `y` inside `s[l, r]` (1-based), `|s|, q ≤ 10^5`, total `|y| ≤ 10^5`. That is `BitsetText::set` and `count(y, l - 1, r)`. The statement names no technique; the bitset AND comes from search results, and the cost rests on the contract's own argument.
 - Catalog sweep in [00-sources.md](00-sources.md#p084-sweeps-2026-10-10).
 
 ## Limits and Handoffs

@@ -88,7 +88,7 @@ Stage seconds: quick 353, full on the optimized build 27, full on the checked an
 Read 2026-11-17; implemented locally, no code copied.
 
 - [Wikipedia, Steinhaus–Johnson–Trotter algorithm](https://en.wikipedia.org/wiki/Steinhaus%E2%80%93Johnson%E2%80%93Trotter_algorithm): the recursive definition (the largest value inserted sweeping alternately), the n = 3 and n = 4 sequences, the first and last permutations, and Even's speedup with directed values (the tester's independent walk).
-- Knuth, TAOCP Vol. 4A §7.2.1.2, Algorithm P (plain changes): named in the tester as the source of its walk oracle, written from recall; the text was not read, and the oracle is validated against the recursive list instead.
+- Knuth, TAOCP vol. 4A §7.2.1.2, Algorithm P (plain changes), read 2026-11-22 in pre-fascicle 2B p. 4 ([ledger](00-sources.md#fetched-2026-11-22-source-check)). `forEachTrotterJohnson` and the tester's `PlainChanges` oracle both follow steps P3–P7: `q = c_j + o_j`; `q < 0` reverses `o_j` and moves to level `j - 1`; `q = j` does the same after adding one to `s`, and ends the run at `j = 1`; otherwise positions `j - c_j + s` and `j - q + s` (1-based) are swapped. The correctness argument above matches the algorithm, and the oracle is also checked against the recursive list.
 - [SymPy, Permutations](https://docs.sympy.org/latest/modules/combinatorics/permutations.html): `rank_trotterjohnson`, `unrank_trotterjohnson` and `next_trotterjohnson`, the catalog entry behind this row; the Kreher–Stinson text it names was not read.
 
 ## Limits and Handoffs

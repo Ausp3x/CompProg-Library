@@ -144,7 +144,7 @@ None required (Contest profile, no Barrett or Montgomery reduction).
 
 ## Sources
 
-[00-sources.md](00-sources.md#pages-fetched-on-2026-10-28-p048-gr27): cp-algorithms flows with demands, OI Wiki 上下界网络流, ei1333 `maxflow-lower-bound`, maspypy `maxflow_with_lower_bound`, hitonanode `maxflow_lowerbound` and `B_Flow`. The code was written independently from the algorithm descriptions; no catalog code was copied. Not fetched: LEMON `Circulation` (connection refused); the Nyaan and suisen indexes beyond their first 100k characters; Hoffman's 1960 paper, whose theorem is used as stated in textbooks.
+[00-sources.md](00-sources.md#pages-fetched-on-2026-10-28-p048-gr27): cp-algorithms flows with demands, OI Wiki 上下界网络流, ei1333 `maxflow-lower-bound`, maspypy `maxflow_with_lower_bound`, hitonanode `maxflow_lowerbound` and `B_Flow`. The code was written independently from the algorithm descriptions; no catalog code was copied. Read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)): Hoffman's circulation theorem (1960, §3) bounds each node's net inflow between `c_i` and `d_i`; with `c = d = −b` its second condition is `b(S) ≤ Σ_{u∈S, v∉S} hi − Σ_{u∉S, v∈S} lo`, which `infeasibleCut` violates. LEMON `Circulation`'s barrier is the same certificate. Its displayed sums also count the arcs inside the set, which only adds `hi − lo ≥ 0`, so a LEMON barrier violates the condition above too. Not fetched: the Nyaan and suisen indexes beyond their first 100k characters.
 
 ## Limits and Handoffs
 
