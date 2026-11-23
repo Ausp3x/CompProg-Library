@@ -429,7 +429,7 @@
       "evidence": [
         "00-Guidelines/13-Plan/Docs/00-harness-review.md"
       ],
-      "note": "SUP32 verified 2026-11-23 and landed. SUP33 /finish 2026-11-23 landed partial on master: all six items, the 30 s idle notification checked live and its click fixed for KDE Wayland, step 5 review's 11 findings fixed, full suites on both compilers, stress and 34 hand mutants pass. Open: the live SessionEnd check after a worktree is removed under a running session (user decision 2026-11-23: scratch worktree after landing); SUP33 is verified once it passes. SUP34 open."
+      "note": "SUP32 and SUP33 verified 2026-11-23 and landed. SUP33: all six items; live checks with the user of the 30 s idle notification (its click fixed for KDE Wayland) and of SessionEnd after /finish removes a worktree (passes; a session whose own directory is removed does not run it, recorded in Limits). SUP34 open."
     },
     {
       "id": "P025",
