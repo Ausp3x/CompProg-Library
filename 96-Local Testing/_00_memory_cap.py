@@ -15,7 +15,11 @@ uncapped invocation becomes a small supervisor:
 4. The scope's first process gets SIGUSR2 when the supervisor dies, however it dies (a SIGKILL from a caller's timeout
    included), and lead() turns that into the end of the whole scope, so nothing in it outlives its supervisor.
 
-Ad-hoc probes and benchmarks: ``python3 _00_memory_cap.py [--mb N] -- <command> [args...]``.
+5. Before any of it, the supervisor waits until ``_00_memory_gate.py`` admits the run's expected peak (the peak
+   01-run.py recorded for the entry and mode, else the cap; ``--need`` or ``ensure(need=...)`` override), so concurrent
+   runs of several sessions queue instead of being killed.
+
+Ad-hoc probes and benchmarks: ``python3 _00_memory_cap.py [--mb N] [--need N] -- <command> [args...]``.
 
 Environment: CP_TEST_MEMORY_MB (main cap, default 4096), CP_TEST_PREFLIGHT_MB (default 2048),
 CP_TEST_PREFLIGHT=0 skips the pre-flight, CP_MEMORY_CAPPED marks a process already inside a cap,
@@ -34,10 +38,13 @@ import signal
 import subprocess
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _00_memory_gate  # noqa: E402
+
 MAIN_MB = int(os.environ.get('CP_TEST_MEMORY_MB', '4096'))
 PREFLIGHT_MB = int(os.environ.get('CP_TEST_PREFLIGHT_MB', '2048'))
 ENTRY_SUFFIXES = ('_tester.py', '_benchmark.py')
-ENTRY_NAMES = ('02-integration.py',)
+ENTRY_NAMES = ('02-integration.py', '06-compare.py')  # entry points without a tester or benchmark suffix
 _available = None
 
 
@@ -142,14 +149,15 @@ def is_mode_flag(arg):
 
 
 def mode_of(argv, honours_env):
-    """(mode, source): an explicit --mode, else CP_TEST_MODE, else the runners' default 'full' when the entry reads it."""
+    """(mode, source): an explicit --mode, else, when the entry reads it, CP_TEST_MODE or the runners' default 'full'; an
+    entry that ignores CP_TEST_MODE has no mode from it, so an exported one starts no pre-flight (06-compare.py)."""
     for i, a in enumerate(argv):
         if is_mode_flag(a):
             if '=' in a:
                 return a.split('=', 1)[1], 'argv'
             if i + 1 < len(argv):
                 return argv[i + 1], 'argv'
-    if 'CP_TEST_MODE' in os.environ:
+    if honours_env and 'CP_TEST_MODE' in os.environ:
         return os.environ['CP_TEST_MODE'], 'env'
     return ('full', 'env') if honours_env else (None, 'env')
 
@@ -183,9 +191,15 @@ def forwarding(command, **kw):
         return subprocess.CompletedProcess(command, p.returncode, out, err)
 
 
-def supervise(command, mode=None, source='env', label=None):
-    """Run command under the pre-flight (when mode is full/stress) and main caps; return its exit status."""
+def supervise(command, mode=None, source='env', label=None, need=None):
+    """Run command under the pre-flight (when mode is full/stress) and main caps, once the memory gate admits need MB
+    (default: the main cap; _00_memory_gate.py); return its exit status."""
     label = label or Path(command[1] if len(command) > 1 else command[0]).name
+    with _00_memory_gate.held(MAIN_MB if need is None else need, label):
+        return capped_run(command, mode, source, label)
+
+
+def capped_run(command, mode, source, label):
     signal.signal(signal.SIGINT, lambda *_: None)  # the child's group gets the signal too: wait for its own cleanup
     base, scope = dict(os.environ), available()
     if not scope:
@@ -219,10 +233,12 @@ def supervise(command, mode=None, source='env', label=None):
     return exit_code(code)
 
 
-def ensure(force=False, mb=None):
+def ensure(force=False, mb=None, need=None):
     """Make the running entry point memory-capped; returns only inside the cap (or the warned uncapped fallback).
 
-    ``mb`` raises or lowers the main cap for one suite; CP_TEST_MEMORY_MB still wins when set.
+    ``mb`` raises or lowers the main cap for one suite; CP_TEST_MEMORY_MB still wins when set. ``need`` is the memory the
+    gate waits for (0: none, for a wrapper whose heavy children gate themselves); by default the peak 01-run.py recorded
+    for the entry in its mode, else the cap.
     """
     global MAIN_MB
     if mb and 'CP_TEST_MEMORY_MB' not in os.environ:
@@ -244,17 +260,22 @@ def ensure(force=False, mb=None):
         return
     mode, source = mode_of(sys.argv[1:], honours_mode_env(main))
     sys.stdout.flush()
-    raise SystemExit(supervise([sys.executable, str(main), *sys.argv[1:]], mode, source, main.name))
+    need = _00_memory_gate.recorded(mode, main, MAIN_MB) if need is None else need
+    raise SystemExit(supervise([sys.executable, str(main), *sys.argv[1:]], mode, source, main.name, need))
 
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    usage = 'usage: _00_memory_cap.py [--mb N] -- <command> [args...]'
-    if args and (args[0] == '--mb' or args[0].startswith('--mb=')):
-        value, args = (args[0].split('=', 1)[1], args[1:]) if '=' in args[0] else ((args[1:2] or [''])[0], args[2:])
-        if not value.isdigit() or int(value) < 16:
-            raise SystemExit(usage + '\n--mb needs an integer of at least 16')
-        MAIN_MB = int(value)
+    usage = 'usage: _00_memory_cap.py [--mb N] [--need N] -- <command> [args...]'
+    need = None
+    while args and args[0].split('=', 1)[0] in ('--mb', '--need'):
+        flag, (value, args) = args[0].split('=', 1)[0], (args[0].split('=', 1)[1], args[1:]) if '=' in args[0] else ((args[1:2] or [''])[0], args[2:])
+        if not value.isdigit() or (flag == '--mb' and int(value) < 16):
+            raise SystemExit(usage + '\n--mb needs an integer of at least 16, --need a nonnegative integer')
+        if flag == '--mb':
+            MAIN_MB = int(value)
+        else:
+            need = int(value)
     if args[:1] == ['--']:
         args = args[1:]
     if not args:
@@ -263,4 +284,4 @@ if __name__ == '__main__':
     reporter = [sys.executable, '-c', 'import signal, subprocess, sys; signal.signal(signal.SIGINT, lambda *_: None); sys.path.insert(0, sys.argv[1]); '
                 'import _00_memory_cap as m; m.lead(); code = m.forwarding(sys.argv[2:]).returncode; m.report(); sys.exit(m.exit_code(code))',
                 str(Path(__file__).resolve().parent), *args]
-    raise SystemExit(supervise(reporter, None, 'env', Path(args[0]).name))
+    raise SystemExit(supervise(reporter, None, 'env', Path(args[0]).name, need))

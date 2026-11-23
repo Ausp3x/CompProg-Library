@@ -8,7 +8,9 @@ old and new HEAD, so edits a command commits are seen too. A command that change
 content at the old HEAD is blocked with the restore commands, as is a 99-Workspace/template.cpp that
 `03-workspace.py --check` rejects; a changed Markdown, plan, header or 08-Python file runs the consistency validator.
 Results are checked, not the command text, so no spelling of a command escapes; staging changes no content and runs
-nothing. A background command is compared when it starts, so edits it makes later are not checked. `pre` also refuses a
+nothing. `post` also blocks when core.hooksPath changed during the command and git no longer runs this checkout's hooks,
+naming the command the user types to restore it (SUP33); a push the same command made has already run. `post` runs after
+failed commands too (PostToolUseFailure), since they change files as well. A background command is compared when it starts, so edits it makes later are not checked. `pre` also refuses a
 `git push` in command position (after a separator, variable assignments and env/sudo/command/exec/nohup/time, with git's
 own options between, and the options of env and sudo), since pushing is the user's (CLAUDE.md, Git), and `97-Online
 Testing/04-submit.py` run in command position (directly or after a python or pypy interpreter and its options), since
@@ -37,6 +39,7 @@ template and the validator are checked in the working tree, so other files' unst
 (.github/workflows/checks.yml) checks the pushed tree itself, with `range <base>` for the path rules over the push. An
 internal error refuses the commit."""
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -83,6 +86,28 @@ def snapshot():
                          capture_output=True, timeout=20, check=True).stdout
     paths = {rel: [e[:2].decode(), blob(rel)] for e in out.split(b'\0') if e for rel in [e[3:].decode('utf-8', 'surrogateescape')]}
     return git('rev-parse', '-q', '--verify', 'HEAD').decode().strip(), paths
+
+
+def hooks_path():
+    """The value git reads for core.hooksPath here, or None when unset."""
+    r = subprocess.run(['git', 'config', '--get', 'core.hooksPath'], cwd=ROOT, capture_output=True, timeout=20)
+    return r.stdout.decode('utf-8', 'surrogateescape').rstrip('\n') if r.returncode == 0 else None
+
+
+def hooks_lost(before):
+    """The block reason when core.hooksPath changed from before and git no longer runs this checkout's hooks
+    (setup_check.py, hook_check), else ''."""
+    if hooks_path() == before:
+        return ''
+    spec = importlib.util.spec_from_file_location('shell_setup_check', ROOT / '.claude/skills/setup-check/setup_check.py')
+    check = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(check)
+    ok, detail = check.hook_check(ROOT)
+    if ok:
+        return ''
+    state, _, fix = detail.partition('; run: ')
+    return (f'This command changed core.hooksPath ({state}), so git no longer runs the commit and push hooks (CLAUDE.md, '
+            f'Start Here). Ask the user to restore it by typing `! {fix}`; a push the same command made has already run.')
 
 
 def protected(rel, now):
@@ -204,13 +229,13 @@ def pre(data):
     for old in STATE.glob('*.json'):  # snapshots of commands that never finished
         if old.stat().st_mtime < time.time() - 86400:
             old.unlink(missing_ok=True)
-    state_file(data).write_text(json.dumps(snapshot()))
+    state_file(data).write_text(json.dumps([*snapshot(), hooks_path()]))
 
 
 def post(data):
     f = state_file(data)
     try:
-        old, before = json.loads(f.read_text())
+        old, before, *hooks = json.loads(f.read_text())  # hooks: core.hooksPath before the command (SUP33)
     except (OSError, ValueError):
         return
     f.unlink(missing_ok=True)
@@ -235,8 +260,11 @@ def post(data):
             'This command changed protected files: ' + ', '.join(bad) + '. OLD/ and 97-Legacy/ excerpts are immutable '
             '(01-principles.md, Scope Discipline) and template.cpp is generated (97-Online Testing/03-workspace.py). Restore: '
             + '; '.join(fix) + ('; then amend or revert the commit that holds them' if new != old else '') + '.')}
+    if hooks and (lost := hooks_lost(hooks[0])):
+        out = {'decision': 'block', 'reason': ' '.join(filter(None, [out.get('reason'), lost]))}
     if any(consistency.watched(p) for p in changed) and (err := consistency.validate()):
-        out['hookSpecificOutput'] = {'hookEventName': 'PostToolUse', 'additionalContext': 'Consistency validator FAILED:\n' + err}
+        out['hookSpecificOutput'] = {'hookEventName': data.get('hook_event_name') or 'PostToolUse',
+                                     'additionalContext': 'Consistency validator FAILED:\n' + err}
     if out:
         print(json.dumps(out))
 

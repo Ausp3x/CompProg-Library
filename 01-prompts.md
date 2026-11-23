@@ -61,7 +61,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P275 — SUP26** (opus, L): Duplicate re-review under the 2026-11-08 One API rule.
 - [x] **P276 — SUP27** (opus, L): Operation-name renames under the 2026-11-08 vocabulary.
 - [x] **P287 — SUP28, SUP29, SUP30** (opus, XL): Harness audit: model guard, experiment ids, weekly scan.
-- [ ] **P289 — SUP32, SUP33, SUP34** (opus, XL): Harness review: settings, hooks, scripts, measurements. Status: in-progress. Note: SUP32 verified 2026-11-23 and landed (all nine items; evidence 00-Guidelines/13-Plan/Docs/00-harness-review.md, live-check limits there). Next batch: SUP33. SUP34 open. [evidence](00-Guidelines/13-Plan/Docs/00-harness-review.md)
+- [ ] **P289 — SUP32, SUP33, SUP34** (opus, XL): Harness review: settings, hooks, scripts, measurements. Status: in-progress. Note: SUP32 verified 2026-11-23 and landed. SUP33 /finish 2026-11-23 landed partial on master: all six items, the 30 s idle notification checked live and its click fixed for KDE Wayland, step 5 review's 11 findings fixed, full suites on both compilers, stress and 34 hand mutants pass. Open: the live SessionEnd check after a worktree is removed under a running session (user decision 2026-11-23: scratch worktree after landing); SUP33 is verified once it passes. SUP34 open. [evidence](00-Guidelines/13-Plan/Docs/00-harness-review.md)
 
 ### Core full types
 

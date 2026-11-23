@@ -7,14 +7,17 @@ folder (osascript cannot). Silent when no notifier exists or it fails; it never 
 import base64
 import glob
 import json
+import ntpath
 import os
 import platform
+import posixpath
 import re
 import shlex
 import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from urllib.parse import quote, unquote, urlparse
@@ -23,13 +26,15 @@ from xml.sax.saxutils import escape
 CHUNK = 1 << 20
 WAIT = 600
 DEADLINE = time.monotonic() + 9
+RESERVE = 3  # seconds of the deadline the title search leaves to the fallback name's git calls and the notifier
 APP = '--app-name=Claude Code'
 TITLE = re.compile(r'"type":\s*"custom-title",\s*"customTitle":\s*("(?:[^"\\]|\\.)*")')
 WHY = {'permission_prompt': 'waits for your permission', 'idle_prompt': 'waits for your input'}
 AUMID = r'{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
 WIN_PS = Path('/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe')
 WIN_USERS = Path('/mnt/c/Users')
-VSCODE = {'nameShort': 'Code', 'applicationName': 'code', 'urlProtocol': 'vscode'}  # without a readable product.json
+VSCODE = {'nameShort': 'Code', 'nameLong': 'Visual Studio Code', 'applicationName': 'code', 'urlProtocol': 'vscode'}  # without a readable product.json
+JSONC = (re.compile(r'("(?:[^"\\]|\\.)*")|//[^\n]*|/\*.*?\*/', re.S), re.compile(r'("(?:[^"\\]|\\.)*")|,(?=\s*[\]}])'))
 DROP = re.compile(r'CLAUDE.*|CP_USER|CP_REAP_KEEP|AI_AGENT|XDG_ACTIVATION_TOKEN|DESKTOP_STARTUP_ID|VSCODE_(?!IPC_HOOK_CLI$).*')
 
 
@@ -51,7 +56,7 @@ def title(transcript):
     try:
         with open(transcript, 'rb') as f:
             end, tail = f.seek(0, 2), []  # tail: the pieces after this chunk of the line it ends inside, nearest last
-            while end:
+            while end and time.monotonic() < DEADLINE - RESERVE:  # the session's folder names it when time runs out
                 start = max(end - CHUNK, 0)
                 f.seek(start)
                 chunk, end = f.read(end - start), start
@@ -101,27 +106,68 @@ def cli(product, app):
     return next((str(p) for d in dirs if (p := d / name).is_file() and os.access(p, os.X_OK)), None) or shutil.which(name)
 
 
-def folders(name):
-    """The window folders the storage.json of the editor named name lists (Windows' copies from WSL), as this
-    system's paths: file URIs, and on WSL the vscode-remote URIs of this distribution; none without a name."""
+def storage(name):
+    """The storage.json files of the editor named name, where it keeps them: under $VSCODE_PORTABLE/user-data or
+    $VSCODE_APPDATA/<name> when set (VS Code's order), else the platform's settings folder; on WSL in every Windows
+    user's roaming folder. None without a name."""
     if not name:
         return []
-    sub = f'{name}/User/globalStorage/storage.json'
-    root = {'linux': os.environ.get('XDG_CONFIG_HOME') or str(Path.home() / '.config'),
-            'darwin': str(Path.home() / 'Library/Application Support'), 'win32': os.environ.get('APPDATA')}.get(SYSTEM)
-    files = sorted(WIN_USERS.glob(f'*/AppData/Roaming/{glob.escape(sub)}')) if SYSTEM == 'wsl' else [Path(root, sub)] if root else []
-    pure, distro, out = PureWindowsPath if SYSTEM == 'win32' else PurePosixPath, os.environ.get('WSL_DISTRO_NAME', ''), []
-    for f in files:
+    sub = 'User/globalStorage/storage.json'
+    if SYSTEM == 'wsl':
+        return sorted(WIN_USERS.glob(f'*/AppData/Roaming/{glob.escape(name)}/{sub}'))
+    if portable := os.environ.get('VSCODE_PORTABLE'):
+        return [Path(portable, 'user-data', sub)]
+    root = os.environ.get('VSCODE_APPDATA') or {'linux': os.environ.get('XDG_CONFIG_HOME') or str(Path.home() / '.config'),
+                                                'darwin': str(Path.home() / 'Library/Application Support'),
+                                                'win32': os.environ.get('APPDATA')}.get(SYSTEM)
+    return [Path(root, name, sub)] if root else []
+
+
+def local(uri):
+    """This system's path for a window's URI: a file URI, and on WSL a vscode-remote URI of this distribution; else None."""
+    u, distro = urlparse(uri), os.environ.get('WSL_DISTRO_NAME', '')
+    if u.scheme == 'file' and SYSTEM != 'wsl':
+        return PureWindowsPath(unquote(u.path).lstrip('/')) if SYSTEM == 'win32' else PurePosixPath(unquote(u.path))
+    if u.scheme == 'vscode-remote' and SYSTEM == 'wsl' and distro and unquote(u.netloc).lower() == f'wsl+{distro}'.lower():
+        return PurePosixPath(unquote(u.path))
+    return None
+
+
+def workspace(path):
+    """The folders a .code-workspace file lists (JSON with comments and trailing commas), `path` entries resolved against
+    the file's folder."""
+    text = Path(path).read_text(encoding='utf-8')
+    for pattern in JSONC:
+        text = pattern.sub(lambda m: m[1] or '', text)
+    out, norm = [], ntpath.normpath if SYSTEM == 'win32' else posixpath.normpath
+    for f in json.loads(text).get('folders') or []:
+        if isinstance(f.get('path'), str):
+            out.append(type(path)(norm(str(path.parent / f['path'].replace('\\', '/')))))
+        elif isinstance(f.get('uri'), str) and (p := local(f['uri'])):
+            out.append(p)
+    return out
+
+
+def folders(name):
+    """The folders of the windows the editor named name lists in its storage.json, as this system's paths: a folder
+    window's own, and those of a .code-workspace window's file; none without a name."""
+    out = []
+    for f in storage(name):
         try:
             state = json.loads(f.read_text(encoding='utf-8'))['windowsState']
-            uris = [w.get('folder') for w in [state.get('lastActiveWindow') or {}, *state.get('openedWindows', [])]]
+            windows = [state.get('lastActiveWindow') or {}, *state.get('openedWindows', [])]
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
             continue
-        for u in (urlparse(u) for u in uris if isinstance(u, str)):
-            if u.scheme == 'file' and SYSTEM != 'wsl':
-                out.append(pure(unquote(u.path).lstrip('/') if SYSTEM == 'win32' else unquote(u.path)))
-            elif u.scheme == 'vscode-remote' and SYSTEM == 'wsl' and distro and unquote(u.netloc).lower() == f'wsl+{distro}'.lower():
-                out.append(pure(unquote(u.path)))
+        for w in windows:
+            try:
+                ws = w.get('workspaceIdentifier') or {}
+                uri = ws.get('configURIPath') if isinstance(ws, dict) else None
+                if isinstance(w.get('folder'), str) and (p := local(w['folder'])):
+                    out.append(p)
+                elif isinstance(uri, str) and (p := local(uri)):
+                    out += workspace(p)
+            except (OSError, ValueError, TypeError, AttributeError):
+                continue
     return out
 
 
@@ -180,10 +226,49 @@ def command(header, body, cwd, product, app):
     return ps and [ps, *toast(header, body, link(window(cwd, product.get('nameShort')), product) if product else None)]
 
 
-def click(send, code, folder, header, body):
-    """Detached helper on Linux: a notification with a default action; a click within WAIT seconds runs `code folder`.
-    Variables naming the Claude Code session and inherited activation tokens are dropped, since a window `code` opens
-    takes its environment."""
+KWIN = """const name = " - " + %s + " - ", app = %s;
+const list = workspace.windowList ? workspace.windowList() : workspace.clientList();
+for (const w of list) {
+    if (w.normalWindow && (" - " + w.caption + " - ").includes(name) && w.caption.endsWith(app)) {
+        w.minimized = false;
+        if ("activeWindow" in workspace) { workspace.activeWindow = w; } else { workspace.activeClient = w; }
+        break;
+    }
+}
+"""
+
+
+def activate(folder, app):
+    """On KDE, have KWin activate the editor window whose title holds folder's name and ends with app (its nameLong, as
+    the default window.title reads): a native Wayland window cannot raise itself without an activation token, which
+    `code` cannot pass on to the running editor. A one-shot KWin script over D-Bus (gdbus, else qdbus6 or qdbus)."""
+    if not app or 'KDE' not in os.environ.get('XDG_CURRENT_DESKTOP', '').split(':'):
+        return
+    gdbus = shutil.which('gdbus')
+    qdbus = None if gdbus else shutil.which('qdbus6') or shutil.which('qdbus')
+    if not (gdbus or qdbus):
+        return
+
+    def call(path, method, *args):
+        argv = ([gdbus, 'call', '--session', '--dest', 'org.kde.KWin', '--object-path', path, '--method', method] if gdbus
+                else [qdbus, 'org.kde.KWin', path, method])
+        return subprocess.run([*argv, *args], capture_output=True, text=True, timeout=10).stdout
+    plugin = f'claude-notify-{os.getpid()}'
+    fd, script = tempfile.mkstemp(prefix='claude-notify-', suffix='.js')
+    try:
+        with os.fdopen(fd, 'w') as f:
+            f.write(KWIN % (json.dumps(PurePosixPath(folder).name), json.dumps(app)))
+        if m := re.search(r'-?\d+', call('/Scripting', 'org.kde.kwin.Scripting.loadScript', script, plugin)):
+            call(f'/Scripting/Script{m[0]}', 'org.kde.kwin.Script.run')
+        call('/Scripting', 'org.kde.kwin.Scripting.unloadScript', plugin)
+    finally:
+        os.unlink(script)
+
+
+def click(send, code, folder, header, body, app=''):
+    """Detached helper on Linux: a notification with a default action; a click within WAIT seconds runs
+    activate(folder, app), then `code folder`. Variables naming the Claude Code session and inherited activation tokens are dropped,
+    since a window `code` opens takes its environment."""
     p = subprocess.Popen([send, APP, '--action=default=Open', header, body], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                          stderr=subprocess.DEVNULL, text=True)
     try:
@@ -198,6 +283,7 @@ def click(send, code, folder, header, body):
         out = ''
     if 'default' in out.split():
         env = {k: v for k, v in os.environ.items() if not DROP.fullmatch(k)}
+        activate(folder, app)  # first: `code` takes about a second, and only opens a window when none holds folder
         subprocess.run([code, folder], env=env, stdin=subprocess.DEVNULL, capture_output=True, timeout=30)
 
 
@@ -224,7 +310,8 @@ def main():
         if product and (code := cli(product, app)):
             if '--action' in subprocess.run([send, '--help'], capture_output=True, text=True, timeout=left(2)).stdout:  # libnotify 0.7.10
                 # CP_REAP_KEEP: /reap leaves this bounded helper alone, so that its notification never dies open
-                subprocess.Popen([sys.executable, __file__, '--click', send, code, str(window(cwd, product.get('nameShort'))), header, body],
+                subprocess.Popen([sys.executable, __file__, '--click', send, code, str(window(cwd, product.get('nameShort'))), header, body,
+                                  product.get('nameLong', '')],
                                  start_new_session=True, env=os.environ | {'CP_REAP_KEEP': '1'}, stdin=subprocess.DEVNULL,
                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 return
@@ -234,7 +321,7 @@ def main():
 
 if __name__ == '__main__':
     try:
-        click(*sys.argv[2:7]) if sys.argv[1:2] == ['--click'] else main()
+        click(*sys.argv[2:8]) if sys.argv[1:2] == ['--click'] else main()
     except Exception:  # A notification must never disturb the session.
         pass
     sys.exit(0)

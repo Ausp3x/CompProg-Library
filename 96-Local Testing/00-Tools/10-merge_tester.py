@@ -5,7 +5,7 @@
 The real repository is only read. Synthetic repositories live in per-test temporary directories: under /tmp, except
 those whose worktree is sandboxed (Sandbox, Gates), which live under /var/tmp beside the gates' scratch directories
 (test_sandbox_worktree_under_tmp checks that a worktree under /tmp works too). A
-synthetic main checkout holds copies of plan.py, worktree.py, merge_pr.py and _00_memory_cap.py at their repository
+synthetic main checkout holds copies of plan.py, worktree.py, merge_pr.py, _00_memory_cap.py and _00_memory_gate.py at their repository
 paths (merge_pr.py computes ROOT from its own path), a stub 03-consistency.py printing {"errors": []}, and either the
 real plan (packages.json, batches.json, 01-prompts.md) or a mini plan on which the real `plan.py check` and `doctor`
 pass (two inventories, a stub 98-Team Notebook/05-dependencies.py and 01-run.py). Gate stubs (02-integration.py,
@@ -132,6 +132,7 @@ PLAN_REL = '00-Guidelines/13-Plan'
 PJ = PLAN_REL + '/packages.json'
 MERGE_REL = '.claude/skills/merge-pr/merge_pr.py'
 CAP_REL = '96-Local Testing/_00_memory_cap.py'
+GATE_REL = '96-Local Testing/_00_memory_gate.py'  # _00_memory_cap.py imports it from its folder (SUP33)
 MODE, SEED, ROUNDS = 'full', 42, 20
 REPO = 'Ausp3x/CompProg-Library'
 WHITELIST = ('PATH', 'HOME', 'USER', 'LANG', 'LC_ALL', 'TERM', 'XDG_RUNTIME_DIR', 'DBUS_SESSION_BUS_ADDRESS')
@@ -653,7 +654,7 @@ def commit(root, msg):
 def make_repo(dst, real=False):
     """A main checkout on master with one commit: copies of the scripts, the real or the mini plan, rendered."""
     dst.mkdir(parents=True)
-    for rel in (PLAN_REL + '/plan.py', PLAN_REL + '/worktree.py', MERGE_REL, CAP_REL, '.claude/hooks/harness.py'):
+    for rel in (PLAN_REL + '/plan.py', PLAN_REL + '/worktree.py', MERGE_REL, CAP_REL, GATE_REL, '.claude/hooks/harness.py'):
         (dst / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / rel, dst / rel)
     write(dst, '.gitignore', GITIGNORE)
@@ -1283,7 +1284,9 @@ class Classify(Base):
         info = self.info(returncode=r.returncode, stderr=r.stderr[-1500:], ran=sorted(ran))
         self.assertNotIn('Traceback', r.stderr, info)
         self.assertIn('"errors"', r.stdout, info)
-        self.assertEqual(wrote, set(), info + ' (03-consistency.py wrote into the repository)')
+        # its two git-ignored caches (setup_check.py's lint cache, the extraction check's cache, SUP33) are rewritten when stale
+        caches = re.compile(r'96-Local Testing/\.{1,2}(setup-lint-cache|extraction-cache)\.json(\.\d+)?')
+        self.assertEqual({p for p in wrote if not caches.fullmatch(p)}, set(), info + ' (03-consistency.py wrote into the repository)')
         self.assertIn('96-Local Testing/03-consistency.py', ran, info)
         ran.discard('96-Local Testing/03-consistency.py')
         self.assertTrue(ran, info)

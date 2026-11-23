@@ -10,6 +10,7 @@
 - **Checks.** A row's checksum must agree between all sides of a build and between passes, and all binaries must print the same rows; otherwise the run fails and writes no log.
 - **Summary.** Per side and build: the geometric mean of the ratios to `--against` (default `base`) and the number of rows more than `--loss` (default 3%) slower or faster. Per compiler: `losing` rows are over the line in every build of that compiler, `layout` rows in only some, which marks them as code placement and not as the change. `show <log.json>` prints the summary of a recorded run again.
 - **Record.** The log is `<rig stem>.json` beside the rig (git-ignored). The last summary line starts with `Comparison:` and holds the date, the blobs of the rig and of every `01-Core` header the rig includes, the base commit, the compiler versions, the CPU, the passes and the row and losing-row counts. It goes into the header's evidence document under `## Benchmarks`; `/finish` (`gaps.py`, Comparison record) reports it stale when a compiler version or one of those blobs has changed (`05-testing.md`, Stale evidence).
+- **Memory.** `06-compare.py` is an entry point of `_00_memory_cap.py` (`ENTRY_NAMES`; user decision 2026-11-23, SUP33): its `ensure(mb=3 * BUILD_MB + 1024)` runs it in a scope capped at 8,824 MB, which the memory admission gate opens once that cap plus 2,048 MB is available (no peak is recorded for it in `.run-stats.json`). Before SUP33 the name, which has neither suffix the cap module recognizes, made that call return without a cap.
 
 ## Writing a Rig
 
@@ -30,8 +31,9 @@ Rows follow the benchmark matrix (`05-testing.md`, Matrix first): a branchy kern
 [`00-Tools/18-compare_tester.py`](../00-Tools/18-compare_tester.py): its docstring lists every test. The quick tests use fixtures and fake binaries; the full run builds a small rig with the real compiler against the real tree and checks that a side slowed eightfold is listed as losing in every build.
 
 ```bash
-python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full                 # PASS, 10 tests, beside a running build (2026-11-18, g++ 16.2)
-python3 '96-Local Testing/00-Tools/18-compare_tester.py'                             # PASS, 10 tests, 29 s (2026-11-22, P005 /finish, 05-modint.md)
+python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full                 # PASS, 10 tests, 68 s, peak 362 MB (2026-11-23, P289 SUP33, g++ 16.2)
+CXX=g++-14 python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full      # PASS, 10 tests, 48 s, peak 342 MB (2026-11-23, P289 SUP33)
+python3 '96-Local Testing/06-compare.py' --help                                      # MEMORY ... cap=8824MB: runs capped (2026-11-23, P289 SUP33)
 ```
 
 ## History
@@ -39,3 +41,4 @@ python3 '96-Local Testing/00-Tools/18-compare_tester.py'                        
 - 2026-11-17 (P005, `/finish C03`): written from the sweep's scratch scripts.
 - 2026-11-18 (P005, `/finish C03`): `--gate` adds the `-march=native` build as its own group (user decision); `Rows::net` for evicting rows; 10 tests passed.
 - 2026-11-22 (P005 `/finish`): `18-compare_tester.py` passed, 10 tests.
+- 2026-11-23 (P289 SUP33): runs capped and gated as an entry point of `_00_memory_cap.py` (user decision); `18-compare_tester.py` rerun, see Tester.

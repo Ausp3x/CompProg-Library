@@ -76,8 +76,12 @@ nested namespaces, `ns::template f`, explicit specializations in and out of thei
 aliases per include closure and in chains, ADL in a type's innermost namespace only, no out-of-line definition as a
 command-line name, names in member access or trailing return types) and the harness's out-of-closure check -> test_lookup_rules;
 harness: split (template brackets), operations (operators, operator()), rows, targets (bases, nested structs and enums,
-operators; test_targets_nested_enum_bases_operators), core_full (fixture and repository), final, full_only, cpp_testers,
-scratch (per-header stubs under their quoted includes, copies, compiled use), own_names (prose excluded), aggregate
+operators; test_targets_nested_enum_bases_operators), core_full (fixture and repository), final, full_only,
+full_only_cached (full_only's hand-written result on a miss and a hit, {key, result} stored by rename, no write on a hit;
+recomputed when found, full, a library header's bytes, a found row's evidence document (appearing, changing, gone),
+ix.records, the script or the source of grab, _11_search.py or 05-dependencies.py change; corrupt or wrong-shaped store recomputed and rewritten; an unwritable
+store still answers), cpp_testers,
+scratch (per-header stubs under their quoted includes, copies, .run-stats.json when present, compiled use), own_names (prose excluded), aggregate
 closures, mini-first parsing (scope-aware full_type_names, wrapped full_defaults, mini_first_split strict and pending)
 -> test_harness_*; probes (candidate arguments, control rounds, presets, a dropped member caught, check_ops end to end on
 a fixture inventory) -> test_ops_instantiation_oracle;
@@ -1727,6 +1731,78 @@ class HarnessIndex(FixtureBase):
             doc.write_text('# Beta\n\n- `betaUse` is full-only until `pow`.\n- betaDep full-only until x\n- `betaDep` is fine\n')
             self.eq(H.full_only(self.ix, found, {A}), [(B, 'betaDep', [A])])
 
+    def test_harness_full_only_cached(self):
+        """full_only_cached equals the hand-written full_only result on a miss and on a hit; every input in its key recomputes."""
+        lib = self.tmp / 'lib'
+        shutil.copytree(self.fx, lib)
+        ix = copy.copy(self.ix)
+        ix.root = lib
+        found = [(B, 'betaUse, betaDep, lonelyMissing'), (U, 'lonely'), ('01-Core/03-x.hpp', 'betaUse')]
+        store, doc, real, calls = self.tmp / 'cache/full-only.json', lib / '05-Mathematics/Docs/01-beta.md', H.full_only, []
+        store.parent.mkdir()
+        both = [(B, 'betaUse', [A]), (B, 'betaDep', [A])]
+
+        def counted(*a):
+            calls.append(1)
+            return real(*a)
+
+        def run(what, want, computed, ix=ix, found=found, full=frozenset({A}), where=store):
+            calls.clear()
+            got = H.full_only_cached(ix, found, set(full), where)
+            self.eq((got, len(calls)), (want, int(computed)), what=what)
+        with patch.object(H, 'ROOT', lib), patch.object(H, 'full_only', counted):
+            run('first call', both, True)
+            data = json.loads(store.read_text())
+            self.eq((sorted(data), data['result'], sorted(x.name for x in store.parent.iterdir())),
+                    (['key', 'result'], [list(r) for r in both], ['full-only.json']), what='{key, result} stored, no temporary left')
+            key = data['key']
+            run('hit', both, False)
+            with patch.object(Path, 'write_text', autospec=True, side_effect=AssertionError('the store is written on a hit')):
+                run('a hit writes nothing', both, False)
+            run('another found', both, True, found=[found[1], found[0], found[2]])
+            run('back to the first found', both, True)
+            run('another full set: lonely extracts its own header', both + [(U, 'lonely', [U])], True, full={A, U})
+            run('full {T}', [], True, full={T})
+            run('full {A} again', both, True)
+            (lib / U).write_bytes((lib / U).read_bytes() + b'\n')
+            run('a header in ix.graph changed bytes', both, True)
+            run('hit after it', both, False)
+            doc.parent.mkdir(parents=True, exist_ok=True)
+            doc.write_text('# Beta\n\n- `betaUse` is full-only until `pow`.\n')
+            run("the found row's evidence document appeared", [(B, 'betaDep', [A])], True)
+            run('hit after it', [(B, 'betaDep', [A])], False)
+            doc.write_text('# Beta\n\n- `betaUse` is full-only until `pow`.\n- `betaDep` is full-only until `x`.\n')
+            run('the evidence document changed', [], True)
+            doc.unlink()
+            run('the evidence document gone', both, True)
+            ix2 = copy.copy(ix)
+            ix2.records = {**ix.records, A: {**ix.records[A], 'probe': 1}}
+            run('ix.records changed', both, True, ix=ix2)
+            run('ix.records back', both, True)
+            key = json.loads(store.read_text())['key']
+            for text in ('not json', '[]', '{}', json.dumps({'key': key}), json.dumps({'key': key, 'result': None}),
+                         json.dumps({'key': key, 'result': [[B, 'betaUse']]}), json.dumps({'key': key, 'result': [[B, 'betaUse', [A], 1]]}), ''):
+                store.write_text(text)
+                run(f'corrupt or wrong-shaped store {text!r}', both, True)
+                self.eq(json.loads(store.read_text()), {'key': key, 'result': [list(r) for r in both]}, what='rewritten', text=text)
+            for where in (self.tmp / 'missing/full-only.json', self.tmp / 'cache'):
+                run(f'unwritable store {where}', both, True, where=where)
+            copied = self.tmp / 'extraction.py'
+            shutil.copy(HARNESS_PY, copied)
+            with patch.object(H, '__file__', str(copied)):
+                run('the script itself (a copy) first', both, True)
+                run('hit', both, False)
+                copied.write_bytes(copied.read_bytes() + b'\n')
+                run('the script changed', both, True)
+            for name, module in (('grab', H.grab), ('_11_search', H.grab.SEARCH), ('05-dependencies', H.grab.DEPS)):
+                source = self.tmp / f'{name}.py'
+                shutil.copy(module.__file__, source)
+                with patch.object(module, '__file__', str(source)):
+                    run(f'{name} source (a copy) first', both, True)
+                    run('hit', both, False)
+                    source.write_bytes(source.read_bytes() + b'\n')
+                    run(f'{name} source changed', both, True)
+
     def test_harness_own_names(self):
         f = self.tmp / 'own_tester.py'
         f.write_text('"""Checks helperA and lonely, then useAlias."""\n# useNorm and isOdd;\n'
@@ -1750,7 +1826,7 @@ class HarnessIndex(FixtureBase):
         tests = self.fx / '96-Local Testing'
         files = {'02-Data Structures/01-alpha_tester.py': "# builds 01-alpha.hpp\nCODE = '''\nint main() { return helperA(1) + lonely(2); }\n'''\n",
                  '02-Data Structures/01-alpha_helper.cpp': 'int helper() { return useAlias(2); }\n', '_00_shared.py': 'X = 1\n',
-                 '02-Data Structures/__pycache__/junk.pyc': ''}
+                 '02-Data Structures/__pycache__/junk.pyc': '', '.run-stats.json': '{"quick 02-Data Structures/01-alpha_tester.py": [90, 1.0]}'}
         write_tree(tests, files)
         (self.fx / '01-Core/98-basic.hpp').write_text('#pragma once\n#include "01-template.hpp"\n')
         self.addCleanup(lambda: (shutil.rmtree(tests), (self.fx / '01-Core/98-basic.hpp').unlink()))
@@ -1771,7 +1847,13 @@ class HarnessIndex(FixtureBase):
             self.eq(bool(rest), h == A, h=h, what='only alpha contributes')
         self.true(HELPER_A[2] in (tree / A).read_text() and 'inline int lonely' not in (tree / A).read_text())
         self.eq(sorted(p.relative_to(tree / '96-Local Testing').as_posix() for p in (tree / '96-Local Testing').rglob('*') if p.is_file()),
-                ['02-Data Structures/01-alpha_helper.cpp', '02-Data Structures/01-alpha_tester.py', '_00_shared.py'])
+                ['.run-stats.json', '02-Data Structures/01-alpha_helper.cpp', '02-Data Structures/01-alpha_tester.py', '_00_shared.py'])
+        self.eq((tree / '96-Local Testing/.run-stats.json').read_text(), files['.run-stats.json'], what="the recorded peaks, so the gate reserves the quick peak")
+        (tests / '.run-stats.json').unlink()
+        (self.tmp / 'work2').mkdir()
+        with patch.object(H, 'ROOT', self.fx):
+            again = H.scratch(self.ix, tester, [tests / '02-Data Structures/01-alpha_helper.cpp'], self.tmp / 'work2')[0].parents[2]
+        self.true(not (again / '96-Local Testing/.run-stats.json').exists(), what='no stats file: none copied')
         for cxx in self.compilers():
             got = build_run(self.tmp, f'#include "{tree}/{A}"\nint main() {{ printf("%d %d\\n", helperA(1), useAlias(3)); }}\n', cxx)
             self.eq(got, '2 11\n', cxx=cxx)

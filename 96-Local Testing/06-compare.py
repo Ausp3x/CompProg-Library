@@ -237,5 +237,5 @@ def main():
 
 
 if __name__ == '__main__':
-    _00_memory_cap.ensure(mb=3 * BUILD_MB + 1024)  # three builds at once (Builder), each near 2.5 GB
+    _00_memory_cap.ensure(mb=3 * BUILD_MB + 1024, need=None if sys.argv[1:2] == ['run'] else 0)  # three builds at once (Builder), each near 2.5 GB; only run builds
     raise SystemExit(main())

@@ -56,6 +56,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 import _00_memory_cap  # noqa: E402
+import _00_memory_gate as gate  # noqa: E402
 
 MEWT_VERSION = '4.0.0'  # AGPL-3.0: installed outside the repository, never vendored
 MEWT_URL = f'https://github.com/trailofbits/mewt/releases/download/v{MEWT_VERSION}/mewt-x86_64-unknown-linux-gnu.tar.xz'
@@ -295,9 +296,9 @@ def ccache_dir(work):
     return cache
 
 
-def capped(cmd, mb):
-    """cmd in its own memory-capped scope."""
-    return [sys.executable, str(HERE / '_00_memory_cap.py'), '--mb', str(mb), '--', *cmd]
+def capped(cmd, mb, need=None):
+    """cmd in its own memory-capped scope, admitted by the memory gate once need MB (default mb) are free."""
+    return [sys.executable, str(HERE / '_00_memory_cap.py'), '--mb', str(mb), *(['--need', str(need)] if need is not None else []), '--', *cmd]
 
 
 def interrupt(procs):
@@ -435,7 +436,7 @@ def campaign(a):
         return 0
     os.environ['CP_TEST_PREFLIGHT'] = '0'  # a campaign is no tester: no quick pre-flight rerun of it under CP_TEST_MODE
     os.environ['CP_TEST_FAIL_FAST'] = '1'  # a Core tester makes each build when first run and stops at the first failure (user decision 2026-11-17)
-    _00_memory_cap.ensure(force=True)  # the wrapper and mewt; every test runs in its own capped scope
+    _00_memory_cap.ensure(force=True, need=0)  # the wrapper and mewt; every test runs in its own capped scope, which the gate admits
     for sig in (signal.SIGTERM, signal.SIGHUP):  # a killed background run stops its shards as Ctrl-C does
         if signal.getsignal(sig) is not signal.SIG_IGN:
             signal.signal(sig, stop)
@@ -534,12 +535,21 @@ def campaign(a):
         if time.monotonic() >= deadline:
             complete, stopped = False, name
             break
-        seconds, code, output, peak = measured(capped(cmd, own), shards[0], dict(os.environ, CCACHE_RECACHE='1'))  # a mutant compiles, so its limits must cover a compile
+        ran = None
+        with gate.held(own, f'{name} baseline', until=deadline) as admitted:  # admitted here, so the time measured excludes the queue
+            if admitted and time.monotonic() < deadline:
+                ran = measured(capped(cmd, own, 0), shards[0], dict(os.environ, CCACHE_RECACHE='1'))  # a mutant compiles, so its limits must cover a compile
+        if ran is None:  # the budget ran out in the memory queue
+            complete, stopped = False, name
+            break
+        seconds, code, output, peak = ran
         if code:
             raise Failure(f'{name} baseline failed (exit {code}): {shlex.join(cmd)}\n{tail(output)}')
         timeout = a.timeout or max(60, math.ceil(3 * seconds))
         mb = min(own, max(1024, 3 * peak))  # each test in its own scope: a runaway mutant dies alone
         width = max(1, min(len(shards), budget // mb))
+        scoped = [int(x) for x in re.findall(r'^MEMORY peak=(\d+)MB', output, re.M)]  # the baseline's scope: all its builds at once
+        need = min(mb, gate.need_of(max(scoped), mb)) if scoped and max(scoped) > 0 else mb
         start = time.monotonic()
         for part in ('', '-alone'):
             if part:  # a timeout among concurrent tests may be a slow survivor: it counts once it recurs with the CPU to itself
@@ -553,7 +563,8 @@ def campaign(a):
             print(f'{name}{part}: {len(ids)} mutants on {w} of {len(shards)} shards; baseline {seconds:.1f} s, peak {peak} MB; per mutant '
                   f'timeout {timeout} s, cap {mb} MB; about {math.ceil(len(ids) * seconds / w / 60)} min, budget left '
                   f'{(deadline - time.monotonic()) / 60:.0f} min', flush=True)
-            complete = stage(name + part, {s: ids[k::w] for k, s in enumerate(shards[:w])}, shlex.join(capped(cmd, mb)), timeout, deadline)
+            with gate.held(w * need, name + part, until=deadline) as admitted:  # one reservation for the stage: a queued mutant would hit its timeout
+                complete = admitted and stage(name + part, {s: ids[k::w] for k, s in enumerate(shards[:w])}, shlex.join(capped(cmd, mb, 0)), timeout, deadline)
             unchanged(header, shards)
             kills = (_00_memory_cap.cgroup_stats() or (0, 0))[1] if os.environ.get('CP_MEMORY_CAPPED', 'none') != 'none' else 0
             if kills:

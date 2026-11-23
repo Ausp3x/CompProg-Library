@@ -5,6 +5,11 @@ Usage: gaps.py [Pxxx | batch id]. Without an argument the target comes from the 
 branch or worktree name (a batch id wins); with neither, the target is the branch itself.
 gaps.py --reviewed <Pxxx | batch id> records /package's review (step 10): the blobs of the targets, their tests and
 evidence documents, and the reviewer's report read from standard input. /finish reuses it while those files are unchanged.
+
+The facts go in full to .claude/finish/<key>.facts.txt; the printed copy, which /finish's SKILL.md inlines, holds the target,
+the ledger's open rows and then whole sections in order of need until the room the skill leaves in the 5,000 tokens Claude
+Code re-attaches after a compaction runs out (SUP33). A ledger line that is not an `id | defect or decision | file:line |
+gap | source | state` row is reported as stray: experiments go one row per attempt to .claude/finish/<key>.lab.tsv.
 """
 import importlib.util
 import json
@@ -28,6 +33,51 @@ PREFIX_REF = re.compile(r'(?<![\w.])_(\d{2})(?!\d)|\b(\d{2})-[a-z]')  # `_03` mo
 CORE_FULL = re.compile(r'01-Core/\d+-(?!\w*mini\.hpp)[\w-]+\.hpp')  # 01-principles.md, Profiles
 UNDECIDED = re.compile(r'\b(not tried|untried|unmeasured|not measured|never measured|not re-?measured|deferred|until a benchmark|to be measured)\b', re.I)
 MARKER = re.compile(r'(#|//|<!--|^\s*([-*]\s*)?)\s*(TODO|FIXME|XXX)\b')
+ROW_ID = re.compile(r'[A-Za-z0-9][\w.-]*')
+STATES = ('open', 'ask', 'fixed', 'answered')  # SKILL.md, Ledger; the first two are open
+REATTACH_TOKENS = 5000  # Claude Code keeps the first 5,000 tokens of each skill after a compaction (docs, Skills)
+CHARS_PER_TOKEN = 2.5  # this repository's Markdown, measured from transcript usage 2026-11-23 (00-harness-review.md)
+REATTACH_CHARS = int(REATTACH_TOKENS * CHARS_PER_TOKEN)
+MIN_FACTS = 2500  # the least room a skill that prints facts leaves them; 03-consistency.py warns below it
+LINES = 12  # printed lines per section; the facts file holds up to 400
+
+
+def row(line):
+    """The state of a well-formed ledger row (SKILL.md, Ledger), else None."""
+    f = [x.strip() for x in line.split('|')]
+    state = (re.match(r'[A-Za-z]*', f[5])[0].lower() if len(f) == 6 else '')  # `open:` and `fixed.` read as their word
+    ok = len(f) == 6 and ROW_ID.fullmatch(f[0]) and f[1] in ('defect', 'decision') and all(f) and state in STATES
+    return state if ok else None
+
+
+def ledger_rows(text):
+    """(open rows, closed rows, numbers of stray lines) of a ledger's text; blank lines are neither."""
+    opened, closed, stray = [], [], []
+    for i, line in enumerate(text.splitlines(), 1):
+        if (state := row(line)) is None:
+            stray += [i] * bool(line.strip())
+        else:
+            (opened if state in STATES[:2] else closed).append(line.strip())
+    return opened, closed, stray
+
+
+def facts_room(skill_text):
+    """Characters left for printed facts after the skill's text within the re-attached 5,000 tokens."""
+    return REATTACH_CHARS - len(skill_text)
+
+
+def ledger_lines(ledger, root):
+    """The ledger section: open rows, the count of closed ones, and a warning naming stray lines."""
+    if not ledger.is_file():
+        return ['(none: start at step 1)']
+    opened, closed, stray = ledger_rows(ledger.read_text(errors='replace'))
+    out = []  # the warning and the count first: open rows fill whatever room is left
+    if stray:
+        shown = ', '.join(map(str, stray[:10])) + (' ...' if len(stray) > 10 else '')
+        out.append(f'WARNING {len(stray)} stray line(s) in {ledger.relative_to(root)} (lines {shown}): keep only rows; move each '
+                   f'experiment to {ledger.with_suffix(".lab.tsv").relative_to(root)} as one row per attempt (SKILL.md, Ledger)')
+    out.append(f'{len(closed)} fixed or answered rows not shown')
+    return out + (opened or ['(no open rows)'])
 
 
 def git(*args, cwd, raw=False):
@@ -65,11 +115,51 @@ def target(root, arg=''):
     return key, pkg, [batch] if batch else pkg['batches'] if pkg else [], warning
 
 
-def section(title, lines, cap=40):
-    print(f'\n### {title}')
-    print('\n'.join(lines[:cap]) if lines else '(none)')
-    if len(lines) > cap:
-        print(f'... {len(lines) - cap} more')
+SECTIONS = []  # (title, lines) in the order main() adds them
+
+
+def section(title, lines, cap=400):
+    SECTIONS.append((title, (lines[:cap] + [f'... {len(lines) - cap} more'] if len(lines) > cap else lines) or ['(none)']))
+
+
+ORDER = ('Ledger', 'Review record', 'Undecided optimization', 'Mutation records', 'Agent-made', 'Open sweep', 'Recorded limits',
+         'Comparison record', 'Packages filed', 'TODO markers', 'Branch and', 'Other worktrees', 'Brief')  # most needed first
+
+
+def emit(head, key, root):
+    """Write every section to the facts file and print head, then sections by ORDER within the room SKILL.md leaves."""
+    facts = root / '.claude/finish' / f'{key}.facts.txt'
+    full = '\n'.join(head + [f'\n### {t}\n' + '\n'.join(lines) for t, lines in SECTIONS]) + '\n'
+    try:
+        facts.parent.mkdir(parents=True, exist_ok=True)
+        facts.write_text(full)
+        where = str(facts.relative_to(root))
+    except OSError as e:
+        where = f'not written ({e.strerror})'
+    skill = Path(__file__).with_name('SKILL.md')
+    room = max(facts_room(skill.read_text()) if skill.is_file() else REATTACH_CHARS, 1500)
+    rank = lambda t: next((i for i, p in enumerate(ORDER) if t[0].startswith(p)), len(ORDER))
+    out = [*head, f'Full facts: {where} ({len(full)} characters); read it at step 1 when sections below are cut or not printed.']
+    head_skip, ordered = '\n### Not printed (in the facts file)\n', sorted(SECTIONS, key=rank)
+    left, skipped = room - sum(len(x) + 1 for x in out), []
+    for k, (title, lines) in enumerate(ordered):
+        # kept back: the Not printed block naming every section not yet placed, in case none of them fits
+        reserve = len(head_skip) + sum(len(t) + 1 for t in [*skipped, *(t for t, _ in ordered[k + 1:])]) + 1
+        block = [f'\n### {title}']
+        for line in lines if title.startswith('Ledger') else lines[:LINES]:  # open rows: as many as fit
+            if left - reserve - sum(len(x) + 1 for x in block) - len(line) - 60 < 0:
+                break
+            block.append(line)
+        if len(block) == 1:
+            skipped.append(title)
+            continue
+        if len(block) - 1 < len(lines):
+            block.append(f'... {len(lines) - len(block) + 1} more in the facts file')
+        out += block
+        left -= sum(len(x) + 1 for x in block)
+    if skipped:
+        out.append(head_skip + '\n'.join(skipped))  # one per line: titles hold semicolons
+    print('\n'.join(out))
 
 
 def grep(path, pattern, root, keep=lambda line: True):
@@ -102,12 +192,24 @@ def evidence_doc(target_path):
     return f'{folder}/Docs/{stem}.md'
 
 
+BOOKKEEPING = ('01-prompts.md', '00-Guidelines/13-Plan/packages.json', '00-Guidelines/13-Plan/batches.json',
+               '00-Guidelines/13-Plan/finish-log.tsv')  # plan.py rewrites these after the review (/package step 11)
+
+
 def review_paths(root, key, pkg, scope, batches):
-    """The files a package review covers: targets, their tests and evidence documents."""
+    """The files a package review covers: targets, their tests and evidence documents. A scope without targets (a support
+    batch) covers the package's evidence and every file changed on the branch or uncommitted instead, the plan files and
+    the run's own records aside, so a later edit reopens the review (user decision 2026-11-23)."""
     targets = [t for b in scope for t in batches[b]['targets'] + batches[b].get('support_targets', [])]
-    docs = {evidence_doc(t) for t in targets} | (set() if key in batches else set(pkg['evidence']))
+    docs = {evidence_doc(t) for t in targets} | (set() if key in batches and targets else set(pkg['evidence']))
     tests = {x for t in targets if re.fullmatch(r'\d\d-[^/]+/[^/]+', t) for x in plan.tests_for(root, t)}
-    return sorted(f for f in {*targets, *docs, *tests} if (root / f).is_file())
+    changed = set()
+    if not targets:
+        if git('rev-parse', '--verify', '--quiet', 'master', cwd=root):
+            changed |= set(git('diff', '--name-only', '-z', 'master...HEAD', cwd=root, raw=True).split('\0'))
+        changed |= {p for _, p in uncommitted(root)}
+        changed = {p for p in changed if p and p not in BOOKKEEPING and not p.startswith(('.claude/finish/', '.claude/pause/'))}
+    return sorted(f for f in {*targets, *docs, *tests, *changed} if (root / f).is_file())
 
 
 def blobs(root, paths):
@@ -154,12 +256,12 @@ def main():
     has_master = bool(git('rev-parse', '--verify', '--quiet', 'master', cwd=root))
     position = (f'{git("rev-list", "--count", "master..HEAD", cwd=root)} ahead, {git("rev-list", "--count", "HEAD..master", cwd=root)} behind master'
                 if has_master else 'NO local master branch: branch changes and landing unavailable')
-    print(f'### Target\nkey {key} | package {pkg["id"] + " (" + pkg["status"] + ")" if pkg else "none: the branch changes are the scope"}'
+    head = [f'### Target\nkey {key} | package {pkg["id"] + " (" + pkg["status"] + ")" if pkg else "none: the branch changes are the scope"}'
           f' | batches {" ".join(scope) or "-"} | branch {branch or "(detached)"} | {"worktree " + str(root) if Path(worktrees[0]) != root else "main checkout"}'
-          f' | {position}' + (f'\nWARNING {warning}' if warning else ''))
+          f' | {position}' + (f'\nWARNING {warning}' if warning else '')]
     role = plan.role(root)
     if role == 'maintainer':
-        print('role maintainer: step 7 lands on master')
+        head.append('role maintainer: step 7 lands on master')
     else:
         _, me, cl, _, _ = plan.gate(root, plan.load(root)[1])
         fin = plan.landed(root)  # finish-log lines, not rows: /package marks rows verified before /finish runs
@@ -167,20 +269,20 @@ def main():
         claim = plan.claim_branch(pkg, first, branch, cl, me) if pkg else branch
         last = not pkg or all(b == first or b in fin for b in pkg['batches'])
         own = cl.get(pkg['id']) if pkg else None
-        print(f'role contributor: step 7 commits on branch {claim or "(detached)"} and stops before landing; repository '
+        head.append(f'role contributor: step 7 commits on branch {claim or "(detached)"} and stops before landing; repository '
               f'{plan.config(root, "compprog.repo") or plan.REPO}; '
               + (f'pull request #{own[2]}; ' if own and own[0].lower() == me.lower() else '')
               + ('last open batch: mark the pull request ready if verified' if last else 'more batches follow: the pull request stays a draft'))
     ledger = root / '.claude/finish' / f'{key}.txt'
-    print(f'\n### Ledger {ledger.relative_to(root)}')
-    print(ledger.read_text().strip() if ledger.is_file() else '(none: start at step 1)')
+    section(f'Ledger {ledger.relative_to(root)} (open rows)', ledger_lines(ledger, root))
 
     if pkg:
         brief = subprocess.run([sys.executable, str(root / '00-Guidelines/13-Plan/plan.py'), 'show', key],
                                cwd=root, capture_output=True, text=True).stdout.strip()
-        print('\n### Brief\n' + brief)
+        section('Brief', brief.splitlines())
+        head += [line for k, line in enumerate(brief.splitlines()) if not k or re.match(r'(WARNING|STOP)\b', line)]  # step 1 acts on these
         targets = [t for b in scope for t in batches[b]['targets'] + batches[b].get('support_targets', [])]
-        docs = sorted({root / evidence_doc(t) for t in targets} | (set() if key in batches else {root / d for d in pkg['evidence']}))
+        docs = sorted({root / evidence_doc(t) for t in targets} | (set() if key in batches and targets else {root / d for d in pkg['evidence']}))
         bare = {re.sub(r'^\d+[-_]', '', Path(t).stem.lstrip('_')).lower() for t in targets}
         names = bare | {n.replace('_', '') for n in bare}  # file stems and struct names, any case
         tiny = [re.escape(n) for n in names if len(n) <= 3]  # `io`, `dp`: whole words only
@@ -239,6 +341,7 @@ def main():
             if shared:
                 overlap.append(f'{other.group(1)}: {", ".join(sorted(shared)[:8])}' + (' ...' if len(shared) > 8 else ''))
     section('Other worktrees touching the same files (committed work; worktree.py --finish adds their uncommitted edits)', overlap)
+    emit(head, key, root)
 
 
 if __name__ == '__main__':

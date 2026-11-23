@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """SessionStart and PreCompact hook. After a compaction (argument `compact`) it re-injects what the summary may lose,
-namely this target's /finish ledger (open rows), the git state and the package or batch brief, in that order of
+namely this target's /finish ledger (its well-formed open rows), the git state and the package or batch brief, in that order of
 priority. The target is the argument of the session's last /package, /prune or /finish call, else the id in the branch
 or worktree name (gaps.py, target). At startup and after /clear (argument `startup` or `clear`) it injects the newest
 /pause handoff with the git state, and nothing when there is none. Before a compaction (argument `precompact`) it
@@ -8,6 +8,7 @@ prints instructions for the summary: the target, the skill to resume at its step
 (CLAUDE.md, Compact Instructions). Plain stdout becomes context, or the summary's instructions; output over 10,000
 characters would be replaced by a file path or cut, so it stays below that."""
 import datetime
+import functools
 import importlib.util
 import json
 import re
@@ -16,7 +17,6 @@ import sys
 from pathlib import Path
 
 CAP = 9000
-CLOSED = re.compile(r'\|\s*(fixed|answered|closed|done|dropped)\b[^|]*$', re.I)
 
 
 def run(*cmd, cwd):
@@ -48,12 +48,18 @@ def last_command(transcript):
     return found
 
 
-def ledgers(root, arg):
-    """(key, package, existing /finish ledgers, whether arg named the target); /finish without an argument keys its ledger by
-    the names."""
+@functools.cache
+def gaps_module(root):
     spec = importlib.util.spec_from_file_location('finish_gaps', root / '.claude/skills/finish/gaps.py')
     gaps = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(gaps)
+    return gaps
+
+
+def ledgers(root, arg):
+    """(key, package, existing /finish ledgers, whether arg named the target); /finish without an argument keys its ledger by
+    the names."""
+    gaps = gaps_module(root)
     key, pkg, _, warning = gaps.target(root, arg)
     keys = dict.fromkeys([key, gaps.target(root)[0]])
     return key, pkg, [l for l in (root / '.claude/finish' / f'{k}.txt' for k in keys) if l.is_file()], bool(arg and pkg and not warning)
@@ -114,11 +120,11 @@ def main():
     key, pkg, found, _ = ledgers(root, last_command(hook.get('transcript_path'))[1])
     parts = ['Restored after compaction by .claude/hooks/resume.py. The plan note and evidence documents hold the recorded state; '
              're-read a file before editing it again.']
-    for ledger in found:
-        rows = ledger.read_text().strip().splitlines()
-        open_rows = [r for r in rows if not CLOSED.search(r)]
-        parts.append(f'If /finish was running, continue it from its ledger {ledger.relative_to(root)} '
-                     f'({len(rows) - len(open_rows)} closed rows not shown; open rows):\n' + '\n'.join(open_rows[:40])
+    for ledger in found:  # well-formed rows only (gaps.py, ledger_rows): stray notes would crowd out the open items
+        open_rows, closed, stray = gaps_module(root).ledger_rows(ledger.read_text(errors='replace'))
+        parts.append(f'If /finish was running, continue it from its ledger {ledger.relative_to(root)} ({len(closed)} closed rows'
+                     + (f' and {len(stray)} lines that are not rows' if stray else '') + ' not shown; open rows):\n'
+                     + ('\n'.join(open_rows[:40]) or '(none)')
                      + (f'\n... {len(open_rows) - 40} more in the ledger' if len(open_rows) > 40 else ''))
     parts.append(git_state(root))
     text = '\n\n'.join(parts)

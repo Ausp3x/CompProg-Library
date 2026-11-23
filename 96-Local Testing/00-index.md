@@ -20,7 +20,7 @@ python3 '96-Local Testing/03-consistency.py' --braces <files>     # brace rule a
 python3 '96-Local Testing/04-mutation.py' run <header>            # mutation campaign (05-testing.md, Mutation Testing); check <header>... compares records, install fetches mewt
 python3 '96-Local Testing/05-extraction.py' --mode full           # every operation extracted alone and every C++ tester on its extracted build (05-testing.md, Extraction)
 python3 '96-Local Testing/06-compare.py' run '96-Local Testing/01-Core/<NN-name>_compare.cpp' --gate   # a header against its previous version (Docs/00-compare.md)
-python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <cmd>    # run any other program memory-capped
+python3 '96-Local Testing/_00_memory_cap.py' [--mb N] [--need N] -- <cmd>    # run any other program memory-capped, once the memory gate admits it
 python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/02-online_tester.py'
 python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
@@ -57,6 +57,7 @@ python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Che
 | `_00_cpp_test_runner.py` | Shared build helper (`Builder`: every C++ test build through ccache), architecture probes, per-build `TIMING` lines |
 | `_00_contest_runner.py` | The one driver of the `02`–`07` C++ suites; per-suite differences (`extra`, `timeout`, `checked`, oracle callbacks) are parameters |
 | `_00_memory_cap.py` | Memory-capped execution: `ensure()` for entry points, CLI `-- <command>` for ad-hoc programs. Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory Safety |
+| `_00_memory_gate.py` | Memory admission gate every capped run waits in (one reservations file per user under `$XDG_RUNTIME_DIR`, `CP_MEMORY_GATE`). Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory Safety |
 | `01-run.py` | Suite discovery, modes, `QUICK` registration set, parallel memory-bounded jobs; `.run-stats.json` (git-ignored) keeps each suite's last peak and runtime for scheduling |
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds as parallel jobs, through `ccache` when installed |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |

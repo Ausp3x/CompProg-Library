@@ -68,6 +68,7 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
     Tool('desktop notifier', 'session notifications', ('notify-send', 'terminal-notifier', 'osascript', 'powershell.exe', 'powershell'),
          None, 'libnotify-bin', 'libnotify'),  # .claude/hooks/notify.py: Linux, macOS, Windows and WSL
     Tool('VS Code CLI', 'notification click to focus', ('code',), None, 'code (Microsoft apt repository)', 'AUR: visual-studio-code-bin'),
+    Tool('D-Bus caller', 'notification click to focus on KDE', ('gdbus', 'qdbus6', 'qdbus'), None, 'libglib2.0-bin', 'glib2'),  # notify.py's KWin script
     Tool('PyPy', 'PyPy runs', ('pypy3',), (3, 10), 'pypy3', 'pypy3'),
     Tool('arm64 cross g++', 'arm64 check', ('aarch64-linux-gnu-g++',), None, 'g++-aarch64-linux-gnu',
          'aarch64-linux-gnu-gcc'),

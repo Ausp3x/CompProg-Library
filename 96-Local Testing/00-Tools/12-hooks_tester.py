@@ -3,14 +3,17 @@
 (SUP32) the PreCompact mode of .claude/hooks/resume.py and the Notification hook .claude/hooks/notify.py.
 
 Every case runs copies of both hooks in a temporary `git init` repository with a stub `96-Local Testing/03-consistency.py`
-(logs each run to HOOK_LOG; fails with the lines of HOOK_FAIL when that file exists) and a stub
+(logs each run to HOOK_LOG; fails with the lines of HOOK_FAIL when that file exists, and lists the lines of
+HOOK_FAIL.reattach as skill_reattach warnings) and a stub
 `97-Online Testing/03-workspace.py` (`--check` passes only for template.cpp reading 'generated'). A "command" is
 `shell.py pre`, then file operations done here, then `shell.py post`, with the same tool_use_id. The real repository is
 only read (its .claude/settings.json). resume.py runs as a copy in the same repository beside a stub
 .claude/skills/finish/gaps.py whose target(root, arg='') has the real return shape (key, package dict, batch ids,
-warning) over the fixed ids SUP32 (a batch of P900), P900 and P018, a batch id winning, arg before the branch name;
+warning) over the fixed ids SUP32 (a batch of P900), P900 and P018, a batch id winning, arg before the branch name,
+and whose ledger_rows is the real gaps.py's (loaded from the real repository);
 notify.py runs as a copy with a fake notify-send first on PATH that logs its argv (NOTIFY_EXIT, NOTIFY_SLEEP), or is
-imported for its macOS and Windows argv.
+imported for its macOS and Windows argv and its functions (its DEADLINE moved an hour ahead, since the imported
+module's 9 s count from the import). The hooks-path cases copy the real setup_check.py beside the hooks.
 quick: every fixed case. full: quick plus 40 seeded random rounds of 6 commands over random writes, deletions,
 restores, new files, staging and commits, with outside changes between commands. stress: full with --rounds rounds
 (default 300). Modes/seeds also come from CP_TEST_MODE/CP_TEST_SEED.
@@ -31,12 +34,19 @@ content hashes (a dirty file edited again; staging and commits run nothing; a pr
 dirty protected file) -> test_content, test_restore_and_preexisting;
 edits a command also commits (validator, block with 'amend or revert', excerpt deletion committed) -> test_committed;
 restore commands (git restore from the old HEAD for tracked, rm for untracked, shell quoting) -> test_old, test_quoting;
+validator additionalContext named by the input's hook_event_name (PostToolUseFailure; PostToolUse when missing or
+empty) -> test_event_name;
+core.hooksPath (pre stores [HEAD, paths, value or null]; post blocks when the command unset it, made it relative or
+pointed it elsewhere, the reason naming `! git config core.hooksPath <path>`; no block for another spelling of the same
+absolute path, a restore, an unchanged value even when off, or an old two-element state; the protected-files reason
+first and this one after it, the validator context beside) -> test_hooks_path;
 state (no snapshot -> nothing, malformed input and unknown mode exit 0 silently, snapshot removed after post, separate
 tool_use_id files, stale snapshots pruned on pre) -> test_state;
 consistency.py PostToolBatch entry (one run per batch with an Edit or Write call on a watched path, relative or absolute;
 other tools, other paths, paths outside the root (also through ..) and malformed calls run nothing; input without a
 tool_calls list, a PostToolUse payload included, gets a notice and no run; unreadable input is silent; failure as
-additionalContext) -> test_consistency_batch;
+additionalContext; skill_reattach warnings after it only for a batch that edited a .claude/skills/.../SKILL.md, alone
+when the validator passes, silent without warnings) -> test_consistency_batch;
 git push in command position refused by pre without a snapshot (after separators, newlines, subshells, assignments and
 env/sudo prefixes, git options and -C/-c values between, after a heredoc or here-string ends), quoted text, heredoc
 bodies (quoted, <<- with tabs, two on one line), other git subcommands and unparsable commands allowed -> test_push;
@@ -66,7 +76,9 @@ results, user text blocks, assistant text, system or attachment records quoting 
 else from the branch name, with no skill line; the skill line; the /finish ledger line (not written yet, existing, the
 typed target's and the branch's both, an existing ledger without a package, none without either); the payload's cwd,
 else the working directory; the 9000-character cap; exit 0 and no stderr on garbage, empty, binary, non-object and
-wrong-typed stdin; the compact mode reading the same target and ledger -> test_precompact;
+wrong-typed stdin; the compact mode reading the same target and ledger, injecting only well-formed open rows (gaps.py
+ledger_rows: a done row and a note are not rows, blank lines not counted) with '(N closed rows[ and M lines that are not
+rows] not shown; open rows)', '(none)' without open rows, 40 rows then '... k more in the ledger' -> test_precompact;
 notify.py: title from the newest custom-title record (compact or spaced JSON, escapes, whitespace stripped), not from a
 tool result quoting one, also one 2 MiB before the end; fallback '<checkout folder> (<branch>)' for a
 missing, title-less or wrong-typed transcript, a subfolder, another branch, detached HEAD (folder only), a non-git
@@ -80,27 +92,39 @@ runs code (or an editor's own launcher found from VSCODE_GIT_ASKPASS_MAIN's prod
 storage folder named by nameShort) on the
 deepest open window folder of storage.json holding cwd (deeper listed first or last, a percent-encoded space, a
 sibling sharing a name prefix; unreadable or odd storage: the main checkout, also from a linked worktree), inherited
-activation tokens and session variables dropped (VSCODE_IPC_HOOK_CLI kept), a dismissal runs nothing; outside VS Code, without code or without --action the plain
-notification -> test_notify_click; command() with stubbed notifiers: macOS terminal-notifier with and without the
+activation tokens and session variables dropped (VSCODE_IPC_HOOK_CLI kept), a dismissal runs nothing, on KDE the KWin
+activation before code runs; outside VS Code, without code or without --action the plain notification ->
+test_notify_click; activate() (gdbus, qdbus6, qdbus argv; the id loadScript returns, none on an error; the script file
+removed; folder name and app as JSON; nothing outside KDE, without an app or a D-Bus tool) -> test_notify_platforms; command() with stubbed notifiers: macOS terminal-notifier with and without the
 `open -b` click, osascript without one, none; WSL and Windows PowerShell toasts decoded (protocol launch URI with distro
 and quoting, an ASCII-only XML literal without quote marks for any title, no click without focus or distro), the fixed
 powershell.exe path from WSL, no PowerShell; detect() on WSL kernels and variables; the helper giving up after WAIT;
 editor() on a missing, short, unreadable, non-object or partly wrong-typed product.json; cli() in either bin folder,
 executable only, else PATH; folders() on Windows (drive-letter file URIs, no APPDATA) and WSL (this distribution's
 vscode-remote URIs, any case, from Windows' storage of every user, a glob-special editor name, no distribution name),
-window() on WSL; title() at every chunk size from 1 byte, across boundaries, without a final newline, non-ASCII
--> test_notify_platforms;
+window() on WSL; title() at every chunk size from 1 byte, across boundaries, without a final newline, non-ASCII,
+and its stop RESERVE=3 seconds before DEADLINE ('' with a title present when the deadline is near or past, or passes
+mid-search on a stepped clock; found while live); storage() (none without a name; VSCODE_PORTABLE, else
+VSCODE_APPDATA, else XDG_CONFIG_HOME or ~/.config on Linux, ~/Library/Application Support on macOS, APPDATA on Windows;
+on WSL every Windows user's roaming folder, the variables ignored); local() (file URIs on Linux and Windows, this
+distribution's vscode-remote URIs on WSL in any case, others None); workspace() on Linux, Windows (PureWindowsPath,
+drive kept, backslashes as slashes) and WSL (line and block comments, trailing commas, strings holding // and /* kept;
+relative paths resolved and normalized, absolute kept, uri entries through local(), others skipped); folders() on
+workspace windows (a missing, malformed, non-UTF-8, list or wrong-typed file or entry skips that window only; a folder
+entry wins) and window() picking the deepest folder of a workspace window -> test_notify_platforms;
 guard.py refuses Edit, Write and NotebookEdit under any .git (config, hooks, a worktree's .git file, another repository,
 relative, through a symlink, any case), reads and look-alike names pass -> test_guard_git; pre refuses .git/config,
 .git/hooks and worktree config paths in any case and with repeated slashes or /./, and git config includes -> test_pre_push.
 """
 import argparse
 import base64
+import contextlib
 import importlib.util
 import json
 import os
 from pathlib import Path
 import random
+import re
 import shutil
 import subprocess
 import sys
@@ -127,7 +151,8 @@ VALIDATOR = '''import json, os, sys
 open(os.environ['HOOK_LOG'], 'a').write('validate\\n')
 f = os.environ['HOOK_FAIL']
 bad = [l for l in open(f).read().splitlines() if l] if os.path.exists(f) else []
-print(json.dumps({'errors': bad}))
+r = f + '.reattach'
+print(json.dumps({'errors': bad, 'skill_reattach': [l for l in open(r).read().splitlines() if l] if os.path.exists(r) else []}))
 sys.exit(1 if bad else 0)
 '''
 WORKSPACE = '''import pathlib, sys
@@ -154,6 +179,13 @@ def target(root, arg=''):
     pkg = {'id': pid, 'batches': [b for b, p in BATCHES.items() if p == pid]} if pid else None
     return key, pkg, [batch] if batch else pkg['batches'] if pkg else [], warning
 '''
+GAPS_ROWS = '''
+import importlib.util
+_spec = importlib.util.spec_from_file_location('real_finish_gaps', {path!r})
+_real = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_real)
+ledger_rows = _real.ledger_rows  # the real ledger rule (SUP33), which resume.py's compact mode applies
+'''
 FAKE_NOTIFY = '''#!/bin/sh
 if [ "$1" = --help ]; then printf '%s\\n' "${NOTIFY_HELP---action}"; exit 0; fi
 i=0
@@ -171,6 +203,12 @@ printf '%s\\0' "$@" "token=$XDG_ACTIVATION_TOKEN" "startup=$DESKTOP_STARTUP_ID"
 for v in CLAUDECODE CLAUDE_PID CP_USER CP_REAP_KEEP AI_AGENT VSCODE_GIT_IPC_HANDLE VSCODE_IPC_HOOK_CLI; do eval "[ -n \\"\\${$v+x}\\" ]" && printf '%s\\0' $v; done
 } > "$CODE_LOG.part"
 mv "$CODE_LOG.part" "$CODE_LOG"
+'''
+FAKE_DBUS = '''#!/bin/sh
+for a; do printf '%s\\0' "$a"; done >> "$KWIN_LOG"
+printf '\\n' >> "$KWIN_LOG"
+for a; do case "$a" in *.js) while IFS= read -r l; do printf '%s\\n' "$l"; done < "$a" > "$KWIN_LOG.js"; [ -e "$CODE_LOG" ] && echo late >> "$KWIN_LOG.order";; esac; done
+case "$*" in *loadScript*) printf '%s\\n' "$KWIN_OUT";; esac
 '''
 TOOLS = ('git', 'mv', 'ps', 'tr', 'sleep')  # what the fakes and notify.py run besides themselves, without the real code
 SESSION_VARS = {v: 'x' for v in ('CLAUDECODE', 'CLAUDE_PID', 'CP_USER', 'CP_REAP_KEEP', 'AI_AGENT', 'VSCODE_GIT_IPC_HANDLE',
@@ -238,15 +276,15 @@ class Hooks(unittest.TestCase):
         self.assertEqual((r.returncode, r.stderr), (0, ''), r)
         return json.loads(r.stdout) if r.stdout.strip() else None
 
-    def command(self, *ops, tid=None):
-        """(hook output or None, whether the validator ran) of one Bash command made of ops."""
+    def command(self, *ops, tid=None, event=None):
+        """(hook output or None, whether the validator ran) of one Bash command made of ops; event: post's hook_event_name."""
         self.n += 1
         payload = {'session_id': 's1', 'tool_use_id': tid or f'toolu_{self.n}', 'tool_name': 'Bash', 'tool_input': {'command': 'x'}}
         self.log.unlink(missing_ok=True)
         self.hook('shell.py', 'pre', payload=payload)
         for op in ops:
             op()
-        out = self.hook('shell.py', 'post', payload=payload)
+        out = self.hook('shell.py', 'post', payload=payload | ({'hook_event_name': event} if event is not None else {}))
         return out, self.log.exists()
 
     def edit(self, rel, text):
@@ -320,6 +358,64 @@ class Hooks(unittest.TestCase):
         out, ran = self.command(self.edit('OLD/a.cpp', 'c\n'), self.edit('05-M/00-index.md', 'c\n'))
         self.assertTrue(ran and self.blocked(out))
         self.assertEqual(out['hookSpecificOutput']['additionalContext'], 'Consistency validator FAILED:\nE')
+
+    def test_event_name(self):
+        """The validator's additionalContext names the input's hook_event_name, PostToolUse when it has none (SUP33)."""
+        self.fail_file.write_text('E\n')
+        for n, (event, name) in enumerate((('PostToolUseFailure', 'PostToolUseFailure'), ('PostToolUse', 'PostToolUse'), ('', 'PostToolUse'),
+                                           (None, 'PostToolUse'))):
+            out, ran = self.command(self.edit('05-M/00-index.md', f'e{n}\n'), event=event)
+            self.assertEqual((out, ran), ({'hookSpecificOutput': {'hookEventName': name, 'additionalContext': 'Consistency validator FAILED:\nE'}},
+                                          True), event)
+
+    def test_hooks_path(self):
+        """pre stores core.hooksPath beside HEAD and paths; post blocks when the command changed it and git no longer runs
+        this checkout's .claude/githooks (setup_check.py, hook_check), naming the restore command, also beside a protected
+        file's block; another spelling of the same absolute path, no change, and an old two-element state pass (SUP33)."""
+        self.write('.claude/skills/setup-check/setup_check.py', (ROOT / '.claude/skills/setup-check/setup_check.py').read_text())
+        key, want = 'core.hooksPath', str(self.repo / '.claude/githooks')
+        quoted = want if re.fullmatch(r'[\w@%+=:,./-]+', want) else "'" + want.replace("'", "'\"'\"'") + "'"  # POSIX shell quoting
+
+        def lost(state):
+            return {'decision': 'block', 'reason': f'This command changed {key} ({state}), so git no longer runs the commit and push hooks '
+                    f'(CLAUDE.md, Start Here). Ask the user to restore it by typing `! git config {key} {quoted}`; a push the same command '
+                    'made has already run.'}
+
+        def cfg(*args):
+            return self.gitop('config', *args)
+        state = self.repo / '.claude/hooks/.state/toolu_h.json'
+        payload = {'session_id': 's', 'tool_use_id': 'toolu_h', 'tool_name': 'Bash', 'tool_input': {'command': 'x'}}
+        for value in (None, want):
+            if value:
+                git(self.repo, 'config', key, value)
+            self.hook('shell.py', 'pre', payload=payload)
+            snap = json.loads(state.read_text())
+            self.assertEqual((len(snap), snap[0], snap[2]), (3, git(self.repo, 'rev-parse', 'HEAD').strip(), value), 'pre: [HEAD, paths, hooks]')
+            self.assertIsNone(self.hook('shell.py', 'post', payload=payload))
+        self.assertEqual(self.command(cfg('--unset', key)), (lost('not enabled'), False), 'unset')
+        self.assertEqual(self.command(), (None, False), 'unchanged, though off')
+        self.assertEqual(self.command(cfg(key, '.claude/githooks')), (lost(f"{key} is '.claude/githooks'"), False), 'relative')
+        self.assertEqual(self.command(cfg(key, want)), (None, False), 'restored')
+        for spelling in (str(self.repo) + '/./.claude/githooks', str(self.repo / '.claude/../.claude/githooks'), want + '/', want):
+            self.assertEqual(self.command(cfg(key, spelling)), (None, False), f'another spelling of the same path: {spelling}')
+        other = str(self.tmp / 'elsewhere')
+        self.assertEqual(self.command(cfg(key, other)), (lost(f"{key} is '{other}'"), False), 'another folder')
+        self.assertEqual(self.command(self.edit('notes.txt', 'n2\n')), (None, False), 'unchanged, though wrong')
+        git(self.repo, 'config', key, want)
+        self.fail_file.write_text('E\n')
+        out, ran = self.command(self.edit('OLD/a.cpp', 'c\n'), cfg('--unset', key), self.edit('05-M/00-index.md', 'c\n'))
+        reason = self.blocked(out)
+        self.assertTrue(ran and reason.startswith('This command changed protected files: OLD/a.cpp') and reason.endswith(' ' + lost('not enabled')['reason'])
+                        and reason.count('This command changed') == 2, reason)
+        self.assertEqual(out['hookSpecificOutput']['additionalContext'], 'Consistency validator FAILED:\nE', 'block and validator together')
+        self.fail_file.unlink()
+        git(self.repo, 'checkout', '--', 'OLD/a.cpp')
+        git(self.repo, 'config', key, want)
+        self.hook('shell.py', 'pre', payload=payload)
+        state.write_text(json.dumps(json.loads(state.read_text())[:2]))
+        git(self.repo, 'config', '--unset', key)
+        self.assertIsNone(self.hook('shell.py', 'post', payload=payload), 'a two-element state from before SUP33: no hooks check')
+        self.assertFalse(state.exists())
 
     def test_content(self):
         self.write('05-M/00-index.md', 'dirty\n')
@@ -414,8 +510,25 @@ class Hooks(unittest.TestCase):
         for raw in ('', '[', '{"tool_calls": [', 'not json'):  # unreadable input: silent
             self.assertEqual(runs(raw=raw), 0, raw)
         self.fail_file.write_text('F\n')
+        failed = 'Consistency validator FAILED:\nF'
         self.assertEqual(self.hook('consistency.py', payload=batch(('Edit', 'notes.txt'), ('Edit', '05-M/00-index.md'))),
-                         {'hookSpecificOutput': {'hookEventName': 'PostToolBatch', 'additionalContext': 'Consistency validator FAILED:\nF'}})
+                         {'hookSpecificOutput': {'hookEventName': 'PostToolBatch', 'additionalContext': failed}})
+        # skill_reattach warnings (SUP33) reach the context only from a batch that edited a skill's SKILL.md, and never fail it
+        reattach = Path(str(self.fail_file) + '.reattach')
+        reattach.write_text('finish: 9000 of 12500 characters\nx: y\n')
+        warn = "Skill re-attachment warning (SUP33; 03-consistency.py, skill_reattach):\nfinish: 9000 of 12500 characters\nx: y"
+        ctx = lambda text: text and {'hookSpecificOutput': {'hookEventName': 'PostToolBatch', 'additionalContext': text}}
+        for fail, paths, want in ((True, ['.claude/skills/finish/SKILL.md'], failed + '\n\n' + warn), (True, ['05-M/00-index.md'], failed),
+                                  (False, ['.claude/skills/finish/SKILL.md', 'notes.txt'], warn), (False, ['05-M/00-index.md'], None),
+                                  (False, ['.claude/skills/finish/notes.md'], None), (False, ['.claude/SKILL.md'], None),
+                                  (False, ['.claude/skills/a/b/SKILL.md'], warn)):  # the last: any depth below .claude/skills/
+            if fail:
+                self.fail_file.write_text('F\n')
+            else:
+                self.fail_file.unlink(missing_ok=True)
+            self.assertEqual(self.hook('consistency.py', payload=batch(*[('Edit', p) for p in paths])), ctx(want), (fail, paths))
+        reattach.write_text('')
+        self.assertIsNone(self.hook('consistency.py', payload=batch(('Edit', '.claude/skills/finish/SKILL.md'))), 'no warnings: silent')
 
     def test_push(self):
         deny = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
@@ -550,7 +663,7 @@ class Hooks(unittest.TestCase):
 
     def test_precompact(self):
         self.write('.claude/hooks/resume.py', (HOOKS / 'resume.py').read_text())
-        self.write('.claude/skills/finish/gaps.py', GAPS)
+        self.write('.claude/skills/finish/gaps.py', GAPS + GAPS_ROWS.format(path=str(ROOT / '.claude/skills/finish/gaps.py')))
         step = 'Skill in progress: /{}. State the number of its step in progress and the exact next step.'.format
         sup, p018 = 'Target: SUP32 (package P900, from the typed command /package SUP32).', '/finish ledger: .claude/finish/P018.txt, not written yet.'
 
@@ -565,13 +678,33 @@ class Hooks(unittest.TestCase):
                             extra=b'{"type": "user", "message": {"content": "<command-name>/prune</command-name><command-args>P018</command-args>"\n')
         self.assertEqual(self.precompact(p), want(sup, step('package'), '/finish ledger: .claude/finish/SUP32.txt, not written yet.'),
                          'typed /package SUP32; quoted commands and a broken line do not count')
-        self.write('.claude/finish/SUP32.txt', 'a | open\nb | fixed\n')
+        a, b = 'a | defect | 05-M/01-a.hpp:1 | gap | review | open', 'b | decision | notes.txt:1 | choice | user | fixed'
+        self.write('.claude/finish/SUP32.txt', f'{a}\n{b}\n')
         have = '/finish ledger: .claude/finish/SUP32.txt (its rows hold the state).'
         self.assertEqual(self.precompact(p), want(sup, step('package'), have))
-        rc, out, err = self.script('resume.py', 'compact', raw=json.dumps({'cwd': str(self.repo), 'transcript_path': str(p)}), cwd=self.tmp)
-        self.assertEqual((rc, err), (0, ''))
-        self.assertIn('continue it from its ledger .claude/finish/SUP32.txt (1 closed rows not shown; open rows):\na | open\n', out,
-                      'compact mode reads the same target and ledger')
+
+        def compact(text):
+            """The ledger part of compact mode's output for SUP32.txt holding text."""
+            self.write('.claude/finish/SUP32.txt', text)
+            rc, out, err = self.script('resume.py', 'compact', raw=json.dumps({'cwd': str(self.repo), 'transcript_path': str(p)}), cwd=self.tmp)
+            self.assertEqual((rc, err), (0, ''))
+            self.assertTrue(out.startswith('Restored after compaction by .claude/hooks/resume.py.') and '\n\ngit: branch master;' in out, out[:300])
+            return out.split('\n\n')[1] + '\n\n' + out.split('\n\n')[2].split(';')[0] if 'If /finish' in out else out
+        head = 'If /finish was running, continue it from its ledger .claude/finish/SUP32.txt '
+        self.assertEqual(compact(f'{a}\n{b}\n'), head + f'(1 closed rows not shown; open rows):\n{a}\n\ngit: branch master',
+                         'compact mode reads the same target and ledger')
+        rows = ['A1 | defect | f:1 | g | s | open', '', 'note: tried X, 3% slower', '  A2 | decision | f:2 | g | s | answered 2026-11-22 (was: open)',
+                'A3 | defect | f:3 | g | s | done', 'A4 | decision | f:4 | g | s | ASK the user  ', 'A5 | defect | f:5 | g | s | Fixed in abc']
+        self.assertEqual(compact('\n'.join(rows) + '\n'), head + '(2 closed rows and 2 lines that are not rows not shown; open rows):\n'
+                         'A1 | defect | f:1 | g | s | open\nA4 | decision | f:4 | g | s | ASK the user\n\ngit: branch master',
+                         'well-formed open rows only; a done row and a note are not rows, blank lines not counted')
+        self.assertEqual(compact(f'{b}\n'), head + '(1 closed rows not shown; open rows):\n(none)\n\ngit: branch master')
+        self.assertEqual(compact('a | open\nb | done\n\n'), head + '(0 closed rows and 2 lines that are not rows not shown; open rows):\n'
+                         '(none)\n\ngit: branch master', 'two-field lines of the old form are not rows')
+        many = [f'R{i} | defect | f:{i} | g | s | open' for i in range(45)]
+        self.assertEqual(compact('\n'.join(many)), head + '(0 closed rows not shown; open rows):\n' + '\n'.join(many[:40])
+                         + '\n... 5 more in the ledger\n\ngit: branch master')
+        self.write('.claude/finish/SUP32.txt', f'{a}\n{b}\n')
         p = self.transcript(typed('package', 'SUP32'), typed('prune', ' P018  extra words'))
         self.assertEqual(self.precompact(p), want('Target: P018 (package P018, from the typed command /prune P018).', step('prune'), p018))
         p = self.transcript(typed('package', 'SUP32'), typed('finish'))
@@ -713,7 +846,7 @@ class Hooks(unittest.TestCase):
     def test_notify_click(self):
         """Linux in VS Code's terminal: the hook returns at once, a detached helper in its own session notifies with a
         default action and, on a click, runs `code <window folder>` without the session's variables and inherited
-        activation tokens."""
+        activation tokens; on KDE KWin first activates the window whose title names that folder."""
         self.write('.claude/hooks/notify.py', (HOOKS / 'notify.py').read_text())
         path = self.fakes()
         log, code_log, gate, sid = self.tmp / 'notify.log', self.tmp / 'code.log', self.tmp / 'gate', self.tmp / 'sid'
@@ -756,6 +889,18 @@ class Hooks(unittest.TestCase):
                 self.assertEqual(code_log.read_text().split('\0')[:-1], want)
         tok = ['token=', 'startup='] + kept  # inherited activation tokens never reach code
         clicked([str(self.repo)] + tok)
+        kde, kwin = self.tmp / 'kde', self.tmp / 'kwin.log'  # KDE: KWin activates the window before code runs
+        kde.mkdir()
+        for f in (self.tmp / 'bin').iterdir():
+            (kde / f.name).symlink_to(f)
+        (kde / 'gdbus').write_text(FAKE_DBUS)
+        (kde / 'gdbus').chmod(0o755)
+        clicked([str(self.repo)] + tok, bins=str(kde), XDG_CURRENT_DESKTOP='KDE', KWIN_LOG=str(kwin), KWIN_OUT='(3,)')
+        calls = [line.split('\0')[:-1] for line in kwin.read_text().split('\n') if line]
+        self.assertEqual([c[7] for c in calls], ['org.kde.kwin.Scripting.loadScript', 'org.kde.kwin.Script.run', 'org.kde.kwin.Scripting.unloadScript'])
+        self.assertEqual(calls[1][5], '/Scripting/Script3')
+        self.assertIn('const name = " - " + "repo" + " - ", app = "Visual Studio Code";', Path(f'{kwin}.js').read_text())
+        self.assertFalse(Path(f'{kwin}.order').exists(), 'KWin activates before code runs')
         clicked([str(self.repo)] + tok, NOTIFY_HELP='--urgency --action --wait')
         clicked(None, NOTIFY_ACTION='')
         clicked([str(self.repo / '05-M')] + tok, windows=[self.tmp, self.repo / '05-M'])
@@ -819,6 +964,7 @@ class Hooks(unittest.TestCase):
         spec = importlib.util.spec_from_file_location('notify_copy', HOOKS / 'notify.py')
         n = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(n)
+        n.DEADLINE = time.monotonic() + 3600  # the hook's 9 s count from the import; these calls run far longer
         which = n.shutil.which
         tools = {}
         n.shutil = types.SimpleNamespace(which=tools.get)
@@ -884,6 +1030,7 @@ class Hooks(unittest.TestCase):
         for env, release, plat, want in (({}, '6.6.87.2-microsoft-standard-WSL2', 'linux', 'wsl'), ({'WSL_DISTRO_NAME': 'U'}, '7.2', 'linux', 'wsl'),
                                          ({}, '7.2.11-arch1-1', 'linux', 'linux'), ({}, '24.1.0', 'darwin', 'darwin'), ({}, '10', 'win32', 'win32')):
             self.assertEqual(n.detect(env, release, plat), want, (env, release, plat))
+        self.notify_activate(n, tools)
         n.shutil.which = which
         self.fakes()
         code_log = self.tmp / 'code.log'
@@ -895,6 +1042,44 @@ class Hooks(unittest.TestCase):
         self.assertFalse(code_log.exists(), 'no click before the wait ended')
         self.notify_editor(n, folder)
         self.notify_title(n)
+        self.notify_workspace(n, folder)
+
+    def notify_activate(self, n, tools):
+        """activate() on KDE: a one-shot KWin script over gdbus, else qdbus6, else qdbus: loaded, run by the id loadScript
+        returns (none on an error reply), unloaded, its file removed; the script names the folder's name and the app as JSON
+        strings. Nothing outside KDE (XDG_CURRENT_DESKTOP's entries), without an app or without a D-Bus tool."""
+        fake, log = self.tmp / 'dbus', self.tmp / 'kwin.log'
+        fake.write_text(FAKE_DBUS)
+        fake.chmod(0o755)
+        folder = '/w/My "Repo" – x'
+
+        def run(desktop, app='Visual Studio Code', out='(7,)', **t):
+            tools.clear()
+            tools.update({k: str(v) for k, v in t.items()})
+            for f in (log, Path(f'{log}.js')):
+                f.unlink(missing_ok=True)
+            with unittest.mock.patch.dict(os.environ, {'XDG_CURRENT_DESKTOP': desktop, 'KWIN_LOG': str(log), 'KWIN_OUT': out,
+                                                       'CODE_LOG': str(self.tmp / 'none')}):
+                n.activate(folder, app)
+            return [line.split('\0')[:-1] for line in log.read_text().split('\n') if line] if log.exists() else []
+        for desktop, out, t, prefix, method, script in (
+                ('KDE', '(7,)', {'gdbus': fake, 'qdbus6': '/x'}, ['call', '--session', '--dest', 'org.kde.KWin', '--object-path'], ['--method'], 7),
+                ('ubuntu:KDE', '12', {'qdbus6': fake, 'qdbus': '/x'}, ['org.kde.KWin'], [], 12),
+                ('KDE', '12', {'qdbus': fake}, ['org.kde.KWin'], [], 12),
+                ('KDE', 'Error: no such object', {'gdbus': fake}, ['call', '--session', '--dest', 'org.kde.KWin', '--object-path'], ['--method'], None)):
+            calls = run(desktop, out=out, **t)
+            path, plugin = calls[0][-2:]
+            want = [[*prefix, '/Scripting', *method, 'org.kde.kwin.Scripting.loadScript', path, plugin],
+                    *([[*prefix, f'/Scripting/Script{script}', *method, 'org.kde.kwin.Script.run']] if script else []),
+                    [*prefix, '/Scripting', *method, 'org.kde.kwin.Scripting.unloadScript', plugin]]
+            self.assertEqual(calls, want, (desktop, out, t))
+            self.assertEqual((plugin, Path(path).exists()), (f'claude-notify-{os.getpid()}', False), 'the script file is removed')
+            js = Path(f'{log}.js').read_text()
+            self.assertIn('const name = " - " + ' + json.dumps('My "Repo" – x') + ' + " - ", app = "Visual Studio Code";', js)
+            self.assertIn('workspace.activeWindow = w', js)
+        for desktop, app, t in (('GNOME', 'Visual Studio Code', {'gdbus': fake}), ('KDE', '', {'gdbus': fake}), ('', 'Code', {'gdbus': fake}),
+                                ('KDEx:GNOME', 'Code', {'gdbus': fake}), ('KDE', 'Code', {})):
+            self.assertEqual(run(desktop, app, **t), [], (desktop, app, t))
 
     def notify_editor(self, n, folder):
         """editor(), cli(), folders() and window() of the imported module: the product found from the askpass script,
@@ -908,7 +1093,8 @@ class Hooks(unittest.TestCase):
         for env, text, want in (({}, None, n.VSCODE), (ask, None, n.VSCODE), ({'VSCODE_GIT_ASKPASS_MAIN': '/a.js'}, None, n.VSCODE),
                                 (ask, 'not json', n.VSCODE), (ask, '[1]', n.VSCODE), (ask, json.dumps(cursor), cursor),
                                 (ask, json.dumps(cursor | {'nameLong': 'Cursor', 'urlProtocol': 5, 'darwinBundleIdentifier': 'x'}),
-                                 {'nameShort': 'Cursor', 'applicationName': 'cursor'}),
+                                 {'nameShort': 'Cursor', 'applicationName': 'cursor', 'nameLong': 'Cursor'}),
+                                (ask, json.dumps(cursor | {'nameLong': 7}), cursor),
                                 (ask, json.dumps({'nameShort': '', 'applicationName': 'cursor', 'urlProtocol': None}), {'applicationName': 'cursor'}),
                                 (ask, '{}', {})):
             product.unlink(missing_ok=True)
@@ -1006,6 +1192,121 @@ class Hooks(unittest.TestCase):
         self.assertEqual(n.title(str(t)), 'Start')
         self.assertLess(time.monotonic() - start, 2, 'one 4 MiB line read in 128-byte chunks stays linear')
         n.CHUNK = 1 << 20
+        # the search stops RESERVE seconds before the hook's deadline, leaving them to the fallback name and the notifier
+        self.assertEqual(n.RESERVE, 3)
+        t.write_bytes(rec('Present'))
+        live = n.DEADLINE
+        for deadline, want in ((time.monotonic() + 2.9, ''), (time.monotonic() - 100, ''), (time.monotonic() + 60, 'Present')):
+            n.DEADLINE = deadline
+            self.assertEqual(n.title(str(t)), want, deadline - time.monotonic())
+        clock = iter(range(1000))  # one step per call: the loop tests the clock before each chunk
+        n.time = types.SimpleNamespace(monotonic=lambda: next(clock))
+        t.write_bytes(rec('Start') + json.dumps({'type': 'assistant', 'x': 'z' * 1000}).encode() + b'\n')
+        n.CHUNK, n.DEADLINE = 64, n.RESERVE + 4.5
+        self.assertEqual(n.title(str(t)), '', 'the deadline passes after five chunks, before the title')
+        clock, n.DEADLINE = iter(range(1000)), n.RESERVE + 100.5
+        self.assertEqual(n.title(str(t)), 'Start', 'enough chunks before the deadline')
+        n.time, n.CHUNK, n.DEADLINE = time, 1 << 20, live
+
+    def notify_workspace(self, n, folder):
+        """storage(), local(), workspace() and folders() and window() on .code-workspace windows (SUP33)."""
+        P, W, sub = n.PurePosixPath, n.PureWindowsPath, 'User/globalStorage/storage.json'
+
+        @contextlib.contextmanager
+        def system(name, **env):
+            n.SYSTEM = name
+            with unittest.mock.patch.dict(os.environ, {}), unittest.mock.patch.object(n.Path, 'home', staticmethod(lambda: self.tmp / 'home')):
+                for k in ('VSCODE_PORTABLE', 'VSCODE_APPDATA', 'XDG_CONFIG_HOME', 'APPDATA', 'WSL_DISTRO_NAME'):
+                    os.environ.pop(k, None)
+                os.environ.update(env)
+                yield
+        home = self.tmp / 'home'
+        for name, env, want in (('linux', {}, [home / '.config/Code' / sub]), ('linux', {'XDG_CONFIG_HOME': ''}, [home / '.config/Code' / sub]),
+                                ('linux', {'XDG_CONFIG_HOME': '/x'}, [Path('/x/Code', sub)]),
+                                ('linux', {'XDG_CONFIG_HOME': '/x', 'VSCODE_APPDATA': '/a'}, [Path('/a/Code', sub)]),
+                                ('linux', {'XDG_CONFIG_HOME': '/x', 'VSCODE_APPDATA': '/a', 'VSCODE_PORTABLE': '/p'}, [Path('/p/user-data', sub)]),
+                                ('linux', {'VSCODE_APPDATA': '/a', 'VSCODE_PORTABLE': ''}, [Path('/a/Code', sub)]),
+                                ('darwin', {'XDG_CONFIG_HOME': '/x'}, [home / 'Library/Application Support/Code' / sub]),
+                                ('darwin', {'VSCODE_APPDATA': '/a'}, [Path('/a/Code', sub)]), ('win32', {}, []),
+                                ('win32', {'APPDATA': '/w'}, [Path('/w/Code', sub)]), ('win32', {'APPDATA': '/w', 'VSCODE_APPDATA': '/a'}, [Path('/a/Code', sub)]),
+                                ('win32', {'VSCODE_PORTABLE': '/p'}, [Path('/p/user-data', sub)])):
+            with system(name, **env):
+                self.assertEqual(n.storage('Code'), want, (name, env))
+                self.assertEqual((n.storage(''), n.storage(None)), ([], []), 'no editor name')
+        for user in ('bob', 'alice'):
+            (n.WIN_USERS / user / 'AppData/Roaming/Code/User/globalStorage').mkdir(parents=True)
+            (n.WIN_USERS / user / 'AppData/Roaming/Code' / sub).write_text('{}')
+        (n.WIN_USERS / 'carol/AppData/Roaming').mkdir(parents=True)
+        with system('wsl', VSCODE_PORTABLE='/p', VSCODE_APPDATA='/a', APPDATA='/w'):
+            self.assertEqual(n.storage('Code'), [n.WIN_USERS / u / 'AppData/Roaming/Code' / sub for u in ('alice', 'bob')],
+                             "WSL: every Windows user's roaming folder, the portable and appdata variables ignored")
+        for name, env, uri, want in (('linux', {}, 'file:///srv/x/My%20Repo', P('/srv/x/My Repo')), ('linux', {}, 'vscode-remote://wsl%2Bu/x', None),
+                                     ('linux', {}, 'https://h/x', None), ('linux', {}, '', None),
+                                     ('win32', {}, 'file:///c%3A/Users/x', W('c:/Users/x')), ('win32', {}, 'vscode-remote://wsl%2Bu/x', None),
+                                     ('wsl', {'WSL_DISTRO_NAME': 'Ubuntu'}, 'vscode-remote://wsl%2Bubuntu/srv/a%20b', P('/srv/a b')),
+                                     ('wsl', {'WSL_DISTRO_NAME': 'Ubuntu'}, 'vscode-remote://wsl+Ubuntu/srv', P('/srv')),
+                                     ('wsl', {'WSL_DISTRO_NAME': 'Ubuntu'}, 'vscode-remote://wsl%2BDebian/x', None),
+                                     ('wsl', {'WSL_DISTRO_NAME': 'Ubuntu'}, 'file:///x', None), ('wsl', {}, 'vscode-remote://wsl%2Bubuntu/x', None)):
+            with system(name, **env):
+                got = n.local(uri)
+                self.assertEqual((type(got), got), (type(want), want), (name, uri))
+        d = self.tmp / 'ws dir'
+        d.mkdir()
+        ws = d / 'proj.code-workspace'
+        ws.write_text(r'''// a workspace
+{
+  /* block
+     comment */ "folders": [
+    {"path": "sub"},  // relative
+    {"path": "../other/./x"},
+    {"path": "/abs/dir",},
+    {"path": "back\\slash"},
+    {"name": "a // b /* c */", "path": "named"},
+    {"path": "t,}"},
+    {"uri": "file:///c%3A/u/v%20w"},
+    {"uri": "vscode-remote://wsl%2BUbuntu/srv/r"},
+    {"uri": "vscode-remote://ssh-remote%2Bh/x"},
+    {"name": "no path"},
+    {"path": 5},
+  ],
+  "settings": {"url": "http://example.com//x",},
+}
+''')
+        posix = [P(d / 'sub'), P(self.tmp / 'other/x'), P('/abs/dir'), P(d / 'back/slash'), P(d / 'named'), P(d / 't,}')]
+        with system('linux'):
+            self.assertEqual(n.workspace(P(ws)), posix + [P('/c:/u/v w')], 'comments, trailing commas, strings holding // and /* kept')
+        with system('wsl', WSL_DISTRO_NAME='ubuntu'):
+            self.assertEqual(n.workspace(P(ws)), posix + [P('/srv/r')], "WSL: this distribution's vscode-remote URIs")
+        with system('win32'), unittest.mock.patch.object(n, 'Path', lambda p: ws if isinstance(p, W) else Path(p)):
+            got = n.workspace(W('c:/ws dir/proj.code-workspace'))
+            self.assertEqual(got, [W('c:/ws dir/sub'), W('c:/other/x'), W('c:/abs/dir'), W('c:/ws dir/back/slash'), W('c:/ws dir/named'),
+                                   W('c:/ws dir/t,}'), W('c:/u/v w')])
+            self.assertTrue(all(type(p) is W for p in got))
+        uri = lambda p: 'file://' + quote(str(p))
+        bad = {'missing': None, 'malformed': '{"folders": [', 'entry': '{"folders": [{"path": "ok"}, 5]}', 'utf8': b'\xff\xfe{',
+               'list': '[1]', 'number': '{"folders": 5}'}
+        for k, text in bad.items():
+            if text is not None:
+                (d / f'{k}.code-workspace').write_bytes(text if isinstance(text, bytes) else text.encode())
+        deep = folder / 'deep.code-workspace'
+        deep.write_text(json.dumps({'folders': [{'path': str(folder)}, {'path': 'sub'}]}))
+        f1, f2 = self.tmp / 'f1', self.tmp / 'f2'
+        windows = {'lastActiveWindow': {'workspaceIdentifier': {'id': 'w1', 'configURIPath': uri(ws)}},
+                   'openedWindows': [{'folder': uri(f1)}, *({'workspaceIdentifier': {'configURIPath': uri(d / f'{k}.code-workspace')}} for k in bad),
+                                     {'workspaceIdentifier': 'w2'}, {'workspaceIdentifier': {'configURIPath': 5}}, 5, {'folder': 7},
+                                     {'workspaceIdentifier': {'configURIPath': 'vscode-remote://ssh-remote%2Bh/x.code-workspace'}},
+                                     {'folder': uri(f2), 'workspaceIdentifier': {'configURIPath': uri(ws)}},
+                                     {'workspaceIdentifier': {'configURIPath': uri(deep)}}]}
+        xdg = self.tmp / 'xdg-ws'
+        (xdg / 'Code/User/globalStorage').mkdir(parents=True)
+        (xdg / 'Code' / sub).write_text(json.dumps({'windowsState': windows}))
+        with system('linux', XDG_CONFIG_HOME=str(xdg)):
+            self.assertEqual(n.folders('Code'), posix + [P('/c:/u/v w'), P(f1), P(f2), P(folder), P(folder / 'sub')],
+                             "a workspace window's folders; a missing or malformed file or entry skips its window only; folder wins")
+            (folder / 'sub/deeper').mkdir(parents=True, exist_ok=True)
+            self.assertEqual(n.window(str(folder / 'sub/deeper'), 'Code'), P(folder / 'sub'), 'the deepest folder of a workspace window')
+            self.assertEqual(n.window(str(folder), 'Code'), P(folder))
+            self.assertEqual(n.window(str(d / 'sub'), 'Code'), P(d / 'sub'))
 
     def test_settings(self):
         hooks = json.loads((ROOT / '.claude/settings.json').read_text())['hooks']

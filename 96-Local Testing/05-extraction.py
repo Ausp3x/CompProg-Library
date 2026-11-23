@@ -20,6 +20,7 @@ alone counts. Without libclang it prints SKIP and exits 0. Exit 0 pass, 1 failur
 import argparse
 import ast
 import concurrent.futures
+import contextlib
 import hashlib
 import importlib.util
 import itertools
@@ -183,6 +184,33 @@ def full_only(ix, found, full):
             if reached and not any(f'`{op}`' in l for l in records):
                 out.append((header, op, reached))
     return out
+
+
+def full_only_cached(ix, found, full, store):
+    """full_only(ix, found, full), reused from the JSON file store while every input is unchanged: the index records, the
+    library headers' and the found rows' evidence documents' bytes, found, full, this script and the sources of grab and the two modules it loads (SUP33)."""
+    h = hashlib.sha256(json.dumps([found, sorted(full), ix.records], sort_keys=True).encode())
+    for path in [Path(__file__), *(Path(m.__file__) for m in (grab, grab.SEARCH, grab.DEPS)), *(ix.root / x for x in sorted(ix.graph)),
+                 *(ROOT / x.split('/')[0] / 'Docs' / (Path(x).stem + '.md') for x, _ in found)]:
+        h.update(str(path).encode() + b'\0' + (path.read_bytes() if path.is_file() else b'\1missing') + b'\0')
+    key = h.hexdigest()
+    try:
+        data = json.loads(store.read_text())
+        if data['key'] == key:
+            return [(a, b, c) for a, b, c in data['result']]
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    result = full_only(ix, found, full)
+    tmp = store.with_name(f'{store.name}.{os.getpid()}')
+    try:
+        tmp.write_text(json.dumps({'key': key, 'result': result}))
+        tmp.replace(store)
+    except OSError:
+        pass
+    finally:
+        with contextlib.suppress(OSError):
+            tmp.unlink(missing_ok=True)
+    return result
 
 
 def probe_units(ix, roots):
@@ -433,8 +461,9 @@ def scratch(ix, tester, files, base):
     tests = tree / '96-Local Testing'
     shutil.copytree(ROOT / '96-Local Testing' / rel.parts[1], tests / rel.parts[1],
                     ignore=shutil.ignore_patterns('__pycache__', '.core_test_*', '*_benchmark.json*'))
-    for f in (ROOT / '96-Local Testing').glob('_*.py'):
-        shutil.copy2(f, tests / f.name)
+    for f in [*(ROOT / '96-Local Testing').glob('_*.py'), ROOT / '96-Local Testing/.run-stats.json']:
+        if f.is_file():  # the recorded peaks: the memory gate reserves the tester's quick peak, not its whole cap
+            shutil.copy2(f, tests / f.name)
     return tree / rel, names
 
 

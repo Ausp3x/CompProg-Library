@@ -3,7 +3,8 @@
 whose Edit or Write calls touched a Markdown, plan or source file, so a multi-edit batch costs one run (user decision
 2026-11-12). Input without a tool_calls list (a client that renamed it, or a hook wired to another event) is said in the
 context, so the validator never stops unnoticed; unreadable input stays silent. shell.py runs the validator after each
-shell command that changes such a file."""
+shell command that changes such a file. A batch that edited a skill's SKILL.md also gets the validator's skill_reattach
+warnings (SUP33), which never fail it."""
 import fnmatch
 import json
 import subprocess
@@ -22,22 +23,26 @@ def context(text):
     print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PostToolBatch', 'additionalContext': text}}))
 
 
-def validate(root=ROOT):
-    """The validator's error lines joined, or '' when it passes, for the checkout at root."""
+def results(root=ROOT):
+    """(the validator's error lines joined, or '' when it passes; its skill_reattach warnings) for the checkout at root."""
     try:
         run = subprocess.run([sys.executable, '96-Local Testing/03-consistency.py'], cwd=root,
                              capture_output=True, text=True, timeout=60)
     except subprocess.TimeoutExpired:
-        return 'timed out after 60 s'
+        return 'timed out after 60 s', []
     except OSError as exc:
-        return str(exc)
-    if not run.returncode:
-        return ''
+        return str(exc), []
     try:
-        lines = json.loads(run.stdout)['errors']
-    except (ValueError, KeyError, TypeError):
-        lines = (run.stdout + run.stderr).strip().splitlines()[-20:]
-    return '\n'.join(lines) or f'exit code {run.returncode}'
+        out = json.loads(run.stdout)
+        lines, notes = out['errors'], out.get('skill_reattach') or []
+    except (ValueError, KeyError, TypeError, AttributeError):
+        lines, notes = (run.stdout + run.stderr).strip().splitlines()[-20:], []
+    return ('\n'.join(lines) or f'exit code {run.returncode}') if run.returncode else '', notes
+
+
+def validate(root=ROOT):
+    """The validator's error lines joined, or '' when it passes, for the checkout at root."""
+    return results(root)[0]
 
 
 def watched(rel):
@@ -63,8 +68,13 @@ def main():
     calls = payload.get('tool_calls') if isinstance(payload, dict) else None
     if not isinstance(calls, list):
         context(NO_CALLS)
-    elif any(map(watched, edited(calls))) and (err := validate()):
-        context('Consistency validator FAILED:\n' + err)
+    elif any(map(watched, paths := list(edited(calls)))):
+        err, notes = results()
+        notes = notes if any(p.startswith('.claude/skills/') and p.endswith('/SKILL.md') for p in paths) else []
+        text = '\n\n'.join(filter(None, ['Consistency validator FAILED:\n' + err if err else '', 'Skill re-attachment warning (SUP33; '
+                                          "03-consistency.py, skill_reattach):\n" + '\n'.join(notes) if notes else '']))
+        if text:
+            context(text)
 
 
 if __name__ == '__main__':

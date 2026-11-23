@@ -1,17 +1,31 @@
 #!/usr/bin/env python3
-"""Checks for the parallel suite runner 01-run.py, the build pool parallel() of 02-integration.py and the signal
-forwarding of _00_memory_cap.supervise().
+"""Checks for the parallel suite runner 01-run.py, the build pool parallel() of 02-integration.py, the signal
+forwarding of _00_memory_cap.supervise() and the memory admission gate _00_memory_gate.py (SUP33).
 
 Fake suites are tiny Python scripts that sleep fractions of a second and record in a shared fixture directory (RT_DIR)
 their start and end instants (time.monotonic, system-wide), pid, mode, seed and environment, holding a 'busy' marker
 while they live; a flaky suite fails iff it sees another marker. 01-run.py runs from a copy in the fixture, so it
 discovers only the fake suites and keeps its .run-stats.json there.
+Every test queues in its own gate file (CP_MEMORY_GATE in its fixture, reserve 0), never the machine's.
 quick: output identity at -j 1 and -j 4, first-failure status, rerun alone, the jobs bound, parallel() budget and rerun,
-forwarding() handler restore.
+forwarding() handler restore, gate decide(), need_of()/recorded() and held().
 full: every test, including signals, real capped scopes, SIGTERM/SIGHUP sent to a supervisor pid alone (main run and
 pre-flight, and to the ad-hoc CLI's supervisor, each in a real scope; explicit SKIP without one), a supervisor's SIGKILL
-ending its whole scope (entry point or CLI reporter, and a grandchild), integration main() on a small fake repository and 2
-seeded random runs.
+ending its whole scope (entry point or CLI reporter, and a grandchild), integration main() on a small fake repository, 2
+seeded random runs, and the gate: decide() (FIFO by since then pid, running entries' remaining growth, the exact
+RESERVE boundary, free None, ancestors only and nothing else running admitted with their WARNING text, others running
+and short waiting, no queue inside a running ancestor's reservation, a waiter silent over STALE seconds holding no
+place, its beat rewritten at every poll), need_of, recorded (hit, resolved path, zero/negative/malformed peak, miss, malformed or missing
+stats, a path outside the folder), store() defaults, load() (dead pid, reused pid by start time, malformed entries,
+non-list and unreadable files) with stat()/ancestors() on a live child, children()/usage() on a fake /proc and cgroup
+tree (each run-*.scope below once, never the holder's own, else a descendant's RSS), held() (run entry during the block, released
+after a normal exit, an exception and a KeyboardInterrupt while queued (WAIT printed), need <= 0 and the gate off never
+waiting or creating the file, the two WARNINGs, an unusable file warning and running, an OSError after the entry was saved removing it before the block, a deadline passed in the queue: STOP, no entry, False;
+admitted or need 0 past it: True), every tracked script calling ensure() without force
+named as an entry point ensure() caps, mode_of() (--mode first, CP_TEST_MODE and the 'full' default only for an entry
+that reads it), two real processes on one gate
+(B prints WAIT, starts after A's END, then ADMIT), supervise()/ensure() passing need (given, main cap, recorded, 0) and
+the CLI's --need/--mb parsing in either order and with `=`, its validation messages and the need it reserves.
 stress: full with --rounds seeded random runs (default 6) of random suite counts, sleeps, failures, jobs and budgets.
 Oracles: the expected log rebuilt from the suite parameters (RUN lines in rounds x sorted-path order, each suite's known
 text, NOTE before a task whose failed run beside others was rerun, nothing after the first always-failing task, the PASS line); overlaps from a
@@ -22,12 +36,14 @@ Feature map: 96-Local Testing/Docs/00-parallel.md (Feature-to-Test Map).
 """
 import argparse
 import contextlib
+import errno
 import importlib.util
 import io
 import json
 import os
 from pathlib import Path
 import random
+import re
 import shlex
 import shutil
 import signal
@@ -41,13 +57,15 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_cpp_test_runner as CPP
 import _00_memory_cap
+import _00_memory_gate as GATE
 
 _00_memory_cap.ensure()
 
 LT = Path(__file__).resolve().parents[1]
 MODE, SEED, ROUNDS = 'full', 42, 6
 QUICK = {'test_order_identity', 'test_first_failure_status', 'test_retry_alone', 'test_jobs_bound',
-         'test_parallel_budget', 'test_parallel_rerun_alone', 'test_forwarding_restores_handlers'}
+         'test_parallel_budget', 'test_parallel_rerun_alone', 'test_forwarding_restores_handlers', 'test_gate_decide',
+         'test_gate_need_and_recorded', 'test_gate_held'}
 SUITE = r'''import json, os, signal, sys, time
 d, env = os.environ['RT_DIR'], os.environ
 if P.get('deaf'): signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -168,6 +186,11 @@ class Base(unittest.TestCase):
         self.root = Path(tempfile.mkdtemp(prefix='runner-test-'))
         self.f = Fixture(self.root / 'f')
         self.addCleanup(self.clean)
+        # every supervise()/ensure() of a test, in process or below it, queues in the fixture's own memory gate, never the
+        # machine's, and admits whatever memory is free (reserve 0); the Gate tests set their own reserve
+        gate = patch.dict(os.environ, CP_MEMORY_GATE=str(self.root / 'gate.json'), CP_MEMORY_GATE_RESERVE_MB='0')
+        gate.start()
+        self.addCleanup(gate.stop)
 
     def clean(self):
         result = self._outcome.result
@@ -215,7 +238,7 @@ class Runner(Base):
     def test_real_scope(self):
         if not _00_memory_cap.available(): self.skipTest('SKIP: no systemd user scope')
         f = self.f
-        shutil.copy(LT / '_00_memory_cap.py', f.root)
+        for name in ('_00_memory_cap.py', '_00_memory_gate.py'): shutil.copy(LT / name, f.root)
         a, _ = f.add(dict(scope=True, sleep=0.2), dict(scope=True, sleep=0.2))
         code, out, err = f.run('-j', '2')
         self.assertEqual(code, 0, out + err)
@@ -223,7 +246,7 @@ class Runner(Base):
         stats = json.loads((f.root / '.run-stats.json').read_text())
         self.assertTrue(all(v[0] > 0 for v in stats.values()), f'peaks learned from real MEMORY lines: {stats}')
         g = Fixture(self.root / 'g')
-        shutil.copy(LT / '_00_memory_cap.py', g.root)
+        for name in ('_00_memory_cap.py', '_00_memory_gate.py'): shutil.copy(LT / name, g.root)
         for i in range(2): g.suite(f'02-Data Structures/0{i}-s_tester.py', scope=True, sleep=60, cleanup=1)  # quick: no pre-flight
         proc = subprocess.Popen([sys.executable, g.root / '01-run.py', '--mode', 'quick', '--no-integration', '-j', '2'],
                                 env=g.env(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
@@ -914,7 +937,7 @@ else:
         lt = self.root / 'tree/96-Local Testing'
         suite = lt / '02-Data Structures'
         suite.mkdir(parents=True)
-        for name in ('_00_memory_cap.py', '_00_cpp_test_runner.py', '_00_contest_runner.py'):
+        for name in ('_00_memory_cap.py', '_00_memory_gate.py', '_00_cpp_test_runner.py', '_00_contest_runner.py'):
             shutil.copy2(LT / name, lt / name)
         (suite / '01-t_tester.cpp').write_text("""#include <cassert>
 #include <cstdio>
@@ -1204,6 +1227,440 @@ class Forward(Base):
                          'handlers restored')
 
 
+GATE_CHILD = r"""import pathlib, sys, time
+sys.path.insert(0, sys.argv[1])
+import _00_memory_gate as g
+g.MEMINFO, g.POLL = pathlib.Path(sys.argv[2]), 0.05
+d, name = pathlib.Path(sys.argv[3]), sys.argv[4]
+with g.held(int(sys.argv[5]), name, out=sys.stdout):
+    print('START', repr(time.monotonic()), flush=True)
+    (d / f'{name}.started').touch()
+    while not (d / f'{name}.release').exists(): time.sleep(0.02)
+    print('END', repr(time.monotonic()), flush=True)
+"""
+
+
+def start_time(pid):
+    """Field 22 of /proc/<pid>/stat, read by whitespace (the commands used here have no space in their name)."""
+    return int(Path(f'/proc/{pid}/stat').read_text().split()[21])
+
+
+class Gate(Base):
+    """_00_memory_gate.py and its use in _00_memory_cap: hand-computed admissions on fake MemAvailable, fake /proc and
+    cgroup trees, reservation files written here, and two real processes queueing on one gate file."""
+
+    def setUp(self):
+        super().setUp()
+        self.path, self.meminfo = Path(os.environ['CP_MEMORY_GATE']), self.root / 'meminfo'
+        for name, value in (('MEMINFO', self.meminfo), ('RESERVE_MB', 1000), ('POLL', 0.01)):
+            p = patch.object(GATE, name, value)
+            p.start()
+            self.addCleanup(p.stop)
+        self.free(100000)
+
+    def free(self, mb):
+        self.meminfo.write_text(f'MemTotal:       64000000 kB\nMemFree:          1000 kB\nMemAvailable:   {mb << 10} kB\nBuffers: 1 kB\n')
+
+    def foreign(self, need, state='run'):
+        """A reservation of a live process that is no ancestor of this one (a sleep this test owns)."""
+        p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+        self.addCleanup(lambda: (p.kill(), p.wait()))
+        return dict(pid=p.pid, start=start_time(p.pid), need=need, label='other', state=state, since=0.5)
+
+    def test_gate_decide(self):
+        e = lambda pid, since, state='wait', need=0, grow=0: dict(pid=pid, since=since, state=state, need=need, grow=grow)
+        d = lambda free, me, others, mine=(): GATE.decide(free, me, [*others, me], lambda x: x['grow'], set(mine))
+        me = e(10, 5.0, need=500)
+        self.assertEqual(d(10 ** 6, me, [e(20, 4.0)]), (False, ''), 'an older live waiter goes first')
+        self.assertEqual(d(10 ** 6, me, [e(9, 5.0)]), (False, ''), 'a tie goes to the lower pid')
+        self.assertEqual(d(10 ** 6, me, [e(11, 5.0)]), (True, ''), 'a higher pid at the same instant queues behind')
+        self.assertEqual(d(10 ** 6, me, [e(20, 6.0)]), (True, ''), 'a younger waiter never blocks')
+        self.assertEqual(d(10 ** 6, me, [e(20, 4.0, 'run')]), (True, ''), 'an older running entry is no queue')
+        run = [e(30, 1.0, 'run', 4000, 1500), e(31, 2.0, 'run', 3000, 1000)]  # remaining growth 1500 and 1000
+        self.assertEqual(d(5000, e(10, 5.0, need=1500), run), (True, ''), '5000 - 2500 - 1500 = 1000 = RESERVE admits')
+        self.assertEqual(d(4999, e(10, 5.0, need=1500), run), (False, ''), 'one MB less free waits')
+        self.assertEqual(d(5000, e(10, 5.0, need=1501), run), (False, ''), 'one MB more needed waits')
+        self.assertEqual(d(4000, e(10, 5.0, need=3000), [e(30, 1.0, 'run', 4000, 0)]), (True, ''),
+                         'a running entry counts its remaining growth, not its need: 4000 - 0 - 3000 = 1000')
+        self.assertEqual(d(1500, me, [e(20, 6.0, 'wait', 10 ** 6, 10 ** 6)]), (True, ''), "a waiter's growth never counts")
+        self.assertEqual(d(None, me, run), (True, ''), 'no /proc/meminfo admits')
+        self.assertEqual(d(100, me, run, mine={30, 31, 1}), (True, '100 MB available, 500 MB needed and 1000 MB kept free; '
+                                                              '2 ancestor run(s) hold reservations, so it runs now'))
+        alone = (True, '100 MB available, 500 MB needed and 1000 MB kept free; no other gated run is running, so it runs now')
+        self.assertEqual(d(100, me, []), alone)
+        self.assertEqual(d(100, me, [e(20, 6.0, need=10 ** 6)]), alone, 'only a younger waiter')
+        self.assertEqual(d(100, me, run), (False, ''), 'others run and memory is short')
+        self.assertEqual(d(100, me, run, mine={30}), (False, ''), 'one running entry is no ancestor')
+        self.assertEqual(d(100, me, [e(20, 4.0)], mine={20}), (False, ''), 'the queue comes before the warnings')
+        nested = [e(20, 4.0), e(30, 1.0, 'run')]  # 20 may wait for the very reservation 30 holds for me's run
+        self.assertEqual(d(10 ** 6, me, nested, mine={30}), (True, ''), 'inside a running ancestor reservation: no queue')
+        self.assertEqual(d(10 ** 6, me, nested), (False, ''), 'beside a foreign one: the queue holds')
+        self.assertEqual(d(10 ** 6, me, [e(20, 4.0)], mine={20}), (False, ''), 'a waiting ancestor does not lift the queue')
+        beat = dict(me, beat=100.0)
+        self.assertEqual(d(10 ** 6, beat, [dict(e(20, 4.0), beat=70.0)]), (False, ''), 'a waiter that polled STALE = 30 s ago keeps its place')
+        self.assertEqual(d(10 ** 6, beat, [dict(e(20, 4.0), beat=69.9)]), (True, ''), 'one silent for longer (stopped, hung) holds none')
+        self.assertEqual(d(10 ** 6, beat, [e(20, 4.0)]), (True, ''), 'without a beat, its arrival counts as its last poll')
+
+    def test_gate_need_and_recorded(self):
+        self.assertEqual([GATE.need_of(p, 4096) for p in (0, 1, 9, 10, 1000)], [4096, 65, 73, 75, 1164])
+        lt = self.root.resolve() / 'lt'
+        main = lt / '00-Tools/x_tester.py'
+        main.parent.mkdir(parents=True)
+        main.write_text('')
+        stats = lt / '.run-stats.json'
+        with patch.object(GATE, 'STATS', stats):
+            self.assertEqual(GATE.recorded('full', main, 300), 300, 'no stats file')
+            stats.write_text(json.dumps({'full 00-Tools/x_tester.py': [1000, 2.5], 'quick 00-Tools/x_tester.py': [0, 1.0],
+                                         'stress 00-Tools/x_tester.py': [-4, 1.0], 'full 00-Tools/y_tester.py': [], 'quick 00-Tools/y_tester.py': 'x',
+                                         'stress 00-Tools/y_tester.py': ['12', 1]}))
+            self.assertEqual(GATE.recorded('full', main, 300), 1164, 'hit: 11/10 of 1000 plus 64')
+            self.assertEqual(GATE.recorded('full', lt / '00-Tools/../00-Tools/x_tester.py', 300), 1164, 'the resolved path')
+            for mode, m in (('quick', main), ('stress', main), (None, main), ('full', lt / 'x_tester.py'), ('full', lt / '00-Tools/y_tester.py'),
+                            ('quick', lt / '00-Tools/y_tester.py'), ('stress', lt / '00-Tools/y_tester.py'), ('full', self.root / 'x_tester.py')):
+                self.assertEqual(GATE.recorded(mode, m, 300), 300, f'{mode} {m}: zero, negative or malformed peak, miss, or outside the folder')
+            for text in ('not json', '[1, 2]', '"x"', '{"full 00-Tools/x_tester.py": 5}'):
+                stats.write_text(text)
+                self.assertEqual(GATE.recorded('full', main, 300), 300, text)
+
+    def test_gate_store(self):
+        for gate, xdg, want in (('0', '/x', None), ('/a/b.json', '/x', Path('/a/b.json')), ('', '/x', Path('/x/cp-memory-gate.json')),
+                                (None, '/x', Path('/x/cp-memory-gate.json')), (None, None, Path(tempfile.gettempdir()) / 'cp-memory-gate.json')):
+            with patch.dict(os.environ):
+                for k, v in (('CP_MEMORY_GATE', gate), ('XDG_RUNTIME_DIR', xdg)):
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+                self.assertEqual(GATE.store(), want, (gate, xdg))
+
+    def test_gate_load_and_stat(self):
+        me = dict(pid=os.getpid(), start=start_time(os.getpid()), need=5, label='x', state='run', since=1.5)
+        waiting = dict(me, state='wait', since=2)
+        dead = subprocess.Popen([sys.executable, '-c', ''])
+        dead.wait()
+        self.assertIsNone(GATE.stat(dead.pid), 'a reaped pid')
+        kid = self.foreign(1)
+        self.assertEqual(GATE.stat(kid['pid']), (os.getpid(), kid['start']))
+        self.assertTrue({os.getpid(), os.getppid()} <= GATE.ancestors(kid['pid']) and kid['pid'] not in GATE.ancestors(kid['pid']))
+        bad = [dict(me, pid=dead.pid), dict(me, start=me['start'] + 1), dict(me, need='5'), dict(me, state='done'), dict(me, since='1'),
+               {k: v for k, v in me.items() if k != 'start'}, dict(me, pid=float(os.getpid())), 5, None, [1], dict(me, beat='x'), dict(me, beat=None)]
+        self.path.write_text(json.dumps([bad[0], me, *bad[1:5], waiting, *bad[5:]]))
+        self.assertEqual(GATE.load(self.path), [me, waiting], 'dead, reused (start mismatch) and malformed entries dropped')
+        for text in ('{"pid": 1}', '"x"', 'not json', '', '5'):
+            self.path.write_text(text)
+            self.assertEqual(GATE.load(self.path), [], text)
+        self.path.unlink()
+        self.assertEqual(GATE.load(self.path), [], 'no file')
+
+    def test_gate_usage(self):
+        proc, cg, page = self.root / 'proc', self.root / 'cgroup', os.sysconf('SC_PAGE_SIZE')
+        scope = 'user.slice/user-1000.slice/user@1000.service/app.slice'
+
+        def task(pid, ppid, group='user.slice/session-3.scope', mb=0):
+            d = proc / str(pid)
+            d.mkdir(parents=True)
+            (d / 'stat').write_text(f'{pid} (a) b) S {ppid} ' + '0 ' * 17 + '77 0 0\n')  # a name holding ') ', parsed from the last ')'
+            (d / 'statm').write_text(f'9999 {(mb << 20) // page} 0 0 0 0 0\n')
+            (d / 'cgroup').write_text(f'0::/{group}\n')
+
+        def current(name, mb):
+            (cg / scope / name).mkdir(parents=True)
+            (cg / scope / name / 'memory.current').write_text(f'{(mb << 20) + 12345}\n')
+        for pid in (100, 200, 300, 400):
+            task(pid, 1)
+        task(101, 100, f'{scope}/run-a.scope', 999)
+        task(102, 100, f'{scope}/run-b.scope', 999)
+        task(103, 100, mb=999)  # beside scopes: its RSS counts
+        current('run-a.scope', 300)
+        current('run-b.scope', 200)
+        task(201, 200, mb=10)
+        task(202, 201, mb=20)
+        task(203, 202, f'{scope}/run-z.scope', 5)  # a scope below a child: the tree's RSS still counts it
+        current('run-z.scope', 4000)
+        task(301, 300, f'{scope}/run-c.scope', 7)  # a run scope without memory.current
+        task(302, 300, f'{scope}/not-run-d.scope', 8)
+        current('not-run-d.scope', 4000)
+        # a reservation held inside its own scope (04-mutation.py's campaign): that scope is the holder's, never counted; each
+        # test scope below it counts once, however many of its processes the walk meets
+        task(500, 1, f'{scope}/run-own.scope')
+        current('run-own.scope', 9999)
+        task(501, 500, f'{scope}/run-own.scope', 50)
+        task(502, 501, f'{scope}/run-t.scope', 1)
+        task(503, 502, f'{scope}/run-t.scope', 1)
+        task(504, 501, f'{scope}/run-t.scope', 1)
+        current('run-t.scope', 300)
+        task(505, 500, f'{scope}/run-u.scope', 1)
+        current('run-u.scope', 70)
+        (proc / 'self').mkdir()
+        (proc / 'meminfo').write_text('x')
+        with patch.object(GATE, 'PROC', proc), patch.object(GATE, 'CGROUP', cg):
+            tree = GATE.children()
+            self.assertEqual({k: sorted(v) for k, v in tree.items()}, {1: [100, 200, 300, 400, 500], 100: [101, 102, 103], 200: [201], 201: [202],
+                                                                      202: [203], 300: [301, 302], 500: [501, 505], 501: [502, 504], 502: [503]})
+            self.assertEqual([GATE.usage(p, tree) for p in (100, 200, 300, 400, 999, 500)], [300 + 200 + 999, 10 + 20 + 4000, 7 + 8, 0, 0, 50 + 300 + 70],
+                             "each run scope below once (not the holder's own), else a descendant's RSS")
+
+    def test_gate_held(self):
+        out = io.StringIO()
+        with GATE.held(100, 'lbl', out=out):
+            inside = json.loads(self.path.read_text())
+        self.assertEqual(inside, [dict(pid=os.getpid(), start=start_time(os.getpid()), need=100, label='lbl', state='run', since=inside[0]['since'],
+                                       beat=inside[0]['beat'])])
+        self.assertTrue(abs(inside[0]['since'] - time.time()) < 60 and inside[0]['since'] <= inside[0]['beat'] <= time.time())
+        self.assertEqual((json.loads(self.path.read_text()), out.getvalue()), ([], ''), 'released after a normal exit, silently')
+        with self.assertRaises(ZeroDivisionError), GATE.held(100, 'lbl', out=out):
+            self.assertEqual(len(GATE.load(self.path)), 1)
+            1 / 0
+        self.assertEqual(json.loads(self.path.read_text()), [], 'released after an exception')
+        for x in self.root.glob('gate.json*'): x.unlink()
+        for need, where in ((0, self.path), (-3, self.path), (100, '0')):
+            ran = []
+            with patch.dict(os.environ, CP_MEMORY_GATE=str(where)), patch.object(GATE, 'wait', side_effect=AssertionError('waited')), \
+                    GATE.held(need, 'lbl', out=out):
+                ran.append(1)
+            self.assertEqual(ran, [1], (need, where))
+        self.assertEqual(([x.name for x in self.root.glob('gate.json*')], out.getvalue()), ([], ''), 'need <= 0 or the gate off: no file, no output')
+
+    def test_gate_held_warnings(self):
+        self.free(500)
+        out = io.StringIO()
+        with GATE.held(100, 'lbl', out=out):
+            pass
+        self.assertEqual(out.getvalue(), 'WARNING lbl: memory gate: 500 MB available, 100 MB needed and 1000 MB kept free; no other gated '
+                                         'run is running, so it runs now\n')
+        parent = dict(pid=os.getppid(), start=start_time(os.getppid()), need=10 ** 6, label='parent', state='run', since=0.25)
+        self.path.write_text(json.dumps([parent]))
+        out = io.StringIO()
+        with GATE.held(100, 'lbl', out=out):
+            self.assertEqual([e['state'] for e in GATE.load(self.path)], ['run', 'run'])
+        self.assertEqual(out.getvalue(), 'WARNING lbl: memory gate: 500 MB available, 100 MB needed and 1000 MB kept free; 1 ancestor run(s) '
+                                         'hold reservations, so it runs now\n')
+        self.assertEqual(GATE.load(self.path), [parent], "only its own entry released")
+
+    def test_gate_held_growth(self):
+        """held() through the real wait(): a running reservation holds back only its need less what its run uses now
+        (5000 free, 1000 kept, need 3000 beside a foreign run of need 3000): using 2500 leaves 5000 - 500 - 3000 = 1500, so it
+        starts; using 1500 leaves 500, so it queues (the poll's sleep stops the test)."""
+        self.free(5000)
+        other = self.foreign(3000)
+        self.path.write_text(json.dumps([other]))
+        stop = type('Stop', (Exception,), {})
+        clock = type('Clock', (), {'time': staticmethod(time.time), 'monotonic': staticmethod(time.monotonic),
+                                   'sleep': staticmethod(lambda s: (_ for _ in ()).throw(stop()))})
+        for used, starts in ((2500, True), (1500, False)):
+            out, ran = io.StringIO(), []
+            with patch.object(GATE, 'usage', lambda pid, tree, used=used: used if pid == other['pid'] else 0), patch.object(GATE, 'time', clock):
+                try:
+                    with GATE.held(3000, 'lbl', out=out):
+                        ran.append(1)
+                except stop:
+                    pass
+            self.assertEqual((ran, out.getvalue()), ([1], '') if starts else
+                             ([], 'WAIT lbl: needs 3000 MB beside the running gated runs (_00_memory_gate.py); queued\n'), used)
+            self.assertEqual(GATE.load(self.path), [other], used)
+
+    def test_gate_beat_refreshed(self):
+        """A queued waiter rewrites its beat with the clock at every poll while its since stays, so a waiter queued for longer
+        than STALE keeps its place (a stepped clock, 31 s per reading; the third poll's sleep stops the test)."""
+        self.free(500)
+        other = self.foreign(10 ** 6)
+        self.path.write_text(json.dumps([other]))
+        stop, now, seen = type('Stop', (Exception,), {}), [1000.0], []
+
+        def tick():
+            now[0] += 31
+            return now[0]
+
+        def sleep(s):
+            seen.append(next((e['since'], e['beat'], e['state']) for e in GATE.load(self.path) if e['pid'] == os.getpid()))
+            if len(seen) == 3:
+                raise stop()
+        clock = type('Clock', (), {'time': staticmethod(tick), 'monotonic': staticmethod(time.monotonic), 'sleep': staticmethod(sleep)})
+        with patch.object(GATE, 'time', clock), self.assertRaises(stop), GATE.held(100, 'lbl', out=io.StringIO()):
+            pass
+        self.assertEqual(seen, [(1031.0, 1062.0, 'wait'), (1031.0, 1093.0, 'wait'), (1031.0, 1124.0, 'wait')])
+        self.assertEqual(GATE.load(self.path), [other])
+
+    def test_gate_deadline(self):
+        """held(until=...) beside a foreign run no memory covers: past the deadline it prints WAIT then STOP, removes its
+        entry before the block and yields False; admitted, or with the gate off, it yields True."""
+        self.free(500)
+        other = self.foreign(10 ** 6)
+        self.path.write_text(json.dumps([other]))
+        out, polls, stop = io.StringIO(), [], type('Stop', (Exception,), {})
+
+        def sleep(s):  # bounded: a wait that ignored its deadline would poll for ever
+            polls.append(s)
+            if len(polls) > 200:
+                raise stop()
+            time.sleep(s)
+        clock = type('Clock', (), {'time': staticmethod(time.time), 'monotonic': staticmethod(time.monotonic), 'sleep': staticmethod(sleep)})
+        with patch.object(GATE, 'time', clock), GATE.held(100, 'lbl', out=out, until=time.monotonic() + 0.05) as ok:
+            inside = GATE.load(self.path)
+        self.assertEqual((ok, inside, GATE.load(self.path)), (False, [other], [other]))
+        self.assertEqual(out.getvalue(), 'WAIT lbl: needs 100 MB beside the running gated runs (_00_memory_gate.py); queued\n'
+                                         'STOP lbl: its deadline passed in the memory queue\n')
+        self.path.write_text('[]')
+        self.free(100000)
+        for need, until in ((100, time.monotonic() + 600), (100, time.monotonic() - 1), (0, time.monotonic() - 1)):
+            with GATE.held(need, 'lbl', out=io.StringIO(), until=until) as ok:
+                self.assertTrue(ok, (need, until))
+
+    def test_gate_interrupt_while_queued(self):
+        """Ctrl-C during the queue's poll: KeyboardInterrupt propagates and the waiting entry is gone, so a live process that
+        handles it blocks no later waiter."""
+        self.free(500)
+        other = self.foreign(10 ** 6)
+        self.path.write_text(json.dumps([other]))
+        clock = type('Clock', (), {'time': staticmethod(time.time), 'monotonic': staticmethod(time.monotonic),
+                                   'sleep': staticmethod(lambda s: (_ for _ in ()).throw(KeyboardInterrupt))})
+        out, ran = io.StringIO(), []
+        with patch.object(GATE, 'time', clock), self.assertRaises(KeyboardInterrupt), GATE.held(100, 'lbl', out=out):
+            ran.append(1)
+        self.assertEqual((ran, out.getvalue()), ([], 'WAIT lbl: needs 100 MB beside the running gated runs (_00_memory_gate.py); queued\n'))
+        self.assertEqual(GATE.load(self.path), [other], 'the queued entry is removed; the other one stays')
+
+    def test_gate_unusable_file(self):
+        (self.root / 'file').write_text('')
+        cases = [(self.root / 'file/gate.json', 'File exists')]
+        if os.geteuid():
+            ro = self.root / 'ro'
+            ro.mkdir(mode=0o500)
+            self.addCleanup(ro.chmod, 0o700)
+            cases.append((ro / 'gate.json', 'Permission denied'))
+        for where, why in cases:
+            out, ran = io.StringIO(), []
+            with patch.dict(os.environ, CP_MEMORY_GATE=str(where)), GATE.held(100, 'lbl', out=out):
+                ran.append(1)
+            self.assertEqual((ran, out.getvalue()), ([1], f'WARNING lbl: memory gate unavailable ({why}); running without it\n'), where)
+
+    def test_gate_error_after_save(self):
+        """An OSError after wait() saved the queued entry (a full disk, a lost lock file): the run goes ahead with a WARNING
+        and its entry is removed before the block runs, so it never blocks a later waiter."""
+        other = self.foreign(10)
+
+        def wait(path, me, label, out, until=None):
+            GATE.save(path, [other, me])
+            raise OSError(errno.EIO, 'Input/output error')
+        out, inside = io.StringIO(), []
+        with patch.object(GATE, 'wait', wait), GATE.held(100, 'lbl', out=out):
+            inside.append(GATE.load(self.path))
+        self.assertEqual((inside, out.getvalue()), ([[other]], 'WARNING lbl: memory gate unavailable (Input/output error); running without it\n'))
+        self.assertEqual(GATE.load(self.path), [other])
+
+    def test_mode_of(self):
+        """An explicit --mode wins; CP_TEST_MODE and the default 'full' apply only to an entry that reads CP_TEST_MODE, so an
+        exported mode starts no pre-flight for one that ignores it (06-compare.py under CP_TEST_MODE=full)."""
+        for env, argv, honours, want in ((None, [], True, ('full', 'env')), (None, [], False, (None, 'env')),
+                                         ('quick', [], True, ('quick', 'env')), ('full', [], False, (None, 'env')),
+                                         ('full', ['--mode', 'stress'], False, ('stress', 'argv')), ('full', ['--mode=quick'], True, ('quick', 'argv')),
+                                         ('quick', ['run', 'x', '--mode'], True, ('quick', 'env'))):
+            with patch.dict(os.environ):
+                os.environ.pop('CP_TEST_MODE', None)
+                if env:
+                    os.environ['CP_TEST_MODE'] = env
+                self.assertEqual(_00_memory_cap.mode_of(argv, honours), want, (env, argv, honours))
+
+    def test_gate_entry_names(self):
+        """Every tracked script under 96-Local Testing that calls ensure() without force=True has a name ensure() caps (a
+        tester or benchmark suffix, or ENTRY_NAMES): otherwise the call returns uncapped and ungated, as 06-compare.py's did
+        until SUP33. Shared runners (a leading `_`) are imported by testers, whose names count; a call is a statement of its own
+        line (03-consistency.py names the call inside a string)."""
+        files = subprocess.run(['git', 'ls-files', '-z', '--', '*.py'], cwd=LT, capture_output=True, text=True, check=True).stdout.split('\0')
+        callers = [LT / f for f in files if f and not Path(f).name.startswith('_') and (LT / f).is_file()
+                   and any('force=True' not in c for c in re.findall(r'^[ \t]*_00_memory_cap\.ensure\(([^)]*)\)', (LT / f).read_text(errors='replace'), re.M))]
+        self.assertIn(LT / '06-compare.py', callers, 'the case that motivated this test is found')
+        self.assertEqual([p for p in callers if not (p.name.endswith(_00_memory_cap.ENTRY_SUFFIXES) or p.name in _00_memory_cap.ENTRY_NAMES)], [])
+
+    def test_gate_two_processes(self):
+        """A is admitted (2000 - 900 >= 1000); B (2000 - 900 - 900 < 1000 beside A) prints WAIT, starts only after A released its
+        reservation, then prints ADMIT."""
+        self.meminfo.write_text(f'MemAvailable:   {2000 << 10} kB\n')
+        env = dict(os.environ, CP_MEMORY_GATE_RESERVE_MB='1000')
+        procs = {}
+
+        def start(name):
+            with open(self.root / f'{name}.out', 'w') as out:
+                procs[name] = p = subprocess.Popen([sys.executable, '-c', GATE_CHILD, str(LT), str(self.meminfo), str(self.root), name, '900'],
+                                                   env=env, stdout=out, stderr=subprocess.STDOUT)
+            self.addCleanup(lambda: p.poll() is None and (p.kill(), p.wait()))
+
+        def until(cond, what):
+            deadline = time.monotonic() + 30
+            while not cond() and time.monotonic() < deadline: time.sleep(0.02)
+            self.assertTrue(cond(), f"{what}: a {(self.root / 'a.out').read_text()!r} b {(self.root / 'b.out').read_text() if 'b' in procs else ''!r}")
+        start('a')
+        until((self.root / 'a.started').exists, 'A admitted')
+        start('b')
+        until(lambda: 'WAIT' in (self.root / 'b.out').read_text(), 'B queued')
+        time.sleep(0.5)  # ten polls of B
+        self.assertFalse((self.root / 'b.started').exists(), 'B runs beside A')
+        self.assertEqual(sorted((e['label'], e['state'], e['need']) for e in GATE.load(self.path)), [('a', 'run', 900), ('b', 'wait', 900)])
+        (self.root / 'b.release').touch()
+        (self.root / 'a.release').touch()
+        self.assertEqual([procs[n].wait(30) for n in 'ab'], [0, 0])
+        a, b = ((self.root / f'{n}.out').read_text().splitlines() for n in 'ab')
+        self.assertEqual([x.split()[0] for x in a], ['START', 'END'], a)
+        self.assertEqual(b[0], 'WAIT b: needs 900 MB beside the running gated runs (_00_memory_gate.py); queued', b)
+        self.assertRegex(b[1], r'^ADMIT b: after \d+ s in the memory queue$')
+        self.assertEqual([x.split()[0] for x in b[2:]], ['START', 'END'], b)
+        self.assertLess(float(a[1].split()[1]), float(b[2].split()[1]), 'B started after A ended')
+        self.assertEqual(json.loads(self.path.read_text()), [], 'both released')
+
+    def test_gate_supervise_and_ensure_need(self):
+        seen = []
+
+        def capped_run(command, mode, source, label):
+            seen.append((label, [(e['need'], e['state'], e['label']) for e in GATE.load(self.path)]))
+            return 5
+        with patch.object(_00_memory_cap, 'capped_run', capped_run), patch.object(_00_memory_cap, 'MAIN_MB', 300):
+            codes = [_00_memory_cap.supervise(['x', 'y'], None, 'env', 'a', need=77), _00_memory_cap.supervise(['x', 'y'], None, 'env', 'b'),
+                     _00_memory_cap.supervise(['x', 'y'], None, 'env', 'c', need=0)]
+        self.assertEqual((codes, seen), ([5, 5, 5], [('a', [(77, 'run', 'a')]), ('b', [(300, 'run', 'b')]), ('c', [])]),
+                         'need passed through, the main cap by default, 0 ungated')
+        lt = self.root.resolve() / 'lt'
+        main = lt / '00-Tools/x_tester.py'
+        main.parent.mkdir(parents=True)
+        main.write_text("os.environ.get('CP_TEST_MODE')\n")
+        (lt / '.run-stats.json').write_text(json.dumps({'full 00-Tools/x_tester.py': [1000, 2.0]}))
+        calls = []
+        with patch.dict(os.environ), patch.object(sys.modules['__main__'], '__file__', str(main)), \
+                patch.object(GATE, 'STATS', lt / '.run-stats.json'), patch.object(_00_memory_cap, 'MAIN_MB', 300), \
+                patch.object(_00_memory_cap, 'supervise', lambda *a: calls.append(a) or 3):
+            os.environ.pop('CP_MEMORY_CAPPED', None)
+            for argv, need in ((['--mode', 'full'], None), (['--mode', 'quick'], None), (['--mode', 'full'], 0), (['--mode', 'full'], 55)):
+                with patch.object(sys, 'argv', [str(main), *argv]), self.assertRaises(SystemExit) as stop:
+                    _00_memory_cap.ensure(need=need)
+                self.assertEqual(stop.exception.code, 3)
+        self.assertEqual(calls, [([sys.executable, str(main), '--mode', m], m, 'argv', 'x_tester.py', n)
+                                 for m, n in (('full', 1164), ('quick', 300), ('full', 0), ('full', 55))],
+                         'the recorded need (11/10 of 1000 plus 64), the cap when unrecorded, or the given one')
+
+    def test_gate_cli_need(self):
+        usage = 'usage: _00_memory_cap.py [--mb N] [--need N] -- <command> [args...]'
+        bad = usage + '\n--mb needs an integer of at least 16, --need a nonnegative integer'
+        env = {k: v for k, v in os.environ.items() if k not in ('CP_MEMORY_CAPPED', 'CP_TEST_MEMORY_MB')}
+        cli = lambda *args, **extra: subprocess.run([sys.executable, LT / '_00_memory_cap.py', *args], capture_output=True, text=True,
+                                                    timeout=60, env=dict(env, **extra))
+        for args in (['--need'], ['--need', '-1', '--', 'true'], ['--need=x', '--', 'true'], ['--need=', '--', 'true'],
+                     ['--mb', '64', '--need', '1.5', '--', 'true'], ['--need', '5', '--mb', '15', '--', 'true'], ['--mb=8', '--need=1', '--', 'true']):
+            r = cli(*args)
+            self.assertEqual((r.returncode, r.stderr.strip(), r.stdout), (1, bad, ''), args)
+        r = cli('--need', '5', '--mb', '64')
+        self.assertEqual((r.returncode, r.stderr.strip()), (1, usage), 'no command')
+        probe = [sys.executable, '-c', 'import json, os; p = os.environ["CP_MEMORY_GATE"]; '
+                 'print(json.dumps([[e["need"], e["state"], e["label"]] for e in json.load(open(p))]) if os.path.exists(p) else "absent")']
+        me = Path(sys.executable).name
+        for k, (args, want) in enumerate(((['--need', '7', '--mb', '64', '--'], [[7, 'run', me]]), (['--mb=64', '--need=12', '--'], [[12, 'run', me]]),
+                                          (['--mb', '64', '--'], [[64, 'run', me]]), (['--need=9'], [[9, 'run', me]]),
+                                          (['--mb', '64', '--need', '0', '--'], 'absent'))):
+            gate = self.root / f'cli{k}.json'
+            r = cli(*args, *probe, CP_MEMORY_GATE=str(gate))
+            self.assertEqual((r.returncode, r.stdout.splitlines()[:1]), (0, [json.dumps(want) if want != 'absent' else want]), f'{args}: {r.stderr}')
+            if want != 'absent':
+                self.assertEqual(json.loads(gate.read_text()), [], 'released')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--mode', choices=('quick', 'full', 'stress'), default=os.environ.get('CP_TEST_MODE', 'full'))
@@ -1212,7 +1669,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     MODE, SEED, ROUNDS = args.mode, args.seed, args.rounds
     suite = unittest.TestSuite()
-    for case in (Runner, Integration, Build, Forward):
+    for case in (Runner, Integration, Build, Forward, Gate):
         suite.addTests(case(n) for n in unittest.defaultTestLoader.getTestCaseNames(case) if MODE != 'quick' or n in QUICK)
     print(f"runner checks: mode={MODE} seed={SEED} rounds={ROUNDS if MODE == 'stress' else '-'} tests={suite.countTestCases()}",
           flush=True)

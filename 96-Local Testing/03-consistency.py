@@ -360,14 +360,15 @@ for n, rows in sorted(name_rows.items()):
         name_collisions.append(f'{n}: ' + ', '.join(sorted(rows)))
 
 # An operation whose default form extracts a Core full header records `full-only until` (03-cpp.md, Core type
-# parameters); checked from the cached grab index only, since building it takes minutes (05-extraction.py builds it).
+# parameters); checked from the cached grab index only, since building it takes minutes (05-extraction.py builds it), and
+# its result reused while its inputs are unchanged (git-ignored .extraction-cache.json; half the validator's run, SUP33).
 ix = extraction.grab.Index(ROOT, quiet=True, build=False)
 if ix.ci is None:
     counts['full_only_check'] = 'SKIP: no libclang'
 else:
     found = [(t, inventories[t][-2]) for t in inventories if re.match(r'0[2-7]-', t) and t.endswith('.hpp') and (ROOT / t).is_file()]
     fresh = [(t, c) for t, c in found if not ix.closures.get(t, {t}) & set(ix.stale)]  # rows whose include closure is indexed
-    for header, op, reached in extraction.full_only(ix, fresh, core_full):
+    for header, op, reached in extraction.full_only_cached(ix, fresh, core_full, ROOT / '96-Local Testing/.extraction-cache.json'):
         mini_first(header, f'Default form extracts a Core full header without a `full-only until` record: {header}: {op} ({", ".join(reached)})')
     counts['full_only_check'] = 'checked' if len(fresh) == len(found) else \
         f'checked {len(fresh)} of {len(found)} rows; {len(found) - len(fresh)} wait for unindexed headers (run 09-Contest Testing/10-grab.py once)'
@@ -549,6 +550,19 @@ errors.extend(sweep_faults)
 for target, named in sweep_named.items():
     lacking = sorted(operation_names(inventories[target][-2]) - named)
     require(not lacking, f'Optimization Candidates table lacks operations of its row (05-testing.md, Benchmarks): {target}: ' + ', '.join(lacking))
+# After a compaction Claude Code re-attaches each invoked skill's first 5,000 tokens, its `!` output included (SUP33): a skill
+# that prints facts leaves them at least MIN_FACTS characters, any other fits whole with a tenth to spare.
+# gaps.py's constants are read as literals, never executed: merge_pr.py's HOST_RUN names what the validator runs.
+consts = {t.id: ast.literal_eval(n.value) for n in ast.parse((ROOT / '.claude/skills/finish/gaps.py').read_text()).body
+          if isinstance(n, ast.Assign) for t in n.targets if isinstance(t, ast.Name) and t.id in ('REATTACH_TOKENS', 'CHARS_PER_TOKEN', 'MIN_FACTS')}
+reattach, min_facts = int(consts['REATTACH_TOKENS'] * consts['CHARS_PER_TOKEN']), consts['MIN_FACTS']
+skill_reattach = []
+for skill in sorted((ROOT / '.claude/skills').glob('*/SKILL.md')):
+    text, rel = skill.read_text(), skill.relative_to(ROOT)
+    if re.search(r'^!`', text, re.M) and (room := reattach - len(text)) < min_facts:
+        skill_reattach.append(f'{rel}: leaves {room} characters of the {reattach} re-attached for the facts it prints (at least {min_facts})')
+    elif not re.search(r'^!`', text, re.M) and len(text) > 0.9 * reattach:
+        skill_reattach.append(f'{rel}: {len(text)} characters, near the {reattach} re-attached after a compaction')
 # LICENSE is the CC0-1.0 legal code verbatim (creativecommons.org legalcode.txt, identical in SPDX).
 require(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest() == 'a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499',
         'LICENSE differs from the CC0-1.0 legal code')
@@ -559,5 +573,5 @@ for path in tracked:
     if path and not path.startswith(('OLD/', '95-Resources/')) and p.is_file() and b'\0' not in (data := p.read_bytes()):
         require(not re.search(rb'/home/\w[\w.-]*/', data), 'Absolute home path in ' + path)
 
-print(json.dumps({'optimization_sweep_pending': sweep_pending, 'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'mini_first_pending': mini_first_pending, 'name_collisions': name_collisions, 'unsourced_rows': unsourced_rows, 'errors': errors}, indent=2))
+print(json.dumps({'optimization_sweep_pending': sweep_pending, 'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'mini_first_pending': mini_first_pending, 'name_collisions': name_collisions, 'unsourced_rows': unsourced_rows, 'skill_reattach': skill_reattach, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))

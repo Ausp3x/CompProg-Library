@@ -6,7 +6,7 @@ GIT_CONFIG_SYSTEM at /dev/null in temporary repositories (initial commit on mast
 built here (its source build runs FAKE_CARGO), and fake executables (`#!/bin/sh` scripts or `#!<this python>` scripts) sit in a per-test bin directory
 that is the whole PATH (plus a `git` symlink), or comes first on it where a test needs systemd-run. Every test sets
 CP_MUTATION_LOCK to its own temporary path, so concurrent seeds and a real campaign holding the machine lock never
-block it. Tests needing another repository root patch the loaded module's ROOT; subprocess tests run DRIVER.
+block it, and CP_MEMORY_GATE to its own gate file with reserve 0, so no capped run waits on the machine's gate. Tests needing another repository root patch the loaded module's ROOT; subprocess tests run DRIVER.
 quick: every unit and fake case (blob, current, evidence, record/recorded, stale, library_path, changed, changed_lines,
 scope, install, mewt_version, stage and outcomes with a fake mewt, interrupt, unchanged, memory helpers, stop, the
 check/run/install CLI with fake mewts, the workdir and machine locks, and whole campaigns against FAKE_CAMPAIGN, a
@@ -62,8 +62,8 @@ stage (ids files, argv, cwd, own session, logs, empty shards, every shard concur
 with log tail), outcomes (latest outcome over shards by time, fractions of varying length, unparsable time) and
 interrupt (SIGKILL after the grace period) -> test_stage_*, test_outcomes_latest, test_interrupt_kill;
 unchanged (identical shards, a mutated shard named) -> test_unchanged_*;
-tester_cap/capped/available_mb (ensure(mb=...) or the default, the per-test scope command, MemAvailable) ->
-test_memory_helpers; ccache_dir (under XDG_CACHE_HOME, else ~/.cache; one directory per workdir path, named by it;
+tester_cap/capped/available_mb (ensure(mb=...) or the default, the per-test scope command, --need before `--` only
+when a need is given, 0 included, MemAvailable) -> test_memory_helpers; ccache_dir (under XDG_CACHE_HOME, else ~/.cache; one directory per workdir path, named by it;
 those of deleted workdirs and of empty or relative owner files removed, live ones, foreign directories and a workdir
 file that is a directory kept, an unreadable owner file passed by, an unusable XDG_CACHE_HOME a Failure) -> test_ccache_dir;
 stop (a real SIGTERM or SIGHUP raises KeyboardInterrupt once, then both are ignored) -> test_stop_handler; campaign
@@ -81,11 +81,16 @@ measured() interrupted (SIGTERM or SIGHUP inside a cap, SIGTERM to the top-level
 baseline: exit 130, one INTERRUPTED line, no stage started, no process left in the workdir, the capped tester, its
 supervisor and reporter included; fails against the former subprocess.run probe) -> test_fake_baseline_signal;
 CP_TEST_PREFLIGHT=0 (CP_TEST_MODE=full under the real supervisor: one MUTATION line, one workdir, no PREFLIGHT;
-the negative control shows two and a PREFLIGHT line) -> test_fake_no_preflight;
+the negative control shows two and a PREFLIGHT line) and the campaign wrapper ungated (ensure(need=0): it finishes
+without a WAIT beside a live reservation no memory covers) -> test_fake_no_preflight;
 stage parameters (timeout max(60, ceil(3 x baseline)) and --timeout, cap min(own, max(1024, 3 x peak)) with the
 floor, 3 x peak, the tester's own ensure(mb=...) cap and an own cap below the floor, fewer shards than --jobs by
---memory-mb // cap and at least one, baselines under the own cap, every test and baseline through the campaign's own
-ccache directory; from the stage lines and the fake's argv) -> test_fake_stage_parameters;
+--memory-mb // cap and at least one, baselines under the own cap with --need 0 inside an in-process reservation of
+that cap, each mutant test with --need 0 inside its stage's one reservation of width x min(cap, 11/10 x the largest
+MEMORY peak of the baseline's scope + 64; the cap without one or at 0), every test and baseline through the campaign's own ccache
+directory; from the stage lines and the fake's argv) -> test_fake_stage_parameters; the reservation of every stage part,
+alone passes included, under its own label -> test_fake_timeouts_alone; a budget running out in the memory queue at a
+baseline or a stage (exit 3, no test, the stage named) -> test_fake_gate_deadline;
 --sample (whole file: a seeded sample of N of more than N candidates, half high, three tenths medium, the rest low,
 within --severity, with candidates/selected/strata in campaign.json and `sample of <candidates>: a high, b medium,
 c low` in the Record; 0 or at least the candidates: all and no sample wording; No record names stage quick on a stop
@@ -375,6 +380,7 @@ while time.monotonic() < end:
 # runs 04-mutation.py's main in a subprocess with ROOT patched to a temporary repository; DRIVER_KEEP_PREFLIGHT is the
 # negative control of the pre-flight test (it undoes the campaign's CP_TEST_PREFLIGHT=0 before ensure)
 DRIVER = '''import importlib.util, os, sys
+# names CP_TEST_MODE as 04-mutation.py does, so _00_memory_cap reads an exported mode for this entry too (mode_of)
 from pathlib import Path
 spec = importlib.util.spec_from_file_location('mutation_driven', sys.argv[1])
 m = importlib.util.module_from_spec(spec)
@@ -395,7 +401,9 @@ cfg = json.load(open(@CFG@))
 argv = sys.argv[1:]
 argv = argv[:-2] if argv[-2:] == ['--log.color', 'off'] else argv
 with open(@LOG@, 'a') as f:
-    f.write(json.dumps(dict(argv=argv, cwd=os.getcwd(), ccache=os.environ.get('CCACHE_DIR'))) + '\n')
+    gate = os.environ.get('CP_MEMORY_GATE', '')
+    f.write(json.dumps(dict(argv=argv, cwd=os.getcwd(), ccache=os.environ.get('CCACHE_DIR'),
+                            gate=json.load(open(gate)) if os.path.exists(gate) else [])) + '\n')
 mutants = cfg['mutants']
 def load():
     return json.load(open('fake-results.json')) if os.path.exists('fake-results.json') else {}
@@ -476,6 +484,8 @@ class Base(unittest.TestCase):
         self.addCleanup(env.stop)
         os.environ['CP_MUTATION_LOCK'] = str(self.tmp / 'machine.lock')  # never the default: a real campaign may hold it for hours
         os.environ['XDG_CACHE_HOME'] = str(self.tmp / 'xdg-cache')  # campaign caches stay in the fixture
+        os.environ['CP_MEMORY_GATE'] = str(self.tmp / 'gate.json')  # every capped run queues in the fixture's own memory gate,
+        os.environ['CP_MEMORY_GATE_RESERVE_MB'] = '0'  # never the machine's, and runs at once whatever memory is free
         self.bin = self.tmp / 'bin'
         self.bin.mkdir()
         (self.bin / 'git').symlink_to(GIT)
@@ -559,7 +569,10 @@ class Pure(Base):
             f = self.tmp / 'x_tester.py'
             f.write_text(text)
             self.eq(M.tester_cap(f), want, text=text)
-        self.eq(M.capped(['py', 'a b'], 1500), [sys.executable, str(M.HERE / '_00_memory_cap.py'), '--mb', '1500', '--', 'py', 'a b'])
+        cap = [sys.executable, str(M.HERE / '_00_memory_cap.py'), '--mb', '1500']
+        self.eq(M.capped(['py', 'a b'], 1500), [*cap, '--', 'py', 'a b'])
+        self.eq(M.capped(['py', 'a b'], 1500, 834), [*cap, '--need', '834', '--', 'py', 'a b'], what='--need before --')
+        self.eq(M.capped(['py'], 1500, 0), [*cap, '--need', '0', '--', 'py'], what='need 0 given: no gate')
         line = next(l for l in Path('/proc/meminfo').read_text().splitlines() if l.startswith('MemAvailable:'))
         self.true(abs(M.available_mb() - (int(line.split()[1]) >> 10)) < 512, line=line, got=M.available_mb())
 
@@ -1326,16 +1339,18 @@ class Fake(Base):
         commit(root)
         return root
 
-    def go(self, root, *argv, seconds=None, peak=50):
+    def go(self, root, *argv, seconds=None, peak=50, output=''):
         """main('run', ...) with the fake first on PATH and stage()'s poll shortened to 0.005 s (deadlines unchanged); seconds
-        (with peak) replaces the baseline measurement, whose commands go to self.baselines. The mewt call log restarts."""
-        self.baselines, self.baseline_envs = [], []
+        (with peak and output) replaces the baseline measurement, whose commands go to self.baselines. The mewt call log restarts."""
+        self.baselines, self.baseline_envs, self.baseline_gates = [], [], []
         self.log.unlink(missing_ok=True)
 
         def measured(cmd, cwd, env=None):
             self.baselines.append(cmd)
             self.baseline_envs.append(env)
-            return seconds, 0, '', peak
+            gate = Path(os.environ['CP_MEMORY_GATE'])
+            self.baseline_gates.append(json.loads(gate.read_text()) if gate.exists() else [])
+            return seconds, 0, output, peak
         fast = type('FastTime', (), {'monotonic': staticmethod(time.monotonic), 'sleep': staticmethod(lambda s: time.sleep(min(s, 0.005)))})
         with patch.dict(os.environ, {'PATH': self.path}), patch.object(M, 'time', fast), (
                 patch.object(M, 'measured', measured) if seconds is not None else contextlib.nullcontext()):
@@ -1366,17 +1381,22 @@ class Fake(Base):
 
     def test_fake_stage_parameters(self):
         # per-mutant timeout max(60, ceil(3 x baseline)) or --timeout, cap min(own, max(1024, 3 x peak)), width
-        # max(1, min(jobs, budget // cap)): hand-computed for each case (None: the real baseline of `print(1)`)
-        cases = [(3, 4096, 4096, None, None, [], (60, 1024, 3)),
-                 (3, 4200, 4096, 30.2, 700, [], (91, 2100, 2)),
-                 (3, 5000, 6144, 20.01, 3000, [], (61, 6144, 1)),
-                 (3, 3072, 1536, 100.0, 341, ['--timeout', '7'], (7, 1024, 3)),
-                 (2, 1000, 800, 19.9, 10, [], (60, 800, 1))]
+        # max(1, min(jobs, budget // cap)), each test's gate need min(cap, 11/10 x the largest MEMORY peak the baseline's
+        # output prints + 64), the cap without one: hand-computed for each case (None: the real baseline of `print(1)`,
+        # whose scope peak is not known here, so its need is only bounded)
+        mem = lambda *peaks: ''.join(f'x\nMEMORY peak={m}MB cap=1MB oom_kills=0\n' for m in peaks)
+        cases = [(3, 4096, 4096, None, None, '', [], (60, 1024, 3, None)),
+                 (3, 4200, 4096, 30.2, 700, mem(1200, 1500), [], (91, 2100, 2, 1714)),
+                 (3, 5000, 6144, 20.01, 3000, 'no memory line\n', [], (61, 6144, 1, 6144)),
+                 (3, 3072, 1536, 100.0, 341, mem(1023), ['--timeout', '7'], (7, 1024, 3, 1024)),
+                 (2, 1000, 800, 19.9, 10, mem(30), [], (60, 800, 1, 97)),
+                 (2, 1000, 800, 19.9, 10, mem(0), [], (60, 800, 1, 800))]
         self.configure(self.mutants(6))
-        for k, (jobs, memory, own, seconds, peak, extra, (timeout, cap, width)) in enumerate(cases):
+        for k, (jobs, memory, own, seconds, peak, output, extra, (timeout, cap, width, need)) in enumerate(cases):
             root = self.repo(f'repo{k}', f'# _00_memory_cap.ensure(mb={own})\nprint(1)\n')
             work = self.tmp / f'w{k}'
-            code, out, err = self.go(root, '--workdir', str(work), '--jobs', str(jobs), '--memory-mb', str(memory), *extra, seconds=seconds, peak=peak)
+            code, out, err = self.go(root, '--workdir', str(work), '--jobs', str(jobs), '--memory-mb', str(memory), *extra, seconds=seconds, peak=peak,
+                                     output=output)
             self.eq(code, 0, out=out, err=err, case=k)
             self.true(f'(cap {own} MB) workdir {work}; memory budget {memory} MB\n' in out, out=out, case=k)
             self.eq(self.stage_line(out, 'quick'), (6, width, jobs, timeout, cap), out=out, case=k)
@@ -1384,6 +1404,14 @@ class Fake(Base):
             self.eq((len(runs), sorted(i for _, ids, _, _ in runs for i in ids)), (width, list(range(1, 7))), runs=runs, case=k)
             for _, _, t, cmd in runs:
                 self.eq((t, cmd[cmd.index('--mb') + 1], cmd[-4:]), (timeout, str(cap), ['--mode', 'quick', '--seed', '1']), cmd=cmd, case=k)
+                self.eq(cmd[:7], [sys.executable, str(M.HERE / '_00_memory_cap.py'), '--mb', str(cap), '--need', '0', '--'], cmd=cmd, case=k,
+                        what='a mutant test never queues: its stage holds the reservation')
+            gates = [c['gate'] for c in map(json.loads, self.log.read_text().splitlines()) if c['argv'][0] == 'test']
+            if need is None:
+                need = gates[0][0]['need'] // width if gates and gates[0] else 0
+                self.true(64 < need <= cap, need=need, case=k, what="the real baseline's scope peak bounds its need")
+            self.true(gates and all([(e['pid'], e['label'], e['need'], e['state']) for e in g] == [(os.getpid(), 'quick', width * need, 'run')]
+                                    for g in gates), gates=gates, case=k, what="the stage holds one reservation of its width x the scope peak's need")
             # user decision 2026-11-12: mutant builds stay out of the shared cache, in one named by the workdir's path
             own_cache = str(self.tmp / 'xdg-cache/cp-mutation' / hashlib.sha256(str(work.resolve()).encode()).hexdigest()[:16])
             tests = [c for c in map(json.loads, self.log.read_text().splitlines()) if c['argv'][0] == 'test']
@@ -1392,6 +1420,11 @@ class Fake(Base):
             if seconds is not None:
                 self.true(all(c[c.index('--mb') + 1] == str(own) and c[-4:] in (['--mode', 'quick', '--seed', '1'], ['--mode', 'full', '--seed', '1'])
                               for c in self.baselines) and self.baselines, baselines=self.baselines, case=k, what='baselines under the own cap')
+                self.true(all(c[2:7] == ['--mb', str(own), '--need', '0', '--'] for c in self.baselines), baselines=self.baselines, case=k,
+                          what='a baseline is admitted before its timed run, which then never queues')
+                self.true(self.baseline_gates and all([(e['pid'], e['label'], e['need'], e['state']) for e in g] == [(os.getpid(), f'{s} baseline', own, 'run')]
+                                                      for g, s in zip(self.baseline_gates, ('quick', 'full'))),
+                          gates=self.baseline_gates, case=k, what='the baseline holds a reservation of its cap')
                 self.true(all(e['CCACHE_RECACHE'] == '1' for e in self.baseline_envs), case=k, what='a baseline pays a real compile, as each mutant does')
 
     def test_fake_sample(self):
@@ -1457,8 +1490,15 @@ class Fake(Base):
                                          c: {'quick': 'Timeout', 'quick-alone': 'TestFail'}, d: {'quick': 'Uncaught', 'full': 'Timeout', 'full-alone': 'Timeout'},
                                          e: {'quick': 'Uncaught', 'full': 'Timeout', 'full-alone': 'Uncaught'}})
         root, work = self.repo(), self.tmp / 'work'
-        code, out, err = self.go(root, '--workdir', str(work), '--timeout', '5', seconds=0.1)
+        code, out, err = self.go(root, '--workdir', str(work), '--timeout', '5', seconds=0.1, output='MEMORY peak=100MB cap=1MB oom_kills=0\n')
         self.eq(code, 0, out=out, err=err)
+        # each part of a stage, the alone passes included, holds width x min(cap, 100 x 11/10 + 64 = 174) under its own label
+        held = {}
+        for call in map(json.loads, self.log.read_text().splitlines()):
+            if call['argv'][0] == 'test':
+                part = dict(zip(call['argv'][1::2], call['argv'][2::2]))['--ids-file'][:-len('.ids')]
+                held.setdefault(part, set()).add(tuple((e['label'], e['need'], e['state']) for e in call['gate']))
+        self.eq(held, {n: {((n, self.stage_line(out, n)[1] * 174, 'run'),)} for n in ('quick', 'quick-alone', 'full', 'full-alone')}, out=out)
         got = {n: [(s, sorted(ids), t) for s, ids, t, _ in self.calls(n)] for n in ('quick-alone', 'full', 'full-alone')}
         self.eq(got['quick-alone'], [('s0', [a, b, c], 5)], out=out)
         self.eq(sorted(i for _, ids, _ in got['full'] for i in ids), [a, d, e])
@@ -1466,6 +1506,26 @@ class Fake(Base):
         self.true(self.stage_line(out, 'quick-alone') == (3, 1, 2, 5, 1024) and self.stage_line(out, 'full-alone') == (2, 1, 2, 5, 1024), out=out)
         self.true(self.record_line(out).endswith(': 8 mutants, 6 caught (2 by timeout), 2 survived, 0 untested.') and self.meta(work)['unconfirmed'] == {}
                   and f'| `COS {a}` (low) | 3 | `old {a}` → `new {a}` |' in out and f'| `CR {e}` (medium) | 3 |' in out, out=out)
+
+    def test_fake_gate_deadline(self):
+        """A budget that runs out in the memory queue stops the campaign like any budget stop (exit 3, the stage named, no
+        test run): at the baseline's reservation, or at a stage's after its baseline ran."""
+        self.configure(self.mutants(3))
+        real = M.gate.held
+        for refused in (' baseline', 'quick'):
+            @contextlib.contextmanager
+            def held(need, label, out=sys.stderr, until=None, refused=refused):
+                self.true(until is not None, label=label, what='every campaign reservation waits with the deadline')
+                if label.endswith(refused):
+                    yield False
+                else:
+                    with real(need, label, out, until) as ok:
+                        yield ok
+            root, work = self.repo(f'repo-{refused.strip()}'), self.tmp / f'w-{refused.strip()}'
+            with patch.object(M.gate, 'held', held):
+                code, out, err = self.go(root, '--workdir', str(work), seconds=0.1)
+            self.eq((code, self.calls('quick'), self.baselines and 1), (3, [], 1 if refused == 'quick' else []), out=out, err=err, refused=refused)
+            self.true('STOPPED by the budget' in out and re.search(r'^No record: .*quick', out, re.M), out=out, refused=refused)
 
     def test_fake_retest_width(self):
         # retests run side by side up to the shards, or half of them where a test runs two builds at once
@@ -1676,6 +1736,12 @@ class Fake(Base):
         # under the real supervisor with CP_TEST_MODE=full a campaign runs once; the negative control (the campaign's
         # CP_TEST_PREFLIGHT=0 undone) shows what this oracle sees otherwise: a pre-flight line and a second workdir
         root = self.repo()
+        # a live process that is no ancestor holds a running reservation no machine covers: any gated wrapper would queue
+        # behind it for ever, so a campaign that finishes without a WAIT line ran its wrapper ungated (ensure(need=0))
+        other = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(600)'])
+        self.addCleanup(lambda: (other.kill(), other.wait()))
+        start = int(Path(f'/proc/{other.pid}/stat').read_text().split()[21])
+        (self.tmp / 'gate.json').write_text(json.dumps([dict(pid=other.pid, start=start, need=10 ** 9, label='other', state='run', since=0)]))
         for control in (False, True):
             tmpdir = self.tmp / f'tmp-{control}'
             tmpdir.mkdir()
@@ -1684,10 +1750,15 @@ class Fake(Base):
             log = self.tmp / f'{control}.log'
             with open(log, 'w') as f:
                 p = self.driver(root, env=env, out=f)
-            code, text = p.wait(300), log.read_text()
+            until = time.monotonic() + 300
+            while p.poll() is None and 'WAIT ' not in log.read_text() and time.monotonic() < until:
+                time.sleep(0.1)
+            if p.poll() is None:  # queued in the gate (or hung): stop it now
+                os.killpg(p.pid, signal.SIGKILL)
+            code, text = p.wait(30), log.read_text()
             works = sorted(tmpdir.glob('cp-mutation-01-toy-*'))
             self.true(code == 0 and len(re.findall(r'^MUTATION ', text, re.M)) == 1 and text.count('COMPLETE: 0 of 0') == 1
-                      and len(works) == 1 + control and ('PREFLIGHT driver.py: quick passed' in text) == control
+                      and len(works) == 1 + control and ('PREFLIGHT driver.py: quick passed' in text) == control and 'WAIT ' not in text
                       and (not _00_memory_cap.available() or 'MEMORY peak=' in text), log=text, works=works, control=control)
 
 

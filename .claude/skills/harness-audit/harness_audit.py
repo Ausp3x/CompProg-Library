@@ -44,6 +44,7 @@ TEXT_CAP = 4000  # characters stored per quoted text
 EARLY = 0.9  # an automatic compaction below this share of autoCompactWindow is early; a tool's cap below this share
              # of its largest earlier inline result is lowered
 SHARE = 0.99  # the lowest 1-hour share of cache writes that is not a finding
+STARTUP = 88000  # a new session's first request above this many tokens of context is a finding (SUP33; 46-51k on 2026-11-19)
 DYNAMIC = 20  # an attachment type with this many distinct texts holds session data: listed, never a finding
 HEXRUN = re.compile(r'\b(?=[0-9a-f]*\d)[0-9a-f]{8,}\b', re.I)
 RECORD = ('record_types', 'attachment_types', 'system_subtypes', 'record_keys', 'message_keys', 'model_attachment_keys', 'usage_keys',
@@ -183,7 +184,7 @@ def save(path, obj):
 
 
 def empty():
-    return {'record': {}, 'metrics': {'exp': {}, 'cache': {}, 'tools': {}, 'compactions': {}, 'hide': {}}}
+    return {'record': {}, 'metrics': {'exp': {}, 'cache': {}, 'tools': {}, 'compactions': {}, 'hide': {}, 'startup': {}}}
 
 
 def extreme(f, a, b):
@@ -205,9 +206,9 @@ def merge(into, s):
     for k, (hi, lo, p, c) in sm['tools'].items():
         o = m['tools'].get(k, [None, None, 0, 0])
         m['tools'][k] = [extreme(max, o[0], hi), extreme(min, o[1], lo), o[2] + p, o[3] + c]
-    for sec in ('compactions', 'hide'):
-        for k, v in sm[sec].items():
-            m[sec].setdefault(k, v)
+    for sec in ('compactions', 'hide', 'startup'):  # a summary cached before SUP33 has no startup
+        for k, v in sm.get(sec, {}).items():
+            m.setdefault(sec, {}).setdefault(k, v)
     return into
 
 
@@ -297,7 +298,7 @@ class Reader:
         elif t == 'api-request-shape':
             self.shape(e, v, ts)
         elif t == 'assistant':
-            self.reply(e, ts)
+            self.reply(e, ts, v)
         elif t == 'user':
             self.results(e)
 
@@ -326,7 +327,7 @@ class Reader:
                     self.see('prompts', f'{v} tool {name} {self.text(para)}', ts)
             self.see('prompts', f'{v} schema {name} {digest(H.obj(tl).get("input_schema"))}', ts)
 
-    def reply(self, e, ts):
+    def reply(self, e, ts, v='?'):
         m, st = H.obj(e.get('message')), self.st
         for k, x in m.items():
             self.see('message_keys', k, ts)
@@ -354,6 +355,10 @@ class Reader:
         if m.get('model') == '<synthetic>' or not isinstance(m.get('id'), str) or not u:
             return
         mid = digest(m['id'])
+        if not self.sub and st.get('first') is False:  # the session's first request: its whole context (STARTUP)
+            st['first'] = True
+            self.s['metrics']['startup'][mid] = [ts, sum(x for k in ('input_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens')
+                                                         if isinstance(x := u.get(k), int) and not isinstance(x, bool)), v]
         out = u.get('output_tokens') if isinstance(u.get('output_tokens'), int) else 0
         think = H.obj(u.get('output_tokens_details')).get('thinking_tokens')
         think = think if isinstance(think, int) else 0
@@ -440,7 +445,8 @@ def read_file(path, entry, sub, latch, texts):
         off = entry.get('offset', 0)
         if not off or st.st_size < off or entry.get('head') != bhash(head[:off]):  # new, shrunk or rewritten
             entry.clear()
-            entry.update(sum=empty(), state={'ts': min(st.st_mtime_ns / 1e9, time.time()), 'latch': None, 'tools': {}, 'mids': {}, 'shapes': []})
+            entry.update(sum=empty(), state={'ts': min(st.st_mtime_ns / 1e9, time.time()), 'latch': None, 'tools': {}, 'mids': {}, 'shapes': [],
+                                             'first': False})  # a state cached before SUP33 has no 'first': its first reply was read
             off = 0
         f.seek(off)
         r, end = Reader(entry['state'], sub, latch, texts), off
@@ -676,6 +682,10 @@ def findings(prev, cur, delta, texts, conf, ids):
     if early:
         add('compaction', f'{len(early)} compaction(s) before {EARLY:.0%} of autoCompactWindow {window}',
             [f'{day(t)} {trig} at {pre} tokens, client {v}' for t, trig, pre, v in early[-20:]])
+    big = sorted(x for x in delta['metrics'].get('startup', {}).values() if x[1] > STARTUP)
+    if big:
+        add('startup', f'{len(big)} session(s) started with more than {STARTUP} tokens of context',
+            [f'{day(t)} {n} tokens, client {v}' for t, n, v in big[-20:]])
     cache = delta['metrics']['cache']
     share = {th: [sum(v[i] for k, v in cache.items() if k.endswith(th)) for i in (0, 1)] for th in (' main', ' sub')}
     low = {th.strip(): round(v[0] / sum(v) * 20) for th, v in share.items() if sum(v) and v[0] / sum(v) < SHARE}

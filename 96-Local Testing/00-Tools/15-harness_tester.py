@@ -116,7 +116,8 @@ note parsed back -> test_integrity_hook; failed calls -> test_integrity_failure;
 or piped interpreter code), outward N -> test_integrity_turn; parallel record updates -> test_integrity_parallel; input
 rewrites -> test_integrity_rewrite; WebFetch self-quotes -> test_integrity_self_quote; the prompt warning -> test_integrity_prompt; integrity N -> test_integrity_status; pathological and wrong-typed input
 within 8 s -> test_integrity_broken; seeded documents against a construction oracle -> test_integrity_random; the
-PostToolUse and PostToolUseFailure registrations -> test_selftest_fail, test_real_settings.
+PostToolUse and PostToolUseFailure registrations, with (SUP33) shell.py post on Bash in both at timeout 150 ->
+test_selftest_fail, test_real_settings.
 Audit: the same fake repository plus a copy of harness_audit.py, transcripts under $CLAUDE_CONFIG_DIR/projects in the
 folder named after the copy's path (each file's mtime its newest record's time, as Claude Code leaves it), and a fake
 `claude` first on PATH (a Python script: it logs its arguments, working directory and CP_HARNESS_AUDIT_CHILD, writes
@@ -147,6 +148,11 @@ flag and new slot texts, the tally, the client change with its changelog entries
 texts in attachments, system records, flag and slot texts, not in file or prompt attachments or tool results,
 accepted_texts -> test_audit_hide; early compactions (manual and >= 90% not, `auto (idle)` within 300 s of a
 "while idle" notice before or after, not 400 s away), not flagged again without new bytes -> test_audit_compaction;
+session starts (SUP33: a main transcript's first reply with usage, synthetic, id-less and usage-less records skipped,
+input + cache-write + cache-read tokens with bool and non-int fields excluded, output tokens not counted, later and
+appended replies and subagents never, a first reply in an appended read counted, a cached state without `first` and a
+cached summary without `startup` (before SUP33) tolerated, 88000 not flagged and 88001 flagged, the finding's id from
+its content, not flagged again without new bytes) -> test_audit_startup;
 transcript folders (main, subfolder and deeper, a git worktree, a deleted .claude/worktrees one, subagents with the
 session's latch; not a sibling clone, a suffixed name or another project) and the per-experiment table ->
 test_audit_folders; another scan holding scan.lock -> test_audit_lock; a deleted transcript's items and rows kept
@@ -1652,14 +1658,18 @@ class Harness(Fixture):
         self.assertEqual(self.mod.hooks_off(ls), [])
         run = 'python3 "$CLAUDE_PROJECT_DIR/'
         entries = {e: [(g.get('matcher'), h.get('command'), h.get('timeout')) for g in s['hooks'].get(e, []) for h in g['hooks']]
-                   for e in ('PreCompact', 'Notification', 'SessionEnd', 'PreModelSwitch')}
+                   for e in ('PreCompact', 'Notification', 'SessionEnd', 'PreModelSwitch', 'PostToolUse', 'PostToolUseFailure')}
         for e, matcher, cmd in (('PreCompact', None, run + '.claude/hooks/resume.py" precompact'),
                                 ('Notification', 'permission_prompt|idle_prompt', run + '.claude/hooks/notify.py"'),
                                 ('SessionEnd', 'prompt_input_exit|logout|other', 'd="$CLAUDE_PROJECT_DIR"; [ -f "$d/.claude/skills/reap/reap.py" ] '
                                  '|| d="${d%/.claude/worktrees/*}"; python3 "$d/.claude/skills/reap/reap.py" --own'),
-                                ('PreModelSwitch', None, run + '.claude/hooks/harness.py" hook')):
+                                ('PreModelSwitch', None, run + '.claude/hooks/harness.py" hook'),
+                                ('PostToolUse', 'Bash', run + '.claude/hooks/shell.py" post'),
+                                ('PostToolUseFailure', 'Bash', run + '.claude/hooks/shell.py" post')):
             self.assertIn((matcher, cmd), [x[:2] for x in entries[e]], e)
             self.assertTrue((ROOT / cmd.split('/', 1)[1].split('"')[0]).is_file(), cmd)
+        for e in ('PostToolUse', 'PostToolUseFailure'):  # SUP33: shell.py post also after a failed Bash call, with the same timeout
+            self.assertEqual([x for x in entries[e] if 'shell.py' in str(x[1])], [('Bash', run + '.claude/hooks/shell.py" post', 150)], e)
         reap = [t for _, c, t in entries['SessionEnd'] if 'reap.py' in c]
         self.assertEqual(len(reap), 1, entries['SessionEnd'])
         self.assertTrue(isinstance(reap[0], int) and 10 <= reap[0] <= 60, f'SessionEnd reap timeout {reap[0]!r} (10 to 60 s)')
@@ -2966,6 +2976,64 @@ class Audit(Fixture):
         self.tx('s1.jsonl', boundary('u8', 'auto', 50000, T0 + DAY), append=True)
         self.ascan()
         self.assertEqual([f['lines'] for f in self.found('compaction')], [['2026-10-02 auto at 50000 tokens, client 2.1.330']])
+
+    def test_audit_startup(self):
+        """A main session's first reply with usage records its context (input + cache writes + cache reads) once; above
+        88000 tokens it is a finding of the scan that read it, with a content-derived id."""
+        def first(mid, t, inp=0, cw=0, cr=0, **kw):
+            r = answer(mid, t, out=500000, **kw)  # output tokens are no context
+            r['message']['usage'].update(input_tokens=inp, cache_creation_input_tokens=cw, cache_read_input_tokens=cr)
+            return r
+        s1 = (R('mark', T0), first('msyn', T0 + 1, 99999, model='<synthetic>'), R('assistant', T0 + 2, message={'id': 'mnone', 'model': OPUS}),
+              R('assistant', T0 + 3, message={'id': 'mempty', 'model': OPUS, 'usage': {}}), first(7, T0 + 4, 99999),
+              first('m1', T0 + 10, 1000, 2000, 85001, version='2.1.400'), first('m1b', T0 + 20, 300000, version='2.1.400'))
+        self.tx('s1.jsonl', *s1)
+        self.tx('s1/subagents/agent-a.jsonl', first('ma', T0 + 50, 200000, version='2.1.400'))  # subagents: never
+        self.tx('s2.jsonl', first('m2', T0 + 30, 50000, 38000))  # exactly 88000; no version
+        self.tx('s3.jsonl', first('m3', T0 + 40, True, 88001.0, '88001', version='2.1.330'))  # bool, float, string: excluded
+        self.ascan()
+        want = {digest('m1'): [T0 + 10, 88001, '2.1.400'], digest('m2'): [T0 + 30, 88000, '?'], digest('m3'): [T0 + 40, 0, '2.1.330']}
+        self.assertEqual(self.fp()['metrics']['startup'], want)
+        title, lines = '1 session(s) started with more than 88000 tokens of context', ['2026-10-01 88001 tokens, client 2.1.400']
+        sid = digest('startup' + title + '\n'.join(lines))
+        self.assertEqual([(f['id'], f['title'], f['lines']) for f in self.found('startup')], [(sid, title, lines)])
+        self.ascan()
+        self.assertEqual(self.found('startup'), [], 'no new bytes: not flagged again')
+        # an appended read is no new session start
+        self.tx('s1.jsonl', first('m1c', T0 + DAY, 400000, version='2.1.400'), append=True)
+        self.tx('s2.jsonl', first('m2c', T0 + DAY, 400000), append=True)
+        self.ascan()
+        self.assertEqual(self.fp()['metrics']['startup'], want)
+        self.assertEqual(self.found('startup'), [])
+        # the first reply in an appended read counts; a state cached before SUP33 (no 'first') records nothing; a summary
+        # cached before SUP33 (no startup) merges as empty
+        self.tx('s4.jsonl', R('mark', T0 + DAY))
+        self.tx('s5.jsonl', R('mark', T0 + DAY))
+        self.ascan()
+        key = lambda name: digest(f'{self.proj.name}/{name}', 16)
+        cache = json.loads((self.out / 'cache.json').read_text())
+        self.assertIs(cache['files'][key('s4.jsonl')]['state']['first'], False)
+        del cache['files'][key('s5.jsonl')]['state']['first']
+        del cache['files'][key('s2.jsonl')]['sum']['metrics']['startup']
+        (self.out / 'cache.json').write_text(json.dumps(cache))
+        self.tx('s4.jsonl', first('m4', T0 + DAY, 90000, version='2.1.401'), append=True)
+        self.tx('s5.jsonl', first('m5', T0 + DAY, 95000, version='2.1.401'), append=True)
+        self.tx('s6.jsonl', first('m6', T0 + DAY + 5, 0, 0, 88002, version='2.1.401'))
+        self.assertEqual(self.ascan()[0], 0)
+        self.assertEqual(self.fp()['metrics']['startup'], {digest('m1'): want[digest('m1')], digest('m3'): want[digest('m3')],
+                                                           digest('m4'): [T0 + DAY, 90000, '2.1.401'], digest('m6'): [T0 + DAY + 5, 88002, '2.1.401']})
+        title2 = '2 session(s) started with more than 88000 tokens of context'
+        lines2 = ['2026-10-02 90000 tokens, client 2.1.401', '2026-10-02 88002 tokens, client 2.1.401']
+        self.assertEqual([(f['id'], f['title'], f['lines']) for f in self.found('startup')], [(digest('startup' + title2 + '\n'.join(lines2)), title2, lines2)])
+        old = {'record': {}, 'metrics': {'exp': {}, 'cache': {}, 'tools': {}, 'compactions': {'c': [T0, 'auto', 1, '?']}, 'hide': {}}}
+        self.assertEqual(self.amod.merge(self.amod.empty(), old)['metrics'], self.amod.empty()['metrics'] | old['metrics'])
+        self.assertEqual(self.amod.merge(old, self.amod.empty() | {'metrics': self.amod.empty()['metrics'] | {'startup': {'k': [T0, 5, '?']}}})
+                         ['metrics']['startup'], {'k': [T0, 5, '?']})
+        # the same session start read by another clone: the same finding id
+        self.reset()
+        self.tx('s1.jsonl', *s1)
+        self.ascan()
+        self.assertEqual([f['id'] for f in self.found('startup')], [sid])
 
     # 6. transcript folders
 
