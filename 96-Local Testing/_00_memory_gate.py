@@ -21,12 +21,13 @@ they wait for it, when nothing else runs, since waiting would not free the memor
 running reservation waits for a queued run below it (two sessions' nested runs). Polls every second; a lock held for
 LOCK_WAIT seconds (a stopped holder) makes the run warn and go on without the gate.
 
-`remember()` merges peaks into `.run-stats.json` under its own lock: `supervise()` records the runs it starts and
-`01-run.py` its own.
+`remember()` merges peaks into `.run-stats.json` under its own lock, each record the maxima of its last RECENT runs:
+`supervise()` records the runs it starts and `01-run.py` its own.
 
 Environment: CP_MEMORY_GATE (the reservations file, default $XDG_RUNTIME_DIR/cp-memory-gate.json; `0` turns the gate
 off), CP_MEMORY_GATE_RESERVE_MB (default 2048), CP_MEMORY_GATE_STATE (a file the first held() of a process writes `wait`
-to while queued and `run` after, so a caller's timeout can leave out the queue: 05-extraction.py testers).
+to while queued and `run` after, so a caller's timeout can leave out the queue: 05-extraction.py testers), CP_RUN_STATS
+(the recorded peaks, default `.run-stats.json` here; tests point it at a temporary file).
 """
 import contextlib
 import errno
@@ -48,7 +49,9 @@ STALE = 30  # seconds after which a waiter that stopped polling (stopped, hung) 
 WALL = 1e9  # seconds: wall-clock times since 2001; a monotonic reading reaches it after 31 years of uptime
 LOCK_WAIT = 10.0  # seconds a lock may stay held before the run goes on without it: far above a locked section's time
 LOCK_POLL = 0.005
-STATS = Path(__file__).resolve().parent / '.run-stats.json'
+HERE = Path(__file__).resolve().parent  # 96-Local Testing: keys name entries relative to it
+STATS = Path(os.environ.get('CP_RUN_STATS') or HERE / '.run-stats.json')
+RECENT = 3  # runs a record keeps
 
 
 def store():
@@ -60,7 +63,7 @@ def store():
 
 
 def need_of(peak, cap):
-    """The memory a run reserves: 11/10 of its recorded peak plus 64 MB (01-run.py, run), at most its cap, else its cap."""
+    """The memory a run reserves: 11/10 of its recorded peak plus 64 MB, at most its cap, else its cap (01-run.py schedules by it too)."""
     return min(peak * 11 // 10 + 64, cap) if peak else cap
 
 
@@ -68,7 +71,7 @@ def key(mode, main, variant=None):
     """The .run-stats.json key of main (an entry under 96-Local Testing) in mode, `run` without one (a benchmark), then
     variant (the options its peak depends on) when given; None outside the folder."""
     try:
-        return f'{mode or "run"} {Path(main).resolve().relative_to(STATS.parent).as_posix()}' + (f' {variant}' if variant else '')
+        return f'{mode or "run"} {Path(main).resolve().relative_to(HERE).as_posix()}' + (f' {variant}' if variant else '')
     except ValueError:
         return None
 
@@ -88,11 +91,15 @@ def recorded(mode, main, cap, variant=None):
     return need_of(stats(key(mode, main, variant))[0], cap)
 
 
-def remember(updates, grow=False):
+def remember(updates):
     """Merge {key: [peak MB, seconds]} into .run-stats.json under its lock, so no concurrent writer's update is lost; the
-    file is replaced atomically, and written even without updates, as 01-run.py always leaves one. With grow (a run by
-    hand, perhaps filtered) a record only rises, so a partial run never lowers what a whole one reserves; 01-run.py
-    replaces its suites' records. A lock held past LOCK_WAIT merges without it."""
+    file is replaced atomically, and written even without updates, as 01-run.py always leaves one. A record keeps the
+    last RECENT runs' pairs after its peak and seconds, which are their maxima (user decision 2026-11-24): a lighter
+    suite lowers its record after RECENT runs, while one light, partial or warm-cache run cannot. A two-element record,
+    written before this rule or by code from before it, counts as one run. A lock held past LOCK_WAIT merges without it."""
+    def pair(x):
+        return isinstance(x, list) and len(x) >= 2 and all(isinstance(y, (int, float)) and not isinstance(y, bool) for y in x[:2])
+
     def merge():
         try:
             data = json.loads(STATS.read_text())
@@ -101,8 +108,9 @@ def remember(updates, grow=False):
         data = data if isinstance(data, dict) else {}
         for k, v in updates.items():
             old = data.get(k)
-            ok = grow and isinstance(old, list) and len(old) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in old)
-            data[k] = [max(a, b) for a, b in zip(old, v)] if ok else v
+            runs = [r for r in old[2] if pair(r)] if pair(old) and len(old) > 2 and isinstance(old[2], list) else [old[:2]] if pair(old) else []
+            runs = [r[:2] for r in runs][-(RECENT - 1):] + [list(v)]
+            data[k] = [max(r[0] for r in runs), max(r[1] for r in runs), runs]
         save(STATS, json.dumps(data, indent=0, sort_keys=True) + '\n')
     try:
         with locked(STATS):

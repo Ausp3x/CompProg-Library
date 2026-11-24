@@ -124,6 +124,11 @@ def option(line, name):
     if len(args) == 1:
         m = re.search(rf'(?:^| )--{name}=(.+?)(?= --|$)', args[0])
         return m and m[1]
+    return flag(args, name)
+
+
+def flag(args, name):
+    """The value of --name (--name=value or --name value) in the argument list args, else None."""
     for i, a in enumerate(args):
         if a.startswith(f'--{name}='):
             return a.partition('=')[2]
@@ -179,24 +184,98 @@ def winexe(pid):
         k.CloseHandle(h)
 
 
-def winhost(pid=None, parents=None, exe=winexe):
+def winborn(pid):
+    """When process pid started on Windows (GetProcessTimes, in 100 ns units), or None when it cannot be read."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+        k = ctypes.WinDLL('kernel32', use_last_error=True)
+        k.OpenProcess.restype, k.OpenProcess.argtypes = wintypes.HANDLE, [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        k.GetProcessTimes.argtypes = [wintypes.HANDLE] + [ctypes.POINTER(ctypes.c_ulonglong)] * 4
+        k.CloseHandle.argtypes = [wintypes.HANDLE]
+        h = k.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+        if not h:
+            return None
+        try:
+            times = [ctypes.c_ulonglong() for _ in range(4)]
+            return times[0].value if k.GetProcessTimes(h, *map(ctypes.byref, times)) else None
+        finally:
+            k.CloseHandle(h)
+    except (OSError, AttributeError, ValueError):  # no Windows API here
+        return None
+
+
+def winargs(pid):
+    """The arguments of process pid on Windows (NtQueryInformationProcess's ProcessCommandLineInformation, Windows 8.1
+    and later, split by CommandLineToArgvW), or None when it cannot be read (an elevated process, for one)."""
+    try:
+        return winargv(pid)
+    except (OSError, AttributeError, ValueError):  # no Windows API here
+        return None
+
+
+def winargv(pid):
+    """winargs() without its error handling."""
+    import ctypes
+    from ctypes import wintypes
+
+    class Text(ctypes.Structure):  # UNICODE_STRING
+        _fields_ = [('Length', wintypes.USHORT), ('MaximumLength', wintypes.USHORT), ('Buffer', ctypes.c_void_p)]
+    k, nt, sh = ctypes.WinDLL('kernel32', use_last_error=True), ctypes.WinDLL('ntdll'), ctypes.WinDLL('shell32')
+    k.OpenProcess.restype, k.OpenProcess.argtypes = wintypes.HANDLE, [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    k.CloseHandle.argtypes, k.LocalFree.argtypes = [wintypes.HANDLE], [ctypes.c_void_p]
+    nt.NtQueryInformationProcess.restype = ctypes.c_long
+    nt.NtQueryInformationProcess.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.ULONG, ctypes.POINTER(wintypes.ULONG)]
+    sh.CommandLineToArgvW.restype = ctypes.POINTER(ctypes.c_wchar_p)
+    sh.CommandLineToArgvW.argtypes = [wintypes.LPCWSTR, ctypes.POINTER(ctypes.c_int)]
+    h = k.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+    if not h:
+        return None
+    try:
+        size = wintypes.ULONG(0)
+        nt.NtQueryInformationProcess(h, 60, None, 0, ctypes.byref(size))  # fails, giving the size
+        buf = ctypes.create_string_buffer(size.value)
+        if not size.value or nt.NtQueryInformationProcess(h, 60, buf, size, ctypes.byref(size)) < 0:
+            return None
+        text = Text.from_buffer(buf)
+        line, n = ctypes.wstring_at(text.Buffer, text.Length // 2), ctypes.c_int(0)
+    finally:
+        k.CloseHandle(h)
+    argv = sh.CommandLineToArgvW(line, ctypes.byref(n))
+    if not argv:
+        return None
+    try:
+        return [argv[i] for i in range(n.value)]
+    finally:
+        k.LocalFree(argv)
+
+
+def winhost(pid=None, parents=None, exe=winexe, args=winargs, born=winborn):
     """host() on Windows, which has no /proc: walking up from pid through parents ({pid: parent pid}, default winprocs()),
-    the first ancestor whose executable (exe(pid)) has a product.json, with 'shell' the ancestor below it and 'pid' the
-    topmost one running the same executable. Other processes' environments and command lines are not read, so the walk
-    neither stops at the terminal's edge nor finds --user-data-dir or --extensions-dir; {} without such an ancestor."""
+    the first ancestor whose executable (exe(pid)) has a product.json, with 'shell' the ancestor below it, 'pid' the
+    topmost one running the same executable, and the first --user-data-dir and --extensions-dir in their arguments
+    (args(pid), None when unreadable) from it upward. A parent that started after its child (born(pid), None when
+    unreadable) is a process that reused an ended parent's id, so the walk stops there. Other processes' environments are
+    not read, so the walk does not stop at the terminal's edge; {} without such an ancestor."""
+    def parent(pid):  # pid's parent, or 0 when it has none or its id was reused
+        up = parents.get(pid, 0)
+        return up if up > 0 and ((a := born(up)) is None or (b := born(pid)) is None or a <= b) else 0
     try:
         parents = winprocs() if parents is None else parents
         pid, below = pid or os.getpid(), None
         for _ in range(HOPS):
             if (path := exe(pid)) and (app := product_dir(path)):
-                main = pid
+                found, main = {'app': app, 'shell': below, 'data': None, 'extensions': None}, pid
                 for _ in range(HOPS):
-                    if (up := parents.get(main, 0)) <= 0 or exe(up) != path:
+                    argv = args(main) or []
+                    for key, name in (('data', 'user-data-dir'), ('extensions', 'extensions-dir')):
+                        found[key] = found[key] or flag(argv, name)
+                    if not (up := parent(main)) or exe(up) != path:
                         break
                     main = up
-                return {'app': app, 'shell': below, 'pid': main, 'data': None, 'extensions': None}
-            pid, below = parents.get(pid, 0), pid
-            if pid <= 0:
+                return found | {'pid': main}
+            pid, below = parent(pid), pid
+            if not pid:
                 return {}
     except (OSError, ValueError, AttributeError):
         pass

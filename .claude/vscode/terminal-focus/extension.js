@@ -2,15 +2,15 @@
 // <urlProtocol>://compprog.terminal-focus/focus?pid=<pid>[&folder=<file URI>] shows the integrated terminal of this window
 // whose shell is pid or its nearest ancestor (.claude/hooks/notify.py passes the terminal's shell, else the hook's parent).
 // VS Code hands the URI to the window focused last; when that window lacks the terminal and a folder is given, it leaves
-// the request in the extension's global storage and opens the folder, which focuses the window holding it, and that
-// window shows the terminal as it gains focus. Ancestors come from /proc, else `ps` (macOS); elsewhere only the pid
+// the request in the extension's global storage and, once VS Code has focused it, opens the folder, which focuses the
+// window holding it, and that window shows the terminal as it gains focus. Ancestors come from /proc, else `ps` (macOS); elsewhere only the pid
 // itself matches. No dependencies and no build step.
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const FRESH = 15000;  // ms a left request stays valid: the folder's window gains focus well within it
-const LATER = 300;  // ms before opening the folder: VS Code first focuses the window that handled the URI
+const WAIT = 2000;  // ms the relay watches this window's focus after taking a URI
 
 function parent(pid) {
     try {
@@ -54,8 +54,20 @@ async function focus(uri, context) {
     } catch {
         return false;
     }
-    setTimeout(() => vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.parse(folder), { forceNewWindow: true }), LATER);
+    afterFocus(() => vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.parse(folder), { forceNewWindow: true }));
     return false;
+}
+
+// VS Code focuses the window that handled a URI once the handler returns (URLService.handleURL, 1.140), so the folder
+// must open after that. An unfocused window opens it when it gains focus, else after WAIT. A focused one gets no such
+// event, so it opens it at once and once more if, having lost focus to the folder's window, it regains it within WAIT.
+function afterFocus(open) {
+    const focused = vscode.window.state.focused;
+    let timer, sub, away = !focused;
+    const once = () => { clearTimeout(timer); sub.dispose(); open(); };
+    if (focused) open();
+    sub = vscode.window.onDidChangeWindowState(state => state.focused ? away && once() : (away = true));
+    timer = setTimeout(focused ? () => sub.dispose() : once, WAIT);
 }
 
 async function pending(context) {

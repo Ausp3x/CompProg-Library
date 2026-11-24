@@ -17,7 +17,6 @@ import _00_memory_gate
 
 HERE = Path(__file__).resolve().parent
 QUICK = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', '04-montgomery_tester.py', '05-modint_tester.py', '06-modintmini_tester.py', '07-infint_tester.py', '08-infintmini_tester.py', '09-rational_tester.py', '16-poly_tester.py', '17-polymini_tester.py', '18-bitset_tester.py', '19-fastio_tester.py'}
-STATS = HERE / '.run-stats.json'  # git-ignored: last peak MB and seconds per mode and suite, for scheduling and the memory gate
 CAP_MB = int(os.environ.get('CP_TEST_MEMORY_MB', '4096'))
 SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)  # each stops every job as Ctrl-C does
 OVERHALF = re.compile(rb'^OVERHALF (.+)$', re.M)  # printed by _00_cpp_test_runner.over_half
@@ -121,9 +120,7 @@ def run(tasks, mode, jobs, budget, stats, slow=None, flagged=None):
     first failing task, as in a sequential run. Builds whose quick run took over QUICK_SECONDS join slow; a suite that
     passed only on its rerun, and a command that took over half its limit, join flagged.
     """
-    def need(i):
-        peak = stats.get(tasks[i][0], (0, 0))[0]
-        return peak * 11 // 10 + 64 if peak else CAP_MB
+    need = lambda i: _00_memory_gate.need_of(stats.get(tasks[i][0], (0, 0))[0], CAP_MB)  # what each suite's gate reserves
     running, codes, alone, crowded, head, failed, reader = {}, {}, {}, set(), 0, len(tasks), None
     rank = lambda i: (i not in alone, (i in alone) * i, -stats.get(tasks[i][0], (0, float('inf')))[1])  # reruns in task order
     queue = sorted(range(len(tasks)), key=rank) if jobs > 1 else list(range(len(tasks)))
@@ -222,15 +219,15 @@ def main():
     if not suites: p.error('no suites match')
     runs = a.rounds if a.mode == 'stress' else 1
     try:
-        stats = {key: [int(v[0]), float(v[1])] for key, v in json.loads(STATS.read_text()).items()}
+        stats = {key: [int(v[0]), float(v[1])] for key, v in json.loads(_00_memory_gate.STATS.read_text()).items()}
     except (OSError, ValueError, TypeError, AttributeError, IndexError, KeyError):
         stats = {}
     tasks = [(f'{a.mode} {s.relative_to(HERE).as_posix()}', a.seed + i, s) for i in range(runs) for s in suites]
-    slow, flagged, loaded = [], [], {k: list(v) for k, v in stats.items()}
+    slow, flagged, loaded = [], [], dict(stats)
     try:
         code = run(tasks, a.mode, a.jobs, a.memory_mb or available_mb() - 2048, stats, slow, flagged)  # full and stress: the pre-flights' quick TIMING lines
     finally:  # merged: records other runs made meanwhile stay
-        _00_memory_gate.remember({k: v for k, v in stats.items() if loaded.get(k) != v})
+        _00_memory_gate.remember({k: v for k, v in stats.items() if v is not loaded.get(k)})  # every passing suite: run() sets new lists
     if code: return code
     slow = sorted({name: seconds for seconds, name in sorted(slow)}.items(), key=lambda item: -item[1])  # each round's pre-flight repeats them
     if slow:

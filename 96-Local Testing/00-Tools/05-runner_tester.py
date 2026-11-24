@@ -33,7 +33,7 @@ seconds against shadow(), usage() less a scope's reclaimable page cache (tmpfs k
 reservation's subtree counted under it alone, a pre-SUP34 wall-clock entry decided on the monotonic clock, lineage(), key() and
 stats(), remember() (merge under the lock, 01-run.py's format, malformed files, six concurrent writers), a lock held by a
 stopped process (warning, no second wait), the CP_MEMORY_GATE_STATE file, monotonic since and beat, supervise() recording
-a passing run's peak, only raising a record (none when failing, keyless or under CP_RUN_STATS_OWNER, which still reserves
+a passing run's peak as one of its record's last three runs (none when failing, keyless or under CP_RUN_STATS_OWNER, which still reserves
 with its recorded seconds; report()'s peak file; end to end in a real
 scope, SKIP without one), and 01-run.py merging its records beside another writer's and marking its suites.
 stress: full with --rounds seeded random runs (default 6) of random suite counts, sleeps, failures, jobs and budgets.
@@ -372,17 +372,17 @@ class Runner(Base):
         self.check(f.run('-j', '8'), 0, f.expect())
         stats = json.loads((f.root / '.run-stats.json').read_text())
         self.assertEqual({k: v[0] for k, v in stats.items()}, {f'full {rel}': 1000 for rel in f.suites})
-        for budget, most in (2327, 1), (2328, 2):  # each reserves 1000 * 11 // 10 + 64 = 1164 MB
+        for budget, most, cap in (2327, 1, 4096), (2328, 2, 4096), (2327, 2, 1000):  # each reserves 1000 * 11 // 10 + 64 = 1164 MB, at most the cap
             for s in f.root.glob('*.start'): s.unlink()
-            self.check(f.run('-j', '8', '--memory-mb', str(budget)), 0, f.expect(), f'budget {budget}')
-            self.assertEqual(f.span(), most, f'budget {budget}')
+            self.check(f.run('-j', '8', '--memory-mb', str(budget), CP_TEST_MEMORY_MB=str(cap)), 0, f.expect(), f'budget {budget}')
+            self.assertEqual(f.span(), most, f'budget {budget}, cap {cap}')
 
     def test_smaller_suite_passes_one_that_does_not_fit(self):
         f = self.f
         f.add(dict(sleep=1.2, mem=1000), dict(sleep=0.6, mem=1000), dict(sleep=0.1, mem=100))
         self.check(f.run('-j', '8'), 0, f.expect())
         for s in f.root.glob('*.start'): s.unlink()
-        self.check(f.run('-j', '8', '--memory-mb', str(1164 + 174)), 0, f.expect())  # 1000 MB reserves 1164, 100 MB 174
+        self.check(f.run('-j', '8', '--memory-mb', str(1164 + 174), CP_TEST_MEMORY_MB='4096'), 0, f.expect())  # 1000 MB reserves 1164, 100 MB 174
         recs = {r['name']: r for r in f.recs()}
         self.assertLess(recs['02-s']['t0'], recs['00-s']['t1'], 'the small suite starts beside the first big one')
         self.assertGreaterEqual(recs['01-s']['t0'], recs['00-s']['t1'], 'the second big one waits for memory')
@@ -421,6 +421,10 @@ class Runner(Base):
                                                               'full 01-A/01-s_tester.py': 9, 'full 07-X/01-x_tester.py': 11})
         self.assertEqual((got['quick 01-A/00-s_tester.py'][1], got['full 07-X/01-x_tester.py'][1]), (1.0, 1.5))
         self.assertEqual([r['owner'] for r in f.recs()], ['1', '1'])
+        self.check(f.run('-j', '1'), 0, f.expect())
+        got = json.loads(stats.read_text())
+        self.assertEqual({k: len(v[2]) for k, v in got.items() if len(v) > 2}, {'full 01-A/00-s_tester.py': 2, 'full 01-A/01-s_tester.py': 3},
+                         'every passing suite adds a run, an equal one too; an older two-element record counts as one')
 
     def test_stats_queue_left_out(self):
         """01-run.py records a suite's seconds without the time the suite waited in the memory queue (its own ADMIT line;
@@ -1354,7 +1358,7 @@ class Gate(Base):
         main.parent.mkdir(parents=True)
         main.write_text('')
         stats = lt / '.run-stats.json'
-        with patch.object(GATE, 'STATS', stats):
+        with patch.object(GATE, 'STATS', stats), patch.object(GATE, 'HERE', lt):
             self.assertEqual(GATE.recorded('full', main, 3000), 3000, 'no stats file')
             stats.write_text(json.dumps({'full 00-Tools/x_tester.py': [1000, 2.5], 'quick 00-Tools/x_tester.py': [0, 1.0],
                                          'stress 00-Tools/x_tester.py': [-4, 1.0], 'full 00-Tools/y_tester.py': [], 'quick 00-Tools/y_tester.py': 'x',
@@ -1670,7 +1674,8 @@ class Gate(Base):
         """A standalone tester (no shared runner) reads CP_TEST_MODE as the others do (fixed 2026-11-24): ensure() on the
         real file hands supervise() the exported mode, the 'full' default or an explicit --mode, which wins; the tester
         itself rejects a bad --mode before any work and defaults to the exported one; a real full run gets the main cap
-        but no pre-flight, since every mode runs the same checks (user decision 2026-11-24)."""
+        but no pre-flight, since every mode runs the same checks (user decision 2026-11-24), and as 01-run.py's child
+        records its peak, here in a temporary .run-stats.json (CP_RUN_STATS), never the real one."""
         main, calls = LT / rel, []
         with patch.dict(os.environ), patch.object(sys.modules['__main__'], '__file__', str(main)), \
                 patch.object(_00_memory_cap, 'supervise', lambda *a: calls.append(a[1:3]) or 0):
@@ -1690,8 +1695,12 @@ class Gate(Base):
         self.assertEqual(usage.returncode, 0, usage.stderr)
         self.assertIn('(default stress)', ' '.join(usage.stdout.split()), 'the tester defaults to CP_TEST_MODE')
         env.pop('CP_MEMORY_CAPPED')
-        run = subprocess.run([sys.executable, str(main)], env=dict(env, CP_TEST_MODE='full'), capture_output=True, text=True, timeout=300)
-        self.assertEqual(run.returncode, 0, run.stdout[-2000:] + run.stderr[-2000:])
+        with tempfile.TemporaryDirectory() as tmp:
+            stats = Path(tmp) / 'stats.json'
+            run = subprocess.run([sys.executable, str(main)], env=dict(env, CP_TEST_MODE='full', CP_RUN_STATS=str(stats)), capture_output=True, text=True, timeout=300)
+            self.assertEqual(run.returncode, 0, run.stdout[-2000:] + run.stderr[-2000:])
+            record = json.loads(stats.read_text())[f'full {rel}']
+            self.assertEqual(len(record[2]), 1, 'one run recorded, in the temporary file')
         self.assertNotIn('PREFLIGHT', run.stdout, 'every mode runs the same checks: no quick pre-flight runs them twice')
         self.assertIn('MEMORY peak=', run.stdout, 'still under the main cap')
 
@@ -1768,23 +1777,24 @@ class Gate(Base):
         (lt / '.run-stats.json').write_text(json.dumps({'full 00-Tools/x_tester.py': [1000, 2.0]}))
         calls = []
         with patch.dict(os.environ), patch.object(sys.modules['__main__'], '__file__', str(main)), \
-                patch.object(GATE, 'STATS', lt / '.run-stats.json'), patch.object(_00_memory_cap, 'MAIN_MB', 3000), \
+                patch.object(GATE, 'STATS', lt / '.run-stats.json'), patch.object(GATE, 'HERE', lt), patch.object(_00_memory_cap, 'MAIN_MB', 3000), \
                 patch.object(_00_memory_cap, 'supervise', lambda *a: calls.append(a) or 3):
             os.environ.pop('CP_MEMORY_CAPPED', None)
             for argv, need in ((['--mode', 'full'], None), (['--mode', 'quick'], None), (['--mode', 'full'], 0), (['--mode', 'full'], 55)):
                 with patch.object(sys, 'argv', [str(main), *argv]), self.assertRaises(SystemExit) as stop:
                     _00_memory_cap.ensure(need=need)
                 self.assertEqual(stop.exception.code, 3)
-        integration = lt / '02-integration.py'  # an entry point that is no tester or benchmark: reserves its record, never writes one
+        integration = lt / '02-integration.py'  # an entry point that is no tester or benchmark, without a variant: its cap, no key
         integration.write_text("os.environ.get('CP_TEST_MODE')\n")
         (lt / '.run-stats.json').write_text(json.dumps({'full 00-Tools/x_tester.py': [1000, 2.0], 'full 02-integration.py': [100, 1.0]}))
         with patch.dict(os.environ), patch.object(sys.modules['__main__'], '__file__', str(integration)), \
-                patch.object(GATE, 'STATS', lt / '.run-stats.json'), patch.object(_00_memory_cap, 'MAIN_MB', 3000), \
+                patch.object(GATE, 'STATS', lt / '.run-stats.json'), patch.object(GATE, 'HERE', lt), patch.object(_00_memory_cap, 'MAIN_MB', 3000), \
                 patch.object(_00_memory_cap, 'supervise', lambda *a: calls.append(a) or 3):
             os.environ.pop('CP_MEMORY_CAPPED', None)
             with patch.object(sys, 'argv', [str(integration), '--mode', 'full']), self.assertRaises(SystemExit):
                 _00_memory_cap.ensure()
-        self.assertEqual(calls.pop(), ([sys.executable, str(integration), '--mode', 'full'], 'full', 'argv', '02-integration.py', 174, None))
+        self.assertEqual(calls.pop(), ([sys.executable, str(integration), '--mode', 'full'], 'full', 'argv', '02-integration.py', 3000, None),
+                         'a record under no key it writes is never read')
         self.assertEqual(calls, [([sys.executable, str(main), '--mode', m], m, 'argv', 'x_tester.py', n, k)
                                  for m, n, k in (('full', 1164, 'full 00-Tools/x_tester.py'), ('quick', 3000, 'quick 00-Tools/x_tester.py'),
                                                  ('full', 0, None), ('full', 55, None))],
@@ -1867,9 +1877,11 @@ class Gate(Base):
     def test_gate_stats_keys(self):
         lt = self.root.resolve() / 'lt'
         stats = lt / '.run-stats.json'
-        with patch.object(GATE, 'STATS', stats):
+        with patch.object(GATE, 'STATS', stats), patch.object(GATE, 'HERE', lt):
             self.assertEqual([GATE.key('full', lt / '00-Tools/x_tester.py'), GATE.key(None, lt / 'x_tester.py'), GATE.key('full', self.root / 'x.py')],
                              ['full 00-Tools/x_tester.py', 'run x_tester.py', None])
+            with patch.object(GATE, 'STATS', self.root / 'elsewhere.json'):  # CP_RUN_STATS: keys stay relative to the folder
+                self.assertEqual(GATE.key('full', lt / '00-Tools/x_tester.py'), 'full 00-Tools/x_tester.py')
             self.assertEqual(GATE.stats('full a'), (0, 0), 'no file')
             lt.mkdir()
             stats.write_text(json.dumps({'a': [10, 2.5], 'b': [10, True], 'c': [10], 'd': [0, 3], 'e': 'x', 'f': [5, -1]}))
@@ -1908,28 +1920,34 @@ class Gate(Base):
         self.assertEqual(bad.exception.code, 2)
 
     def test_stats_remember(self):
-        """remember() merges into the file, re-read under its lock (another writer's record stays), in 01-run.py's format; a
-        malformed file is replaced; six processes recording 25 keys each at once lose none."""
+        """remember() merges into the file, re-read under its lock (another writer's record stays); a record is the maxima of
+        its last three runs, which follow it (user decision 2026-11-24), a two-element record counting as one run; malformed
+        records and files are replaced, malformed runs dropped; six processes recording 25 keys each at once lose none."""
         stats = self.root / 'stats.json'
+        read = lambda: json.loads(stats.read_text())
         with patch.object(GATE, 'STATS', stats):
             GATE.remember({'full a': [5, 1.0]})
-            stats.write_text(json.dumps(dict(json.loads(stats.read_text()), **{'quick b': [7, 2.0]})))
+            stats.write_text(json.dumps(dict(read(), **{'quick b': [7, 2.0]})))
             GATE.remember({'full a': [6, 1.5], 'full c': [8, 3.0]})
             GATE.remember({})
-            want = {'full a': [6, 1.5], 'quick b': [7, 2.0], 'full c': [8, 3.0]}
+            want = {'full a': [6, 1.5, [[5, 1.0], [6, 1.5]]], 'quick b': [7, 2.0], 'full c': [8, 3.0, [[8, 3.0]]]}
             self.assertEqual(stats.read_text(), json.dumps(want, indent=0, sort_keys=True) + '\n')
-            GATE.remember({'full a': [3, 9.0], 'full c': [9, 1.0], 'full d': [4, 4.0]}, grow=True)  # a hand run: records only rise
-            self.assertEqual({k: v for k, v in json.loads(stats.read_text()).items() if k != 'quick b'},
-                             {'full a': [6, 9.0], 'full c': [9, 3.0], 'full d': [4, 4.0]})
-            stats.write_text(json.dumps({'full a': 'bad', 'full c': [True, 1.0]}))
-            GATE.remember({'full a': [2, 1.0], 'full c': [2, 1.0]}, grow=True)
-            self.assertEqual(json.loads(stats.read_text()), {'full a': [2, 1.0], 'full c': [2, 1.0]}, 'a malformed record is replaced')
-            GATE.remember({'full a': [1, 0.5]})
-            self.assertEqual(json.loads(stats.read_text())['full a'], [1, 0.5], '01-run.py replaces')
+            got = []
+            for run in ([3, 9.0], [2, 0.5], [1, 0.5], [1, 0.25]):
+                GATE.remember({'full a': run})
+                got.append(read()['full a'][:2])
+            self.assertEqual(got, [[6, 9.0], [6, 9.0], [3, 9.0], [2, 0.5]], 'a lighter suite lowers its record after three runs, not one')
+            self.assertEqual(read()['full a'][2], [[2, 0.5], [1, 0.5], [1, 0.25]])
+            GATE.remember({'quick b': [1, 1.0]})
+            self.assertEqual(read()['quick b'], [7, 2.0, [[7, 2.0], [1, 1.0]]], 'a two-element record is one run')
+            stats.write_text(json.dumps({'full a': 'bad', 'full c': [True, 1.0], 'full e': [4, 1.0, 'x'], 'full f': [4, 1.0, [[9, 9], 'y', [1], [True, 2]]]}))
+            GATE.remember({'full a': [2, 1.0], 'full c': [2, 1.0], 'full e': [1, 1.0], 'full f': [1, 1.0]})
+            self.assertEqual(read(), {'full a': [2, 1.0, [[2, 1.0]]], 'full c': [2, 1.0, [[2, 1.0]]], 'full e': [4, 1.0, [[4, 1.0], [1, 1.0]]],
+                                      'full f': [9, 9, [[9, 9], [1, 1.0]]]}, 'a malformed record is replaced, malformed runs dropped')
             for bad in ('not json', '[1]'):
                 stats.write_text(bad)
                 GATE.remember({'x': [1, 1.0]})
-                self.assertEqual(json.loads(stats.read_text()), {'x': [1, 1.0]}, bad)
+                self.assertEqual(read(), {'x': [1, 1.0, [[1, 1.0]]]}, bad)
         code = ('import pathlib, sys; sys.path.insert(0, sys.argv[1]); import _00_memory_gate as g; g.STATS = pathlib.Path(sys.argv[2])\n'
                 'for i in range(25): g.remember({f"{sys.argv[3]} {i}": [i + 1, 0.5]})\n')
         procs = [subprocess.Popen([sys.executable, '-c', code, str(LT), str(stats), f'p{k}']) for k in range(6)]
@@ -1960,7 +1978,7 @@ class Gate(Base):
         self.assertFalse(thread.is_alive(), 'a stopped holder blocks the run')
         self.assertEqual((ran, out.getvalue()), ([1], 'WARNING lbl: memory gate unavailable (its lock stayed held for 0.3 s); running without it\n'))
         self.assertLess(spent, 3, 'one wait for the gate and one for the records, never one per release')
-        self.assertEqual(json.loads(stats.read_text()), {'k': [1, 1.0]})
+        self.assertEqual(json.loads(stats.read_text()), {'k': [1, 1.0, [[1, 1.0]]]})
 
     def test_gate_state_file(self):
         """CP_MEMORY_GATE_STATE: held() takes it from the environment (nested runs do not inherit it) and writes `wait` while
@@ -1987,7 +2005,7 @@ class Gate(Base):
 
     def test_supervise_records(self):
         """supervise() with a key records a passing run's largest peak and its seconds in .run-stats.json and reserves with
-        its recorded seconds, only raising a record (a hand run may be filtered); a failing run, no key, or a run 01-run.py
+        its recorded seconds, adding a run to its record, whose smaller run does not lower it; a failing run, no key, or a run 01-run.py
         started (CP_RUN_STATS_OWNER, popped) records nothing, the last still reserving with its recorded seconds.
         report() writes the peak to the file ensure() took from CP_MEMORY_PEAK. With systemd scopes, a tester run by hand
         records its quick and full peaks, and one under CP_RUN_STATS_OWNER none."""
@@ -2001,7 +2019,8 @@ class Gate(Base):
             return code[0]
         with patch.object(_00_memory_cap, 'capped_run', capped_run), patch.object(GATE, 'STATS', stats):
             self.assertEqual(_00_memory_cap.supervise(['x', 'y'], 'full', 'env', 'a', 50, 'full x'), 0)
-            self.assertEqual(json.loads(stats.read_text())['full x'], [100, 7.5], 'a smaller peak and time never lower a record')
+            x = json.loads(stats.read_text())['full x']
+            self.assertEqual((x[:2], len(x[2])), ([100, 7.5], 2), 'one smaller run does not lower a record; it is its second run')
             self.assertEqual(_00_memory_cap.supervise(['x', 'y'], 'full', 'env', 'a', 50, 'full w'), 0)
             rec = json.loads(stats.read_text())['full w']
             self.assertTrue(rec[0] == 90 and 0 <= rec[1] < 5, rec)
@@ -2011,7 +2030,7 @@ class Gate(Base):
             _00_memory_cap.supervise(['x', 'y'], 'full', 'env', 'a', 50)
             with patch.dict(os.environ, CP_RUN_STATS_OWNER='1'):
                 _00_memory_cap.supervise(['x', 'y'], 'full', 'env', 'a', 50, 'full z')
-            self.assertEqual(json.loads(stats.read_text()), {'full x': [100, 7.5], 'full z': [10, 4.0], 'full w': rec})
+            self.assertEqual(json.loads(stats.read_text()), {'full x': x, 'full z': [10, 4.0], 'full w': rec})
         self.assertEqual(seen, [([7.5], True, False), ([0], True, False), ([0], True, False), ([0], False, False), ([4.0], False, False)])
         peak = self.root / 'peak'
         with patch.object(_00_memory_cap, 'cgroup_stats', lambda: ((123 << 20) + 5, 0)), patch.dict(os.environ, CP_MEMORY_CAPPED='500', CP_MEMORY_PEAK=str(peak)), \

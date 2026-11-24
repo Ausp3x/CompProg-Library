@@ -1329,7 +1329,8 @@ class Hooks(unittest.TestCase):
         file, no dependencies or scripts), and, run by Node.js with a stub vscode module, the URI handler showing the
         terminal whose shell is the pid or its nearest ancestor, nothing for another path, a bad pid, pid 1 or a pid no
         terminal's shell is an ancestor of; the same cases with /proc unreadable, through `ps` (macOS). A window without the
-        terminal and a folder in the URI leaves the request and opens the folder only after LATER; the folder's window shows
+        terminal and a folder in the URI leaves the request; focused, it opens the folder at once and once more only when it
+        regains focus after losing it, within WAIT; unfocused, once it gains focus, else after WAIT; the folder's window shows
         the terminal when it gains focus, not on losing it, and removes the request; a request older than FRESH is ignored."""
         ext = ROOT / '.claude/vscode/terminal-focus'
         pkg = json.loads((ext / 'package.json').read_text())
@@ -1344,9 +1345,10 @@ class Hooks(unittest.TestCase):
             self.skipTest('Node.js missing: the handler is untested')
         stub = self.tmp / 'node_modules/vscode'
         stub.mkdir(parents=True)
-        (stub / 'index.js').write_text('const m = module.exports = {shown: [], commands: {calls: [], executeCommand(...a) { m.commands.calls.push(a); }},'
-                                       'Uri: {parse: s => ({parsed: s})}, window: {terminals: [], registerUriHandler(h) { m.handler = h; return {dispose() {}}; },'
-                                       'onDidChangeWindowState(f) { m.focusChanged = f; return {dispose() {}}; }}};\n')
+        (stub / 'index.js').write_text('const m = module.exports = {shown: [], listeners: [], commands: {calls: [], executeCommand(...a) { m.commands.calls.push(a); }},'
+                                       'Uri: {parse: s => ({parsed: s})}, window: {state: {focused: true}, terminals: [], registerUriHandler(h) { m.handler = h; return {dispose() {}}; },'
+                                       'onDidChangeWindowState(f) { m.listeners.push(f); return {dispose() { m.listeners.splice(m.listeners.indexOf(f) >>> 0, 1); }}; }},'
+                                       'focusChanged: s => Promise.all(m.listeners.slice().map(f => f(s)))};\n')
         harness = ('if (process.env.NOPROC) { const fs = require("fs"), read = fs.readFileSync;'  # macOS: no /proc, ancestors by `ps`
                    'fs.readFileSync = (p, ...a) => { if (String(p).startsWith("/proc/")) throw new Error("no /proc"); return read(p, ...a); }; }'
                    'const vscode = require("vscode"); const ext = require(process.argv[1]); const ctx = {subscriptions: []}; ext.activate(ctx);'
@@ -1368,25 +1370,42 @@ class Hooks(unittest.TestCase):
             self.assertEqual(json.loads(r.stdout), [2, [c[3] for c in cases]], 'the ps fallback' if noproc else '/proc')
         relay = ('const vscode = require("vscode"); const ext = require(process.argv[1]); const fs = require("fs"), dir = process.argv[2];'
                  'const ctx = {subscriptions: [], globalStorageUri: {fsPath: dir}}; ext.activate(ctx);'
-                 'const term = id => ({processId: Promise.resolve(id), show() { vscode.shown.push(id); }}), out = {};'
-                 '(async () => { vscode.window.terminals = [term(99999999)];'
-                 'out.handled = await vscode.handler.handleUri({path: "/focus", query: "pid=" + process.pid + process.argv[3]});'
-                 'out.request = JSON.parse(fs.readFileSync(dir + "/request.json", "utf8")).pid === process.pid; out.early = vscode.commands.calls.length;'
-                 'await new Promise(r => setTimeout(r, 450)); out.opened = vscode.commands.calls;'
+                 'const term = id => ({processId: Promise.resolve(id), show() { vscode.shown.push(id); }}), out = {}, calls = vscode.commands.calls;'
+                 'const handle = () => vscode.handler.handleUri({path: "/focus", query: "pid=" + process.pid + process.argv[3]});'
+                 'const wait = ms => new Promise(r => setTimeout(r, ms));'
+                 '(async () => { vscode.window.terminals = [term(99999999)];'  # a focused window without the terminal: the folder at once
+                 'out.handled = await handle();'
+                 'out.request = JSON.parse(fs.readFileSync(dir + "/request.json", "utf8")).pid === process.pid; out.opened = calls.splice(0);'
+                 'await vscode.focusChanged({focused: true}); out.noBlur = calls.length;'  # focus without losing it first: not again
+                 'await vscode.focusChanged({focused: false}); await vscode.focusChanged({focused: true}); out.back = calls.splice(0).length;'
+                 'await vscode.focusChanged({focused: false}); await vscode.focusChanged({focused: true}); out.twice = calls.length;'
+                 'await handle(); calls.length = 0; await wait(2100); out.kept = vscode.listeners.length;'  # never refocused: its listener goes
+                 'await vscode.focusChanged({focused: false}); await vscode.focusChanged({focused: true}); out.late = calls.length;'
                  'vscode.window.terminals = [term(process.ppid)];'  # the folder's window, holding the terminal of an ancestor
                  'await vscode.focusChanged({focused: false}); out.unfocused = [...vscode.shown];'
                  'await vscode.focusChanged({focused: true}); out.shown = [...vscode.shown]; out.left = fs.existsSync(dir + "/request.json");'
                  'fs.writeFileSync(dir + "/request.json", JSON.stringify({pid: process.pid, at: Date.now() - 16000})); vscode.shown.length = 0;'
-                 'await vscode.focusChanged({focused: true}); out.stale = [...vscode.shown]; console.log(JSON.stringify(out)); })();')
+                 'await vscode.focusChanged({focused: true}); out.stale = [...vscode.shown];'
+                 'vscode.window.terminals = [term(99999999)]; vscode.window.state.focused = false;'  # an unfocused one: the folder once it gains focus
+                 'await handle(); await wait(450); out.beforeFocus = calls.length;'
+                 'await vscode.focusChanged({focused: false}); out.onBlur = calls.length;'
+                 'await vscode.focusChanged({focused: true}); out.onFocus = calls.splice(0).length;'
+                 'await wait(2100); out.once = calls.length; out.listeners = vscode.listeners.length;'
+                 'await handle(); await wait(1700); out.beforeWait = calls.length;'  # never focused: after WAIT
+                 'await wait(500); out.afterWait = calls.splice(0).length; out.left2 = vscode.listeners.length;'
+                 'console.log(JSON.stringify(out)); })();')
         # notify.py's folder parameter for C:\x\My Repo\C#, its query decoded once as VS Code's URI.parse does (mainImpl.js 1.140)
         n = self.imported()
         query = n.unquote('&folder=' + n.quote('file://' + n.uri_path(n.PureWindowsPath(r'C:\x\My Repo\C#')).removeprefix('//'), safe=''))
         r = subprocess.run([NODE, '-e', relay, str(ext / 'extension.js'), str(self.tmp / 'storage/compprog.terminal-focus'), query], capture_output=True, text=True,
                            timeout=60, env=self.env | {'NODE_PATH': str(self.tmp / 'node_modules')})
         self.assertEqual((r.returncode, r.stderr), (0, ''))
-        self.assertEqual(json.loads(r.stdout), {'handled': False, 'request': True, 'early': 0, 'opened': [['vscode.openFolder', {'parsed': 'file:///C:/x/My%20Repo/C%23'},
-                                                {'forceNewWindow': True}]], 'unfocused': [], 'shown': [os.getpid()],
-                                                'left': False, 'stale': []})
+        self.assertEqual(json.loads(r.stdout), {'handled': False, 'request': True, 'opened': [['vscode.openFolder', {'parsed': 'file:///C:/x/My%20Repo/C%23'},
+                                                {'forceNewWindow': True}]], 'noBlur': 0, 'back': 1, 'twice': 0, 'kept': 1, 'late': 0,
+                                                'unfocused': [], 'shown': [os.getpid()], 'left': False, 'stale': [],
+                                                'beforeFocus': 0, 'onBlur': 0, 'onFocus': 1, 'once': 0, 'listeners': 1, 'beforeWait': 0, 'afterWait': 1, 'left2': 1},
+                         'a focused window opens the folder at once and again only on regaining focus within WAIT; an unfocused one once it '
+                         'gains focus, once, else after WAIT; its listener goes')
 
     def test_notify_end(self):
         """The helper ended by SIGTERM or SIGHUP (/reap, the SessionEnd hook) before a click sends SIGINT to its notify-send,
@@ -1445,9 +1464,9 @@ class Hooks(unittest.TestCase):
 
     def test_notify_winhost(self):
         """winhost() on a fake Windows process table: the first ancestor whose executable has resources/app/product.json
-        (Code.exe's pty host), the shell below it, the topmost ancestor on the same executable; {} without one, at pid 0,
-        or when reading an executable fails; host() takes this route on win32. winprocs() and winexe() run only on Windows
-        (live check B)."""
+        (Code.exe's pty host), the shell below it, the topmost ancestor on the same executable, the editor's flags from its
+        processes' arguments, a parent that started after its child (a reused id) not climbed; {} without one, at pid 0, or when reading an executable fails; host() takes this route on
+        win32. winprocs(), winexe(), winargs() and winborn() run only on Windows (live checks B and D)."""
         n = self.imported()
         app = self.tmp / 'Microsoft VS Code'
         (app / 'resources/app').mkdir(parents=True)
@@ -1457,6 +1476,20 @@ class Hooks(unittest.TestCase):
         parents = {10: 9, 9: 8, 8: 7, 7: 6, 6: 0}
         self.assertEqual(n.winhost(10, parents, exe), {'app': app / 'resources/app', 'shell': 9, 'pid': 7, 'data': None, 'extensions': None})
         self.assertEqual(n.winhost(10, {10: 9, 9: 0}, exe), {}, 'no editor among the ancestors')
+        args = {8: ['Code.exe', '--type=ptyHost', '--user-data-dir=C:/near'], 7: ['Code.exe', '--user-data-dir', 'D:/far', '--extensions-dir', 'E:/ext'],
+                10: ['node.exe', '--extensions-dir=X:/not the editor']}
+        self.assertEqual(n.winhost(10, parents, exe, args.get), {'app': app / 'resources/app', 'shell': 9, 'pid': 7, 'data': 'C:/near', 'extensions': 'E:/ext'},
+                         "the first --user-data-dir and --extensions-dir from the editor's process upward, either form; not below it")
+        self.assertEqual(n.winhost(10, parents, exe, {7: None}.get)['data'], None, 'arguments unreadable (an elevated editor)')
+        self.assertIsNone(n.winargs(os.getpid()), 'no Windows API here: None, never an error')
+        born = {10: 5, 9: 4, 8: 3, 7: 2, 6: 1}
+        whole = {'app': app / 'resources/app', 'shell': 9, 'pid': 7, 'data': None, 'extensions': None}
+        self.assertEqual(n.winhost(10, parents, exe, born=born.get), whole, 'each parent started before its child')
+        self.assertEqual(n.winhost(10, parents, exe, born={**born, 7: 50}.get), whole | {'pid': 8},
+                         "a parent id reused by a later process: the climb to the main process stops below it")
+        self.assertEqual(n.winhost(10, parents, exe, born={**born, 8: 9}.get), {}, 'the editor started after the shell: not its parent')
+        self.assertEqual(n.winhost(10, parents, exe, born={10: 5}.get), whole, 'unreadable start times keep the parent')
+        self.assertIsNone(n.winborn(os.getpid()), 'no Windows API here: None, never an error')
         self.assertEqual(n.winhost(10, {10: 10}, exe), {}, 'a loop ends after HOPS')
         def broken(pid):
             raise OSError('denied')

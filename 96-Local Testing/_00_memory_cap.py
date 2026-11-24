@@ -204,7 +204,8 @@ def forwarding(command, **kw):
 def supervise(command, mode=None, source='env', label=None, need=None, key=None):
     """Run command under the pre-flight (when mode is full/stress) and main caps, once the memory gate admits need MB
     (default: the main cap; _00_memory_gate.py); return its exit status. With key (its .run-stats.json key) a passing run
-    raises its recorded peak and seconds to its own, unless 01-run.py started it (CP_RUN_STATS_OWNER), which records its own runs."""
+    adds its peak and seconds to its record (_00_memory_gate.remember()), unless 01-run.py started it (CP_RUN_STATS_OWNER), which
+    records its own runs."""
     label = label or Path(command[1] if len(command) > 1 else command[0]).name
     secs = _00_memory_gate.stats(key)[1]  # read before 01-run.py's mark drops the key, so its suites backfill too
     key = None if os.environ.pop('CP_RUN_STATS_OWNER', None) else key  # popped: entries this run starts record themselves
@@ -215,7 +216,7 @@ def supervise(command, mode=None, source='env', label=None, need=None, key=None)
         seconds = round(time.monotonic() - start, 1)
     if peaks and not code:
         try:
-            _00_memory_gate.remember({key: [max(peaks), seconds]}, grow=True)
+            _00_memory_gate.remember({key: [max(peaks), seconds]})
         except OSError as e:
             print(f'WARNING {label}: its peak was not recorded ({e.strerror})', file=sys.stderr, flush=True)
     return code
@@ -301,7 +302,7 @@ def ensure(force=False, mb=None, need=None, variant=None):
     sys.stdout.flush()
     v = variant() if variant and need is None else None  # parsed before the cap: a bad option exits uncapped
     key = _00_memory_gate.key(mode, main, v) if need is None and (main.name.endswith(ENTRY_SUFFIXES) or v) else None
-    need = _00_memory_gate.recorded(mode, main, MAIN_MB, v) if need is None else need
+    need = need if need is not None else _00_memory_gate.recorded(mode, main, MAIN_MB, v) if key else MAIN_MB  # a record only under a key it writes
     raise SystemExit(supervise([sys.executable, str(main), *sys.argv[1:]], mode, source, main.name, need, key))
 
 

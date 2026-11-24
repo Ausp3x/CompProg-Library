@@ -58,7 +58,7 @@ python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Che
 | `_00_contest_runner.py` | The one driver of the `02`–`07` C++ suites; per-suite differences (`extra`, `timeout`, `checked`, oracle callbacks) are parameters |
 | `_00_memory_cap.py` | Memory-capped execution: `ensure()` for entry points, CLI `-- <command>` for ad-hoc programs. Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory Safety |
 | `_00_memory_gate.py` | Memory admission gate every capped run waits in (one reservations file per user under `$XDG_RUNTIME_DIR`, `CP_MEMORY_GATE`). Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory Safety |
-| `01-run.py` | Suite discovery, modes, `QUICK` registration set, parallel memory-bounded jobs; `.run-stats.json` (git-ignored) keeps each suite's last peak and runtime for scheduling |
+| `01-run.py` | Suite discovery, modes, `QUICK` registration set, parallel memory-bounded jobs; `.run-stats.json` (git-ignored) keeps each suite's peak and runtime, the maxima of its last three runs, for scheduling and the memory gate |
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds as parallel jobs, through `ccache` when installed |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
 | `04-mutation.py` | Mutation campaigns with the pinned mewt in scratch shards, record checks for `/finish` and `/merge-pr`, mewt install ([00-mutation.md](Docs/00-mutation.md)) |
