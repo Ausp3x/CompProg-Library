@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Fixture checks for online expansion (a fake --bundler and the default grab bundler) and explicit workspace generation."""
+"""Fixture checks for online expansion (a fake --bundler and the default grab bundler) and explicit workspace generation.
+
+quick, full and stress run the same checks. Modes/seeds also come from CP_TEST_MODE/CP_TEST_SEED; the seed is unused.
+"""
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import shlex
@@ -15,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
 from _00_cpp_test_runner import Builder, compiler_command
 
+os.environ['CP_TEST_PREFLIGHT'] = '0'  # every mode runs the same checks: a quick pre-flight would run them twice
 _00_memory_cap.ensure()
 
 
@@ -217,6 +222,11 @@ def test_workspace(temp: Path) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--mode", choices=("quick", "full", "stress"), default=os.environ.get("CP_TEST_MODE", "full"),
+                        help="every mode runs the same checks (default %(default)s)")
+    parser.add_argument("--seed", type=int, default=int(os.environ.get("CP_TEST_SEED", "42")), help="unused: no randomness")
+    parser.parse_args()
     try:
         with tempfile.TemporaryDirectory(prefix="online-tools-test-") as directory:
             temp = Path(directory)

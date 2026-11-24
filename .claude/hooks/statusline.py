@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Status line: model, effort, context against the auto-compact window, prompt cache (`miss N` once it has missed), the
 experiment id, plan usage, session cost (a list-price estimate), `audit N new` while the weekly audit has unreviewed
-findings, and the harness warnings of harness.py, which also keeps the plan usage for the audit's canary. Reads Claude
+findings, and the harness warnings of harness.py. Reads Claude
 Code's status JSON on stdin; a missing field is left out."""
 import datetime
 import json
@@ -59,10 +59,6 @@ def main():
     cost = field(d, ('cost', 'total_cost_usd'))
     if isinstance(cost, (int, float)):
         parts.append(f'${cost:.2f}')
-    try:
-        harness.record_usage(d.get('rate_limits'))
-    except Exception:  # A full disk must not hide the audit label or take the status line down.
-        pass
     try:
         parts.append(harness.audit_label())
     except Exception:

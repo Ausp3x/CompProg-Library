@@ -55,7 +55,7 @@ Graph on 2026-10-24: 177 headers (14 aggregates) and 580 include edges (162 into
 
 - The tick handler is tested under `node` with a small DOM shim (`test_page_script_ticks_dependencies_under_node`), not in a browser; without `node` the test prints SKIP (`nodejs` installed by the user, decision 2026-10-24).
 - `.cpp` and Python sources are not followed: `01`–`07` hold only headers, and Python imports belong to the Python contest layer.
-- Three schedule inversions between verified packages remain (P014 and P017 in Foundations re-audit include headers of P027 and P081 in Contest core); they are allowed because each pair has a verified package (2026-10-24).
+- Three schedule inversions between verified packages remain (P014 and P017 in Foundations Re-audit include headers of P027 and P081 in Contest Core); they are allowed because each pair has a verified package (2026-10-24).
 - The notebook selects real includes: a printed header is the whole file; extracting only what a name needs is `10-grab.py`'s job.
 
 ## History
@@ -64,3 +64,4 @@ Graph on 2026-10-24: 177 headers (14 aggregates) and 580 include edges (162 into
 - 2026-10-24: `/finish` audit and diff review: 14 defects fixed (line counts, mini notes, shared literal-aware stripper, directive comments and splices, a repeated scan, repeated decisions, rank wording, tester docstring and summary line, a legacy-path test, an unrecorded claim); user decisions recorded; added a compile oracle for typing order, comment, any-form include and `#if` handling, Compact needing a reduction, the unselectable-dependency message and a node test (SKIP until installed); all testers passed on g++ and g++-14.
 - 2026-10-25: P247 `/finish` (user decision 2026-10-25): `plan.py set` now re-ranks before saving. A package set to in-progress out of rank order had made `test_plan_rank_keeps_schedule_and_waived_inversions` fail until `plan.py rank` ran.
 - 2026-11-05: P253 retired the substitutes (TESTED_MINIS, Compact-skippable includes, mini notes); extraction by 10-grab.py replaces them; testers passed on g++ and g++-14.
+- 2026-11-24: `/finish SUP34` (P289, user decision 2026-11-24): the plan-rule fixture copied the whole working tree to `/tmp`, git-ignored caches included, and its 2 GB cap killed the full run's pre-flight once `96-Local Testing/.judge-cache` had grown to 19 GB, its copy filling the cap with tmpfs pages; it now copies only the files git lists (tracked and untracked, not ignored) outside `OLD` and `95-Resources`. The full run passed: 32 tests, peak 1,201 MB.

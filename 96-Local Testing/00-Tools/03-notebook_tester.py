@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Offline fixture checks for the Team Notebook generator."""
+"""Offline fixture checks for the Team Notebook generator.
+
+quick, full and stress run the same checks. Modes/seeds also come from CP_TEST_MODE/CP_TEST_SEED; the seed is unused.
+"""
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -17,6 +22,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
 
+os.environ['CP_TEST_PREFLIGHT'] = '0'  # every mode runs the same checks: a quick pre-flight would run them twice
 _00_memory_cap.ensure()
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -445,7 +451,12 @@ class NotebookTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    result = unittest.main(exit=False, verbosity=2).result
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--mode", choices=("quick", "full", "stress"), default=os.environ.get("CP_TEST_MODE", "full"),
+                        help="every mode runs the same checks (default %(default)s)")
+    parser.add_argument("--seed", type=int, default=int(os.environ.get("CP_TEST_SEED", "42")), help="unused: no randomness")
+    parser.parse_args()
+    result = unittest.main(argv=sys.argv[:1], exit=False, verbosity=2).result
     ok, tty = result.wasSuccessful(), sys.stdout.isatty()
     summary = (f"notebook: {result.testsRun} tests, {len(result.failures)} failures, {len(result.errors)} errors, "
                f"{len(result.skipped)} skipped")

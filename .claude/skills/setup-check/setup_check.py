@@ -11,8 +11,10 @@ and exits 1 when there is one; 03-consistency.py runs it. A WARN row says whethe
 ($SHELL: ~/.bashrc for bash, $ZDOTDIR or ~ /.zshrc for zsh) defines a grab alias running this clone's
 09-Contest Testing/10-grab.py (its last definition counts, as in the shell); --alias writes that alias there, replacing the
 last grab alias in place, and leaves the file untouched when the alias already runs this clone (user decision 2026-11-06).
-The last row, a WARN when off, says whether git runs the commit hook: core.hooksPath must be the main checkout's absolute
-.claude/githooks (user decision 2026-11-16).
+A WARN row when off says whether git runs the commit hook: core.hooksPath must be the main checkout's absolute
+.claude/githooks (user decision 2026-11-16). The last two rows (SUP34), SKIP outside the terminal of VS Code or an editor
+built from it: a live KWin probe counting the windows notify.py's click activation would match (focus_check), and whether
+the editor has the terminal-focus extension, else the command installing it, which this script never runs.
 """
 import argparse
 import ast
@@ -30,6 +32,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -69,6 +72,7 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
          None, 'libnotify-bin', 'libnotify'),  # .claude/hooks/notify.py: Linux, macOS, Windows and WSL
     Tool('VS Code CLI', 'notification click to focus', ('code',), None, 'code (Microsoft apt repository)', 'AUR: visual-studio-code-bin'),
     Tool('D-Bus caller', 'notification click to focus on KDE', ('gdbus', 'qdbus6', 'qdbus'), None, 'libglib2.0-bin', 'glib2'),  # notify.py's KWin script
+    Tool('journalctl', 'click to focus probe on KDE', ('journalctl',), None, 'systemd', 'systemd'),  # reads the probe's KWin script report
     Tool('PyPy', 'PyPy runs', ('pypy3',), (3, 10), 'pypy3', 'pypy3'),
     Tool('arm64 cross g++', 'arm64 check', ('aarch64-linux-gnu-g++',), None, 'g++-aarch64-linux-gnu',
          'aarch64-linux-gnu-gcc'),
@@ -231,6 +235,73 @@ def hook_check(root=ROOT):
     if code == 0 and Path(have).is_absolute() and Path(have).resolve() == want.resolve():
         return True, have
     return False, ('not enabled' if code else f'core.hooksPath is {have!r}') + f'; run: git config core.hooksPath {shlex.quote(str(want))}'
+
+
+NOTIFY = '.claude/hooks/notify.py'
+FOCUS = '.claude/vscode/terminal-focus'
+OUTSIDE = 'not in the terminal of VS Code or an editor built from it'
+
+
+def focus_check(wait=3):
+    """(ok, detail), ok None when skipped: a one-shot KWin script, loaded, run and unloaded over D-Bus exactly as
+    notify.py's click activation is, with its matching (notify.script) for this checkout's window, counts the windows that
+    activation would match and prints them to KWin's journal, read back by the script's unique marker within wait
+    seconds. Fails (WARN) on zero matches or no report; skipped outside an editor's terminal, outside KDE, or without
+    gdbus/qdbus or journalctl."""
+    if os.environ.get('TERM_PROGRAM') != 'vscode':
+        return None, OUTSIDE
+    if 'KDE' not in os.environ.get('XDG_CURRENT_DESKTOP', '').split(':'):
+        return None, 'not KDE'
+    if not any(shutil.which(e) for e in ('gdbus', 'qdbus6', 'qdbus')) or not shutil.which('journalctl'):
+        return None, 'needs gdbus, qdbus6 or qdbus, and journalctl'
+    n = module('setup_notify', NOTIFY)
+    product, _, found = n.editor()
+    folder, app, pid = n.window(str(ROOT), product.get('nameShort'), found.get('data')), product.get('nameLong', ''), found.get('pid')
+    mark, since = f'claude-probe-{os.getpid()}-{time.time_ns()}', int(time.time()) - 1
+    if not n.kwin(n.script(folder, app, pid, mark), mark):
+        return False, 'KWin did not load the probe script'
+    end, report = time.monotonic() + wait, None
+    while report is None and time.monotonic() < end:
+        for scope in (['--user'], []):  # kwin_wayland runs as a user service; the system journal for other setups
+            text = out(['journalctl', *scope, f'--since=@{since}', '-o', 'cat', '-q', '--no-pager'])[1] or ''
+            report = next((l for l in text.splitlines() if l.startswith(mark + ' ')), report)
+        time.sleep(0.1 if report is None else 0)
+    want = f'folder {folder}, pid {pid or "unknown"}, title ending {app!r}'
+    if report is None:
+        return False, f'no report from the probe script in the journal ({want})'
+    matches, by_pid, by_path, by_name, caption = (report[len(mark) + 1:].split(' ', 4) + [''])[:5]
+    if matches == '0':
+        return False, f'no window matches ({want})'
+    return True, f'{matches} matching window(s) ({by_pid} by pid {pid}, {by_path} by full path, {by_name} by name); KWin picks {caption!r}'
+
+
+def extension_check():
+    """(ok, detail), ok None when skipped: whether the editor whose terminal runs this check has the terminal-focus
+    extension notify.py opens after a click (a folder named after it in the editor's extensions folder); when it lacks
+    it, the command that installs it, a symbolic link of the main checkout's copy (a PowerShell junction on Windows, which
+    needs no administrator), which this check never runs."""
+    if os.environ.get('TERM_PROGRAM') != 'vscode':
+        return None, OUTSIDE
+    n = module('setup_notify', NOTIFY)
+    product, _, found = n.editor()
+    if not (d := n.extensions(product, found)):
+        return None, "the editor's product.json names no dataFolderName"
+    try:
+        have = sorted(e.name for e in d.iterdir() if (e.name == n.EXTENSION or e.name.startswith(n.EXTENSION + '-'))
+                      and (e / 'package.json').is_file())
+    except OSError:
+        have = []
+    if have:
+        return True, f'{d / have[0]}'
+    common = out(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=ROOT)[1] if shutil.which('git') else ''
+    src = (Path(common).parent if common and Path(common).name == '.git' else ROOT) / FOCUS
+    version = json.loads((ROOT / FOCUS / 'package.json').read_text())['version']
+    dst, ps = d / f'{n.EXTENSION}-{version}', lambda p: "'" + str(p).replace("'", "''") + "'"
+    install = (f'(PowerShell) New-Item -ItemType Directory -Force {ps(d)} | Out-Null; New-Item -ItemType Junction -Force -Path {ps(dst)} '
+               f'-Target {ps(src)} | Out-Null' if n.SYSTEM == 'win32' else
+               f'mkdir -p {shlex.quote(str(d))} && ln -sfn {shlex.quote(str(src))} {shlex.quote(str(dst))}')
+    return False, (f'not in {d}; install: {install}, then run Developer: Restart Extension Host, and on the first click allow VS Code '
+                   'to let the extension open the URI, with Do not ask me again')
 
 
 def rc_file():
@@ -414,17 +485,32 @@ def main():
     missing, failed = [], False
     rows = [(None, 'platform', None, platform_check()), *((t, t.name, t.need, check(t)) for t in TOOLS),
             (None, 'role', None, role_check()), (None, 'grab alias', 'grab from any folder', alias_check()),
-            (None, 'commit hook', 'rule checks on every commit', hook_check())]
+            (None, 'commit hook', 'rule checks on every commit', hook_check()),
+            (None, 'click to focus', 'KWin finds the window', focus_check()), (None, 'terminal focus', 'a click shows the terminal', extension_check())]
+    out = []
     for tool, name, need, (ok, detail) in rows:
-        label = 'OK' if ok else 'WARN' if need or name == 'platform' else 'FAIL'
+        label = 'SKIP' if ok is None else 'OK' if ok else 'WARN' if need or name == 'platform' else 'FAIL'
         failed |= label == 'FAIL'
-        print(f'{label:4}  {name}{f" ({need})" if need else ""}: {detail}')
+        out.append(f'{label:4}  {name}{f" ({need})" if need else ""}: {detail}')
         if tool and not ok and (detail == 'not found' or tool.exes[0] not in CONFIGURED):
             missing.append(tool)
     if missing:
-        print('Install:', *install(missing, distro(args.distro)), sep='\n')
-    print('FAIL: a required tool is missing or below its floor' if failed else 'PASS: every required tool works')
+        out += ['Install:', *'\n'.join(install(missing, distro(args.distro))).split('\n')]
+    out.append('FAIL: a required tool is missing or below its floor' if failed else 'PASS: every required tool works')
+    print('\n'.join(fitted(out)))
     return int(failed)
+
+
+def fitted(lines):
+    """The result within the room /setup-check's SKILL.md leaves its `!` line after a compaction (SUP34): OK and SKIP
+    rows go first when lines must be cut, and the whole result to setup-check.txt in the session's scratchpad."""
+    sys.path.insert(0, str(ROOT / '00-Guidelines/13-Plan'))
+    import plan  # here, not at the top: 03-consistency.py and plan.py load this module
+    size, rest = plan.room_of(Path(__file__).with_name('SKILL.md')), ''
+    if sum(map(plan.cost, lines)) > size:  # fit()'s own measure, so a cut result is always spilled
+        where = plan.spill('setup-check', '\n'.join(lines) + '\n')
+        rest = f'{where} holds the whole result' if where else 'the whole result could not be written'
+    return plan.fit(lines, size, rest, lambda line: not line.startswith(('OK ', 'SKIP ')))
 
 
 if __name__ == '__main__':

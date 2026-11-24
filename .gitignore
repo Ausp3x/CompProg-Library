@@ -20,6 +20,7 @@
 .claude/pause/
 .claude/merge-pr/
 .claude/harness-audit/
+.claude/reflect/
 .claude/hooks/.state/
 96-Local Testing/**/*_benchmark.json
 96-Local Testing/**/*_benchmark.jsonl

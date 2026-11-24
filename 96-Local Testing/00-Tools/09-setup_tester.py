@@ -21,6 +21,8 @@ presence; the install lines rebuilt per distribution from package kinds; the exp
 each CLI row rebuilt from the fake it faked. Failures print seed, mode, round and inputs.
 
 Feature map:
+main()'s report fitted to the room of /setup-check's SKILL.md, OK and SKIP rows cut first, the whole report in
+setup-check.txt of the session's scratchpad (SUP34) -> test_cli_main_room;
 TOOLS (non-empty fields, unique names, the required executable set with mewt right after GitHub CLI, optional features,
 the optional Rust row right after qemu-user with literal install lines cargo/rust, floors) -> test_tools_*;
 version (the -dumpfullversion and -c PY_VERSION commands, major.minor prefix, unparsable) -> test_version_*;
@@ -57,6 +59,12 @@ missing, off-pin or unversioned mewt as a FAIL row with its install step and exi
 distribution exits 2, no git on PATH, random fake PATHs, a cargo below or at its floor as a WARN or OK row, a full ccache
 as a WARN row without an install line, this machine)
 -> test_cli_*;
+focus_check (SKIP outside an editor's terminal, outside KDE (XDG_CURRENT_DESKTOP's entries), without a D-Bus tool or
+journalctl; the probe script equal to notify.py's activation script in probe mode for ROOT's window folder with a
+unique marker, the journal read with --user first, then without, since a second before; the marker's line parsed into
+an OK row, zero matches or no report within the wait a WARN, a script KWin did not load a WARN without a journal read)
+and extension_check (SKIP outside or without a dataFolderName; a folder without package.json not installed; the WARN's
+install command, run by sh, links the main checkout's copy and turns the row OK) -> test_focus_*, test_extension_check;
 _triple/x86/x86_only/cpu_runs (triples, failing and missing compilers, cache per tuple, default $CXX split with shlex or
 g++, flag copies, non-x86 compiler or machine, cpuinfo flags, this machine) -> test_isa_*.
 """
@@ -74,6 +82,7 @@ import string
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from fractions import Fraction
 from types import SimpleNamespace
@@ -213,7 +222,7 @@ def o_which(exe, path):
 
 
 def o_row(name, need, ok, detail, label=None):
-    label = label or ('OK' if ok else 'WARN' if need or name == 'platform' else 'FAIL')
+    label = label or ('SKIP' if ok is None else 'OK' if ok else 'WARN' if need or name == 'platform' else 'FAIL')
     return label.ljust(4) + '  ' + name + (f' ({need})' if need else '') + ': ' + detail
 
 
@@ -243,6 +252,8 @@ def role_env(role):
 
 ALIAS_NEED = 'grab from any folder'
 HOOK_NEED = 'rule checks on every commit'
+FOCUS_NEED, EXT_NEED = 'KWin finds the window', 'a click shows the terminal'  # the click to focus probe and the terminal-focus extension rows
+OUTSIDE = 'not in the terminal of VS Code or an editor built from it'
 
 
 def o_hook(env, root=ROOT):
@@ -1240,7 +1251,8 @@ class Cli(Base):
             (False, f'git config compprog.role is {role!r}; set contributor or maintainer')
         lines = [o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS] + [o_row('role', None, *role_row),
                                                                          o_row('grab alias', ALIAS_NEED, *o_alias(self.alias_env())),
-                                                                         o_row('commit hook', HOOK_NEED, *o_hook(role_env(role) | {'PATH': str(self.bin)}))]
+                                                                         o_row('commit hook', HOOK_NEED, *o_hook(role_env(role) | {'PATH': str(self.bin)})),
+                                                                         o_row('click to focus', FOCUS_NEED, None, OUTSIDE), o_row('terminal focus', EXT_NEED, None, OUTSIDE)]
         # a failed gh, systemd-run or ccache probe (login, delegation, cache limit) is configuration: install lines only when absent
         missing = [t for t in S.TOOLS if not rows[t.name][0] and (rows[t.name][1] == 'not found' or t.exes[0] not in ('gh', 'systemd-run', 'ccache'))]
         if missing:
@@ -1254,6 +1266,7 @@ class Cli(Base):
     def check_cli(self, spec, role, choice, kpse_missing=(), **kw):
         rows = self.fake_bin(spec, kpse_missing)
         env = role_env(role) | {'PATH': str(self.bin)} | self.alias_env()
+        env.pop('TERM_PROGRAM', None)  # the editor rows SKIP: no live KWin probe or extension lookup
         where = choice or o_distro(REAL_PATH('/etc/os-release').read_text())
         ok_platform, want, code = self.expected(rows, role, where)
         r = self.run_cli(*([choice] if choice else []), env=env)
@@ -1304,11 +1317,14 @@ class Cli(Base):
             rows = {t.name: (True, f'detail {t.name}') for t in S.TOOLS}
             alias = (len(bad) % 2 == 0, f'alias detail {len(bad)}')  # never FAILs, never an install line
             hook = (len(bad) % 3 == 0, f'hook detail {len(bad)}')  # likewise
+            focus = ((None, True, False)[len(bad) % 3], f'focus detail {len(bad)}')  # SKIP, OK or WARN; never FAILs
+            ext = ((False, None, True)[len(bad) % 3], f'extension detail {len(bad)}')
             for k, n in enumerate(sorted(bad)):
                 rows[n] = (False, ['not found', 'x 1.0, needs 9', f'probe problem {n}'][k % 3])
             buf = io.StringIO()
             with patch.object(S, 'platform_check', return_value=plat), patch.object(S, 'role_check', return_value=role), \
                     patch.object(S, 'alias_check', return_value=alias), patch.object(S, 'hook_check', return_value=hook), \
+                    patch.object(S, 'focus_check', return_value=focus), patch.object(S, 'extension_check', return_value=ext), \
                     patch.object(S, 'check', side_effect=lambda t: rows[t.name]), patch.object(sys, 'argv', ['setup_check.py', 'arch']), \
                     contextlib.redirect_stdout(buf):
                 code = S.main()
@@ -1316,10 +1332,61 @@ class Cli(Base):
             missing = [t for t in S.TOOLS if t.name in bad
                        and not (rows[t.name][1].startswith('probe problem') and t.exes[0] in ('systemd-run', 'gh', 'ccache'))]
             want = [o_row('platform', None, *plat), *(o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS), o_row('role', None, *role), o_row('grab alias', ALIAS_NEED, *alias),
-                    o_row('commit hook', HOOK_NEED, *hook), *(['Install:', *o_install(missing, 'arch')] if missing else []), FAIL_LINE if failed else PASS_LINE]
+                    o_row('commit hook', HOOK_NEED, *hook), o_row('click to focus', FOCUS_NEED, *focus), o_row('terminal focus', EXT_NEED, *ext),
+                    *(['Install:', *o_install(missing, 'arch')] if missing else []), FAIL_LINE if failed else PASS_LINE]
             self.eq((code, buf.getvalue().splitlines()), (int(failed), want), platform=plat, role=role, bad=bad)
-        self.eq((o_row('platform', None, False, 'arm')[:4], o_row('grab alias', ALIAS_NEED, False, 'x')[:4], o_row('commit hook', HOOK_NEED, False, 'x')[:4]),
-                ('WARN', 'WARN', 'WARN'), what='oracle sanity')
+        self.eq((o_row('platform', None, False, 'arm')[:4], o_row('grab alias', ALIAS_NEED, False, 'x')[:4], o_row('commit hook', HOOK_NEED, False, 'x')[:4],
+                 o_row('click to focus', FOCUS_NEED, None, 'x')[:4], o_row('terminal focus', EXT_NEED, False, 'x')[:4]),
+                ('WARN', 'WARN', 'WARN', 'SKIP', 'WARN'), what='oracle sanity')
+
+    def test_cli_main_room(self):
+        """main()'s report fits the room of /setup-check's SKILL.md (SUP34): whole when it fits, else OK and SKIP rows go
+        first, every other line stays in order, the last line numbers the cut ones and names setup-check.txt in the
+        session's scratchpad, which holds the whole report. plan.room_of (tested in 08-plan_tester) is replaced by a fixed
+        room, recording the SKILL.md it is asked for; the checks are patched as in test_cli_main_labels."""
+        import contextlib
+        import io
+        import uuid
+        sys.path.insert(0, str(ROOT / '00-Guidelines/13-Plan'))
+        import plan
+        sid = str(uuid.uuid4())
+        pad = self.tmp / f'claude-{os.getuid()}' / '-proj' / sid
+        pad.mkdir(parents=True)
+        bad = sorted(TOOL)[::3]
+        rows = {t.name: (t.name not in bad, f'detail {t.name} ' + 'x' * 40) for t in S.TOOLS}
+        asked = []
+
+        def run(size):
+            buf = io.StringIO()
+            extra = [patch.object(S, f, return_value=(True, f)) for f in ('focus_check', 'extension_check') if hasattr(S, f)]
+            with patch.object(S, 'platform_check', return_value=(True, 'x86')), patch.object(S, 'role_check', return_value=(True, 'maintainer')), \
+                    patch.object(S, 'alias_check', return_value=(True, 'alias')), patch.object(S, 'hook_check', return_value=(True, 'hook')), \
+                    patch.object(S, 'check', side_effect=lambda t: rows[t.name]), patch.object(sys, 'argv', ['setup_check.py', 'arch']), \
+                    patch.object(plan, 'room_of', lambda path: asked.append(path) or size), patch.dict(os.environ, {'CLAUDE_CODE_SESSION_ID': sid}), \
+                    patch.object(tempfile, 'tempdir', str(self.tmp)), contextlib.ExitStack() as stack, contextlib.redirect_stdout(buf):
+                for x in extra:
+                    stack.enter_context(x)
+                code = S.main()
+            return code, buf.getvalue()
+        code, whole = run(10 ** 6)
+        lines = whole.rstrip('\n').split('\n')
+        self.eq((code, asked, (pad / 'setup-check.txt').exists()), (1, [SETUP_PY.with_name('SKILL.md')], False), what='whole report, nothing spilled')
+        self.assertGreater(len(whole), 1500, 'fixture premise: the report overflows a room of 1,500')
+        code, out = run(1500)
+        got = out.rstrip('\n').split('\n')
+        self.assertLessEqual(len(out), 1500, out)
+        self.eq((pad / 'setup-check.txt').read_text(), whole, what='the whole report in the scratchpad')
+        self.assertTrue(got[-1].startswith('... ') and got[-1].endswith(f': {pad / "setup-check.txt"} holds the whole result'), got[-1])
+        keep = [l for l in lines if not l.startswith(('OK ', 'SKIP '))]
+        self.eq(got[:-1], [l for l in lines if l in got[:-1]], what='whole lines in their order')
+        self.assertTrue(all(l in got for l in keep[1:]) and lines[-1] == FAIL_LINE, self.info(got=got, keep=keep, what='every FAIL, WARN and install line and the verdict'))
+        (pad / 'setup-check.txt').unlink()
+        short = ['x'] * 300 + ['FAIL short']  # 610 characters by length, 2,408 by plan.cost(): cut, so spilled
+        with patch.object(plan, 'room_of', lambda path: 1500), patch.dict(os.environ, {'CLAUDE_CODE_SESSION_ID': sid}), \
+                patch.object(tempfile, 'tempdir', str(self.tmp)):
+            got = S.fitted(short)
+        self.assertTrue(got[-1].endswith('holds the whole result'), got[-1])
+        self.eq((pad / 'setup-check.txt').read_text(), '\n'.join(short) + '\n', what='a cut report of short lines spilled whole')
 
     def test_cli_mewt_required(self):
         # main() with every other row OK: a missing or off-pin mewt is a FAIL row, an install step and exit 1; the pin passes
@@ -1335,11 +1402,12 @@ class Cli(Base):
             buf = io.StringIO()
             with patch.object(S, 'platform_check', return_value=(True, 'x86')), patch.object(S, 'role_check', return_value=(True, 'maintainer')), \
                     patch.object(S, 'alias_check', return_value=(True, 'in ~/.bashrc')), patch.object(S, 'hook_check', return_value=(True, 'h')), \
+                    patch.object(S, 'focus_check', return_value=(None, 'f')), patch.object(S, 'extension_check', return_value=(None, 'e')), \
                     patch.object(S, 'check', side_effect=lambda t: rows[t.name]), patch.object(sys, 'argv', ['setup_check.py', 'ubuntu']), \
                     contextlib.redirect_stdout(buf):
                 code = S.main()
             lines = buf.getvalue().splitlines()
-            got = (code, [l for l in lines if l.startswith(('OK    mewt', 'FAIL  mewt', 'WARN  mewt'))], lines[len(S.TOOLS) + 4:])
+            got = (code, [l for l in lines if l.startswith(('OK    mewt', 'FAIL  mewt', 'WARN  mewt'))], lines[len(S.TOOLS) + 6:])
             self.eq(got, (want_code, [line], install + [last]), row=row, stdout=lines)
         for spec_mewt, line in ((None, 'FAIL  mewt: not found'), ('3.9.9', f'FAIL  mewt: mewt 3.9.9, needs exactly {PIN}'), (PIN, f'OK    mewt: mewt')):
             shutil.rmtree(self.bin)
@@ -1382,22 +1450,23 @@ class Cli(Base):
         lines = r.stdout.splitlines()
         self.assertTrue(lines and lines[-1] in (PASS_LINE, FAIL_LINE), self.info(stdout=r.stdout))
         self.eq(r.returncode, int(lines[-1] == FAIL_LINE), stdout=r.stdout, stderr=r.stderr)
-        rows, rest = lines[:len(S.TOOLS) + 4], lines[len(S.TOOLS) + 4:-1]
-        names = ['platform'] + [t.name for t in S.TOOLS] + ['role', 'grab alias', 'commit hook']
-        needs = [None] + [t.need for t in S.TOOLS] + [None, ALIAS_NEED, HOOK_NEED]
+        rows, rest = lines[:len(S.TOOLS) + 6], lines[len(S.TOOLS) + 6:-1]
+        names = ['platform'] + [t.name for t in S.TOOLS] + ['role', 'grab alias', 'commit hook', 'click to focus', 'terminal focus']
+        needs = [None] + [t.need for t in S.TOOLS] + [None, ALIAS_NEED, HOOK_NEED, FOCUS_NEED, EXT_NEED]
         failed = False
         for line, name, need in zip(rows, names, needs):
             label, head = line[:6].rstrip(), line[6:]
             prefix = name + (f' ({need})' if need else '') + ': '
-            self.assertTrue(line[:6] in ('OK    ', 'WARN  ', 'FAIL  ') and head.startswith(prefix), self.info(line=line, name=name))
-            self.eq(label, o_row(name, need, label == 'OK', '')[:6].rstrip(), line=line)
+            skip = need in (FOCUS_NEED, EXT_NEED) and label == 'SKIP'  # only the editor rows skip
+            self.assertTrue(line[:6] in ('OK    ', 'WARN  ', 'FAIL  ', 'SKIP  ' if skip else 'OK    ') and head.startswith(prefix), self.info(line=line, name=name))
+            self.eq(label, o_row(name, need, None if skip else label == 'OK', '')[:6].rstrip(), line=line)
             failed |= label == 'FAIL'
         self.eq(len(rows), len(names), stdout=r.stdout)
         self.eq(failed, lines[-1] == FAIL_LINE, stdout=r.stdout)
         self.eq(rows[0].startswith('OK'), o_platform(), line=rows[0])
         if BASH:
-            self.eq(rows[-2], o_row('grab alias', ALIAS_NEED, *o_alias(ISOLATED)), what='alias row read-only from the real HOME')
-        self.eq(rows[-1], o_row('commit hook', HOOK_NEED, *o_hook(ISOLATED)), what='commit hook row of this clone')
+            self.eq(rows[-4], o_row('grab alias', ALIAS_NEED, *o_alias(ISOLATED)), what='alias row read-only from the real HOME')
+        self.eq(rows[-3], o_row('commit hook', HOOK_NEED, *o_hook(ISOLATED)), what='commit hook row of this clone')
         missing = [t for t, line in zip(S.TOOLS, rows[1:]) if not line.startswith('OK')
                    and (line.endswith(': not found') or t.exes[0] not in ('gh', 'systemd-run', 'ccache'))]
         return missing, rows, rest
@@ -1424,6 +1493,102 @@ class Cli(Base):
         missing, _, rest = self.real_rows(r)
         self.eq(rest, ['Install:', *o_install(missing, 'ubuntu')] if missing else [], stdout=r.stdout)
         self.assertTrue(all(line.startswith('  ubuntu: ') for line in rest[1:]), self.info(stdout=r.stdout))
+
+
+class Focus(Base):
+    """focus_check (the KWin probe) and extension_check with notify.py's editor lookup, KWin call and the journal patched."""
+    def setUp(self):
+        super().setUp()
+        self.n = S.module('setup_notify', S.NOTIFY)
+
+    def kde(self, *tools, **env):
+        for t in tools:
+            sh(self.bin / t, 'exit 0\n')
+        return patch.dict(os.environ, {'TERM_PROGRAM': 'vscode', 'XDG_CURRENT_DESKTOP': 'X:KDE', 'PATH': str(self.bin)} | env)
+
+    def test_focus_skips(self):
+        for tools, env, want in (((), {'TERM_PROGRAM': 'x'}, OUTSIDE), (('gdbus', 'journalctl'), {'XDG_CURRENT_DESKTOP': 'GNOME'}, 'not KDE'),
+                                 (('gdbus', 'journalctl'), {'XDG_CURRENT_DESKTOP': 'KDEx'}, 'not KDE'),
+                                 (('journalctl',), {}, 'needs gdbus, qdbus6 or qdbus, and journalctl'),
+                                 (('qdbus6',), {}, 'needs gdbus, qdbus6 or qdbus, and journalctl')):
+            shutil.rmtree(self.bin)
+            self.bin.mkdir()
+            with self.kde(*tools, **env), patch.object(self.n, 'kwin', side_effect=AssertionError('no KWin call')):
+                self.eq(S.focus_check(), (None, want), tools=tools, env=env)
+
+    def test_focus_report(self):
+        """The script notify.py's activation would run, in probe mode with a unique marker, for the window folder of
+        ROOT; the journal (user, then system) read for the marker's line since a second before; its counts reported."""
+        folder, seen = self.n.PurePosixPath('/w/my proj'), {}
+
+        def kwin(text, plugin):
+            seen.update(text=text, plugin=plugin)
+            return seen['loaded']
+
+        def journal(cmd, **kw):
+            seen['cmds'].append(cmd)
+            line = seen['report'].format(mark=seen['plugin']) if seen['report'] is not None else ''
+            return 0, f"x\n{seen['plugin']}9 9 9 9 9 other\n{line}\n" if ('--user' in cmd) == seen['user'] else 'y\n'
+        cases = (('{mark} 2 1 1 0 a - ~/my proj - Ed Long', True, True, 4242,
+                  (True, "2 matching window(s) (1 by pid 4242, 1 by full path, 0 by name); KWin picks 'a - ~/my proj - Ed Long'")),
+                 ('{mark} 1 0 0 1 my proj - Ed Long', False, True, 4242,
+                  (True, "1 matching window(s) (0 by pid 4242, 0 by full path, 1 by name); KWin picks 'my proj - Ed Long'")),
+                 ('{mark} 0 0 0 0 ', True, True, None, (False, "no window matches (folder /w/my proj, pid unknown, title ending 'Ed Long')")),
+                 (None, True, True, 4242, (False, "no report from the probe script in the journal (folder /w/my proj, pid 4242, title ending 'Ed Long')")),
+                 ('{mark} 1 1 0 0 x', True, False, 4242, (False, 'KWin did not load the probe script')))
+        for report, user, loaded, pid, want in cases:
+            seen.clear()
+            seen.update(report=report, user=user, loaded=loaded, cmds=[])
+            calls = []
+            t0 = int(time.time())
+            with self.kde('gdbus', 'journalctl'), patch.object(self.n, 'editor', return_value=({'nameShort': 'Ed', 'nameLong': 'Ed Long'}, None, {'pid': pid, 'data': '/udd'})), \
+                    patch.object(self.n, 'window', side_effect=lambda *a: calls.append(a) or folder), patch.object(self.n, 'kwin', kwin), \
+                    patch.object(S, 'out', side_effect=journal):
+                start = time.monotonic()
+                got = S.focus_check(wait=0.4)
+                took = time.monotonic() - start
+            self.eq(got, want, report=report, user=user)
+            self.eq(calls, [(str(S.ROOT), 'Ed', '/udd')])
+            self.assertRegex(seen['plugin'], rf'^claude-probe-{os.getpid()}-[0-9]+$')
+            self.eq(seen['text'], self.n.script(folder, 'Ed Long', pid, seen['plugin']), what='the activation script in probe mode')
+            if loaded:
+                since = seen['cmds'][0][2]
+                self.assertTrue(since.startswith('--since=@') and t0 - 2 <= int(since[9:]) <= t0, self.info(cmds=seen['cmds']))
+                tail = [since, '-o', 'cat', '-q', '--no-pager']
+                self.eq(seen['cmds'][:2], [['journalctl', '--user', *tail], ['journalctl', *tail]], what='the user journal, then the system one')
+                self.assertTrue(all(c in seen['cmds'][:2] for c in seen['cmds']), self.info(cmds=seen['cmds']))
+                self.assertTrue((took >= 0.4) == (report is None), self.info(took=took, report=report))
+            else:
+                self.eq(seen['cmds'], [])
+
+    def test_extension_check(self):
+        """Outside an editor's terminal or without a dataFolderName SKIP; installed (a folder named after the extension with a
+        package.json) OK; else WARN with the command linking the main checkout's copy, which sh runs to install it."""
+        ext, folder = self.tmp / "ext's dir", 'compprog.terminal-focus-' + json.loads((ROOT / S.FOCUS / 'package.json').read_text())['version']
+        common = REAL_RUN(['git', 'rev-parse', '--git-common-dir'], cwd=ROOT, capture_output=True, text=True, env=ISOLATED).stdout.strip()
+        src = os.path.join(os.path.dirname(os.path.realpath(os.path.join(ROOT, common))), '.claude', 'vscode', 'terminal-focus')
+        product = ({'dataFolderName': '.ed'}, None, {'extensions': str(ext)})
+        with patch.dict(os.environ, {'TERM_PROGRAM': 'x'}):
+            self.eq(S.extension_check(), (None, OUTSIDE))
+        with patch.dict(os.environ, {'TERM_PROGRAM': 'vscode'}):
+            with patch.object(self.n, 'editor', return_value=({}, None, {})):
+                self.eq(S.extension_check(), (None, "the editor's product.json names no dataFolderName"))
+            with patch.object(self.n, 'editor', return_value=product):
+                (ext / 'compprog.terminal-focus-0.0.0').mkdir(parents=True)  # no package.json: not installed
+                ok, detail = S.extension_check()
+                self.eq((ok, detail), (False, f'not in {ext}; install: mkdir -p {shlex.quote(str(ext))} && ln -sfn {shlex.quote(src)} '
+                                              f'{shlex.quote(str(ext / folder))}, then run Developer: Restart Extension Host, and on the first click allow VS Code to let the extension open the URI, with Do not ask me again'))
+                shutil.rmtree(ext)
+                cmd = detail.split('; install: ', 1)[1].rsplit(', then run ', 1)[0]
+                self.eq(REAL_RUN(['sh', '-c', cmd], capture_output=True, text=True).returncode, 0, cmd=cmd)
+                self.eq(os.path.realpath(ext / folder), os.path.realpath(src))
+                self.eq(S.extension_check(), (True, str(ext / folder)))
+                shutil.rmtree(ext)
+                with patch.object(self.n, 'SYSTEM', 'win32'):
+                    q = lambda p: "'" + str(p).replace("'", "''") + "'"
+                    self.eq(S.extension_check()[1].split('; install: ', 1)[1].rsplit(', then run ', 1)[0],
+                            f'(PowerShell) New-Item -ItemType Directory -Force {q(ext)} | Out-Null; New-Item -ItemType Junction -Force '
+                            f'-Path {q(ext / folder)} -Target {q(src)} | Out-Null', why='Windows: a junction, the quote doubled')
 
 
 class Isa(Base):

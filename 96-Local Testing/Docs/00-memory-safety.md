@@ -61,7 +61,7 @@ Seeded defects: `test_supervisor_death_ends_scope` fails on the file before 2026
 
 - A capped command that changes its own session (`setsid`) still ends with the scope; one started outside a scope by hand is only reported by `/reap`.
 - The cap needs a systemd user manager and cgroup v2. Elsewhere, runs proceed uncapped with a warning.
-- Three standalone testers (`00-Tools/02-online`, `00-Tools/03-notebook`, `01-Core/02-debug_compile`) read no `CP_TEST_MODE`. When their mode is not given explicitly they get the main cap but no pre-flight.
+- Fixed 2026-11-24 (SUP34, user decision 2026-11-23): the three standalone testers (`00-Tools/02-online`, `00-Tools/03-notebook`, `01-Core/02-debug_compile`) read no `CP_TEST_MODE` and so, without an explicit mode, got the main cap but no pre-flight. They now take `--mode` and `--seed` with `CP_TEST_MODE` and `CP_TEST_SEED` as defaults like the other testers; since every mode runs the same checks, they set `CP_TEST_PREFLIGHT=0` themselves, so a full or stress run is not run twice (user decision 2026-11-24) and keeps the main cap; checked by `test_mode_online_tester`, `test_mode_notebook_tester` and `test_mode_debug_compile_tester` in [`05-runner_tester.py`](../00-Tools/05-runner_tester.py).
 - A SIGKILL is attributed to the cap only when the scope reports `oom_kills > 0`; otherwise the message says it may be an external kill.
 
 ## History
@@ -75,3 +75,4 @@ Seeded defects: `test_supervisor_death_ends_scope` fails on the file before 2026
 - 2026-11-16 (user decisions 2026-11-16): parent-death signal and `end_scope()` after a 35-hour leftover driver; `/reap` with `--scratchpads`; `05-runner_tester.py` full passed (63 tests), `17-reap_tester.py` quick and full passed (10 tests, 6 then 25 seeded defects caught).
 - 2026-11-22: P005 `/finish` ran `05-runner_tester.py`: 64 tests pass.
 - 2026-11-23: SUP33: the memory admission gate in `supervise()` (`--need`, `ensure(need=...)`); `05-runner_tester.py` full passed (82 tests, after both reviews' gate fixes) on both compilers; `06-compare.py` became an entry point (user decision 2026-11-23).
+- 2026-11-24: SUP34 (user decision 2026-11-23): the three standalone testers honour `CP_TEST_MODE` (Limits); one reverted tester at a time fails its new test.

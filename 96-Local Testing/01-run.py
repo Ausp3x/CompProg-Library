@@ -13,9 +13,11 @@ import tempfile
 import threading
 import time
 
+import _00_memory_gate
+
 HERE = Path(__file__).resolve().parent
 QUICK = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', '04-montgomery_tester.py', '05-modint_tester.py', '06-modintmini_tester.py', '07-infint_tester.py', '08-infintmini_tester.py', '09-rational_tester.py', '16-poly_tester.py', '17-polymini_tester.py', '18-bitset_tester.py', '19-fastio_tester.py'}
-STATS = HERE / '.run-stats.json'  # git-ignored: last peak MB and seconds per mode and suite, for scheduling only
+STATS = HERE / '.run-stats.json'  # git-ignored: last peak MB and seconds per mode and suite, for scheduling and the memory gate
 CAP_MB = int(os.environ.get('CP_TEST_MEMORY_MB', '4096'))
 SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)  # each stops every job as Ctrl-C does
 OVERHALF = re.compile(rb'^OVERHALF (.+)$', re.M)  # printed by _00_cpp_test_runner.over_half
@@ -140,7 +142,8 @@ def run(tasks, mode, jobs, budget, stats, slow=None, flagged=None):
                     with open(log(i), 'wb') as out, held():  # recorded in running before an interrupt can land
                         running[i] = subprocess.Popen([sys.executable, str(tasks[i][2])], stdin=subprocess.DEVNULL, stdout=out,
                                                       stderr=subprocess.STDOUT, start_new_session=True,
-                                                      env=dict(os.environ, CP_TEST_MODE=mode, CP_TEST_SEED=str(tasks[i][1]))), time.monotonic()
+                                                      env=dict(os.environ, CP_TEST_MODE=mode, CP_TEST_SEED=str(tasks[i][1]),
+                                                               CP_RUN_STATS_OWNER='1')), time.monotonic()  # it records them, not their supervise()
                 if len(running) > 1:
                     crowded |= running.keys()
                 for i in list(running):
@@ -158,8 +161,11 @@ def run(tasks, mode, jobs, budget, stats, slow=None, flagged=None):
                         continue
                     codes[i] = proc.returncode
                     if not proc.returncode:
-                        peaks = re.findall(rb'MEMORY peak=(\d+)MB', log(i).read_bytes())
-                        stats[tasks[i][0]] = [max(map(int, peaks), default=0), round(time.monotonic() - start, 1)]
+                        text = log(i).read_bytes()
+                        peaks = re.findall(rb'MEMORY peak=(\d+)MB', text)
+                        own = re.escape(tasks[i][2].name.encode())  # supervise()'s label; a nested run waits inside the reservation
+                        queued = sum(map(int, re.findall(rb'^ADMIT ' + own + rb': after (\d+) s in the memory queue$', text, re.M)))
+                        stats[tasks[i][0]] = [max(map(int, peaks), default=0), round(max(0.0, time.monotonic() - start - queued), 1)]
                         if slow is not None:
                             slow += [(float(m[2]), m[1].decode()) for m in re.finditer(rb'^TIMING (.+?) mode=quick compile=[\d.]+s run=([\d.]+)s', log(i).read_bytes(), re.M)
                                      if float(m[2]) > QUICK_SECONDS]
@@ -220,13 +226,11 @@ def main():
     except (OSError, ValueError, TypeError, AttributeError, IndexError, KeyError):
         stats = {}
     tasks = [(f'{a.mode} {s.relative_to(HERE).as_posix()}', a.seed + i, s) for i in range(runs) for s in suites]
-    slow, flagged = [], []
+    slow, flagged, loaded = [], [], {k: list(v) for k, v in stats.items()}
     try:
         code = run(tasks, a.mode, a.jobs, a.memory_mb or available_mb() - 2048, stats, slow, flagged)  # full and stress: the pre-flights' quick TIMING lines
-    finally:
-        temporary = STATS.with_name(f'{STATS.name}.{os.getpid()}')
-        temporary.write_text(json.dumps(stats, indent=0, sort_keys=True) + '\n')
-        temporary.replace(STATS)
+    finally:  # merged: records other runs made meanwhile stay
+        _00_memory_gate.remember({k: v for k, v in stats.items() if loaded.get(k) != v})
     if code: return code
     slow = sorted({name: seconds for seconds, name in sorted(slow)}.items(), key=lambda item: -item[1])  # each round's pre-flight repeats them
     if slow:

@@ -550,19 +550,10 @@ errors.extend(sweep_faults)
 for target, named in sweep_named.items():
     lacking = sorted(operation_names(inventories[target][-2]) - named)
     require(not lacking, f'Optimization Candidates table lacks operations of its row (05-testing.md, Benchmarks): {target}: ' + ', '.join(lacking))
-# After a compaction Claude Code re-attaches each invoked skill's first 5,000 tokens, its `!` output included (SUP33): a skill
-# that prints facts leaves them at least MIN_FACTS characters, any other fits whole with a tenth to spare.
-# gaps.py's constants are read as literals, never executed: merge_pr.py's HOST_RUN names what the validator runs.
-consts = {t.id: ast.literal_eval(n.value) for n in ast.parse((ROOT / '.claude/skills/finish/gaps.py').read_text()).body
-          if isinstance(n, ast.Assign) for t in n.targets if isinstance(t, ast.Name) and t.id in ('REATTACH_TOKENS', 'CHARS_PER_TOKEN', 'MIN_FACTS')}
-reattach, min_facts = int(consts['REATTACH_TOKENS'] * consts['CHARS_PER_TOKEN']), consts['MIN_FACTS']
-skill_reattach = []
-for skill in sorted((ROOT / '.claude/skills').glob('*/SKILL.md')):
-    text, rel = skill.read_text(), skill.relative_to(ROOT)
-    if re.search(r'^!`', text, re.M) and (room := reattach - len(text)) < min_facts:
-        skill_reattach.append(f'{rel}: leaves {room} characters of the {reattach} re-attached for the facts it prints (at least {min_facts})')
-    elif not re.search(r'^!`', text, re.M) and len(text) > 0.9 * reattach:
-        skill_reattach.append(f'{rel}: {len(text)} characters, near the {reattach} re-attached after a compaction')
+# After a compaction Claude Code re-attaches each invoked skill's first 5,000 tokens, its `!` output included (SUP33, SUP34):
+# plan.py holds the room arithmetic the skills' scripts fit their output to, and its rule (plan.reattach) lists each skill
+# whose `!` lines get under MIN_FACTS characters, any other near the whole room, and a brief not fitted to its skill.
+skill_reattach = plan.reattach(ROOT)
 # LICENSE is the CC0-1.0 legal code verbatim (creativecommons.org legalcode.txt, identical in SPDX).
 require(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest() == 'a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499',
         'LICENSE differs from the CC0-1.0 legal code')

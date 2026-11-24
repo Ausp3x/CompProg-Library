@@ -18,7 +18,7 @@ extraction compiled after the template; the fixture headers' own text for every 
 diagnostic's file:line; hand-listed units, groups and includes; a Bell triangle in Python (validated on its first
 terms), a relabelling union-find and trial division plus a Miller-Rabin cross-checked against a sieve; for random
 libraries a generator-side model (reachability, values mod 1000003, which names must be absent); hand-built inventory,
-plan and tester trees for the harness. Failures print seed, mode, fixture root, root names and compiler output.
+plan and tester trees for the harness; for run_tester's timeout, a fake tester writing its queue state. Failures print seed, mode, fixture root, root names and compiler output.
 
 Feature map:
 units and merge (namespace-scope functions, overloads, detail namespace, concept, alias, variable, class template and
@@ -81,7 +81,8 @@ full_only_cached (full_only's hand-written result on a miss and a hit, {key, res
 recomputed when found, full, a library header's bytes, a found row's evidence document (appearing, changing, gone),
 ix.records, the script or the source of grab, _11_search.py or 05-dependencies.py change; corrupt or wrong-shaped store recomputed and rewritten; an unwritable
 store still answers), cpp_testers,
-scratch (per-header stubs under their quoted includes, copies, .run-stats.json when present, compiled use), own_names (prose excluded), aggregate
+scratch (per-header stubs under their quoted includes, copies, .run-stats.json when present, compiled use), run_tester (the
+memory queue's time outside --timeout and the seconds), own_names (prose excluded), aggregate
 closures, mini-first parsing (scope-aware full_type_names, wrapped full_defaults, mini_first_split strict and pending)
 -> test_harness_*; probes (candidate arguments, control rounds, presets, a dropped member caught, check_ops end to end on
 a fixture inventory) -> test_ops_instantiation_oracle;
@@ -1586,6 +1587,22 @@ class Cache(Base):
 
 
 class Harness(Base):
+    def test_harness_run_tester_queue(self):
+        """run_tester leaves out a tester's time in the memory queue (its gate writes `wait` to CP_MEMORY_GATE_STATE, then
+        `run`): 2.5 s queued and 0.3 s running pass a 1 s timeout, and the seconds count the run alone; 3 s running without a
+        queue fail it."""
+        queued, slow = self.tmp / 'q_tester.py', self.tmp / 's_tester.py'
+        queued.write_text('import os, pathlib, sys, time\nstate = pathlib.Path(os.environ["CP_MEMORY_GATE_STATE"])\n'
+                          'state.write_text("wait"); time.sleep(2.5); state.write_text("run"); time.sleep(0.3)\n'
+                          'print("done", os.environ["CP_TEST_MODE"], sys.argv[1:], flush=True)\n')
+        slow.write_text('import time\ntime.sleep(3)\n')
+        code, out, secs = H.run_tester(queued, 1)
+        self.eq((code, out), (0, "done quick ['--mode', 'quick']\n"))
+        self.true(secs < 1.5, secs=secs)
+        code, out, secs = H.run_tester(slow, 1)
+        self.eq((code, out), (-1, 'timeout after 1 s outside the memory queue'))
+        self.true(1 <= secs < 2.5, secs=secs)
+
     def test_harness_split(self):
         self.eq(H.split('a(b, c), d , ,e', ','), ['a(b, c)', 'd', 'e'])
         self.eq(H.split('A<B, C>, D(x, y), E', ',', True), ['A<B, C>', 'D(x, y)', 'E'])

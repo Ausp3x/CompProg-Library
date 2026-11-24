@@ -14,7 +14,7 @@
   both     (default) ops, then testers
 
 --mode quick samples --sample rows and testers with --seed; --mode full takes them all. Each compile and each tester
-runs memory-capped (the testers cap themselves); a tester that fails beside others is rerun alone, and only a failure
+runs memory-capped (the testers cap themselves, and --timeout leaves out a tester's time in the memory queue); a tester that fails beside others is rerun alone, and only a failure
 alone counts. Without libclang it prints SKIP and exits 0. Exit 0 pass, 1 failure.
 """
 import argparse
@@ -468,15 +468,29 @@ def scratch(ix, tester, files, base):
 
 
 def run_tester(path, timeout):
+    """(exit code, output tail, seconds) of the tester's quick run; its time in the memory queue, which its gate writes
+    to CP_MEMORY_GATE_STATE, counts neither against timeout nor in the seconds."""
     env = {k: v for k, v in os.environ.items() if k != 'CP_MEMORY_CAPPED'}
-    env.update(CP_TEST_MODE='quick', CP_TEST_PREFLIGHT='0')
-    start = time.monotonic()
-    try:
-        r = subprocess.run([sys.executable, str(path), '--mode', 'quick'], capture_output=True, text=True,
-                           timeout=timeout, env=env, stdin=subprocess.DEVNULL)
-        return r.returncode, (r.stdout + r.stderr)[-3000:], time.monotonic() - start
-    except subprocess.TimeoutExpired:
-        return -1, f'timeout after {timeout} s', time.monotonic() - start
+    with tempfile.TemporaryDirectory(prefix='cp-extraction-queue-') as d:
+        state = Path(d) / 'state'
+        env.update(CP_TEST_MODE='quick', CP_TEST_PREFLIGHT='0', CP_MEMORY_GATE_STATE=str(state))
+        start = last = time.monotonic()
+        queued = 0.0
+        with subprocess.Popen([sys.executable, str(path), '--mode', 'quick'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                              text=True, env=env, stdin=subprocess.DEVNULL) as p:
+            while True:
+                try:
+                    out, err = p.communicate(timeout=min(1.0, max(0.01, start + queued + timeout - time.monotonic())))
+                    return p.returncode, (out + err)[-3000:], time.monotonic() - start - queued
+                except subprocess.TimeoutExpired:
+                    now = time.monotonic()
+                    with contextlib.suppress(OSError):
+                        queued += (now - last) * (state.read_text() == 'wait')
+                    last = now
+                    if now - start - queued >= timeout:
+                        p.kill()
+                        p.communicate()
+                        return -1, f'timeout after {timeout} s outside the memory queue', now - start - queued
 
 
 def check_testers(ix, a, work):
@@ -513,7 +527,7 @@ def main(argv=None):
     p.add_argument('--sample', type=int, default=8, help='rows and testers sampled in quick mode (default 8)')
     p.add_argument('--filter', default='', help='substring of the header or tester path')
     p.add_argument('-j', '--jobs', type=int, default=min(6, os.cpu_count() or 1), help='parallel compiles and testers (default min(6, CPUs))')
-    p.add_argument('--timeout', type=int, default=1800, help='seconds per tester (default 1800)')
+    p.add_argument('--timeout', type=int, default=1800, help='seconds per tester, its time in the memory queue apart (default 1800)')
     p.add_argument('-v', '--verbose', action='store_true', help='list the operation names that declare nothing')
     a = p.parse_args(argv)
     if a.jobs < 1 or a.sample < 1:

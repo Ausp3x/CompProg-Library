@@ -20,11 +20,15 @@ background shells and reparented processes ended only with --own, otherwise the 
 test_classify, test_e2e_own;
 orphans of other projects' ended sessions and reparented related processes without CLAUDE_PID reported, cwd alone
 not enough without CLAUDE_PID; CP_REAP_KEEP never ended, even with an ended session or --own, and reported only when
-reparented and over an hour old -> test_classify;
+reparented and over an hour old; the notification click helper (no CP_REAP_KEEP) ended with --own and once its session
+ended, else reported -> test_classify;
 temporaries: grace, references by argument, live workers that may own cp-*, gcc and workdir items but not preambles,
 name patterns, the campaign lock, resumable and finished mutation workdirs -> test_temporaries;
 a sibling checkout or scratch root whose path only starts with this project's is another project -> test_classify;
---tmp deletion, --dry-run deleting nothing -> test_e2e_tmp;
+--tmp deletion, --dry-run deleting nothing -> test_e2e_tmp; a CLAUDE_PID that is not a number owning nothing ->
+test_owner_text;
+the result fitted to the room /reap's SKILL.md leaves (SUP34): whole when it fits, else whole lines in order within the
+room with LEFT and the verdict kept and the whole result in reap.txt of the session's scratchpad -> test_report_room;
 scratchpads of ended sessions: session-id directories only, main and worktree roots, sibling and other projects
 excluded; live by registry (a dead or unreadable entry not), by a live claude's processes (not when the claude is newer
 than the process); used by a process; named by a /pause handoff or /finish ledger; idle from the latest change in the
@@ -33,7 +37,9 @@ claude's registered session kept until it ends, a gone worktree's empty root rem
 test_e2e_scratchpads; root pruning (main, live worktree's, non-empty and other projects' roots stay) -> test_prune_roots.
 """
 import argparse
+import contextlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -45,6 +51,7 @@ import tempfile
 import time
 from types import SimpleNamespace
 import unittest
+from unittest import mock
 import uuid
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
@@ -129,13 +136,17 @@ class Reap(unittest.TestCase):
             P(311, 10, 'python3', now - 7200, [f'{R}/scan.py'], R, 100, keep=True), P(312, 311, 'python3', now - 7000, [], R, 100, keep=True),
             P(313, 10, 'python3', 313, ['/r2/t.py', '-DX=/r2/h.hpp'], '/r2', 999),  # a sibling checkout /r2 is another project
             P(314, 10, 'python3', 314, ['/t/claude-1000/-r2/s/drv'], '/', 999), P(315, 10, 'drv', 315, ['/r'], '/', 999),
+            P(316, 10, 'python3', 316, ['python3', f'{R}/.claude/hooks/notify.py', '--click', 'notify-send'], R, 100),  # the click helper
+            P(317, 10, 'python3', 317, ['python3', f'{R}/.claude/hooks/notify.py', '--click', 'notify-send'], R, 999, 'dead'),
         ]
         table = {p.pid: p for p in rows}
         end, report = reap.classify(table, 102, M, now)
-        self.assertEqual(sorted(end), [300, 301, 302, 303, 315])
-        self.assertEqual(sorted(p for p, _ in report), [105, 202, 204, 304, 306, 311, 313, 314])
+        self.assertEqual(sorted(end), [300, 301, 302, 303, 315, 317])
+        self.assertEqual(sorted(p for p, _ in report), [105, 202, 204, 304, 306, 311, 313, 314, 316])
         why = dict(report)
         self.assertIn('--own', why[105])
+        self.assertIn('--own', why[316])
+        self.assertIn('ended', end[317])
         self.assertIn('live session B', why[202])
         self.assertIn('2h00m', why[202])
         self.assertIn('reparented away from live session B', why[204])
@@ -144,10 +155,11 @@ class Reap(unittest.TestCase):
         self.assertIn('detached by design (CP_REAP_KEEP), running for 2h00m', why[311])
         self.assertIn('dead', end[300])
         end, report = reap.classify(table, 102, M, now, own=True)
-        self.assertEqual(sorted(end), [103, 104, 105, 300, 301, 302, 303, 315])
+        self.assertEqual(sorted(end), [103, 104, 105, 300, 301, 302, 303, 315, 316, 317])
         self.assertEqual(sorted(p for p, _ in report), [202, 204, 304, 306, 311, 313, 314])
         self.assertIn('background', end[104])
         self.assertIn('reparented', end[105])
+        self.assertIn('reparented', end[316])
 
     # ---- temporaries on a fixture directory
     def item(self, name, mtime=1e9, folder=False, body=b'x' * 100):
@@ -374,6 +386,58 @@ class Reap(unittest.TestCase):
         self.assertIn('DELETED 1 scratchpads', out)
         self.assertFalse(pads[reg].exists(), 'its session ended')
         self.assertEqual(list(pads[reg].parent.iterdir()), [], "the main checkout's scratch root stays, even empty")
+
+    def test_owner_text(self):
+        """A CLAUDE_PID that is not a number (another tool's, a test fixture's) names no owner instead of failing the run."""
+        for value, want in (('123', 123), ('x', 0), ('', 0), ('-5', 0), ('1.5', 0), ('١٢', 0)):
+            self.assertEqual(reap.Proc(1, 0, 'sh', 0.0, env={'CLAUDE_PID': value}).owner, want, value)
+        self.assertEqual(reap.Proc(1, 0, 'sh', 0.0).owner, 0)
+
+    def test_report_room(self):
+        """The result fits the room of /reap's SKILL.md (SUP34): whole when it fits; else whole lines in order within the
+        room, LEFT and the verdict kept, the rest numbered and the whole result in reap.txt of the session's scratchpad.
+        classify() is replaced by one naming real processes as ended, and --dry-run ends none of them; plan.room_of
+        (tested in 08-plan_tester) is replaced by a fixed room, recording the SKILL.md it is asked for; the process table
+        and the clock are frozen, so both runs print the same ages and CPU times. A result of short lines that fits by
+        length but not by plan.cost() is cut and spilled too."""
+        fx, sid = self.tmp / 'fx', str(uuid.uuid4())
+        pad = fx / f'claude-{os.getuid()}' / '-proj' / sid
+        pad.mkdir(parents=True)
+        (fx / 'tmp').mkdir()
+        table = reap.processes()
+        many = sorted(table)[:80]
+        fake = lambda *a, **k: ({p: 'test' for p in many}, [(many[0], 'kept for the test')])
+        asked, clock = [], SimpleNamespace(time=lambda: 2e9, monotonic=time.monotonic, sleep=time.sleep)
+
+        def run(size):
+            buf = io.StringIO()
+            with mock.patch.object(reap, 'classify', fake), mock.patch.object(reap.plan, 'room_of', lambda p: asked.append(p) or size), \
+                    mock.patch.object(reap, 'processes', lambda: table), mock.patch.object(reap, 'time', clock), \
+                    mock.patch.dict(os.environ, {'CLAUDE_CODE_SESSION_ID': sid}), mock.patch.object(tempfile, 'tempdir', str(fx)), \
+                    contextlib.redirect_stdout(buf):
+                self.assertEqual(reap.main(['--dry-run', '--tmp', str(fx / 'tmp'), '--home', str(fx / 'home')]), 0)
+            return buf.getvalue()
+        whole = run(10 ** 6)
+        lines = whole.rstrip('\n').split('\n')
+        self.assertEqual(asked, [REAP.with_name('SKILL.md')], "the room of reap's own SKILL.md")
+        self.assertGreater(len(whole), 1500, 'fixture premise: the result overflows a room of 1,500')
+        self.assertFalse((pad / 'reap.txt').exists(), 'nothing spilled while it fits')
+        self.assertTrue(lines[-1].startswith('PASS reap:'), lines[-1])
+        out = run(1500)
+        got = out.rstrip('\n').split('\n')
+        self.assertLessEqual(len(out), 1500, out)
+        self.assertEqual((pad / 'reap.txt').read_text(), whole, 'the whole result in the scratchpad')
+        self.assertTrue(got[-1].startswith('... ') and got[-1].endswith(f': {pad / "reap.txt"} holds the whole result'), got[-1])
+        self.assertEqual(got[:-1], [l for l in lines if l in got[:-1]], 'whole lines in their order')
+        self.assertIn(lines[-1], got, 'the verdict')
+        self.assertTrue(all(l in got for l in lines if l.startswith('LEFT')), 'every LEFT line')
+        (pad / 'reap.txt').unlink()
+        short = ['x'] * 300 + ['PASS reap: short']  # 602 characters by length, 2,408 by plan.cost()
+        with mock.patch.object(reap.plan, 'room_of', lambda p: 1500), mock.patch.dict(os.environ, {'CLAUDE_CODE_SESSION_ID': sid}), \
+                mock.patch.object(tempfile, 'tempdir', str(fx)), contextlib.redirect_stdout(io.StringIO()) as buf:
+            reap.report_out(short)
+        self.assertTrue(buf.getvalue().rstrip('\n').split('\n')[-1].endswith('holds the whole result'), 'cut, so spilled')
+        self.assertEqual((pad / 'reap.txt').read_text(), '\n'.join(short) + '\n')
 
     def test_e2e_tmp(self):
         self.full()

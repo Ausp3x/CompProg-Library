@@ -574,8 +574,15 @@ class Repository(Base):
 
 
 def copy_tree(dst: Path) -> None:
-    shutil.copytree(ROOT, dst, symlinks=True, ignore=shutil.ignore_patterns(
-        ".git", "OLD", "95-Resources", "build", "__pycache__", "worktrees"))
+    # only files git lists: the git-ignored caches (.judge-cache) hold gigabytes and /tmp may be RAM
+    listed = subprocess.run(["git", "ls-files", "-co", "--exclude-standard", "-z"], cwd=ROOT,
+                            capture_output=True, text=True, check=True).stdout.split("\0")
+    for rel in filter(None, listed):
+        src = ROOT / rel
+        if rel.split("/")[0] in ("OLD", "95-Resources") or not os.path.lexists(src):
+            continue
+        (dst / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst / rel, follow_symlinks=False)
 
 
 class PlanRules(Base):
@@ -772,14 +779,14 @@ class PlanRules(Base):
     def test_plan_set_reranks(self):
         batches, packages = self.plan.load(self.copy)
         deps, status = self.plan.prereqs(batches, packages), {p["id"]: p["status"] for p in packages["packages"]}
-        ready = [p for p in packages["packages"] if p["status"] == "planned" and p["phase"] == "Contest core"
+        ready = [p for p in packages["packages"] if p["status"] == "planned" and p["phase"] == "Contest Core"
                  and all(status[d] == "verified" for d in deps[p["id"]])]
         mover = ready[-1]["id"]
         subprocess.run([sys.executable, self.copy / "00-Guidelines/13-Plan/plan.py", "set", mover, "in-progress"],
                        check=True, capture_output=True)
         batches, packages = self.plan.load(self.copy)
         ids = [p["id"] for p in packages["packages"]]
-        planned = [p["id"] for p in packages["packages"] if p["phase"] == "Contest core" and p["status"] == "planned"]
+        planned = [p["id"] for p in packages["packages"] if p["phase"] == "Contest Core" and p["status"] == "planned"]
         self.assertLess(ids.index(mover), min(map(ids.index, planned)), "a started package precedes the planned ones")
         self.plan.rank(batches, packages)
         self.assertEqual([p["id"] for p in packages["packages"]], ids, "set leaves the schedule ranked")

@@ -1,0 +1,23 @@
+{
+    "name": "terminal-focus",
+    "displayName": "Terminal Focus for Claude Code Notifications",
+    "description": "Shows the integrated terminal whose shell is the pid of <urlProtocol>://compprog.terminal-focus/focus?pid=<pid>[&folder=<file URI>], or an ancestor of it, in the window holding it (.claude/hooks/notify.py opens it after a notification click).",
+    "publisher": "compprog",
+    "version": "0.0.1",
+    "license": "UNLICENSED",
+    "private": true,
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "activationEvents": [
+        "onUri",
+        "onStartupFinished"
+    ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": true
+        },
+        "virtualWorkspaces": true
+    },
+    "main": "./extension.js"
+}

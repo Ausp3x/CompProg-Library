@@ -16,14 +16,18 @@ uncapped invocation becomes a small supervisor:
    included), and lead() turns that into the end of the whole scope, so nothing in it outlives its supervisor.
 
 5. Before any of it, the supervisor waits until ``_00_memory_gate.py`` admits the run's expected peak (the peak
-   01-run.py recorded for the entry and mode, else the cap; ``--need`` or ``ensure(need=...)`` override), so concurrent
+   recorded for the entry and mode, else the cap; ``--need`` or ``ensure(need=...)`` override), so concurrent
    runs of several sessions queue instead of being killed.
+6. After a passing run of a tester or benchmark that reserved its recorded peak, the supervisor records its peak (the largest of
+   the pre-flight's and the main scope's, which the scope's first process writes to CP_MEMORY_PEAK) and seconds in
+   ``.run-stats.json``, unless 01-run.py started it (CP_RUN_STATS_OWNER), which records its own runs.
 
 Ad-hoc probes and benchmarks: ``python3 _00_memory_cap.py [--mb N] [--need N] -- <command> [args...]``.
 
 Environment: CP_TEST_MEMORY_MB (main cap, default 4096), CP_TEST_PREFLIGHT_MB (default 2048),
 CP_TEST_PREFLIGHT=0 skips the pre-flight, CP_MEMORY_CAPPED marks a process already inside a cap,
-CP_MEMORY_SUPERVISOR (the supervisor's pid) marks the scope's first process until lead() takes it.
+CP_MEMORY_SUPERVISOR (the supervisor's pid) marks the scope's first process until lead() takes it, CP_MEMORY_PEAK the
+file its report() writes the peak to until ensure() takes it.
 Without a systemd user manager the run continues uncapped and says so.
 """
 import atexit
@@ -37,6 +41,8 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
+import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _00_memory_gate  # noqa: E402
@@ -46,6 +52,7 @@ PREFLIGHT_MB = int(os.environ.get('CP_TEST_PREFLIGHT_MB', '2048'))
 ENTRY_SUFFIXES = ('_tester.py', '_benchmark.py')
 ENTRY_NAMES = ('02-integration.py', '06-compare.py')  # entry points without a tester or benchmark suffix
 _available = None
+PEAK_FILE = None  # where report() also writes the scope's peak for its supervisor (CP_MEMORY_PEAK)
 
 
 def available():
@@ -128,6 +135,9 @@ def report():
     if stats is None or cap == 'none':
         return
     peak, kills = stats
+    if PEAK_FILE:
+        with contextlib.suppress(OSError):
+            Path(PEAK_FILE).write_text(str(peak >> 20))
     try:
         print(f'MEMORY peak={peak >> 20}MB cap={cap}MB oom_kills={kills}', flush=True)
     except OSError:
@@ -191,15 +201,28 @@ def forwarding(command, **kw):
         return subprocess.CompletedProcess(command, p.returncode, out, err)
 
 
-def supervise(command, mode=None, source='env', label=None, need=None):
+def supervise(command, mode=None, source='env', label=None, need=None, key=None):
     """Run command under the pre-flight (when mode is full/stress) and main caps, once the memory gate admits need MB
-    (default: the main cap; _00_memory_gate.py); return its exit status."""
+    (default: the main cap; _00_memory_gate.py); return its exit status. With key (its .run-stats.json key) a passing run
+    raises its recorded peak and seconds to its own, unless 01-run.py started it (CP_RUN_STATS_OWNER), which records its own runs."""
     label = label or Path(command[1] if len(command) > 1 else command[0]).name
-    with _00_memory_gate.held(MAIN_MB if need is None else need, label):
-        return capped_run(command, mode, source, label)
+    secs = _00_memory_gate.stats(key)[1]  # read before 01-run.py's mark drops the key, so its suites backfill too
+    key = None if os.environ.pop('CP_RUN_STATS_OWNER', None) else key  # popped: entries this run starts record themselves
+    peaks = [] if key else None
+    with _00_memory_gate.held(MAIN_MB if need is None else need, label, secs=secs):
+        start = time.monotonic()
+        code = capped_run(command, mode, source, label, peaks)
+        seconds = round(time.monotonic() - start, 1)
+    if peaks and not code:
+        try:
+            _00_memory_gate.remember({key: [max(peaks), seconds]}, grow=True)
+        except OSError as e:
+            print(f'WARNING {label}: its peak was not recorded ({e.strerror})', file=sys.stderr, flush=True)
+    return code
 
 
-def capped_run(command, mode, source, label):
+def capped_run(command, mode, source, label, peaks=None):
+    """The capped run of supervise(); peaks, when a list, gets the pre-flight's and the main scope's peaks in MB."""
     signal.signal(signal.SIGINT, lambda *_: None)  # the child's group gets the signal too: wait for its own cleanup
     base, scope = dict(os.environ), available()
     if not scope:
@@ -224,23 +247,38 @@ def capped_run(command, mode, source, label):
             print(f'{tail}\nFAIL {label}: pre-flight quick run {sigkill_note(result.returncode, peak)} ({peak}); {mode} run skipped',
                   file=sys.stderr, flush=True)
             return exit_code(result.returncode) or 1
+        if peaks is not None:
+            peaks += [int(x) for x in re.findall(r'^MEMORY peak=(\d+)MB', result.stdout, re.M)]
         timings = [l if l.startswith('TIMING ') else 'OVERHALF pre-flight quick ' + l.removeprefix('OVERHALF ')  # for 01-run.py's NOTEs
                    for l in result.stdout.splitlines() if l.startswith(('TIMING ', 'OVERHALF '))]
         print('\n'.join([f'PREFLIGHT {label}: quick passed, {peak}', *timings]), flush=True)
-    code = forwarding(capped(command, MAIN_MB), env=dict(base, CP_MEMORY_CAPPED=mark(MAIN_MB)), **bound).returncode
+    env = dict(base, CP_MEMORY_CAPPED=mark(MAIN_MB))
+    if scope and peaks is not None:
+        fd, env['CP_MEMORY_PEAK'] = tempfile.mkstemp(prefix='cp-peak-')
+        os.close(fd)
+    try:
+        code = forwarding(capped(command, MAIN_MB), env=env, **bound).returncode
+        if 'CP_MEMORY_PEAK' in env:
+            with contextlib.suppress(OSError, ValueError):
+                peaks.append(int(Path(env['CP_MEMORY_PEAK']).read_text()))
+    finally:
+        if 'CP_MEMORY_PEAK' in env:
+            os.unlink(env['CP_MEMORY_PEAK'])
     if code in (-9, 137):
         print(f'FAIL {label}: {sigkill_note(code)} (cap {MAIN_MB} MB, exit {exit_code(code)})', file=sys.stderr, flush=True)
     return exit_code(code)
 
 
-def ensure(force=False, mb=None, need=None):
+def ensure(force=False, mb=None, need=None, variant=None):
     """Make the running entry point memory-capped; returns only inside the cap (or the warned uncapped fallback).
 
     ``mb`` raises or lowers the main cap for one suite; CP_TEST_MEMORY_MB still wins when set. ``need`` is the memory the
-    gate waits for (0: none, for a wrapper whose heavy children gate themselves); by default the peak 01-run.py recorded
-    for the entry in its mode, else the cap.
+    gate waits for (0: none, for a wrapper whose heavy children gate themselves); by default the peak recorded for the
+    entry in its mode, else the cap, and only then does a tester or benchmark record its own peak. ``variant``, a callable
+    returning the options an entry's peak depends on (02-integration.py, 06-compare.py run), makes it record and reserve
+    under its key followed by them too.
     """
-    global MAIN_MB
+    global MAIN_MB, PEAK_FILE
     if mb and 'CP_TEST_MEMORY_MB' not in os.environ:
         MAIN_MB = mb
     if os.environ.get('CP_MEMORY_CAPPED'):
@@ -248,6 +286,7 @@ def ensure(force=False, mb=None, need=None):
         if hard == resource.RLIM_INFINITY or hard >= 1:  # at 1 the kernel skips a piped core_pattern: 190 ms per death probe under systemd-coredump
             resource.setrlimit(resource.RLIMIT_CORE, (1, hard))
         lead()
+        PEAK_FILE = os.environ.pop('CP_MEMORY_PEAK', None) or PEAK_FILE  # the scope's first process alone reports it
         if os.environ['CP_MEMORY_CAPPED'] != 'none':
             atexit.unregister(report)  # a second ensure() (an imported entry point) reports once
             atexit.register(report)
@@ -260,8 +299,10 @@ def ensure(force=False, mb=None, need=None):
         return
     mode, source = mode_of(sys.argv[1:], honours_mode_env(main))
     sys.stdout.flush()
-    need = _00_memory_gate.recorded(mode, main, MAIN_MB) if need is None else need
-    raise SystemExit(supervise([sys.executable, str(main), *sys.argv[1:]], mode, source, main.name, need))
+    v = variant() if variant and need is None else None  # parsed before the cap: a bad option exits uncapped
+    key = _00_memory_gate.key(mode, main, v) if need is None and (main.name.endswith(ENTRY_SUFFIXES) or v) else None
+    need = _00_memory_gate.recorded(mode, main, MAIN_MB, v) if need is None else need
+    raise SystemExit(supervise([sys.executable, str(main), *sys.argv[1:]], mode, source, main.name, need, key))
 
 
 if __name__ == '__main__':

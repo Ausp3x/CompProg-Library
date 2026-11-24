@@ -21,7 +21,11 @@ its removal, `env -i` (which would clear the environment the guards read), a pat
 worktree's config in any case, with repeated slashes or `/./`, or a git config include (GUARD_TEXT; guard.py refuses Edit,
 Write and NotebookEdit under any .git). It refuses commands that only mention those texts too, and a path reached by `cd
 .git` or `$(git rev-parse --git-dir)` gets past it. `pre` runs for the Monitor tool too, whose commands carry the same environment; only Bash commands get the
-snapshot, since `post` runs for Bash alone.
+snapshot, since `post` runs for Bash alone. A command that compiles (g++, gcc, clang++, c++, cc, any version or target
+prefix, also after timeout, nice, ccache and the like; a call of only version and print queries apart) or runs a built binary (a path
+in command position to an ELF file, or to a missing file without a script suffix, outside the system folders) gets a
+non-blocking note naming `_00_memory_cap.py` (CAP_NOTE; 05-testing.md, Memory Safety): an argument of that wrapper, a
+tester or any other script is no command of its own.
 
 `push` is the git pre-push hook (.claude/githooks/pre-push) and `claude_shell()` the guard 04-submit.py loads (SUP32, user
 decision 2026-11-23): both refuse in a shell Claude Code started (CLAUDE_CODE_CHILD_SESSION=1), which closes the spellings
@@ -127,6 +131,18 @@ GUARD_TEXT = re.compile(r'\b(?:%s|CLAUDE_CODE_CHILD_SESSION)\b|--no-verify\b|(?i
                         r'|(?i:\.git(?:/+\.?)*/+(?:config|hooks|worktrees/+[^/\s]+/+config)|\binclude(?:\.path|if\.))\b' % ('CP' + '_USER'))
 
 
+COMPILER = re.compile(r'(?:[\w.+]+-)*(?:g\+\+|gcc|c\+\+|cc|clang\+\+|clang)(?:-[\d.]+)?')
+QUERY = re.compile(r'--?(?:version|v|dumpversion|dumpfullversion|dumpmachine|print-[\w-]+(?:=.*)?)')  # compiler queries, no build
+RUNNERS = {'timeout', 'nice', 'ionice', 'ccache', 'taskset', 'stdbuf', 'chrt', 'perf', 'valgrind', 'setarch'}  # run their argument
+VALUED = {'timeout': {'-s', '--signal', '-k', '--kill-after'}, 'nice': {'-n', '--adjustment'}, 'ionice': {'-c', '-n', '-p', '-t'},
+          'taskset': {'-c', '-p'}, 'stdbuf': {'-i', '-o', '-e'}, 'chrt': {'-p'}, 'perf': {'-e', '-o', '-r', '-x', '-p', '-C', '-G'}}  # options taking the next word
+SUBWORD = {'perf', 'setarch'}  # the word after the runner is its subcommand (perf stat) or architecture (setarch x86_64)
+SYSTEM = ('/usr/', '/bin/', '/sbin/', '/opt/', '/snap/', '/nix/', '/etc/', '/proc/', '/dev/', '/sys/')
+CAP_NOTE = ("This command {what} ({word}) outside the memory cap. Run compiles, scratch binaries and probes as "
+            "`python3 '96-Local Testing/_00_memory_cap.py' -- <command>` (CLAUDE.md, Commands; 05-testing.md, Memory Safety), "
+            "so a runaway process dies alone and the memory gate admits it beside other sessions' runs.")
+
+
 HEREDOC = re.compile(r'(?<!<)<<(-?)\s*([\'"]?)([A-Za-z_]\w*)\2')
 
 
@@ -196,6 +212,38 @@ def submits(command):
     return False
 
 
+def binary(word):
+    """True when word, in command position, names a built program: an ELF file, or a missing path without a script
+    suffix; never a system program or an interpreter."""
+    name = word.rsplit('/', 1)[-1]
+    if '/' not in word or word.startswith(SYSTEM) or re.fullmatch(r'(?:python|pypy|node|perl|ruby|bash|sh)[\d.]*', name):
+        return False
+    path = Path(os.path.expanduser(word))
+    if path.is_file():  # a regular file only: opening a FIFO or device could block the hook
+        try:
+            with open(path, 'rb') as f:
+                return f.read(4) == b'\x7fELF'
+        except OSError:
+            return False
+    return not path.exists() and not re.search(r'\.(?:py|sh|bash|pl|rb|js|md|txt|json)$', name)
+
+
+def uncapped(command):
+    """CAP_NOTE for the first compile or built-binary run in command position, else ''."""
+    for ws, i, w in commands(command):
+        while w in RUNNERS:  # timeout -s KILL 10 ./a.out, perf stat -e x ./a.out, ccache g++ ...: the runner's options skipped
+            runner, i = w, i + 1 + (w in SUBWORD and i + 1 < len(ws) and not ws[i + 1].startswith('-'))
+            while i < len(ws) and (ws[i].startswith('-') or re.fullmatch(r'[\d.]+[smhd]?|0x[\da-fA-F]+', ws[i])):
+                i += 1 + (ws[i] in VALUED.get(runner, ()) and i + 1 < len(ws))
+            w = ws[i] if i < len(ws) and ws[i] not in SEPARATORS else ''
+        args = ws[i + 1:next((j for j in range(i + 1, len(ws)) if ws[j] in SEPARATORS), len(ws))]
+        if COMPILER.fullmatch(w.rsplit('/', 1)[-1]) and not (args and all(QUERY.fullmatch(a) for a in args)):
+            return CAP_NOTE.format(what='compiles', word=w[:80])
+        if binary(w):
+            return CAP_NOTE.format(what='runs a built binary', word=w[:80])
+    return ''
+
+
 def claude_shell(env=None):
     """True in a shell Claude Code started, unless the command set CP_USER=1 (the user's own `!` command)."""
     env = os.environ if env is None else env
@@ -223,6 +271,8 @@ def pre(data):
     if submits(command):
         return deny("Submitting is the user's (01-principles.md, Scope Discipline): ask them to run 04-submit.py themselves, "
                     "for example with `! CP_USER=1 python3 '97-Online Testing/04-submit.py'`.")
+    if note := uncapped(command):  # a note, never a refusal
+        print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'additionalContext': note}}))
     if data.get('tool_name', 'Bash') != 'Bash':  # post runs for Bash only
         return
     STATE.mkdir(parents=True, exist_ok=True)

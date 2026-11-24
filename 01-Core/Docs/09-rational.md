@@ -47,7 +47,7 @@ P019/C06 owns `09-rational.hpp`: the canonical rational `Rational<T>` over `T` i
 | `>>`, `<<` | `>>` reads one whitespace-delimited token through `read` in base 10 (failbit and no change when malformed; end of input leaves the value unchanged); `<<` writes `toString()`. InfInt's `SetBase` does not apply. |
 | `std::hash<Rational<T>>` | Combines `std::hash<T>` of the canonical components (boost `hash_combine` mixing); equal values hash equally. |
 
-### rational_detail kernels
+### rational_detail Kernels
 
 `mulW`, `addW`, `subW`, `shlW`, `divW`, `narrowW`, `low128`, `bitLen`, `gcdM` take magnitudes: for `ulng` the wide type is `ulll`, for `ulll` a `(high, low)` pair of `ulll` (`mulW` from four 64-bit products, `divW` by a divisor below 2^127 natively when the high word is zero, else the high word natively and the low word by a 128-step shift-subtract loop), and for any other type (InfInt) the type's own operators, `divMod`, `bitLength` and ADL `gcd`. They are internal helpers, not API.
 

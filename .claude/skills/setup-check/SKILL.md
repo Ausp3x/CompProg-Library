@@ -8,4 +8,4 @@ effort: low
 
 !`python3 "${CLAUDE_PROJECT_DIR}/.claude/skills/setup-check/setup_check.py" "$ARGUMENTS" || true`
 
-Report in at most six lines: PASS or FAIL, each FAIL with its install command from the output, then the WARN features that are off and what each would enable. A FAIL blocks packages; a WARN disables only its feature. Install nothing yourself. With `--alias`, report instead what the script wrote, or the line it asks the user to add.
+Report in at most six lines: PASS or FAIL, each FAIL with its install command from the output, then the WARN features that are off and what each would enable. A FAIL blocks packages; a WARN disables only its feature; a SKIP is a check this machine or terminal cannot run. Install nothing yourself, including the terminal-focus extension whose command the `terminal focus` row prints. With `--alias`, report instead what the script wrote, or the line it asks the user to add.

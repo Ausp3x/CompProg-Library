@@ -1,4 +1,8 @@
-"""Standalone headers, macro syntax, and ODR linkage in LOCAL/mixed builds."""
+"""Standalone headers, macro syntax, and ODR linkage in LOCAL/mixed builds.
+
+quick, full and stress run the same checks. Modes/seeds also come from CP_TEST_MODE/CP_TEST_SEED; the seed is unused.
+"""
+import argparse
 import itertools
 import os
 from pathlib import Path
@@ -11,12 +15,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
 from _00_cpp_test_runner import Builder, compiler_command, timed_run
 
+os.environ['CP_TEST_PREFLIGHT'] = '0'  # every mode runs the same checks: a quick pre-flight would run them twice
 _00_memory_cap.ensure()
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--mode", choices=("quick", "full", "stress"), default=os.environ.get("CP_TEST_MODE", "full"),
+                        help="every mode runs the same checks (default %(default)s)")
+    parser.add_argument("--seed", type=int, default=int(os.environ.get("CP_TEST_SEED", "42")), help="unused: no randomness")
+    parser.parse_args()
     compiler = compiler_command()
     if not compiler or shutil.which(compiler[0]) is None:
         raise SystemExit("FAIL: CXX compiler not found")

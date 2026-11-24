@@ -7,7 +7,7 @@ argument-hint: "Pxxx"
 
 ## Package Brief
 
-!`python3 "${CLAUDE_PROJECT_DIR}/00-Guidelines/13-Plan/plan.py" show $ARGUMENTS`
+!`python3 "${CLAUDE_PROJECT_DIR}/00-Guidelines/13-Plan/plan.py" show --skill prune $ARGUMENTS`
 
 ## Items
 

@@ -622,9 +622,9 @@ MINI_PACKAGES = {'date': '2026-10-24', 'statuses': ['planned', 'in-progress', 'v
                  'models': {'fable': 'claude-fable-5-1', 'opus': 'claude-opus-5-5'},
                  'packages': [{'id': i, 'label': 'L' + i, 'batches': bs, 'phase': ph, 'size': 'M', 'model': m, 'status': s, 'evidence': [],
                                'note': note}
-                              for i, bs, ph, m, s, note in (('P250', ['SUP17', 'SUP18', 'SUP19'], 'Foundations re-audit', 'opus', 'in-progress', 'n'),
-                                                            ('P001', ['C01'], 'Core full types', 'fable', 'planned', ''),
-                                                            ('P030', ['DS01'], 'Contest core', 'opus', 'planned', ''))]}
+                              for i, bs, ph, m, s, note in (('P250', ['SUP17', 'SUP18', 'SUP19'], 'Foundations Re-audit', 'opus', 'in-progress', 'n'),
+                                                            ('P001', ['C01'], 'Core Full Types', 'fable', 'planned', ''),
+                                                            ('P030', ['DS01'], 'Contest Core', 'opus', 'planned', ''))]}
 MINI_FILES = {
     '01-Core/00-index.md': '# Core\n\n| Header | Operations | Status |\n|---|---|---|\n| `01-x.hpp` | ops | planned |\n',
     '02-Data Structures/00-index.md': '# DS\n\n## Basic\n\n| Header | Operations | Status |\n|---|---|---|\n| `01-d.hpp` | ops | planned |\n',

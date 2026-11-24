@@ -203,7 +203,8 @@ def run(a):
     print(f'log: {rel(out)}')
 
 
-def main():
+def options():
+    """The command line: run or show."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest='command', required=True)
     r = sub.add_parser('run')
@@ -224,7 +225,19 @@ def main():
         p.add_argument('--against', default='base', help='the side the others are divided by (default base)')
         p.add_argument('--loss', type=float, default=0.03, help='a row this much slower is listed (default 0.03)')
         p.add_argument('--top', type=int, default=40, help='rows listed per group')
-    a = parser.parse_args()
+    return parser.parse_args()
+
+
+def variant():
+    """What a run's peak depends on, for its .run-stats.json key: the rig, the compilers and --gate (Builder runs at most
+    three builds at once, whatever the sides)."""
+    a = options()
+    rig = a.rig.resolve()
+    return f"{rig.relative_to(ROOT) if rig.is_relative_to(ROOT) else rig} --compilers {a.compilers}{' --gate' if a.gate else ''}"
+
+
+def main():
+    a = options()
     try:
         if a.command == 'run':
             run(a)
@@ -237,5 +250,5 @@ def main():
 
 
 if __name__ == '__main__':
-    _00_memory_cap.ensure(mb=3 * BUILD_MB + 1024, need=None if sys.argv[1:2] == ['run'] else 0)  # three builds at once (Builder), each near 2.5 GB; only run builds
+    _00_memory_cap.ensure(mb=3 * BUILD_MB + 1024, need=None if sys.argv[1:2] == ['run'] else 0, variant=variant)  # three builds at once (Builder), each near 2.5 GB; only run builds
     raise SystemExit(main())

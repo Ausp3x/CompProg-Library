@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Harness audit scan (SUP29; evidence and limits: 00-Guidelines/13-Plan/Docs/00-harness-audit.md, Weekly scan).
 
-  harness_audit.py scan [--due] [--canary | --no-canary]
-                                             fingerprint this clone's Claude Code records, diff it against the
-                                             previous scan and write the report; --due: only when the weekly scan or
-                                             a canary retry is due (the startup hook); --canary: run the canary now;
-                                             --no-canary: never (the skill's plain scan)
+  harness_audit.py scan [--due]             fingerprint this clone's Claude Code records, diff it against the
+                                             previous scan and write the report; --due: only when the weekly scan is
+                                             due (the startup hook)
   harness_audit.py report                    the newest report's path and its findings not yet reviewed
   harness_audit.py reviewed                  mark the newest report's findings reviewed
 
@@ -13,22 +11,16 @@ Reads the transcript folders of the clone and its worktrees, ~/.claude.json, the
 of the config folder and the project's .claude, never .credentials.json, and writes only under the git-ignored
 .claude/harness-audit/ of the main checkout: the per-file cache (size, mtime, read offset and summary of every
 transcript, kept after Claude Code deletes it), the fingerprint history, the texts the findings quote, the report and its
-status. One scan runs at a time (scan.lock). The canary (opt-in per clone: `git config compprog.canary true`) runs the
-`canary` tasks of .claude/harness.json through headless `claude -p` in a scratch copy of HEAD."""
+status. One scan runs at a time (scan.lock)."""
 import argparse
 import contextlib
 import datetime
 import functools
 import hashlib
-import io
 import json
 import os
 import re
-import shutil
-import subprocess
 import sys
-import tarfile
-import tempfile
 import time
 from pathlib import Path
 
@@ -45,15 +37,17 @@ EARLY = 0.9  # an automatic compaction below this share of autoCompactWindow is 
              # of its largest earlier inline result is lowered
 SHARE = 0.99  # the lowest 1-hour share of cache writes that is not a finding
 STARTUP = 88000  # a new session's first request above this many tokens of context is a finding (SUP33; 46-51k on 2026-11-19)
+SKILL_LINE = re.compile(r'^- ([^\s:]+(?::[^\s:]+)?):\s', re.M)  # a skill listing's entry: `- name: …`, a plugin's `- plugin:name: …`
 DYNAMIC = 20  # an attachment type with this many distinct texts holds session data: listed, never a finding
 HEXRUN = re.compile(r'\b(?=[0-9a-f]*\d)[0-9a-f]{8,}\b', re.I)
 RECORD = ('record_types', 'attachment_types', 'system_subtypes', 'record_keys', 'message_keys', 'model_attachment_keys', 'usage_keys',
           'input_transformations', 'cache_miss_reasons', 'stop_reasons', 'betas', 'request_params', 'request_values',
           'query_sources', 'served_models', 'requested_models', 'efforts', 'latches', 'versions', 'shapes', 'prompts',
-          'injected', 'directives', 'parse_errors')
+          'injected', 'directives', 'parse_errors', 'skills')
 SNAPSHOT = ('global_keys', 'growthbook', 'gb_texts', 'hide', 'tally', 'experiments', 'slot_fields', 'slot_keys', 'slot_texts',
             'files', 'env_names', 'managed', 'catalog', 'aliases', 'memory')
-OWN = {'prompts', 'injected', 'directives', 'memory', 'shapes', 'versions', 'tally', 'managed', 'gb_texts', 'slot_texts', 'hide'}  # findings of their own
+OWN = {'prompts', 'injected', 'directives', 'memory', 'shapes', 'versions', 'tally', 'managed', 'gb_texts', 'slot_texts', 'hide',
+       'skills'}  # findings of their own
 NEEDED = {  # what a SUP28 check reads (harness.py); its removal is listed first
     'record_types': {'assistant', 'user', 'attachment', 'system', 'api-request', 'atis-latch'},
     # keys every record of the type carries (user decision 2026-11-11): an optional one, such as attributionSkill on
@@ -73,11 +67,6 @@ ITEMS = {'backups', 'debug', 'downloads', 'file-history', 'ide', 'jobs', 'paste-
          'shell-snapshots', 'tasks', 'todos'}  # config folders of per-session or per-item files with random names
 FILE_KEYS = H.SOURCE_KEYS - {'prompt', 'hookName', 'hookEvent'}  # an attachment holding a file
 OVERRIDE = {'model', 'effortLevel', 'availableModels', 'modelSettings', 'alwaysThinkingEnabled', 'hooks', 'agent'}
-PROMPT = ('The header `{remove}` is missing from this library. Write it so that it provides every operation of its row in '
-          "the folder's `00-index.md`, with the contracts of the row's evidence document under the folder's `Docs/` and "
-          "of `Docs/00-notes.md`, under the rules of `00-Guidelines/03-cpp.md`. Edit no other file. "
-          '`python3 {test}` checks it.')
-
 
 def digest(v, n=12):
     return hashlib.sha256((v if isinstance(v, str) else json.dumps(v, sort_keys=True, default=str)).encode()).hexdigest()[:n]
@@ -264,6 +253,9 @@ class Reader:
                 body = '\n'.join(rendered) or '\n'.join(s for k, x in a.items() if k != 'type' for s in H.strings(x))
                 if body.strip():
                     self.see('injected', f'{a.get("type")} {self.text(body)}', ts)
+                if a.get('type') == 'skill_listing':  # the skills the model is offered, for the skillOverrides check
+                    for name in SKILL_LINE.findall(body):
+                        self.see('skills', name, ts)
         elif t == 'system':
             self.see('system_subtypes', str(e.get('subtype')), ts)
             m, comp = H.obj(e.get('compactMetadata')), self.s['metrics']['compactions']
@@ -703,6 +695,14 @@ def findings(prev, cur, delta, texts, conf, ids):
                 f'results up to {before[0] / 1024:.1f} KB stayed inline before', key=f'{tool} {round(lo / 1024)}')
     for item, v in sorted(cur['snapshot']['managed'].items()):
         add('managed', f'{item} could disable hooks or override the model or effort', key=f'{item} {v}')
+    newest = cur.get('newest') if isinstance(cur.get('newest'), (int, float)) else 0
+    offered = {k for k, v in cur['record'].get('skills', {}).items() if isinstance(v[2], (int, float)) and v[2] >= newest - WEEK}
+    own = {d.name for root in (MAIN / '.claude/skills', H.config_dir() / 'skills') if root.is_dir() for d in root.iterdir()}
+    decided = set().union(*(H.obj(H.load(f).get('skillOverrides')) for f in (MAIN / '.claude/settings.json',
+                                                                         MAIN / '.claude/settings.local.json', H.config_dir() / 'settings.json')))
+    undecided = sorted(k for k in offered - own - decided if ':' not in k and '/' not in k)  # a bundled skill: no plugin or folder prefix
+    if undecided:  # its id follows the names, so a reviewed set stays reviewed until a skill joins it
+        add('skills', f'{len(undecided)} bundled skill(s) offered to the model but missing from skillOverrides', undecided)
     for alias, target in sorted(cur['snapshot']['aliases'].items()):
         fam = [i for i in ids if H.base(i).startswith(f'claude-{alias}-')]
         if '/' not in alias and fam and target not in ids:
@@ -724,7 +724,7 @@ def metrics_table(fp):
     return lines
 
 
-def write_report(fp, found, reviewed, stats, canary_lines, texts):
+def write_report(fp, found, reviewed, stats, texts):
     new = [f for f in found if f['id'] not in reviewed]
     out = [f'# Harness audit {time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(fp["time"]))}', '',
            f'Git-ignored: it holds account data; never commit, paste or publish it. {stats}', '',
@@ -753,7 +753,6 @@ def write_report(fp, found, reviewed, stats, canary_lines, texts):
     out += ['', '## Tool-output caps', '', '| tool | largest inline result | smallest saved to a file | saved | cut |', '|---|---|---|---|---|']
     out += [f'| {t} | {"" if hi is None else f"{hi / 1024:.1f} KB"} | {"" if lo is None else f"{lo / 1024:.1f} KB"} | {p} | {c} |'
             for t, (hi, lo, p, c) in sorted(fp['metrics']['tools'].items())]
-    out += ['', '## Canary', ''] + (canary_lines or ['- off (enable: `git config compprog.canary true`)'])
     (AUDIT / 'report.md').write_text('\n'.join(H.redact(x).rstrip() for x in out) + '\n')  # an empty quoted text leaves no trailing space
     return new
 
@@ -775,7 +774,7 @@ def locked():
         f.close()
 
 
-def scan(canary_mode=None, only_due=False):
+def scan(only_due=False):
     now = time.time()
     with locked() as ok:
         if not ok:
@@ -784,10 +783,9 @@ def scan(canary_mode=None, only_due=False):
         if only_due and not H.audit_due(now):
             return 0
         try:
-            return run_scan(now, canary_mode)
+            return run_scan(now)
         except Exception as exc:  # recorded, so the startup hook waits a week instead of failing at every start
-            st = {k: v for k, v in H.load(AUDIT / 'status.json').items() if k != 'canary_retry'}  # a past retry would rerun it
-            save(AUDIT / 'status.json', {**st, 'time': now, 'error': f'{type(exc).__name__}: {H.cut(exc, 200)}'})
+            save(AUDIT / 'status.json', {**H.load(AUDIT / 'status.json'), 'time': now, 'error': f'{type(exc).__name__}: {H.cut(exc, 200)}'})
             print(H.redact(f'harness audit: the scan failed ({type(exc).__name__}: {exc}); re-audit package P287'))
             return 1
 
@@ -798,7 +796,7 @@ def referenced(fp):
             | {h for sec in ('gb_texts', 'slot_texts') for h in fp['snapshot'].get(sec, {}).values()})
 
 
-def run_scan(now, canary_mode):  # canary_mode: 'force', 'skip', or None (run when enabled and due)
+def run_scan(now):
     conf = H.load(ROOT / '.claude/harness.json')
     cache = H.load(AUDIT / 'cache.json')
     cache.setdefault('files', {})
@@ -827,7 +825,7 @@ def run_scan(now, canary_mode):  # canary_mode: 'force', 'skip', or None (run wh
     prev = prev if prev and 'record' in prev else None
     ids, _ = H.allowed(ROOT)
     found = [{**f, 'time': now} for f in findings(prev, fp, delta, texts, conf, ids)]
-    save(AUDIT / 'cache.json', cache)  # saved before the canary, which can run for an hour
+    save(AUDIT / 'cache.json', cache)
     used = set().union(*(referenced(x) for x in (fp, prev) if x))  # texts no kept item quotes are dropped
     save(AUDIT / 'texts.json', {h: s for h, s in texts.items() if h in used})
     save(AUDIT / 'history' / f'{time.strftime("%Y%m%dT%H%M%S", time.gmtime(now))}.{int(now * 1e6) % 1000000:06d}.json', fp)
@@ -841,169 +839,12 @@ def run_scan(now, canary_mode):  # canary_mode: 'force', 'skip', or None (run wh
              f'{f", {read_errors} unreadable" if read_errors else ""}); newest record {day(fp["newest"])}'
              + ('; first scan: the baseline, no diff' if prev is None else ''))
 
-    def publish(canary_lines, retry):  # reviewed.json reread: findings may be marked reviewed while the canary runs
-        save(AUDIT / 'findings.json', {'time': now, 'findings': found})
-        new = write_report(fp, found, H.load(AUDIT / 'reviewed.json'), stats, canary_lines, texts)
-        save(AUDIT / 'status.json', {'time': now, 'new': len(new), 'findings': len(found), 'canary_retry': retry})
-        return new
-    on = canary_on()
-    run = canary_mode == 'force' or (canary_mode is None and on)
-    # published before the canary, so a killed canary loses no finding
-    new = publish(['- running'] if run else ['- not run (plain scan, --no-canary)'] if on and canary_mode == 'skip' else [], None)
-    if run:
-        try:
-            c_found, canary_lines, retry = canary(conf, now, canary_mode == 'force')
-        except Exception as exc:  # a broken task or config: reported, and the scan still records its time
-            c_found, canary_lines, retry = [], [f'- failed {day(now)}: {type(exc).__name__}: {H.cut(exc, 200)}'], None
-        fresh = {f['id']: {**f, 'time': now} for f in c_found}  # found again: replaces a carried copy
-        found[:] = [g for g in found if g['id'] not in fresh] + list(fresh.values())
-        new = publish(canary_lines, retry)
+    save(AUDIT / 'findings.json', {'time': now, 'findings': found})
+    new = write_report(fp, found, H.load(AUDIT / 'reviewed.json'), stats, texts)
+    save(AUDIT / 'status.json', {'time': now, 'new': len(new), 'findings': len(found)})
     print(H.redact(f'harness audit: {len(new)} new finding(s) of {len(found)}; {stats}'))
     print(f'report: {AUDIT / "report.md"}')
     return 0
-
-
-def canary_on():
-    r = subprocess.run(['git', '-C', str(MAIN), 'config', '--get', 'compprog.canary'], capture_output=True, text=True)
-    return r.returncode == 0 and r.stdout.strip().lower() in ('true', 'on', 'yes', '1')
-
-
-def usage(c, now):
-    """{'five_hour': %, 'seven_day': %, 'age': s, 'time': record time} from the freshest record (the status line's
-    usage.json, else the client's cachedUsageUtilization); a record older than usage_max_age gives None, else a window
-    whose reset time passed counts 0."""
-    recs = []
-    u = H.load(AUDIT / 'usage.json')
-    if isinstance(u.get('time'), (int, float)):
-        recs.append((u['time'], {w: (H.obj(u.get(w)).get('pct'), H.obj(u.get(w)).get('resets_at')) for w in ('five_hour', 'seven_day')}))
-    g = H.obj(H.load(H.global_config()).get('cachedUsageUtilization'))
-    if isinstance(g.get('fetchedAtMs'), (int, float)):
-        ut = H.obj(g.get('utilization'))
-        recs.append((g['fetchedAtMs'] / 1000, {w: (H.obj(ut.get(w)).get('utilization'), H.obj(ut.get(w)).get('resets_at')) for w in ('five_hour', 'seven_day')}))
-    if not recs:
-        return {'five_hour': None, 'seven_day': None, 'age': None, 'time': None}
-    t, wins = max(recs, key=lambda r: r[0])
-    out = {'age': round(now - t), 'time': t}
-    for w, (pct, resets) in wins.items():
-        r = epoch(resets)
-        out[w] = (None if now - t > c.get('usage_max_age', 3600) else 0 if r and r <= now  # a stale record skips first
-                  else pct if isinstance(pct, (int, float)) else None)
-    return out
-
-
-def canary(conf, now, force):
-    """(findings, report lines, retry time or None): run the tasks unless a run is not due or the usage is too high."""
-    c = H.obj(conf.get('canary'))
-    runs_file, base_file = AUDIT / 'canary/runs.jsonl', AUDIT / 'canary/baseline.json'
-    runs = []
-    for x in runs_file.read_text(errors='replace').splitlines() if runs_file.is_file() else ():
-        try:
-            r = json.loads(x)
-            runs.append((float(r['time']), int(r['passed']), len(r['results']), int(r['tokens']), float(r['cost_usd']),
-                         H.obj(r.get('quota')).get('delta_five_hour')))
-        except (ValueError, TypeError, KeyError):  # a damaged line is skipped
-            continue
-    lines = [f'- run {day(t)}: {p}/{n} passed, {tok} tokens, ${cost:.2f}, 5h {d5}' for t, p, n, tok, cost, d5 in runs[-5:]]
-    if not force and runs and now - runs[-1][0] <= WEEK:
-        return [], lines + ['- not due'], None
-    if not c.get('tasks'):
-        return [], lines + ['- no tasks in .claude/harness.json canary'], None
-    before = usage(c, now)
-    if before['five_hour'] is None or before['seven_day'] is None:
-        return [], lines + [f'- skipped {day(now)}: usage unknown (no record within {c.get("usage_max_age", 3600)} s); retried in an hour'], now + 3600
-    if before['five_hour'] > c.get('max_five_hour', 50) or before['seven_day'] > c.get('max_seven_day', 80):
-        return [], lines + [f'- skipped {day(now)}: usage 5h {before["five_hour"]}%, 7d {before["seven_day"]}% above '
-                            f'{c.get("max_five_hour", 50)}% or {c.get("max_seven_day", 80)}%; retried in an hour'], now + 3600
-    tar = subprocess.run(['git', '-C', str(MAIN), 'archive', '--format=tar', 'HEAD'], capture_output=True, timeout=300)
-    if tar.returncode:
-        return [], lines + ['- failed: git archive HEAD'], None
-    results = [task(t, c, tar.stdout) for t in c['tasks']]
-    after = usage(c, time.time())
-    tok = sum(r['tokens'] for r in results)
-    rate = H.obj(H.obj(H.load(H.global_config()).get('cachedGrowthBookFeatures')).get('tengu_amber_tally'))
-    per = H.obj(rate.get('creditsPerMillionTokens')).get(c.get('model'))
-    credits = tok * per / 1e6 if isinstance(per, (int, float)) else None
-    run = {'time': now, 'model': c.get('model'), 'effort': c.get('effort'), 'results': results,
-           'passed': sum(r['passed'] for r in results), 'tokens': tok, 'cost_usd': sum(r['cost_usd'] for r in results),
-           'quota': {'before': before, 'after': after,
-                     # only a usage record taken after the tasks started measures them
-                     'delta_five_hour': (after['five_hour'] - before['five_hour'])
-                     if None not in (after['five_hour'], before['five_hour']) and (after['time'] or 0) > now else None,
-                     'credits_estimate': credits,
-                     'five_hour_share_estimate': {k: credits / v for k, v in H.obj(rate.get('fiveHourCredits')).items() if isinstance(v, (int, float)) and v} if credits else None}}
-    runs_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(runs_file, 'a') as f:
-        f.write(json.dumps(run, sort_keys=True) + '\n')
-    base = H.load(base_file)
-    if not base and all(r['ran'] and r.get('claude_rc') == 0 for r in results):  # a failed claude run is no baseline
-        save(base_file, run)
-    lines.append(f'- run {day(now)}: {run["passed"]}/{len(results)} passed, {tok} tokens, ${run["cost_usd"]:.2f}, '
-                 f'5h {run["quota"]["delta_five_hour"]}, credits estimate {credits}')
-    found = []
-    if base:
-        b = {r['id']: r for r in base['results']}
-        worse = [r['id'] for r in results if not r['passed'] and b.get(r['id'], {}).get('passed')]
-        if run['passed'] / len(results) < base['passed'] / max(len(base['results']), 1) or worse:
-            found.append(('canary', f'canary pass rate {run["passed"]}/{len(results)}, baseline {base["passed"]}/{len(base["results"])}', [f'failed now: {x}' for x in worse]))
-        if base['tokens'] and tok > c.get('tolerance', 1.5) * base['tokens']:
-            found.append(('canary', f'canary tokens {tok}, {tok / base["tokens"]:.2f}x the baseline {base["tokens"]}', []))
-    return [{'id': digest(k + t + '\n'.join(ls)), 'kind': k, 'title': t, 'lines': ls} for k, t, ls in found], lines, None
-
-
-def task(t, c, archive):
-    """One canary task in a scratch copy of HEAD: its file removed, claude asked to write it, its test as the oracle."""
-    d = Path(tempfile.mkdtemp(prefix='harness-canary-'))
-    res = {'id': H.obj(t).get('id'), 'passed': False, 'ran': False, 'tokens': 0, 'cost_usd': 0.0}
-    try:
-        with tarfile.open(fileobj=io.BytesIO(archive)) as tf:
-            tf.extractall(d, filter='data')
-        git = lambda *a: subprocess.run(['git', '-C', str(d), '-c', 'user.name=canary', '-c', 'user.email=canary@localhost',
-                                         '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', *a],
-                                        capture_output=True, text=True, timeout=300)
-        target, script = (d / t['remove']).resolve(), (d / t['test'][0]).resolve()
-        if not (target.is_relative_to(d.resolve()) and script.is_relative_to(d.resolve())):
-            res['error'] = 'a task path leaves the scratch copy'
-            return res
-        if not target.is_file():  # a task naming a file HEAD lacks is not run, so it never spends usage
-            res['error'] = f'{t["remove"]} is not in HEAD'
-            return res
-        target.unlink()  # before the base commit, so no git command in the copy can restore it
-        for a in (('init', '-q'), ('add', '-A'), ('commit', '-qm', 'canary base')):  # a clone of its own: Claude's hooks run as in one
-            if git(*a).returncode:
-                res['error'] = f'git {a[0]} failed in the scratch copy'
-                return res
-        cmd = ['claude', '-p', PROMPT.format(remove=t['remove'], test=' '.join(f"'{x}'" if ' ' in x else x for x in t['test'])),
-               '--model', c['model'], '--effort', c['effort'], '--output-format', 'json', '--permission-mode', 'acceptEdits',
-               '--no-session-persistence', '--max-budget-usd', str(c.get('budget_usd', 3))]
-        t0 = time.time()
-        try:
-            r = subprocess.run(cmd, cwd=d, capture_output=True, text=True, timeout=c.get('timeout', 1200),
-                               env={**os.environ, 'CP_HARNESS_AUDIT_CHILD': '1'})
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            res['error'] = type(exc).__name__
-            return res
-        res['ran'], res['seconds'], res['claude_rc'] = True, round(time.time() - t0), r.returncode
-        try:
-            out = H.obj(next((json.loads(x) for x in reversed(r.stdout.splitlines()) if x.startswith('{')), {}))
-        except ValueError:  # damaged output: the run counts, its tokens are unknown
-            out, res['error'] = {}, 'claude output is not JSON'
-        u = H.obj(out.get('usage'))
-        res['usage'] = {k: u.get(k) for k in ('input_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens', 'output_tokens')}
-        res['tokens'] = sum(v for v in res['usage'].values() if isinstance(v, int))
-        res['cost_usd'] = out.get('total_cost_usd') if isinstance(out.get('total_cost_usd'), (int, float)) else 0.0
-        res['turns'] = out.get('num_turns')
-        status = git('status', '--porcelain', '--untracked-files=no', '-z').stdout.split('\0')
-        edited = sorted(x[3:] for x in status if x[3:] and x[3:] != t['remove'])
-        res['edited'] = edited[:5]
-        test = subprocess.run([sys.executable, *t['test']], cwd=d, capture_output=True, text=True, timeout=c.get('timeout', 1200))
-        res['test_rc'] = test.returncode
-        res['passed'] = r.returncode == 0 and target.is_file() and not edited and test.returncode == 0
-        return res
-    except Exception as exc:  # one broken task (bad entry, test timeout) fails alone; the run is still recorded
-        res['error'] = f'{type(exc).__name__}: {H.cut(exc, 200)}'
-        return res
-    finally:
-        shutil.rmtree(d, ignore_errors=True)
 
 
 def report():
@@ -1034,16 +875,13 @@ def mark_reviewed():
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('command', choices=('scan', 'report', 'reviewed'))
-    ap.add_argument('--due', action='store_true', help='scan only when the weekly scan or a canary retry is due')
-    g = ap.add_mutually_exclusive_group()
-    g.add_argument('--canary', action='store_true', help='run the canary now, enabled or not')
-    g.add_argument('--no-canary', action='store_true', help='never run the canary (the skill\'s plain scan)')
+    ap.add_argument('--due', action='store_true', help='scan only when the weekly scan is due')
     a = ap.parse_args(argv)
     if a.command == 'report':
         return report()
     if a.command == 'reviewed':
         return mark_reviewed()
-    return scan('force' if a.canary else 'skip' if a.no_canary else None, a.due)
+    return scan(a.due)
 
 
 if __name__ == '__main__':

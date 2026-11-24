@@ -42,4 +42,4 @@ A package with several batches runs one batch per session, always under its batc
 
 ## Package Brief
 
-!`python3 "${CLAUDE_PROJECT_DIR}/00-Guidelines/13-Plan/plan.py" show $ARGUMENTS`
+!`python3 "${CLAUDE_PROJECT_DIR}/.claude/skills/finish/gaps.py" --start $ARGUMENTS; python3 "${CLAUDE_PROJECT_DIR}/00-Guidelines/13-Plan/plan.py" show --skill package $ARGUMENTS`

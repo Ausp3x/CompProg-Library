@@ -11,8 +11,9 @@ worktree's), or the temp cp-* tree; a sibling checkout whose path merely starts 
   its processes reparented away from it. Run --own only when nothing of this session should keep running.
 - reported, never ended: another live session's related processes reparented away from it or running a tool command
   for over an hour, orphans of other projects' ended sessions, related reparented processes without CLAUDE_PID, and
-  processes detached by design (CP_REAP_KEEP=1 in their environment: the harness audit scan, the notification click
-  helper) once reparented and running for over an hour.
+  processes detached by design (CP_REAP_KEEP=1 in their environment: the harness audit scan) once reparented and running
+  for over an hour. The notification click helper carries none: --own and the SessionEnd hook end it with SIGTERM, on
+  which it closes its notification.
 Temporaries directly in the temp directory (this user's, unchanged for --grace minutes, named by no process's cwd,
 executable, open file, mapping or argument) are deleted: clangd's preamble-*.pch; cp-* test files and directories, gcc's
 cc??????.* files and cp-mutation-<stem>-* workdirs when no live worker (a compiler, a process of a Claude session, or one
@@ -45,6 +46,9 @@ import sys
 import tempfile
 import time
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '00-Guidelines/13-Plan'))
+import plan  # noqa: E402
+
 HZ = os.sysconf('SC_CLK_TCK')
 COMPILERS = {'g++', 'g++-14', 'gcc', 'c++', 'cc1', 'cc1plus', 'as', 'ld', 'collect2', 'lto1', 'lto-wrapper', 'ccache', 'mewt'}
 SHELL = '/shell-snapshots/snapshot-'  # every Bash tool shell sources one
@@ -71,7 +75,8 @@ class Proc:
 
     @property
     def owner(self):
-        return int(self.env.get('CLAUDE_PID') or 0)
+        pid = self.env.get('CLAUDE_PID', '')
+        return int(pid) if re.fullmatch('[0-9]+', pid) else 0  # another tool's or a test's text is no owner
 
 
 def main_checkout(here):
@@ -373,6 +378,16 @@ def describe(p, now):
     return f'pid {p.pid} up {span(now - p.start)} cpu {span(p.cpu)}: {cmd[:160]}'
 
 
+def report_out(lines):
+    """Print the result within the room /reap's SKILL.md leaves its `!` line (plan.fit): FAIL, LEFT and the verdict first;
+    when lines are cut, the whole result goes to reap.txt in the session's scratchpad (plan.spill)."""
+    size, rest = plan.room_of(Path(__file__).with_name('SKILL.md')), ''
+    if sum(map(plan.cost, lines)) > size:  # fit()'s own measure, so a cut result is always spilled
+        where = plan.spill('reap', '\n'.join(lines) + '\n')
+        rest = f'{where} holds the whole result' if where else 'the whole result could not be written'
+    print('\n'.join(plan.fit(lines, size, rest, lambda line: line.startswith(('FAIL', 'LEFT', 'PASS')))))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--own', action='store_true', help="also end this session's background shells and reparented processes")
@@ -394,18 +409,18 @@ def main(argv=None):
     if a.only:
         keep = {p for p in end if a.only in ' '.join(table[p].args) + table[p].cwd}
         end, report = {p: r for p, r in end.items() if p in keep}, [x for x in report if a.only in ' '.join(table[x[0]].args) + table[x[0]].cwd]
-    verb, failed = ('WOULD END', 'WOULD DELETE') if a.dry_run else ('ENDED', 'DELETED'), 0
+    verb, failed, out = ('WOULD END', 'WOULD DELETE') if a.dry_run else ('ENDED', 'DELETED'), 0, []
     for pid in sorted(end):
         if table[pid].ppid not in end:  # one line per tree
             kids = sum(1 for q in end if q != pid and pid in chain(table, q))
-            print(f'{verb[0]} {describe(table[pid], now)} ({end[pid]}{f"; +{kids} below it" if kids else ""})')
+            out.append(f'{verb[0]} {describe(table[pid], now)} ({end[pid]}{f"; +{kids} below it" if kids else ""})')
     for pid in sorted(survivors := stop(table, list(end), a.dry_run)):
-        print(f'FAIL could not end {describe(table[pid], now)}')
+        out.append(f'FAIL could not end {describe(table[pid], now)}')
     failed += len(survivors)
     shown = {pid for pid, _ in report}
     for pid, why in report:
         if table[pid].ppid not in shown:
-            print(f'LEFT {describe(table[pid], now)} ({why})')
+            out.append(f'LEFT {describe(table[pid], now)} ({why})')
     checkouts = [root] + sorted(p for p in (root / '.claude/worktrees').glob('*') if (p / '.git').exists())
     spec = importlib.util.spec_from_file_location('reap_mutation', root / '96-Local Testing/04-mutation.py')
     mutation = importlib.util.module_from_spec(spec)
@@ -417,14 +432,14 @@ def main(argv=None):
             try:
                 shutil.rmtree(path) if os.path.isdir(path) and not os.path.islink(path) else os.unlink(path)
             except OSError as e:
-                print(f'FAIL could not delete {path}: {e.strerror}')
+                out.append(f'FAIL could not delete {path}: {e.strerror}')
                 failed += 1
                 continue
         c = freed.setdefault(kind, [0, 0])
         c[0], c[1] = c[0] + 1, c[1] + n
     names = dict(cp='cp-* test temporaries', gcc='gcc intermediates', pch='clangd preambles', workdir='finished mutation workdirs')
     for kind, (count, n) in sorted(freed.items(), key=lambda x: -x[1][1]):
-        print(f'{verb[1]} {count} {names[kind]}, {n >> 20} MB')
+        out.append(f'{verb[1]} {count} {names[kind]}, {n >> 20} MB')
     pads = scratchpads(tmp, slug, processes(), a.home, checkouts, time.time()) if a.only is None or a.tmp else []
     hours = a.scratchpads
     gone_pads = [(d, n) for d, n, idle in pads if hours is not None and idle >= hours * 3600]
@@ -433,19 +448,20 @@ def main(argv=None):
             try:
                 shutil.rmtree(d)
             except OSError as e:
-                print(f'FAIL could not delete {d}: {e.strerror}')
+                out.append(f'FAIL could not delete {d}: {e.strerror}')
                 failed += 1
                 gone_pads.remove((d, n))
     if gone_pads:
-        print(f'{verb[1]} {len(gone_pads)} scratchpads of ended sessions, {sum(n for _, n in gone_pads) >> 20} MB')
+        out.append(f'{verb[1]} {len(gone_pads)} scratchpads of ended sessions, {sum(n for _, n in gone_pads) >> 20} MB')
     if not a.dry_run and hours is not None:
         prune_roots(tmp, slug, root)
     if kept := [(d, n) for d, n, idle in pads if (d, n) not in gone_pads]:
-        print(f'LEFT {len(kept)} scratchpads of ended sessions, {sum(n for _, n in kept) >> 20} MB, under '
+        out.append(f'LEFT {len(kept)} scratchpads of ended sessions, {sum(n for _, n in kept) >> 20} MB, under '
               f'{Path(tmp, f"claude-{os.getuid()}")} ({"idle under " + format(hours, "g") + " h" if hours is not None else "--scratchpads deletes them"})')
-    print(f"{'FAIL' if failed else 'PASS'} reap: {len(end)} processes {'to end' if a.dry_run else 'ended'}, "
+    out.append(f"{'FAIL' if failed else 'PASS'} reap: {len(end)} processes {'to end' if a.dry_run else 'ended'}, "
           f"{sum(c for c, _ in freed.values())} temporaries, {sum(n for _, n in freed.values()) >> 20} MB, "
           f"{len(gone_pads)} scratchpads {sum(n for _, n in gone_pads) >> 20} MB")
+    report_out(out)
     return 1 if failed else 0
 
 

@@ -13,7 +13,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 import _00_memory_cap
 from _00_cpp_test_runner import cached, cache_env, compiler_command, cpu_runs, timed_run, x86, x86_only
 
-_00_memory_cap.ensure(mb=8192)
+
+def options():
+    """The command line: --sanitizers and --jobs."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--sanitizers', action='store_true')
+    parser.add_argument('-j', '--jobs', type=int, default=os.cpu_count() or 1, help='parallel builds (default: logical CPUs; 1 is sequential)')
+    args = parser.parse_args()
+    if args.jobs < 1: parser.error('--jobs must be positive')
+    return args
+
+
+def variant():
+    """What the run's peak depends on, for its .run-stats.json key: --jobs, --sanitizers and the compiler."""
+    a = options()
+    return f"--jobs {a.jobs}{' --sanitizers' if a.sanitizers else ''} {' '.join(compiler_command())}"
+
+
+_00_memory_cap.ensure(mb=8192, variant=variant)
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -76,11 +93,7 @@ def parallel(tasks, jobs, budget):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--sanitizers', action='store_true')
-    parser.add_argument('-j', '--jobs', type=int, default=os.cpu_count() or 1, help='parallel builds (default: logical CPUs; 1 is sequential)')
-    args = parser.parse_args()
-    if args.jobs < 1: parser.error('--jobs must be positive')
+    args = options()
     workspace = ROOT/'99-Workspace/template.cpp'
     if not workspace.is_file():
         raise RuntimeError('Required workspace snapshot missing: '+str(workspace)+'; run 97-Online Testing/03-workspace.py explicitly')

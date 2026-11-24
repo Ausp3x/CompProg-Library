@@ -16,7 +16,7 @@
       "batches": [
         "SUP01"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "S",
       "model": "opus",
       "status": "verified",
@@ -32,7 +32,7 @@
         "C01",
         "C15"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M+L",
       "model": "fable",
       "status": "verified",
@@ -49,7 +49,7 @@
       "batches": [
         "SUP05"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "S",
       "model": "opus",
       "status": "verified",
@@ -64,7 +64,7 @@
       "batches": [
         "C02"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L",
       "model": "fable",
       "status": "verified",
@@ -81,7 +81,7 @@
         "C03",
         "C16"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L+L",
       "model": "fable",
       "status": "in-progress",
@@ -98,7 +98,7 @@
         "DS01",
         "DS02"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M+M",
       "model": "opus",
       "status": "verified",
@@ -120,7 +120,7 @@
       "batches": [
         "GE01"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -139,7 +139,7 @@
         "GR01",
         "GR02"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M+L",
       "model": "opus",
       "status": "verified",
@@ -160,7 +160,7 @@
         "GR03",
         "GR26"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L+M",
       "model": "opus",
       "status": "verified",
@@ -180,7 +180,7 @@
         "MA01",
         "MA02"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M+M",
       "model": "opus",
       "status": "verified",
@@ -201,7 +201,7 @@
         "MI01",
         "MI02"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M+M",
       "model": "opus",
       "status": "verified",
@@ -222,7 +222,7 @@
       "batches": [
         "GE02"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L",
       "model": "opus",
       "status": "verified",
@@ -240,7 +240,7 @@
       "batches": [
         "GE23"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M",
       "model": "opus",
       "status": "verified",
@@ -257,7 +257,7 @@
         "MI16",
         "MI17"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M+M+S",
       "model": "opus",
       "status": "in-progress",
@@ -276,7 +276,7 @@
         "ST02",
         "ST19"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "S+M+S",
       "model": "opus",
       "status": "verified",
@@ -298,7 +298,7 @@
         "SUP18",
         "SUP19"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M+L+M",
       "model": "opus",
       "status": "verified",
@@ -313,7 +313,7 @@
       "batches": [
         "SUP22"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L",
       "model": "opus",
       "status": "verified",
@@ -328,7 +328,7 @@
       "batches": [
         "SUP24"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "M",
       "model": "opus",
       "status": "verified",
@@ -343,14 +343,14 @@
       "batches": [
         "SUP23"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L",
       "model": "opus",
       "status": "verified",
       "evidence": [
         "00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md"
       ],
-      "note": "Sweep 02–07 applied 2026-11-08: 243 row edits and 21 new rows (batches DS54–56, GE52–58, GR77–79, MA55–58, MI36, ST42–44; packages P264–P273), 48 verified rows reopened as partial and 29 packages reopened (P027, P028 partial; P029, P032 in-progress with rows verified for their doc-only notes; P034, P035 for those notes and their partial rows; P033's reversed omission lands in P027's row 11; P115 widened; P014 and P017 moved to Contest core); omissions in the folders' `Docs/00-notes.md` (Omission Sweep 2026-11-08), sources in `Docs/00-sources.md` (Fetched 2026-11-08). User follow-ups the same day (`10-decisions.md`, 2026-11-08 One API by Context, Operation Names, Source Keys): One API per context, wrappers, named compositions and catalogued one-problem algorithms; operation-name vocabulary and the collision check, with the clashes fixed; one library source key list. Re-review planned as P275, renames as P276. /finish P254 (2026-11-08): evidence in `00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md`."
+      "note": "Sweep 02–07 applied 2026-11-08: 243 row edits and 21 new rows (batches DS54–56, GE52–58, GR77–79, MA55–58, MI36, ST42–44; packages P264–P273), 48 verified rows reopened as partial and 29 packages reopened (P027, P028 partial; P029, P032 in-progress with rows verified for their doc-only notes; P034, P035 for those notes and their partial rows; P033's reversed omission lands in P027's row 11; P115 widened; P014 and P017 moved to Contest Core); omissions in the folders' `Docs/00-notes.md` (Omission Sweep 2026-11-08), sources in `Docs/00-sources.md` (Fetched 2026-11-08). User follow-ups the same day (`10-decisions.md`, 2026-11-08 One API by Context, Operation Names, Source Keys): One API per context, wrappers, named compositions and catalogued one-problem algorithms; operation-name vocabulary and the collision check, with the clashes fixed; one library source key list. Re-review planned as P275, renames as P276. /finish P254 (2026-11-08): evidence in `00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md`."
     },
     {
       "id": "P274",
@@ -358,7 +358,7 @@
       "batches": [
         "SUP25"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L",
       "model": "opus",
       "status": "verified",
@@ -373,7 +373,7 @@
       "batches": [
         "SUP26"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L",
       "model": "opus",
       "status": "verified",
@@ -388,7 +388,7 @@
       "batches": [
         "SUP27"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "L",
       "model": "opus",
       "status": "verified",
@@ -405,7 +405,7 @@
         "SUP29",
         "SUP30"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "XL",
       "model": "opus",
       "status": "verified",
@@ -422,14 +422,15 @@
         "SUP33",
         "SUP34"
       ],
-      "phase": "Foundations re-audit",
+      "phase": "Foundations Re-audit",
       "size": "XL",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
-        "00-Guidelines/13-Plan/Docs/00-harness-review.md"
+        "00-Guidelines/13-Plan/Docs/00-harness-review.md",
+        "00-Guidelines/13-Plan/Docs/00-harness-audit.md"
       ],
-      "note": "SUP32 and SUP33 verified 2026-11-23 and landed. SUP33: all six items; live checks with the user of the 30 s idle notification (its click fixed for KDE Wayland) and of SessionEnd after /finish removes a worktree (passes; a session whose own directory is removed does not run it, recorded in Limits). SUP34 open."
+      "note": "SUP34 verified 2026-11-24; the click-to-focus live checks passed with the user in /finish SUP34: A the terminal-focus extension here, B the WinApps VM toast through the extension, C a portable VS Code."
     },
     {
       "id": "P025",
@@ -437,7 +438,7 @@
       "batches": [
         "C11"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "XL",
       "model": "fable",
       "status": "verified",
@@ -452,7 +453,7 @@
       "batches": [
         "C12"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "M",
       "model": "opus",
       "status": "verified",
@@ -467,7 +468,7 @@
       "batches": [
         "C04"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "XL",
       "model": "fable",
       "status": "verified",
@@ -484,7 +485,7 @@
         "C05",
         "C06"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "M+M",
       "model": "fable",
       "status": "verified",
@@ -500,7 +501,7 @@
       "batches": [
         "C17"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -513,7 +514,7 @@
       "batches": [
         "C20"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "L",
       "model": "fable",
       "status": "planned",
@@ -526,7 +527,7 @@
       "batches": [
         "C18"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -539,7 +540,7 @@
       "batches": [
         "C19"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -552,7 +553,7 @@
       "batches": [
         "C07"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "XL",
       "model": "fable",
       "status": "planned",
@@ -566,7 +567,7 @@
         "C09",
         "C10"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "L+M",
       "model": "fable",
       "status": "planned",
@@ -579,7 +580,7 @@
       "batches": [
         "C13"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "XL",
       "model": "fable",
       "status": "planned",
@@ -592,7 +593,7 @@
       "batches": [
         "C08"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -605,7 +606,7 @@
       "batches": [
         "C14"
       ],
-      "phase": "Core full types",
+      "phase": "Core Full Types",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -618,7 +619,7 @@
       "batches": [
         "MI32"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "in-progress",
@@ -638,7 +639,7 @@
         "DS06",
         "DS47"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+L+L+M",
       "model": "opus",
       "status": "in-progress",
@@ -658,7 +659,7 @@
         "MI03",
         "MI14"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+M",
       "model": "opus",
       "status": "in-progress",
@@ -668,7 +669,7 @@
         "06-Miscellaneous/Docs/10-offline_queries.md",
         "06-Miscellaneous/Docs/11-sorting_selection.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement maximumAverageSubarrayLengths in `08-sequence_algorithms.hpp`; bucketSort, multikeyQuicksort, binaryInsertionSort, mergeInsertionSort, tournamentSelect in `11-sorting_selection.hpp`; rangeSumOffline in `10-offline_queries.hpp` (user decision 2026-11-08, /finish P254). Moved from Foundations re-audit to Contest core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06). P275 re-review 2026-11-10: implement inversionCountRotations, subarraySumCount, subarraySumDivisibleCount, threeSum, fourSum, longestCommonIncreasingSubsequence, lexicographicMinSubsequence in `08-sequence_algorithms.hpp`; maximumIntervalScheduleInRange, circularIntervalCover, inclusionTree in `09-interval_algorithms.hpp`. The next run rechecks the probe passes of rows 08, 09, 10, 11 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement maximumAverageSubarrayLengths in `08-sequence_algorithms.hpp`; bucketSort, multikeyQuicksort, binaryInsertionSort, mergeInsertionSort, tournamentSelect in `11-sorting_selection.hpp`; rangeSumOffline in `10-offline_queries.hpp` (user decision 2026-11-08, /finish P254). Moved from Foundations Re-audit to Contest Core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06). P275 re-review 2026-11-10: implement inversionCountRotations, subarraySumCount, subarraySumDivisibleCount, threeSum, fourSum, longestCommonIncreasingSubsequence, lexicographicMinSubsequence in `08-sequence_algorithms.hpp`; maximumIntervalScheduleInRange, circularIntervalCover, inclusionTree in `09-interval_algorithms.hpp`. The next run rechecks the probe passes of rows 08, 09, 10, 11 that predate the 2026-11-12 runner fix."
     },
     {
       "id": "P227",
@@ -676,7 +677,7 @@
       "batches": [
         "DS49"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "in-progress",
@@ -693,7 +694,7 @@
         "MA03",
         "MA04"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L",
       "model": "opus",
       "status": "in-progress",
@@ -711,7 +712,7 @@
       "batches": [
         "SUP06"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "S",
       "model": "opus",
       "status": "verified",
@@ -728,7 +729,7 @@
         "ST06",
         "ST33"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+L",
       "model": "opus",
       "status": "in-progress",
@@ -745,7 +746,7 @@
       "batches": [
         "ST03"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -754,7 +755,7 @@
         "07-Strings/Docs/07-suffixarray.md",
         "07-Strings/Docs/08-palindrome_queries.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement minPalindromePartition in `08-palindrome_queries.hpp`. Moved from Foundations re-audit to Contest core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06). P275 re-review 2026-11-10: implement shortestPalindrome in `08-palindrome_queries.hpp`. P016 ST02 /finish 2026-11-14 (user decision): decide under 01-principles.md Priority (lighter) whether row 07 keeps the exact O(n*m) DP for longest common substring (the `OLD/Team Notebook/src/misc/old_lcssubstr.py` form) beside the suffix-array form, or records its omission in 07-Strings/Docs/00-notes.md. The next run rechecks the probe passes of rows 06, 07, 08 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement minPalindromePartition in `08-palindrome_queries.hpp`. Moved from Foundations Re-audit to Contest Core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06). P275 re-review 2026-11-10: implement shortestPalindrome in `08-palindrome_queries.hpp`. P016 ST02 /finish 2026-11-14 (user decision): decide under 01-principles.md Priority (lighter) whether row 07 keeps the exact O(n*m) DP for longest common substring (the `OLD/Team Notebook/src/misc/old_lcssubstr.py` form) beside the suffix-array form, or records its omission in 07-Strings/Docs/00-notes.md. The next run rechecks the probe passes of rows 06, 07, 08 that predate the 2026-11-12 runner fix."
     },
     {
       "id": "P044",
@@ -762,7 +763,7 @@
       "batches": [
         "GR08"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "in-progress",
@@ -779,7 +780,7 @@
         "GR10",
         "GR11"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+L+L",
       "model": "opus",
       "status": "in-progress",
@@ -798,7 +799,7 @@
         "MA06",
         "MA12"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L",
       "model": "opus",
       "status": "in-progress",
@@ -815,7 +816,7 @@
         "ST07",
         "ST34"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L",
       "model": "opus",
       "status": "in-progress",
@@ -835,7 +836,7 @@
         "DS08",
         "DS26"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+M",
       "model": "opus",
       "status": "in-progress",
@@ -853,7 +854,7 @@
       "batches": [
         "MA07"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -871,7 +872,7 @@
         "ST20",
         "ST23"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+M",
       "model": "opus",
       "status": "in-progress",
@@ -891,7 +892,7 @@
         "GE24",
         "GE25"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+M+L",
       "model": "opus",
       "status": "in-progress",
@@ -911,7 +912,7 @@
         "DS10",
         "DS48"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+L",
       "model": "opus",
       "status": "in-progress",
@@ -928,7 +929,7 @@
       "batches": [
         "GR09"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "in-progress",
@@ -943,7 +944,7 @@
       "batches": [
         "MI23"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -959,7 +960,7 @@
         "DS13",
         "DS29"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L",
       "model": "opus",
       "status": "in-progress",
@@ -977,7 +978,7 @@
       "batches": [
         "GR06"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -993,7 +994,7 @@
       "batches": [
         "MA05"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -1008,7 +1009,7 @@
       "batches": [
         "MA17"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -1025,7 +1026,7 @@
         "ST21",
         "ST09"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L",
       "model": "opus",
       "status": "in-progress",
@@ -1042,7 +1043,7 @@
       "batches": [
         "MA10"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "in-progress",
@@ -1061,7 +1062,7 @@
         "MA41",
         "MA52"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+M+M",
       "model": "opus",
       "status": "in-progress",
@@ -1080,7 +1081,7 @@
         "GE27",
         "GE44"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+M",
       "model": "opus",
       "status": "in-progress",
@@ -1103,7 +1104,7 @@
         "DS03",
         "DS51"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+M+L+M",
       "model": "opus",
       "status": "in-progress",
@@ -1124,7 +1125,7 @@
         "GR12",
         "GR28"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+M",
       "model": "opus",
       "status": "in-progress",
@@ -1142,7 +1143,7 @@
       "batches": [
         "ST05"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "in-progress",
@@ -1158,7 +1159,7 @@
         "MI18",
         "MI34"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+M",
       "model": "opus",
       "status": "in-progress",
@@ -1177,7 +1178,7 @@
         "DS32",
         "DS52"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+M+M",
       "model": "opus",
       "status": "in-progress",
@@ -1195,7 +1196,7 @@
       "batches": [
         "SUP07"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "verified",
@@ -1210,7 +1211,7 @@
       "batches": [
         "SUP16"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "verified",
@@ -1225,7 +1226,7 @@
       "batches": [
         "SUP08"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "verified",
@@ -1240,7 +1241,7 @@
       "batches": [
         "DS23"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "verified",
@@ -1255,7 +1256,7 @@
       "batches": [
         "MA08"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -1273,7 +1274,7 @@
         "DS28",
         "DS50"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+M+L+M",
       "model": "opus",
       "status": "in-progress",
@@ -1294,7 +1295,7 @@
         "GR27",
         "GR32"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+M",
       "model": "opus",
       "status": "in-progress",
@@ -1312,7 +1313,7 @@
       "batches": [
         "MA09"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "in-progress",
@@ -1328,7 +1329,7 @@
       "batches": [
         "SUP20"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "verified",
@@ -1343,7 +1344,7 @@
       "batches": [
         "SUP21"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "verified",
@@ -1360,7 +1361,7 @@
         "GR05",
         "GR70"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+S",
       "model": "opus",
       "status": "in-progress",
@@ -1379,7 +1380,7 @@
       "batches": [
         "MA53"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1392,7 +1393,7 @@
       "batches": [
         "MA54"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1405,7 +1406,7 @@
       "batches": [
         "GE51"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -1420,7 +1421,7 @@
         "MI35",
         "ST41"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "S+M+S",
       "model": "opus",
       "status": "planned",
@@ -1433,7 +1434,7 @@
       "batches": [
         "MA14"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1446,7 +1447,7 @@
       "batches": [
         "GR25"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1463,7 +1464,7 @@
         "MI22",
         "MI33"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+M+L+L+M",
       "model": "opus",
       "status": "planned",
@@ -1476,7 +1477,7 @@
       "batches": [
         "GE17"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1491,7 +1492,7 @@
         "MI05",
         "MI06"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+L+M",
       "model": "opus",
       "status": "planned",
@@ -1504,7 +1505,7 @@
       "batches": [
         "DS24"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1520,7 +1521,7 @@
         "GR37",
         "GR38"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+M+L+M",
       "model": "opus",
       "status": "planned",
@@ -1533,7 +1534,7 @@
       "batches": [
         "MA11"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1546,7 +1547,7 @@
       "batches": [
         "MA13"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1561,7 +1562,7 @@
         "GR31",
         "GR34"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -1574,7 +1575,7 @@
       "batches": [
         "MA27"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1588,7 +1589,7 @@
         "MI28",
         "MI29"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -1601,7 +1602,7 @@
       "batches": [
         "MA29"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1614,7 +1615,7 @@
       "batches": [
         "GE28"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1627,7 +1628,7 @@
       "batches": [
         "DS12"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1641,7 +1642,7 @@
         "ST11",
         "ST25"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -1654,7 +1655,7 @@
       "batches": [
         "MI07"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -1669,7 +1670,7 @@
         "ST22",
         "ST24"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -1682,7 +1683,7 @@
       "batches": [
         "MI08"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1695,7 +1696,7 @@
       "batches": [
         "MI26"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -1709,7 +1710,7 @@
         "MI24",
         "MI25"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -1725,7 +1726,7 @@
         "GR60",
         "GR65"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+L+M+L",
       "model": "opus",
       "status": "planned",
@@ -1738,7 +1739,7 @@
       "batches": [
         "ST10"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1753,7 +1754,7 @@
         "GE30",
         "GE18"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+M",
       "model": "opus",
       "status": "planned",
@@ -1766,7 +1767,7 @@
       "batches": [
         "GR33"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1779,7 +1780,7 @@
       "batches": [
         "ST26"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1792,7 +1793,7 @@
       "batches": [
         "MI10"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -1805,7 +1806,7 @@
       "batches": [
         "MI27"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -1818,7 +1819,7 @@
       "batches": [
         "MI09"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1831,7 +1832,7 @@
       "batches": [
         "GE32"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1844,7 +1845,7 @@
       "batches": [
         "GR73"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -1857,7 +1858,7 @@
       "batches": [
         "DS55"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -1871,7 +1872,7 @@
         "GE55",
         "GE56"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -1884,7 +1885,7 @@
       "batches": [
         "GE11"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1897,7 +1898,7 @@
       "batches": [
         "GE26"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1910,7 +1911,7 @@
       "batches": [
         "GE04"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1923,7 +1924,7 @@
       "batches": [
         "GE07"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1936,7 +1937,7 @@
       "batches": [
         "GE31"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1951,7 +1952,7 @@
         "GE16",
         "GE34"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -1965,7 +1966,7 @@
         "GE09",
         "GE08"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "M+L",
       "model": "opus",
       "status": "planned",
@@ -1978,7 +1979,7 @@
       "batches": [
         "GE06"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -1991,7 +1992,7 @@
       "batches": [
         "GE33"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2004,7 +2005,7 @@
       "batches": [
         "GE12"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2019,7 +2020,7 @@
         "DS38",
         "DS39"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -2032,7 +2033,7 @@
       "batches": [
         "GR29"
       ],
-      "phase": "Contest core",
+      "phase": "Contest Core",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -2046,7 +2047,7 @@
         "PY01",
         "PY40"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "M+S",
       "model": "opus",
       "status": "planned",
@@ -2061,7 +2062,7 @@
         "PY20",
         "PY41"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "M+S+S",
       "model": "opus",
       "status": "planned",
@@ -2074,7 +2075,7 @@
       "batches": [
         "PY03"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -2087,7 +2088,7 @@
       "batches": [
         "PY17"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -2100,7 +2101,7 @@
       "batches": [
         "PY19"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -2116,7 +2117,7 @@
         "PY38",
         "PY44"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+L+M+M",
       "model": "opus",
       "status": "planned",
@@ -2131,7 +2132,7 @@
         "PY21",
         "PY48"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+L+M",
       "model": "opus",
       "status": "planned",
@@ -2145,7 +2146,7 @@
         "PY18",
         "PY43"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -2158,7 +2159,7 @@
       "batches": [
         "PY04"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -2172,7 +2173,7 @@
         "PY34",
         "PY35"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -2186,7 +2187,7 @@
         "PY07",
         "PY42"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+M",
       "model": "opus",
       "status": "planned",
@@ -2200,7 +2201,7 @@
         "PY06",
         "PY37"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -2213,7 +2214,7 @@
       "batches": [
         "PY08"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -2227,7 +2228,7 @@
         "PY22",
         "PY39"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -2242,7 +2243,7 @@
         "PY24",
         "PY25"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "M+L+S",
       "model": "opus",
       "status": "planned",
@@ -2256,7 +2257,7 @@
         "PY26",
         "PY27"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -2270,7 +2271,7 @@
         "PY28",
         "PY45"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+S",
       "model": "opus",
       "status": "planned",
@@ -2283,7 +2284,7 @@
       "batches": [
         "PY29"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -2297,7 +2298,7 @@
         "PY30",
         "PY32"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+M",
       "model": "opus",
       "status": "planned",
@@ -2310,7 +2311,7 @@
       "batches": [
         "PY31"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -2324,7 +2325,7 @@
         "PY33",
         "PY46"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L+S",
       "model": "opus",
       "status": "planned",
@@ -2337,7 +2338,7 @@
       "batches": [
         "PY47"
       ],
-      "phase": "Python contest layer",
+      "phase": "Python Contest Layer",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -2352,7 +2353,7 @@
         "DS18",
         "DS21"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+M",
       "model": "opus",
       "status": "planned",
@@ -2365,7 +2366,7 @@
       "batches": [
         "MA21"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2378,7 +2379,7 @@
       "batches": [
         "MA24"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2391,7 +2392,7 @@
       "batches": [
         "DS35"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2404,7 +2405,7 @@
       "batches": [
         "GE13"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2417,7 +2418,7 @@
       "batches": [
         "GE37"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2430,7 +2431,7 @@
       "batches": [
         "DS14"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2443,7 +2444,7 @@
       "batches": [
         "GR45"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2456,7 +2457,7 @@
       "batches": [
         "GE36"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2469,7 +2470,7 @@
       "batches": [
         "GE41"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2482,7 +2483,7 @@
       "batches": [
         "DS15"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2495,7 +2496,7 @@
       "batches": [
         "DS16"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2508,7 +2509,7 @@
       "batches": [
         "DS42"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2523,7 +2524,7 @@
         "GE19",
         "GE20"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+M",
       "model": "opus",
       "status": "planned",
@@ -2536,7 +2537,7 @@
       "batches": [
         "GE15"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -2551,7 +2552,7 @@
         "GR16",
         "GR23"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+M",
       "model": "opus",
       "status": "planned",
@@ -2567,7 +2568,7 @@
         "GR49",
         "GR71"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+L+M",
       "model": "opus",
       "status": "planned",
@@ -2580,7 +2581,7 @@
       "batches": [
         "MA15"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2593,7 +2594,7 @@
       "batches": [
         "MA19"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2606,7 +2607,7 @@
       "batches": [
         "MA28"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -2619,7 +2620,7 @@
       "batches": [
         "MA30"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2632,7 +2633,7 @@
       "batches": [
         "MA32"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2645,7 +2646,7 @@
       "batches": [
         "MA48"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2658,7 +2659,7 @@
       "batches": [
         "ST14"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2671,7 +2672,7 @@
       "batches": [
         "ST15"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2684,7 +2685,7 @@
       "batches": [
         "GR43"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2697,7 +2698,7 @@
       "batches": [
         "GE40"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2711,7 +2712,7 @@
         "GE65",
         "GE66"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -2727,7 +2728,7 @@
         "DS33",
         "DS53"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+L+L",
       "model": "opus",
       "status": "planned",
@@ -2740,7 +2741,7 @@
       "batches": [
         "DS19"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2753,7 +2754,7 @@
       "batches": [
         "DS36"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2766,7 +2767,7 @@
       "batches": [
         "DS37"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2780,7 +2781,7 @@
         "DS40",
         "DS41"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -2793,7 +2794,7 @@
       "batches": [
         "DS43"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2806,7 +2807,7 @@
       "batches": [
         "DS44"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2819,7 +2820,7 @@
       "batches": [
         "DS45"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2832,7 +2833,7 @@
       "batches": [
         "DS46"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2845,7 +2846,7 @@
       "batches": [
         "GE22"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2858,7 +2859,7 @@
       "batches": [
         "GE35"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2871,7 +2872,7 @@
       "batches": [
         "GE21"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2884,7 +2885,7 @@
       "batches": [
         "GE38"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2897,7 +2898,7 @@
       "batches": [
         "GE39"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2910,7 +2911,7 @@
       "batches": [
         "GE42"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2923,7 +2924,7 @@
       "batches": [
         "GE43"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2936,7 +2937,7 @@
       "batches": [
         "GR15"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2949,7 +2950,7 @@
       "batches": [
         "GR17"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2964,7 +2965,7 @@
         "GR21",
         "GR24"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+M",
       "model": "opus",
       "status": "planned",
@@ -2977,7 +2978,7 @@
       "batches": [
         "GR20"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -2990,7 +2991,7 @@
       "batches": [
         "GR40"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3003,7 +3004,7 @@
       "batches": [
         "GR42"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3016,7 +3017,7 @@
       "batches": [
         "GR44"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3029,7 +3030,7 @@
       "batches": [
         "GR22"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3042,7 +3043,7 @@
       "batches": [
         "GR46"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3055,7 +3056,7 @@
       "batches": [
         "GR47"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3070,7 +3071,7 @@
         "GR53",
         "GR54"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -3083,7 +3084,7 @@
       "batches": [
         "GR51"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3096,7 +3097,7 @@
       "batches": [
         "GR52"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3111,7 +3112,7 @@
         "GR56",
         "GR62"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -3124,7 +3125,7 @@
       "batches": [
         "GR57"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3138,7 +3139,7 @@
         "GR59",
         "GR72"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3151,7 +3152,7 @@
       "batches": [
         "GR61"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3166,7 +3167,7 @@
         "GR64",
         "GR67"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -3179,7 +3180,7 @@
       "batches": [
         "GR66"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3192,7 +3193,7 @@
       "batches": [
         "GR68"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3205,7 +3206,7 @@
       "batches": [
         "MA16"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3218,7 +3219,7 @@
       "batches": [
         "MA18"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3231,7 +3232,7 @@
       "batches": [
         "MA25"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -3244,7 +3245,7 @@
       "batches": [
         "MA20"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3257,7 +3258,7 @@
       "batches": [
         "MA22"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3270,7 +3271,7 @@
       "batches": [
         "MA23"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -3283,7 +3284,7 @@
       "batches": [
         "MA31"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3296,7 +3297,7 @@
       "batches": [
         "GR19"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3309,7 +3310,7 @@
       "batches": [
         "MA33"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3322,7 +3323,7 @@
       "batches": [
         "MA34"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3335,7 +3336,7 @@
       "batches": [
         "MA35"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3349,7 +3350,7 @@
         "MA36",
         "MA37"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -3364,7 +3365,7 @@
         "MA42",
         "MA44"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+M",
       "model": "opus",
       "status": "planned",
@@ -3377,7 +3378,7 @@
       "batches": [
         "MA39"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3390,7 +3391,7 @@
       "batches": [
         "MA40"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3403,7 +3404,7 @@
       "batches": [
         "MA43"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3418,7 +3419,7 @@
         "MA50",
         "MA51"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -3431,7 +3432,7 @@
       "batches": [
         "MA46"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3444,7 +3445,7 @@
       "batches": [
         "MA47"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3457,7 +3458,7 @@
       "batches": [
         "MA49"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3471,7 +3472,7 @@
         "MI11",
         "MI13"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+L",
       "model": "opus",
       "status": "planned",
@@ -3484,7 +3485,7 @@
       "batches": [
         "MI12"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3497,7 +3498,7 @@
       "batches": [
         "MI31"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3510,7 +3511,7 @@
       "batches": [
         "ST12"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3525,7 +3526,7 @@
         "ST37",
         "ST16"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -3538,7 +3539,7 @@
       "batches": [
         "ST36"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3554,7 +3555,7 @@
         "ST38",
         "ST39"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+L+L+S",
       "model": "opus",
       "status": "planned",
@@ -3567,7 +3568,7 @@
       "batches": [
         "ST27"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3580,7 +3581,7 @@
       "batches": [
         "ST28"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3593,7 +3594,7 @@
       "batches": [
         "ST29"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3606,7 +3607,7 @@
       "batches": [
         "ST30"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3619,7 +3620,7 @@
       "batches": [
         "ST31"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3632,7 +3633,7 @@
       "batches": [
         "ST32"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -3645,7 +3646,7 @@
       "batches": [
         "PY09"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3659,7 +3660,7 @@
         "PY13",
         "PY14"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -3672,7 +3673,7 @@
       "batches": [
         "PY10"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3686,7 +3687,7 @@
         "PY15",
         "PY16"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+M",
       "model": "opus",
       "status": "planned",
@@ -3699,7 +3700,7 @@
       "batches": [
         "GE45"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3712,7 +3713,7 @@
       "batches": [
         "ST40"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3725,7 +3726,7 @@
       "batches": [
         "GE46"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3738,7 +3739,7 @@
       "batches": [
         "GE47"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3751,7 +3752,7 @@
       "batches": [
         "GE48"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3764,7 +3765,7 @@
       "batches": [
         "GE49"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -3777,7 +3778,7 @@
       "batches": [
         "GE50"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3791,7 +3792,7 @@
         "GR74",
         "GR75"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+M",
       "model": "opus",
       "status": "planned",
@@ -3804,7 +3805,7 @@
       "batches": [
         "GR80"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -3818,7 +3819,7 @@
         "DS54",
         "DS56"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -3832,7 +3833,7 @@
         "GE52",
         "GE54"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L",
       "model": "opus",
       "status": "planned",
@@ -3847,7 +3848,7 @@
         "GE57",
         "GE58"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+L",
       "model": "opus",
       "status": "planned",
@@ -3862,7 +3863,7 @@
         "GR78",
         "GR79"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L+L+M",
       "model": "opus",
       "status": "planned",
@@ -3877,7 +3878,7 @@
         "MA56",
         "MA57"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M+M",
       "model": "opus",
       "status": "planned",
@@ -3890,7 +3891,7 @@
       "batches": [
         "MA58"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -3903,7 +3904,7 @@
       "batches": [
         "MI36"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "S",
       "model": "opus",
       "status": "planned",
@@ -3918,7 +3919,7 @@
         "ST43",
         "ST44"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M+L",
       "model": "opus",
       "status": "planned",
@@ -3935,7 +3936,7 @@
         "DS60",
         "DS61"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M+M+M+M",
       "model": "opus",
       "status": "planned",
@@ -3949,7 +3950,7 @@
         "GE59",
         "GE67"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -3964,7 +3965,7 @@
         "GE61",
         "GE62"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M+M",
       "model": "opus",
       "status": "planned",
@@ -3978,7 +3979,7 @@
         "GE63",
         "GE64"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -3993,7 +3994,7 @@
         "GR82",
         "GR83"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M+M",
       "model": "opus",
       "status": "planned",
@@ -4009,7 +4010,7 @@
         "MA61",
         "MA62"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M+M+M",
       "model": "opus",
       "status": "planned",
@@ -4023,7 +4024,7 @@
         "MI37",
         "MI38"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -4037,7 +4038,7 @@
         "ST45",
         "ST46"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M+M",
       "model": "opus",
       "status": "planned",
@@ -4050,7 +4051,7 @@
       "batches": [
         "DS62"
       ],
-      "phase": "Specialist and research families",
+      "phase": "Specialist and Research Families",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -4063,7 +4064,7 @@
       "batches": [
         "SUP03"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "S",
       "model": "opus",
       "status": "in-progress",
@@ -4078,7 +4079,7 @@
       "batches": [
         "SUP31"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -4091,7 +4092,7 @@
       "batches": [
         "SUP02"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "S",
       "model": "opus",
       "status": "planned",
@@ -4104,7 +4105,7 @@
       "batches": [
         "SUP04"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -4117,7 +4118,7 @@
       "batches": [
         "SUP09"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "L",
       "model": "opus",
       "status": "planned",
@@ -4130,7 +4131,7 @@
       "batches": [
         "SUP10"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -4143,7 +4144,7 @@
       "batches": [
         "SUP11"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -4156,7 +4157,7 @@
       "batches": [
         "SUP12"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -4169,7 +4170,7 @@
       "batches": [
         "SUP13"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -4182,7 +4183,7 @@
       "batches": [
         "SUP14"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "XL",
       "model": "opus",
       "status": "planned",
@@ -4195,7 +4196,7 @@
       "batches": [
         "SUP15"
       ],
-      "phase": "Final support integration",
+      "phase": "Final Support Integration",
       "size": "XL",
       "model": "opus",
       "status": "planned",

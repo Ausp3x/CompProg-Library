@@ -6,7 +6,7 @@
 
 Common domain: paths use unit steps right (E, x + 1) and up (N, y + 1), plus diagonal steps (1, 1) where named. Counts are residues of `M`; functions that take `const PrimeCombinatorics<M> &pc` need a prime modulus and assert that pc covers every factorial index they read (`pc.n` at least the path length). Impossible endpoints give 0, never an assertion.
 
-### O(1) counts
+### O(1) Counts
 
 - `gridPaths(dx, dy, pc)`: C(dx + dy, dx) for dx, dy >= 0, else 0 (kept beside `combiNR` because it accepts unreachable offsets).
 - `dyckPaths(n, h1, h2, pc)`: walks of n steps +-1 from height h1 >= 0 to h2 >= 0 that never go below 0, by reflection about -1: C(n, u) - C(n, u + h1 + 1) with u = (n + h2 - h1) / 2 up steps; 0 on a parity mismatch. General endpoints by user decision (duplicates ledger); `catalan(n)` is `dyckPaths(2n, 0, 0)`.

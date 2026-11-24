@@ -5,10 +5,13 @@ Usage: gaps.py [Pxxx | batch id]. Without an argument the target comes from the 
 branch or worktree name (a batch id wins); with neither, the target is the branch itself.
 gaps.py --reviewed <Pxxx | batch id> records /package's review (step 10): the blobs of the targets, their tests and
 evidence documents, and the reviewer's report read from standard input. /finish reuses it while those files are unchanged.
+gaps.py --start <Pxxx | batch id>, run by /package's `!` line, records once per key the files uncommitted when the batch
+starts (.claude/finish/<key>.start.json, deleted with the ledger), which a batch without targets leaves out of its review
+while they keep that content: in the main checkout they are other work's (SUP34).
 
 The facts go in full to .claude/finish/<key>.facts.txt; the printed copy, which /finish's SKILL.md inlines, holds the target,
 the ledger's open rows and then whole sections in order of need until the room the skill leaves in the 5,000 tokens Claude
-Code re-attaches after a compaction runs out (SUP33). A ledger line that is not an `id | defect or decision | file:line |
+Code re-attaches after a compaction runs out (SUP33; plan.room_of). A ledger line that is not an `id | defect or decision | file:line |
 gap | source | state` row is reported as stray: experiments go one row per attempt to .claude/finish/<key>.lab.tsv.
 """
 import importlib.util
@@ -35,11 +38,7 @@ UNDECIDED = re.compile(r'\b(not tried|untried|unmeasured|not measured|never meas
 MARKER = re.compile(r'(#|//|<!--|^\s*([-*]\s*)?)\s*(TODO|FIXME|XXX)\b')
 ROW_ID = re.compile(r'[A-Za-z0-9][\w.-]*')
 STATES = ('open', 'ask', 'fixed', 'answered')  # SKILL.md, Ledger; the first two are open
-REATTACH_TOKENS = 5000  # Claude Code keeps the first 5,000 tokens of each skill after a compaction (docs, Skills)
-CHARS_PER_TOKEN = 2.5  # this repository's Markdown, measured from transcript usage 2026-11-23 (00-harness-review.md)
-REATTACH_CHARS = int(REATTACH_TOKENS * CHARS_PER_TOKEN)
-MIN_FACTS = 2500  # the least room a skill that prints facts leaves them; 03-consistency.py warns below it
-LINES = 12  # printed lines per section; the facts file holds up to 400
+LINES = 12  # printed lines per section; the facts file holds up to 400, and every recorded limit
 
 
 def row(line):
@@ -59,11 +58,6 @@ def ledger_rows(text):
         else:
             (opened if state in STATES[:2] else closed).append(line.strip())
     return opened, closed, stray
-
-
-def facts_room(skill_text):
-    """Characters left for printed facts after the skill's text within the re-attached 5,000 tokens."""
-    return REATTACH_CHARS - len(skill_text)
 
 
 def ledger_lines(ledger, root):
@@ -136,18 +130,18 @@ def emit(head, key, root):
         where = str(facts.relative_to(root))
     except OSError as e:
         where = f'not written ({e.strerror})'
-    skill = Path(__file__).with_name('SKILL.md')
-    room = max(facts_room(skill.read_text()) if skill.is_file() else REATTACH_CHARS, 1500)
+    room = plan.room_of(Path(__file__).with_name('SKILL.md'))
+    cost = lambda item: sum(map(plan.cost, item.split('\n')))  # an item of several lines pays each line's floor
     rank = lambda t: next((i for i, p in enumerate(ORDER) if t[0].startswith(p)), len(ORDER))
     out = [*head, f'Full facts: {where} ({len(full)} characters); read it at step 1 when sections below are cut or not printed.']
     head_skip, ordered = '\n### Not printed (in the facts file)\n', sorted(SECTIONS, key=rank)
-    left, skipped = room - sum(len(x) + 1 for x in out), []
+    left, skipped = room - sum(map(cost, out)), []
     for k, (title, lines) in enumerate(ordered):
         # kept back: the Not printed block naming every section not yet placed, in case none of them fits
-        reserve = len(head_skip) + sum(len(t) + 1 for t in [*skipped, *(t for t, _ in ordered[k + 1:])]) + 1
+        reserve = len(head_skip) + sum(map(cost, [*skipped, *(t for t, _ in ordered[k + 1:])])) + 1
         block = [f'\n### {title}']
         for line in lines if title.startswith('Ledger') else lines[:LINES]:  # open rows: as many as fit
-            if left - reserve - sum(len(x) + 1 for x in block) - len(line) - 60 < 0:
+            if left - reserve - sum(map(cost, block)) - cost(line) - 59 < 0:
                 break
             block.append(line)
         if len(block) == 1:
@@ -156,10 +150,27 @@ def emit(head, key, root):
         if len(block) - 1 < len(lines):
             block.append(f'... {len(lines) - len(block) + 1} more in the facts file')
         out += block
-        left -= sum(len(x) + 1 for x in block)
+        left -= sum(map(cost, block))
     if skipped:
         out.append(head_skip + '\n'.join(skipped))  # one per line: titles hold semicolons
     print('\n'.join(out))
+
+
+def limits(doc, root):
+    """Each heading LIMIT_HEADING matches as `path:line: heading`, then every non-blank line of its section in full, up to
+    the next heading of its level or above: /finish step 9 lists each recorded limit (user decision 2026-11-24)."""
+    if not doc.is_file():
+        return []
+    out, level = [], 0
+    for i, line in enumerate(doc.read_text(errors='replace').splitlines(), 1):
+        if (m := re.match(r'(#+) ', line)) and level and len(m[1]) <= level:
+            level = 0
+        if m and not level and LIMIT_HEADING.match(line):
+            level = len(m[1])
+            out.append(f'{doc.relative_to(root)}:{i}: {line.strip()[:160]}')
+        elif level and line.strip():
+            out.append(line.rstrip())
+    return out
 
 
 def grep(path, pattern, root, keep=lambda line: True):
@@ -199,7 +210,8 @@ BOOKKEEPING = ('01-prompts.md', '00-Guidelines/13-Plan/packages.json', '00-Guide
 def review_paths(root, key, pkg, scope, batches):
     """The files a package review covers: targets, their tests and evidence documents. A scope without targets (a support
     batch) covers the package's evidence and every file changed on the branch or uncommitted instead, the plan files and
-    the run's own records aside, so a later edit reopens the review (user decision 2026-11-23)."""
+    the run's own records aside, so a later edit reopens the review (user decision 2026-11-23), and of the uncommitted
+    ones only those absent from the --start record or changed since (SUP34)."""
     targets = [t for b in scope for t in batches[b]['targets'] + batches[b].get('support_targets', [])]
     docs = {evidence_doc(t) for t in targets} | (set() if key in batches and targets else set(pkg['evidence']))
     tests = {x for t in targets if re.fullmatch(r'\d\d-[^/]+/[^/]+', t) for x in plan.tests_for(root, t)}
@@ -207,7 +219,13 @@ def review_paths(root, key, pkg, scope, batches):
     if not targets:
         if git('rev-parse', '--verify', '--quiet', 'master', cwd=root):
             changed |= set(git('diff', '--name-only', '-z', 'master...HEAD', cwd=root, raw=True).split('\0'))
-        changed |= {p for _, p in uncommitted(root)}
+        work = sorted(p for _, p in uncommitted(root) if (root / p).is_file())
+        try:
+            before = dict(json.loads((root / '.claude/finish' / f'{key}.start.json').read_text())['files'])
+        except (OSError, ValueError, KeyError, TypeError):
+            before = {}
+        now = blobs(root, [p for p in work if p in before])
+        changed |= {p for p in work if p not in before or now[p] != before[p]}
         changed = {p for p in changed if p and p not in BOOKKEEPING and not p.startswith(('.claude/finish/', '.claude/pause/'))}
     return sorted(f for f in {*targets, *docs, *tests, *changed} if (root / f).is_file())
 
@@ -239,6 +257,13 @@ def comparison(doc, root):
 
 def main():
     root = Path(git('rev-parse', '--show-toplevel', cwd='.'))
+    if sys.argv[1:2] == ['--start']:
+        key, pkg, _, _ = target(root, sys.argv[2] if len(sys.argv) > 2 else '')
+        start = root / '.claude/finish' / f'{key}.start.json'
+        if pkg and not start.exists():  # once per key: a resumed /package keeps the first record
+            start.parent.mkdir(parents=True, exist_ok=True)
+            start.write_text(json.dumps({'files': blobs(root, sorted(p for _, p in uncommitted(root) if (root / p).is_file()))}, indent=1))
+        return
     if sys.argv[1:2] == ['--reviewed']:
         key, pkg, scope, _ = target(root, sys.argv[2] if len(sys.argv) > 2 else '')
         if not pkg:
@@ -289,7 +314,8 @@ def main():
         short = re.compile(r'\b(' + '|'.join(tiny) + r')\b', re.I) if tiny else None
         mentions = lambda line, extra: (any(n in line.lower() for n in names if len(n) > 3) or bool(short and short.search(line)) or extra in line)
         notes = sorted({root / t.split('/', 1)[0] / 'Docs/00-notes.md' for t in targets})
-        section('Recorded limits (evidence headings)', [hit for d in docs for hit in grep(d, LIMIT_HEADING, root)])
+        found = [line for d in docs for line in limits(d, root)]
+        section('Recorded limits (evidence headings)', found, max(len(found), 1))
         section('Agent-made omissions and deferrals (notes lines without a user decision)',
                 [hit for f in notes for hit in grep(f, DEFERRAL, root, lambda line: mentions(line, pkg['id']) and not DECIDED.search(line))])
         record = root / '.claude/finish' / f'{key}.review.json'

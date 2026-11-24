@@ -12,8 +12,8 @@ integrity(), pre_integrity()); evidence and limits: 00-Guidelines/13-Plan/Docs/0
 
 Read-only and never on the network: it reads file tails only (and asks git which paths it ignores), writes nothing but its own state under
 .claude/hooks/.state/harness/ (heartbeats, Stop records, the session's warned, hide-text and /effort lists, the newest
-subagent replies with those refused, the context-integrity record, errors.log) and, for the weekly audit scan (SUP29), the plan usage of the status
-line in .claude/harness-audit/usage.json; the startup SessionStart hook starts that scan detached when it is due. It
+subagent replies with those refused, the context-integrity record, errors.log); the startup SessionStart hook starts the
+weekly audit scan (SUP29) detached when it is due. It
 never opens .credentials.json, and prints no token, account or organization id, e-mail address or message text. The
 allowed models are read at every check: `models` in packages.json, the `model:` of the agent files and skill front
 matter, and `models` in .claude/harness.json. Detectors match by shape (model ids, hex experiment ids, objects mapping
@@ -377,8 +377,8 @@ def slots(gc):
 
 
 def slot_format(gc):
-    """[problem]: how the global config departs from the experiment cache format the SUP28 audit found, which launch.py
-    and the slot checks rely on: clientDataCacheSlots, an object of {at, model, entrypoint, data} slots whose data holds
+    """[problem]: how the global config departs from the experiment cache format the SUP28 audit found, which the slot
+    checks rely on: clientDataCacheSlots, an object of {at, model, entrypoint, data} slots whose data holds
     an optional hex `atis` and string `experimentKey`."""
     s = gc.get('clientDataCacheSlots')
     if s is None:  # no slots yet; inspect reports a latch id that no slot can hold (a renamed container)
@@ -728,7 +728,7 @@ def inspect(path, session=None, model=None, entry=None, version=None, live=None,
         issues += request_issues(recs, main_recs, reply, model, meta, conf, live, sid)
         issues += [('blind', 'blind experiment', t) for t in exp[3]] if path and exp[2] in ('blind', 'unknown') else []
         notes += exp[3] if exp[2] == 'none' else []
-        issues += [('blind', 'slots format', f'{t}: launch.py strips nothing and the slot checks are blind until the harness '
+        issues += [('blind', 'slots format', f'{t}: the slot checks are blind until the harness '
                     f'is re-audited ({REAUDIT})') for t in drift]
         tid = finished_tool_use(main_recs)
         if tid and not (STATE / (safe(sid) or 'session') / safe(tid)).exists():
@@ -1387,15 +1387,14 @@ def hook(data):
 
 
 def audit_due(now=None):
-    """True when the last audit scan is over a week old (or absent) or a skipped canary's retry time has passed."""
-    st, now = load(AUDIT / 'status.json'), now or time.time()
-    t, retry = st.get('time'), st.get('canary_retry')
-    return not isinstance(t, (int, float)) or now - t > WEEK or isinstance(retry, (int, float)) and now >= retry
+    """True when the last audit scan is over a week old or absent."""
+    t, now = load(AUDIT / 'status.json').get('time'), now or time.time()
+    return not isinstance(t, (int, float)) or now - t > WEEK
 
 
 def start_audit():
-    """Start harness_audit.py scan --due detached when due, never inside a canary's own session; True when started."""
-    if os.environ.get('CP_HARNESS_AUDIT_CHILD') or not SCAN.is_file() or not audit_due():
+    """Start harness_audit.py scan --due detached when due; True when started."""
+    if not SCAN.is_file() or not audit_due():
         return False
     import subprocess
     subprocess.Popen([sys.executable, str(SCAN), 'scan', '--due'], cwd=ROOT, stdin=subprocess.DEVNULL, env=dict(os.environ, CP_REAP_KEEP='1'),
@@ -1408,22 +1407,6 @@ def audit_label():
     st = load(AUDIT / 'status.json')
     n = st.get('new')
     return 'audit error' if st.get('error') else f'audit {n} new' if isinstance(n, int) and not isinstance(n, bool) and n > 0 else ''
-
-
-def record_usage(limits):
-    """Keep the status JSON's plan usage in AUDIT/usage.json (rewritten on a change or after 5 minutes) for the
-    canary's usage check: headless runs have no status line."""
-    wins = {w: {'pct': obj(obj(limits).get(w)).get('used_percentage'), 'resets_at': obj(obj(limits).get(w)).get('resets_at')}
-            for w in ('five_hour', 'seven_day')}
-    if not any(isinstance(v['pct'], (int, float)) for v in wins.values()) or not AUDIT.parent.is_dir():
-        return
-    f, old = AUDIT / 'usage.json', load(AUDIT / 'usage.json')
-    if {k: old.get(k) for k in wins} == wins and time.time() - (old.get('time') or 0) < 300:
-        return
-    AUDIT.mkdir(exist_ok=True)
-    tmp = f.with_name(f'.usage.{os.getpid()}')
-    tmp.write_text(json.dumps({'time': time.time(), **wins}))
-    os.replace(tmp, f)
 
 
 def log_error(exc):

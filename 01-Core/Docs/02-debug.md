@@ -24,7 +24,7 @@ Finite ranges print in iteration order in braces, recursively. Const iteration i
 
 Absent optional prints `nullopt`; present optional prints `optional(value)`. Variant prints `variant[index](value)`, including repeated alternative types and monostate. Valueless-by-exception prints `variant(valueless)` without visiting.
 
-### debugString hooks
+### debugString Hooks
 
 A `debugString(const T&)` in T's namespace returning a string-convertible result is found by ADL for every nested value and takes priority over ranges, tuples, aggregates and streaming. A hook may call `Debug::to_string` recursively. `operator<<` stays the fallback for other streamable types.
 

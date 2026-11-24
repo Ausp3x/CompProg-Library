@@ -10,15 +10,17 @@ VALUE_0 (the real repository's local config sets compprog.role=maintainer, so ev
 with GIT_CONFIG_GLOBAL and GIT_CONFIG_SYSTEM at /dev/null; the unset case uses a temporary `git init` repository.
 Synthetic plans are dicts (claims, gate, ready) or a temporary repository with its own plan JSON, finish log, an
 untracked evidence file (a live package), linked worktrees where a test adds them, and a copy of plan.py (show,
-ready_text, status, the CLI, live, gaps.py). gaps.py's row, ledger_rows, section, emit and facts_room are also called
+ready_text, status, the CLI, live, gaps.py). gaps.py's row, ledger_rows, section, emit and limits and plan.py's room arithmetic are also called
 on the imported module, emit with SECTIONS set and its __file__ patched beside a SKILL.md of chosen length. The real
 repository is only read (show, ready_text, status, next, show next, gaps.py with role and gh overridden), except that
 gaps.py writes its facts file there: each such run holds a lock against concurrent testers and then removes the
 `.claude/finish/*.facts.txt` files it created and restores those it changed.
-quick: every fixed case. full: quick plus seeded random rounds: 200 claim_branch cases, 40 PR lists for claims and
+quick: every fixed case, 200 seeded random line lists for plan.fit, the real items.py on 3 sections and the real
+rooms of the first 12 open packages. full: quick plus the real rooms of every open
+package, every real items.py section, one real validator run, and seeded random rounds: 200 claim_branch cases, 40 PR lists for claims and
 gate, 40 synthetic plans for ready(skip), 40 login strings, 40 random ledgers of up to 30 lines, 4 random PR lists
 through the real `plan.py next`/`status`, and 3 through the real ready_text. stress: full with --rounds random rounds
-(default 300) for claims, gate, ready, login and ledgers, 10 x --rounds claim_branch cases, and --rounds // 20
+(default 300) for claims, gate, ready, login and ledgers, 10 x --rounds fit lists, 10 x --rounds claim_branch cases, and --rounds // 20
 real-repository rounds. Modes/seeds also come from
 CP_TEST_MODE/CP_TEST_SEED.
 Oracles (written here, independent of plan.py): a character scanner for claim branches and for the login slug, a
@@ -26,7 +28,8 @@ lowest-number-per-package claim table, the block table and claims line rebuilt f
 first-ready scan over prerequisites rebuilt from batches.json, the landed set and first open batch from the 'verified'
 lines of finish-log.tsv, the held text and a greedy folder-disjoint set in which live and claimed packages reserve;
 for gaps.py (SUP33) hand-written rows and outputs, random ledger lines whose class (open, closed, stray, blank) is
-known by construction, the order of need written here, and the printed length against 12,500 less SKILL.md's length.
+known by construction, the order of need written here, and the printed length against o_room: 5,000 tokens less the
+skill's text at 2.5 characters a token, at 2.0 characters a token of output, shared by its '!`' lines (SUP34).
 Failing random rounds print the seed, mode, round and a greedily shrunk PR list.
 
 Feature map:
@@ -98,12 +101,24 @@ emit (the facts file .claude/finish/<key>.facts.txt in full in the order section
 'Full facts:' line with its length; printed sections by ORDER, ledger first, brief last, unknown titles after it; at
 most LINES=12 lines per other section then '... k more in the facts file'; the ledger's open rows as many as fit;
 sections that do not fit named under '### Not printed (in the facts file)' in order; printed length within
-facts_room(SKILL.md) floored at 1500, 12,500 without SKILL.md; 'not written (<strerror>)' when the facts folder is a
+plan.room_of(SKILL.md), floored at 1500, 10,000 without SKILL.md; 'not written (<strerror>)' when the facts folder is a
 file or the facts file a folder) -> test_gaps_emit, test_gaps_emit_room, test_gaps_emit_unwritable, test_gaps_facts,
 test_real_gaps_role_line (the real repository's facts file name);
-facts_room, REATTACH_CHARS, MIN_FACTS, LINES and 03-consistency.py's skill_reattach rule (a skill with a line starting
-'!`' flagged when it leaves under 2,500 characters, any other over 11,250; both boundaries; the real skills flag none)
--> test_gaps_facts_room; gaps.py --reviewed after the change -> test_gaps_review_record.
+plan.py's room arithmetic (SUP34): its constants in one place, gaps.py holding none; room() shared by the '!`' lines and
+room_of() with its floor and without a SKILL.md; reattach(), 03-consistency.py's skill_reattach rule (a skill whose '!`'
+lines get under 2,500 characters each, any other over 11,250, an unpiped `plan.py show` line without --skill and the
+skill's own name; both edges of each; the real skills flag none) -> test_gaps_facts_room; the validator printing
+reattach(ROOT) (full mode) -> test_validator_reattach; fit() and spans() (everything when it fits, the first and kept
+lines first, whole lines in order, the numbered pointer; seeded random lists against o_fit) -> test_fit; spill() (the
+session's scratchpad, else claude-<uid>, None when unwritable) -> test_fit_spill; `plan.py show --skill` (fitted to that
+skill's SKILL.md with its first, WARNING and STOP lines, whole when it fits, an unknown skill) -> test_syn_show_skill;
+prune's items.py (whole, fitted with its headings and the pointer to duplicates.md, every real section within the real
+room) -> test_items_room; gaps.py's Recorded limits (each limit heading's section in full, nested headings, the facts
+file past 400 lines and 160 characters, the printed cap) -> test_gaps_limits, test_gaps_limits_facts; gaps.py --start
+(once per key, an unknown id, a batch without targets leaving out unchanged files uncommitted at the start, covering a
+new file and one changed since, other work changed later reopening it, an unreadable record) -> test_gaps_review_start;
+every open package's gaps.py facts and fitted briefs within their rooms on the real plan (quick: the first 12) ->
+test_real_rooms; gaps.py --reviewed after the change -> test_gaps_review_record.
 """
 import argparse
 import contextlib
@@ -276,7 +291,8 @@ def o_gaps_line(b, last, repo, n=None):
 
 FACTS_ORDER = ('Ledger', 'Review record', 'Undecided optimization', 'Mutation records', 'Agent-made', 'Open sweep', 'Recorded limits',
                'Comparison record', 'Packages filed', 'TODO markers', 'Branch and', 'Other worktrees', 'Brief')  # most needed first (SUP33)
-REATTACH, MIN_ROOM, FLOOR, CAP_LINES = 12500, 2500, 1500, 12  # 5,000 tokens x 2.5 characters; validator minimum; printed floor; lines per section
+MIN_ROOM, FLOOR, CAP_LINES = 2500, 1500, 12  # validator minimum; printed floor; lines per section (SUP33)
+NO_SKILL = 10000  # o_room(''): 5,000 tokens x 2.0 characters of output
 ROW_POOLS = {'id': (['A1', 'x', '9z', 'D-3', 'a.b_c', 'P250-SUP17', 'AÄ'], ['', '-a', '_a', '.a', 'a b', 'a/b', 'Ä1', '#1']),
              'kind': (['defect', 'decision'], ['Defect', 'DECISION', 'bug', 'decisions', '']),
              'text': (['f.hpp:3', 'gap text', 'review', 'x', '01-Core/10-x.hpp:12'], ['', '  ']),
@@ -289,12 +305,58 @@ def o_rank(title):
     return next((i for i, p in enumerate(FACTS_ORDER) if title.startswith(p)), len(FACTS_ORDER))
 
 
-def o_reattach(text):
-    """03-consistency.py's skill_reattach rule: a skill with a line starting '!`' prints facts and leaves them at least
-    MIN_FACTS characters of the re-attached ones; any other fits in nine tenths of them."""
-    if any(line.startswith('!`') for line in text.split('\n')):
-        return GAPS.facts_room(text) < GAPS.MIN_FACTS
-    return len(text) > 0.9 * GAPS.REATTACH_CHARS
+def o_room(text):
+    """Characters each '!`' line of a skill may print (user decision 2026-11-24): 5,000 tokens less the text at 2.5
+    characters a token, at 2.0 characters a token of output, shared equally by its '!`' lines (SUP34)."""
+    bangs = sum(line.startswith('!`') for line in text.split('\n'))
+    return int(((5000 - len(text) / 2.5) * 2.0) // max(1, bangs))
+
+
+def o_skill(room, bangs=1):
+    """A skill text of '!`' lines and padding whose o_room is exactly `room` (room * bangs even)."""
+    n = round(2.5 * (5000 - room * bangs / 2.0))
+    head = ''.join(f'!`x{i}`\n' for i in range(bangs))
+    return head + 's' * (n - len(head))
+
+
+def o_reattach(text, name='x'):
+    """03-consistency.py's skill_reattach rule (plan.reattach): a skill with a line starting '!`' gives each such line
+    at least 2,500 characters; any other fits in nine tenths of 12,500 (5,000 tokens at 2.5); an unpiped '!`' line
+    running `plan.py show` passes --skill and the skill's own name."""
+    lines = [line for line in text.split('\n') if line.startswith('!`')]
+    flagged = o_room(text) < MIN_ROOM if lines else len(text) > 11250
+    return flagged or any(re.search(r'plan\.py"? show\b', l) and '|' not in l and f'--skill {name} ' not in l + ' ' for l in lines)
+
+
+def o_spans(numbers):
+    """'a-b' runs of consecutive numbers joined by ', ', the first six runs, then ' ...' (grouped by number minus index)."""
+    groups = {}
+    for k, n in enumerate(numbers):
+        groups.setdefault(n - k, []).append(n)
+    runs = [f'{g[0]}-{g[-1]}' if len(g) > 1 else str(g[0]) for g in groups.values()]
+    return ', '.join(runs[:6]) + (' ...' if len(runs) > 6 else '')
+
+
+def o_fit(lines, size, rest, keep):
+    """plan.fit's contract: everything when it fits; else the first line, then the kept ones, then the others, each taken
+    whole while it fits in size less len(rest) less 140, a line counting its characters and newline, at least 8; then, in the same order, each first or kept line not taken
+    while at least 160 characters are left, cut to that room less one (its last two characters ' …'); printed in order,
+    then '... k of n lines cut or not printed (lines <spans>): rest'."""
+    c = lambda x: max(len(x) + 1, 8)  # a very short line still takes its tokens
+    if sum(map(c, lines)) <= size:
+        return list(lines)
+    left, take = size - len(rest) - 140, {}
+    first = [0] * bool(lines) + [i for i in range(1, len(lines)) if keep(lines[i])]
+    for i in first + [i for i in range(1, len(lines)) if not keep(lines[i])]:
+        if c(lines[i]) <= left:
+            take[i] = lines[i]
+            left -= c(lines[i])
+    for i in first:
+        if i not in take and left >= 160:
+            take[i] = lines[i][:left - 3] + ' …'
+            left = 0  # the cut line fills the room
+    cut = [i + 1 for i in range(len(lines)) if take.get(i) != lines[i]]
+    return [take[i] for i in sorted(take)] + [f'... {len(cut)} of {len(lines)} lines cut or not printed (lines {o_spans(cut)}): {rest}']
 
 
 def rand_ledger_line(rng):
@@ -490,7 +552,7 @@ SYN_BATCHES = {'batches': [
                            ('DS01', '02-Data Structures', '01-dsu.hpp', []), ('DS02', '02-Data Structures', '02-x.hpp', []),
                            ('GR01', '04-Graphs', '01-g.hpp', ['DS01']), ('MA01', '05-Mathematics', '01-m.hpp', [])))]}
 SYN_PACKAGES = {'statuses': ['planned', 'in-progress', 'verified'], 'models': {'fable': 'claude-fable-5-1', 'opus': 'claude-opus-5-5'},
-                'packages': [{'id': i, 'label': 'L' + i, 'batches': bs, 'phase': 'Contest core', 'size': 'M', 'model': m,
+                'packages': [{'id': i, 'label': 'L' + i, 'batches': bs, 'phase': 'Contest Core', 'size': 'M', 'model': m,
                               'status': s, 'evidence': ev, 'note': ''}
                              for i, bs, m, s, ev in (('P900', ['ST01'], 'opus', 'verified', []),
                                                      ('P250', ['SUP17', 'SUP18', 'SUP19'], 'opus', 'planned', ['notes/p250.md']),
@@ -920,8 +982,8 @@ class Units(Base):
 
 
 class Facts(Base):
-    """gaps.py's ledger rows, section, emit and facts_room as functions of the imported module (SUP33), and the
-    validator's skill_reattach rule over the real skills; expected values written here."""
+    """gaps.py's ledger rows, section, emit and limits as functions of the imported module (SUP33), and plan.py's room
+    arithmetic, fit and the validator's skill_reattach rule (SUP34); expected values written here."""
     def test_gaps_row(self):
         for line, want in (('A1 | defect | f.hpp:3 | gap | review | open', 'open'), ('A1|decision|f:1|g|s|ASK the user', 'ask'),
                            ('  x.y-z_2 | defect | a:1 | g | s | Fixed in abc1234  ', 'fixed'), ('9 | defect | a:1 | g | s | OPEN', 'open'),
@@ -956,16 +1018,115 @@ class Facts(Base):
             self.assertEqual(GAPS.ledger_rows('\n'.join(l for l, _ in lines)), want, self.fail_info(round=r, lines=json.dumps(lines)))
 
     def test_gaps_facts_room(self):
-        self.assertEqual((GAPS.REATTACH_CHARS, GAPS.MIN_FACTS, GAPS.LINES), (REATTACH, MIN_ROOM, CAP_LINES))
-        for n in (0, 1, 9412, 12500, 20000):
-            self.assertEqual(GAPS.facts_room('x' * n), REATTACH - n, n)
-        bang = '!`python3 gaps.py`\n'
-        for text, flagged in ((bang + 'a' * (REATTACH - MIN_ROOM - len(bang) + 1), True), (bang + 'a' * (REATTACH - MIN_ROOM - len(bang)), False),
-                              ('a' * 11251, True), ('a' * 11250, False), ('see !`x`\n' + 'a' * 11242, True),
-                              ('x\n' + bang + 'a' * (REATTACH - MIN_ROOM - len(bang) - 1), True)):
-            self.assertEqual(o_reattach(text), flagged, (len(text), text[:20]))
-        flagged = [str(f.relative_to(ROOT)) for f in sorted((ROOT / '.claude/skills').glob('*/SKILL.md')) if o_reattach(f.read_text())]
-        self.assertEqual(flagged, [], "the real skills leave 03-consistency.py's skill_reattach empty")
+        """plan.py's room arithmetic and rule (SUP34): the constants, room() and room_of() against o_room at their edges,
+        reattach() on synthetic skills at both edges of both branches and of the shared room, the brief's --skill check,
+        and the real skills flagging none."""
+        self.assertEqual((PLAN.REATTACH_TOKENS, PLAN.SKILL_CHARS_PER_TOKEN, PLAN.OUTPUT_CHARS_PER_TOKEN, PLAN.MIN_FACTS, PLAN.FLOOR, GAPS.LINES),
+                         (5000, 2.5, 2.0, MIN_ROOM, FLOOR, CAP_LINES))
+        self.assertFalse(any(hasattr(GAPS, n) for n in ('REATTACH_CHARS', 'CHARS_PER_TOKEN', 'MIN_FACTS', 'facts_room')), 'one place: plan.py')
+        for n in (0, 1, 9283, 9375, 9376, 12500, 20000):
+            for bangs in (0, 1, 2, 3):
+                text = '!`x`\n' * bangs + 'x' * n
+                self.assertEqual(PLAN.room(text), o_room(text), (n, bangs))
+        self.assertEqual((o_room(''), o_room('x' * 9375), o_room('x' * 9376), o_room('!`a`\n!`b`\n' + 'x' * 6240)), (NO_SKILL, 2500, 2499, 2500))
+        md = self.tmp / 'SKILL.md'
+        self.assertEqual(PLAN.room_of(md), NO_SKILL, 'no SKILL.md: an empty one')
+        for text in ('x' * 7500, 'x' * 10625, 'x' * 10626, 'x' * 30000):
+            md.write_text(text)
+            self.assertEqual(PLAN.room_of(md), max(o_room(text), FLOOR), len(text))
+        skills = self.tmp / 'r/.claude/skills'
+        pipe = '!`python3 "${CLAUDE_PROJECT_DIR}/00-Guidelines/13-Plan/plan.py" show $ARGUMENTS | head -1`\n'
+        own = lambda name: f'!`python3 "${{CLAUDE_PROJECT_DIR}}/00-Guidelines/13-Plan/plan.py" show --skill {name} $ARGUMENTS`\n'
+        cases = {'one-ok': o_skill(2500), 'one-low': o_skill(2499), 'two-ok': o_skill(2500, 2), 'two-low': o_skill(2499, 2),
+                 'plain-ok': 'a' * 11250, 'plain-big': 'a' * 11251, 'inline': 'see !`x`\n' + 'a' * 11242,
+                 'late': 'x\n' + o_skill(2499)[:-2], 'brief': own('brief') + 'x', 'brief-bare': own('brief').replace('--skill brief ', '') + 'x',
+                 'brief-other': own('package') + 'x', 'brief-prefix': own('brief-x').replace('brief-x', 'brief-xyz') + 'x', 'brief-pipe': pipe}
+        for name, text in cases.items():
+            (skills / name).mkdir(parents=True, exist_ok=True)
+            (skills / name / 'SKILL.md').write_text(text)
+        got = PLAN.reattach(self.tmp / 'r')
+        want = sorted(n for n, t in cases.items() if o_reattach(t, n))
+        self.assertEqual(sorted({w.split('/')[2] for w in got}), want, got)
+        self.assertEqual(want, ['brief-bare', 'brief-other', 'brief-prefix', 'inline', 'late', 'one-low', 'plain-big', 'two-low'], 'oracle self-check')
+        self.assertIn('.claude/skills/two-low/SKILL.md: leaves 2499 characters for the output of each of its 2 `!` line(s) (at least 2500)', got)
+        self.assertIn('.claude/skills/plain-big/SKILL.md: 11251 characters, near the 12500 re-attached after a compaction', got)
+        self.assertIn('.claude/skills/brief-bare/SKILL.md: `plan.py show` not fitted to this skill: add --skill brief-bare', got)
+        flagged = [str(f.relative_to(ROOT)) for f in sorted((ROOT / '.claude/skills').glob('*/SKILL.md')) if o_reattach(f.read_text(), f.parent.name)]
+        self.assertEqual((flagged, PLAN.reattach(ROOT)), ([], []), "the real skills leave 03-consistency.py's skill_reattach empty")
+
+    def test_validator_reattach(self):
+        """03-consistency.py reports plan.reattach(ROOT) as skill_reattach (run on the real repository; full mode): as it is,
+        and with the plan module it loads answering a probe list, so an empty list is no accident."""
+        if MODE == 'quick':
+            self.skipTest('full mode only')
+        probe = ('import importlib.machinery as m, runpy, sys\norig = m.SourceFileLoader.exec_module\n'
+                 'def run(self, mod):\n    orig(self, mod)\n    if mod.__name__ == "library_plan": mod.reattach = lambda root: ["probe " + root.name]\n'
+                 'm.SourceFileLoader.exec_module = run\nsys.argv = sys.argv[1:]\nrunpy.run_path(sys.argv[0], run_name="__main__")\n')
+        validator = str(ROOT / '96-Local Testing/03-consistency.py')
+        for cmd, want in (([validator], PLAN.reattach(ROOT)), (['-c', probe, validator], ['probe ' + ROOT.name])):
+            r = REAL_SUBPROCESS_RUN([sys.executable, *cmd], cwd=ROOT, capture_output=True, text=True, timeout=600)
+            out = json.JSONDecoder().raw_decode(r.stdout[r.stdout.index('{'):])[0]  # failures follow the JSON
+            self.assertEqual(out['skill_reattach'], want, r.stderr[-2000:])
+        with patch.object(PLAN, 'BANG', re.compile('^#', re.M)):  # premise: reattach() can flag the real skills
+            self.assertNotEqual(PLAN.reattach(ROOT), [])
+
+    def test_fit(self):
+        """plan.fit and spans against o_fit and o_spans: fixed cases and seeded random line lists (SUP34)."""
+        self.assertEqual(PLAN.fit([], 0, 'r'), [])
+        self.assertEqual(PLAN.fit(['ab' * 4, 'c'], 17, 'r'), ['ab' * 4, 'c'], 'exactly the room: 9 + 8, a short line counting 8')
+        self.assertEqual(PLAN.fit(['ab' * 4, 'c'], 16, 'r')[-1], '... 2 of 2 lines cut or not printed (lines 1-2): r', 'one short of it')
+        lines = ['head'] + [f'line {i} ' + 'x' * 60 for i in range(40)] + ['WARNING keep me' + 'k' * 60, 'tail']
+        out = PLAN.fit(lines, 1500, 'see X')
+        self.assertEqual(out, o_fit(lines, 1500, 'see X', lambda l: False))
+        self.assertEqual(out[-2:], ['tail', '... 22 of 43 lines cut or not printed (lines 21-42): see X'])
+        out = PLAN.fit(lines, 1500, 'see X', lambda l: l.startswith('WARNING'))
+        self.assertEqual(out[-3:], [lines[-2], 'tail', '... 22 of 43 lines cut or not printed (lines 20-41): see X'], 'the kept line before others')
+        self.assertEqual(PLAN.fit(['h' * 2000, 'a', 'b'], 1500, 'r'), ['h' * 1340 + ' …', 'a', 'b', '... 1 of 3 lines cut or not printed (lines 1): r'],
+                         'a long first line is cut to the room the others leave')
+        self.assertEqual(PLAN.fit(['h' * 2000, 'K' * 900, 'a'], 1219, 'r', lambda l: l[0] == 'K'), ['h' * 166 + ' …', 'K' * 900, 'a',
+                         '... 1 of 3 lines cut or not printed (lines 1): r'], '1219 - 1 - 140 - 901 - 8 = 169 left: cut to 168 with the newline')
+        self.assertEqual(PLAN.fit(['h' * 2000, 'K' * 900, 'a'], 1200, 'r', lambda l: l[0] == 'K'), ['K' * 900, 'a',
+                         '... 1 of 3 lines cut or not printed (lines 1): r'], 'under 160 left: not printed')
+        self.assertEqual(PLAN.spans([1, 2, 3, 5, 7, 8]), '1-3, 5, 7-8')
+        self.assertEqual(PLAN.spans([1, 3, 5, 7, 9, 11, 13]), '1, 3, 5, 7, 9, 11 ...')
+        rng = random.Random(SEED + 11)
+        for r in range(200 if MODE != 'stress' else 10 * ROUNDS):
+            lines = [rng.choice(['WARNING ', 'STOP ', '', '- ']) + 'y' * rng.choice([0, 1, 5, 40, 157, 158, 200, 900, 3000]) for _ in range(rng.randint(0, 60))]
+            lines += [''] * rng.choice([0, 0, 300])  # many blank lines: each counts 8
+            size, rest = rng.choice([1500, 1501, 2000, 3187, 9229, 10 ** 5, sum(max(len(x) + 1, 8) for x in lines)]), 'z' * rng.randint(0, 150)  # the last: exactly all
+            keep = lambda l: l.startswith(('WARNING', 'STOP'))
+            got = PLAN.fit(lines, size, rest, keep)
+            self.assertEqual(got, o_fit(lines, size, rest, keep), self.fail_info(round=r, size=size, lines=json.dumps(lines)))
+            self.assertLessEqual(sum(max(len(x) + 1, 8) for x in got), size, self.fail_info(round=r, size=size))
+
+    def test_fit_spill(self):
+        """plan.spill: <name>.txt in the session's scratchpad under the temp directory's claude-<uid>, else in claude-<uid>
+        itself; None when unwritable."""
+        base = self.tmp / f'claude-{os.getuid()}'
+        pad = base / '-proj' / 'S-1'
+        pad.mkdir(parents=True)
+        with patch.object(tempfile, 'tempdir', str(self.tmp)):
+            for sid, where in (('S-1', pad), ('', base), ('other', base), ('../x', base)):
+                with patch.dict(os.environ, {'CLAUDE_CODE_SESSION_ID': sid}):
+                    self.assertEqual(PLAN.spill('n', 'text\n'), where / 'n.txt', sid)
+                    self.assertEqual((where / 'n.txt').read_text(), 'text\n')
+            (pad / 'n.txt').unlink()
+            (pad / 'n.txt').mkdir()
+            with patch.dict(os.environ, {'CLAUDE_CODE_SESSION_ID': 'S-1'}):
+                self.assertIsNone(PLAN.spill('n', 'x'))
+
+    def test_gaps_limits(self):
+        """gaps.limits: each heading LIMIT_HEADING matches with its path and line, then every non-blank line of its section
+        in full up to the next heading of its level or above; deeper headings stay inside; a missing file gives none."""
+        doc = self.tmp / 'Docs/01-x.md'
+        doc.parent.mkdir()
+        long = '- first ' + 'L' * 500
+        doc.write_text(f'# Doc\n## Contracts\n- c\n## Limits\n{long}\n  continued\n- second\n\n### Sub detail\n- nested\n## History\n'
+                       f'- h\n## Known gaps\n- g1\n### Open questions\n- q\n# Top\n- t\n## {"Limit " * 40}\n')
+        self.assertEqual(GAPS.limits(doc, self.tmp), ['Docs/01-x.md:4: ## Limits', long, '  continued', '- second', '### Sub detail', '- nested',
+                                                      'Docs/01-x.md:13: ## Known gaps', '- g1', '### Open questions', '- q',
+                                                      'Docs/01-x.md:19: ' + ('## ' + 'Limit ' * 40).strip()[:160]])
+        self.assertEqual(GAPS.limits(self.tmp / 'none.md', self.tmp), [])
 
     def emit(self, sections, skill=None, key='K', root=None):
         """gaps.emit's printed text for the given sections, with SKILL.md of the given text beside a stand-in gaps.py
@@ -1018,7 +1179,7 @@ class Facts(Base):
         self.assertEqual([t for t, _ in sections_of(facts.read_text())], titles)
 
     def test_gaps_emit_room(self):
-        """Printed text within facts_room(SKILL.md) (floor 1500), the ledger's open rows as many as fit, sections that do
+        """Printed text within plan.room_of(SKILL.md) (floor 1500; a line counted at least 8, a section of short lines included), the ledger's open rows as many as fit, sections that do
         not fit named under 'Not printed'; the facts file whole."""
         led = 'Ledger .claude/finish/K.txt (open rows)'
         rows = [f'D{i:03} | defect | 01-Core/10-x.hpp:{i:03} | gap {"g" * 20} | review | open' for i in range(100)]
@@ -1027,13 +1188,12 @@ class Facts(Base):
                   'Comparison record (05-testing.md, Stale evidence)', 'Packages filed by P123', 'Open sweep ledger rows',
                   'Branch and uncommitted changes', 'Mutation records (04-mutation.py check on changed headers; /package step 6)',
                   'TODO markers in changed files', 'Other worktrees touching the same files (committed work; worktree.py --finish adds their uncommitted edits)']
-        sections = [(led, rows + ['3 fixed or answered rows not shown'])] + [(t, ['x' * 50]) for t in others]
+        sections = [(led, rows + ['3 fixed or answered rows not shown'])] + [(t, ['t'] * 20 if t.startswith('TODO') else ['x' * 50]) for t in others]
         facts = self.tmp / 'root/.claude/finish/K.facts.txt'
-        for skill, room in ((None, REATTACH), ('s' * (REATTACH - 4000), 4000), ('s' * (REATTACH - 2000), 2000),
-                            ('s' * (REATTACH - FLOOR), FLOOR), ('s' * 20000, FLOOR)):
+        for skill, room in ((None, NO_SKILL), (o_skill(4000), 4000), (o_skill(2000), 2000), (o_skill(FLOOR), FLOOR), ('s' * 20000, FLOOR)):
             out = self.emit(sections, skill)
             info = f'SKILL.md {len(skill or "")} characters, room {room}'
-            self.assertLessEqual(len(out), room, info)
+            self.assertLessEqual(sum(max(len(x) + 1, 8) for x in out.split('\n')), room, info + ' (a short line counts 8)')
             self.assertEqual([t for t, _ in sections_of(facts.read_text())], [led, *others], info)
             self.assertEqual(dict(sections_of(facts.read_text()))[led], rows + ['3 fixed or answered rows not shown'], info)
             got = sections_of(out)
@@ -1051,10 +1211,14 @@ class Facts(Base):
                 self.assertEqual(got[-1], ('Not printed (in the facts file)', skipped), info)
             else:
                 self.assertNotIn('### Not printed', out, info)
-            if room == REATTACH:
-                self.assertEqual((k, skipped), (101, []), 'without SKILL.md the whole 12,500 characters: everything fits')
+            if room == NO_SKILL:
+                self.assertEqual((k, skipped), (101, []), 'without SKILL.md the whole 10,000 characters: everything fits')
             if room == 4000:
                 self.assertLess(k, 101, 'a room of 4,000 cuts the ledger')
+        short = [(led, rows[:3])] + [(t, ['y' * 16] * 11) for t in others]  # many blank separators: each line pays the floor
+        for skill, room in ((o_skill(2600), 2600), (o_skill(2000), 2000), (o_skill(FLOOR), FLOOR)):
+            out = self.emit(short, skill)
+            self.assertLessEqual(sum(max(len(x) + 1, 8) for x in out.split('\n')), room, f'short sections, room {room}')
 
     def test_gaps_emit_unwritable(self):
         root = self.tmp / 'ro'
@@ -1094,6 +1258,75 @@ class Synthetic(Base):
         self.assertEqual(last(), 'WARNING: commit hook off (not enabled' + tail)
         self.assertEqual(last({'core.hooksPath': '.claude/githooks'}), "WARNING: commit hook off (core.hooksPath is '.claude/githooks'" + tail)
         self.assertFalse(last({'core.hooksPath': want}).startswith('WARNING'), 'enabled')
+
+    def test_syn_show_skill(self):
+        """plan.py show --skill <name> (SUP34): the brief fitted to the room of that skill's SKILL.md (o_fit, its first,
+        WARNING, STOP and Focus lines first, the pointer naming `plan.py show <id>`), whole when it fits or without --skill, an
+        error for an unknown skill."""
+        f = self.root / '00-Guidelines/13-Plan/packages.json'
+        data = json.loads(f.read_text())
+        pkg = next(p for p in data['packages'] if p['id'] == 'P020')
+        pkg['note'] = 'long note ' + 'n' * 3000
+        f.write_text(json.dumps(data))
+        bf = self.root / '00-Guidelines/13-Plan/batches.json'
+        bd = json.loads(bf.read_text())
+        for b in bd['batches']:
+            if b['id'] in pkg['batches']:
+                b['focus'] = 'long focus ' + 'f' * 2500  # too long for every room below: cut, never dropped
+        bf.write_text(json.dumps(bd))
+        script = self.root / '.claude/skills/setup-check/setup_check.py'  # the commit-hook WARNING comes last
+        script.parent.mkdir(parents=True)
+        shutil.copy(ROOT / '.claude/skills/setup-check/setup_check.py', script)
+        skill = self.root / '.claude/skills/package/SKILL.md'
+        skill.parent.mkdir(parents=True)
+        whole = self.run_py(self.cli, 'show', 'P020', cwd=self.root, role='contributor')
+        lines = whole.stdout.rstrip('\n').split('\n')
+        self.assertTrue(lines[2].startswith('STOP') and lines[-1].startswith('WARNING') and len(whole.stdout) > 3000, whole.stdout[:300])
+        rest = "run `python3 '00-Guidelines/13-Plan/plan.py' show P020` for the whole brief before acting on it"
+        for text, size in (('x' * 20000, FLOOR), (o_skill(2000), 2000), ('short\n', NO_SKILL)):
+            skill.write_text(text)
+            r = self.run_py(self.cli, 'show', '--skill', 'package', 'P020', cwd=self.root, role='contributor')
+            self.assertEqual((r.returncode, r.stderr), (0, ''))
+            self.assertEqual(r.stdout.rstrip('\n').split('\n'), o_fit(lines, size, rest, lambda l: l.startswith(('WARNING', 'STOP', 'Focus: '))), size)
+            self.assertTrue(any(l.startswith('Focus: ') for l in r.stdout.split('\n')), 'the Focus line, whole or cut')
+            self.assertLessEqual(len(r.stdout), size)
+            if size < len(whole.stdout):
+                self.assertTrue(all(l in r.stdout for l in (lines[0], lines[2], lines[-1])), r.stdout)
+            else:
+                self.assertEqual(r.stdout, whole.stdout)
+        r = self.run_py(self.cli, 'show', '--skill', 'nosuch', 'P020', cwd=self.root, role='contributor')
+        self.assertEqual((r.returncode, r.stdout, r.stderr), (1, '', "No skill 'nosuch'\n"))
+
+    def test_items_room(self):
+        """.claude/skills/prune/items.py (SUP34) on a copy beside a synthetic duplicates.md: the package's section and the
+        Recorded Decisions naming it, whole when they fit, else fitted to the room of prune's SKILL.md with the section
+        heading and the decisions heading first and a pointer to duplicates.md; the real script within the real room."""
+        tree = self.tmp / 'it'
+        items = tree / '.claude/skills/prune/items.py'
+        for src, dst in ((ROOT / '.claude/skills/prune/items.py', items), (PLAN_PY, tree / '00-Guidelines/13-Plan/plan.py')):
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(src, dst)
+        rows = [f'| {i} | `f{i}` | remove | ' + 'r' * 80 + ' |' for i in range(40)]
+        (tree / '00-Guidelines/23-Sweep Ledgers').mkdir(parents=True)
+        (tree / '00-Guidelines/23-Sweep Ledgers/duplicates.md').write_text(
+            '# Duplicates\n\n## P123 Label\n\n' + '\n'.join(rows) + '\n\n## P124 Other\n\n- x\n\n## Recorded Decisions\n\n'
+            '- P123 keeps `a`\n  because b\n- P999 keeps c\n| P123 | row |\n')
+        want = ['## P123 Label', '', *rows, '', 'Recorded Decisions naming P123:', '- P123 keeps `a`', '  because b', '| P123 | row |']
+        run = lambda pid: REAL_SUBPROCESS_RUN([sys.executable, str(items), pid], capture_output=True, text=True, timeout=60)
+        r = run('P123')
+        self.assertEqual((r.returncode, r.stdout.rstrip('\n').split('\n')), (0, want), r.stderr)
+        (items.parent / 'SKILL.md').write_text('x' * 20000)
+        r = run('P123')
+        rest = '`## P123` and `## Recorded Decisions` in 00-Guidelines/23-Sweep Ledgers/duplicates.md hold them'
+        self.assertEqual(r.stdout.rstrip('\n').split('\n'), o_fit(want, FLOOR, rest, lambda l: l.startswith(('## ', 'Recorded Decisions naming'))))
+        self.assertLessEqual(len(r.stdout), FLOOR)
+        self.assertIn('Recorded Decisions naming P123:', r.stdout)
+        self.assertEqual(run('P124').stdout, '## P124 Other\n\n- x\n\nRecorded Decisions naming P124:\nnone\n')
+        ids = re.findall(r'^## (P\d{3}) ', (ROOT / '00-Guidelines/23-Sweep Ledgers/duplicates.md').read_text(), re.M)
+        room = max(o_room((ROOT / '.claude/skills/prune/SKILL.md').read_text()), FLOOR)
+        for pid in ids[:3] if MODE == 'quick' else ids:
+            r = REAL_SUBPROCESS_RUN([sys.executable, str(ROOT / '.claude/skills/prune/items.py'), pid], capture_output=True, text=True, timeout=60)
+            self.assertTrue(r.returncode == 0 and len(r.stdout) <= room, (pid, len(r.stdout), room, r.stderr))
 
     def show_cfg(self, ident, cfg):
         with self.environ('contributor', cfg=cfg):
@@ -1425,7 +1658,7 @@ class Synthetic(Base):
         r, _ = self.gaps('SUP17', role='maintainer')
         self.assertEqual(section(r.stdout), ['covers the current files: step 2 reuses this report and starts no audit', '1. finding'])
         limits = r.stdout.split('### Recorded limits (evidence headings)\n', 1)[1].split('\n\n### ', 1)[0].split('\n')
-        self.assertEqual(limits, ['notes/p250.md:3: ## Limits'], "the facts read the package's evidence too")
+        self.assertEqual(limits, ['notes/p250.md:3: ## Limits', '- one'], "the facts read the package's evidence too")
         (self.root / '01-prompts.md').write_text('rendered again\n')
         for name in ('packages.json', 'batches.json'):  # plan.py set rewrites them after the review
             f = self.root / '00-Guidelines/13-Plan' / name
@@ -1439,6 +1672,55 @@ class Synthetic(Base):
         (self.root / 'tools/c.py').write_text('c\n')
         r, _ = self.gaps('SUP17', role='maintainer')
         self.assertEqual(section(r.stdout), ['changed since the review; the step 2 audit covers these files:', 'tools/b.py', 'tools/c.py'])
+
+    def test_gaps_review_start(self):
+        """gaps.py --start (SUP34): once per key it records the files uncommitted when /package starts, and a batch without
+        targets leaves those out of its review while they keep that content; one changed since, and every file absent
+        from the record, is covered. An unknown id records nothing; an unreadable record covers every file."""
+        section = lambda out: out.split('### Review record (/package step 10)\n', 1)[1].split('\n\n### ', 1)[0].split('\n')
+        start, record = self.root / '.claude/finish/SUP17.start.json', self.root / '.claude/finish/SUP17.review.json'
+        run = lambda *a, stdin='': REAL_SUBPROCESS_RUN([sys.executable, str(GAPS_PY), *a], cwd=self.root, capture_output=True, text=True,
+                                                       input=stdin, env=self.env('maintainer', True, None), timeout=300)
+        (self.root / 'tools').mkdir()
+        for name in ('other', 'shared'):  # another package's uncommitted work in the main checkout
+            (self.root / f'tools/{name}.py').write_text(f'{name}\n')
+        r = run('--start', 'nothing')
+        self.assertEqual((r.returncode, r.stdout, r.stderr, start.parent.exists()), (0, '', '', False), 'no package: no record')
+        r = run('--start', 'SUP17')
+        self.assertEqual((r.returncode, r.stdout, r.stderr), (0, '', ''))
+        blob = lambda f: git(self.root, 'hash-object', f).strip()
+        want = {f: blob(f) for f in ('notes/p250.md', 'tools/other.py', 'tools/shared.py')}
+        self.assertEqual(json.loads(start.read_text())['files'], want)
+        first = start.read_bytes()
+        (self.root / 'tools/shared.py').write_text('shared, edited by the batch\n')
+        (self.root / 'tools/a.py').write_text('a\n')
+        self.assertEqual(run('--start', 'SUP17').returncode, 0)
+        self.assertEqual(start.read_bytes(), first, 'a resumed /package keeps the first record')
+        w = run('--reviewed', 'SUP17', stdin='1. finding\n')
+        self.assertEqual((w.returncode, w.stdout), (0, 'review of SUP17 recorded: 3 files, .claude/finish/SUP17.review.json\n'), w.stderr)
+        self.assertEqual(sorted(json.loads(record.read_text())['files']), ['notes/p250.md', 'tools/a.py', 'tools/shared.py'],
+                         'the evidence, a new file and one changed since the start; not the untouched other work')
+        r, _ = self.gaps('SUP17', role='maintainer')
+        self.assertEqual(section(r.stdout)[0], 'covers the current files: step 2 reuses this report and starts no audit')
+        (self.root / 'tools/other.py').write_text('other, edited later\n')
+        r, _ = self.gaps('SUP17', role='maintainer')
+        self.assertEqual(section(r.stdout), ['changed since the review; the step 2 audit covers these files:', 'tools/other.py'],
+                         'other work changed after the start is covered (a recorded limit)')
+        start.write_text('{"files": 3}')
+        w = run('--reviewed', 'SUP17', stdin='')
+        self.assertEqual(w.stdout, 'review of SUP17 recorded: 4 files, .claude/finish/SUP17.review.json\n', 'an unreadable record leaves nothing out')
+
+    def test_gaps_limits_facts(self):
+        """Recorded limits (user decision 2026-11-24): the facts file holds every line of each Limits section in full, past
+        400 lines and 160 characters; the printed copy keeps its 12-line cap within the room."""
+        bullets = [f'- limit {i} ' + 'w' * 300 for i in range(450)]
+        (self.root / 'notes/p250.md').write_text('# P250\n\n## Limits\n\n' + '\n'.join(bullets) + '\n\n## History\n\n- h\n')
+        r, _ = self.gaps('SUP17', role='maintainer')
+        facts = dict(sections_of((self.root / '.claude/finish/SUP17.facts.txt').read_text()))
+        self.assertEqual(facts['Recorded limits (evidence headings)'], ['notes/p250.md:3: ## Limits', *bullets])
+        self.assertLessEqual(len(r.stdout), max(o_room((GAPS_PY.parent / 'SKILL.md').read_text()), FLOOR))
+        shown = dict(sections_of(r.stdout)).get('Recorded limits (evidence headings)')
+        self.assertTrue(shown is None or (len(shown) <= CAP_LINES + 1 and shown[-1].endswith(' more in the facts file')), shown)
 
     def test_gaps_core_full(self):
         part = lambda out, title: out.split(f'### {title}\n', 1)[1].split('\n\n### ', 1)[0].split('\n')
@@ -1481,10 +1763,10 @@ class Synthetic(Base):
 
     def test_gaps_facts(self):
         """gaps.py end to end: the ledger section from the ledger file, the facts file in full, the printed copy within the
-        room the real SKILL.md leaves (12,500 characters less its length), ledger first and sections in order of need."""
+        room the real SKILL.md leaves (o_room, floor 1500), ledger first and sections in order of need."""
         ledger, facts = self.root / '.claude/finish/ST01.txt', self.root / '.claude/finish/ST01.facts.txt'
         led = 'Ledger .claude/finish/ST01.txt (open rows)'
-        room = REATTACH - len((GAPS_PY.parent / 'SKILL.md').read_text())
+        room = max(o_room((GAPS_PY.parent / 'SKILL.md').read_text()), FLOOR)
 
         def warn(n, shown):
             return (f'WARNING {n} stray line(s) in .claude/finish/ST01.txt (lines {shown}): keep only rows; move each experiment to '
@@ -1749,6 +2031,30 @@ class Real(Base):
             self.prs(prs)
             self.check_ready_text(ROOT, rng.choice(['contributor', 'maintainer']), rng.randint(1, 6), self.batches,
                                        self.packages, prs)
+
+    def test_real_rooms(self):
+        """Every open package of the real plan (SUP34; quick: the first 12): gaps.py's printed facts within the room of
+        /finish's SKILL.md, and `plan.py show --skill <s>` within the room of each skill printing the brief, its first line
+        kept; gh faked, eight runs at a time, the facts files restored afterwards."""
+        import concurrent.futures
+        import time
+        ids = [p['id'] for p in self.pl if p['status'] != 'verified']
+        ids = ids[:12] if MODE == 'quick' else ids
+        rooms = {s: max(o_room((ROOT / '.claude/skills' / s / 'SKILL.md').read_text()), FLOOR) for s in ('finish', 'package', 'prune', 'restyle')}
+        jobs = [(GAPS_PY, (i,), 'finish') for i in ids] + [(PLAN_PY, ('show', '--skill', s, i), s) for i in ids for s in ('package', 'prune', 'restyle')]
+        t0 = time.monotonic()
+        with real_facts(), concurrent.futures.ThreadPoolExecutor(8) as pool:
+            results = list(pool.map(lambda j: self.run_py(j[0], *j[1], cwd=ROOT, role='maintainer'), jobs))
+        print(f'  {len(ids)} open packages, {len(jobs)} runs in {time.monotonic() - t0:.1f} s', file=sys.stderr, flush=True)
+        worst = {}
+        for (script, args, skill), r in zip(jobs, results):
+            info = f'{script.name} {" ".join(args)}: {len(r.stdout)} characters, room {rooms[skill]}\n{r.stderr[-1500:]}'
+            self.assertEqual(r.returncode, 0, info)
+            self.assertLessEqual(len(r.stdout), rooms[skill], info)
+            if skill != 'finish':
+                self.assertTrue(r.stdout.startswith(f'{args[-1]} — '), info)
+            worst[skill] = max(worst.get(skill, 0), len(r.stdout))
+        print(f'  largest printed: {worst}, rooms {rooms}', file=sys.stderr, flush=True)
 
     def test_real_gaps_role_line(self):
         branch = git(ROOT, 'branch', '--show-current').strip()

@@ -10,13 +10,14 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PLAN = '00-Guidelines/13-Plan'
 BEGIN, END = '<!-- plan:begin -->', '<!-- plan:end -->'
-PHASES = ['Foundations re-audit', 'Core full types', 'Contest core',
-          'Python contest layer', 'Specialist and research families', 'Final support integration']
+PHASES = ['Foundations Re-audit', 'Core Full Types', 'Contest Core',
+          'Python Contest Layer', 'Specialist and Research Families', 'Final Support Integration']
 LEGEND = ('Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model, size): label. Open packages add '
           'their status (planned or in-progress) and note; `plan.py show Pxxx` gives a verified package\'s evidence and note.')
 TIER_RANK = {'Basic': 0, 'Core': 0, 'Advanced': 1, 'Esoteric': 2}
@@ -24,6 +25,17 @@ REPO = 'Ausp3x/CompProg-Library'  # canonical repository; `git config compprog.r
 CLAIM = re.compile(r'(P\d{3})-([A-Za-z]+\d+)-(.+)')  # claim branch Pxxx-<batch>-<user>
 PR_PAGE = 30  # open pull requests `waiting` lists: their commits must stay under GitHub's GraphQL node limit
 TARGET = re.compile(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`')
+# Re-attachment room (SUP33, SUP34; 00-harness-review.md): after a compaction Claude Code re-attaches each invoked skill's
+# first 5,000 tokens, its `!` output included (docs, Skills). The scripts a skill's `!` lines run fit their output to what
+# its text leaves, and 03-consistency.py warns (skill_reattach) below MIN_FACTS; every one of them reads these.
+REATTACH_TOKENS = 5000
+SKILL_CHARS_PER_TOKEN = 2.5  # skill text: 2.5 or more measured from transcript usage (user decision 2026-11-24)
+OUTPUT_CHARS_PER_TOKEN = 2.0  # printed facts, any `!` output: gaps.py's median about 2.0 (user decision 2026-11-24)
+MIN_FACTS = 2500  # the least room a `!` line's output may get
+FLOOR = 1500  # the least room a script fits its output to
+CUT = 160  # the least room in which fit() prints part of a first or kept line too long to print whole
+SHORT = 8  # the characters a printed line counts at least: a very short line still takes its tokens and its newline
+BANG = re.compile(r'^!`.*', re.M)
 
 
 def load(root=ROOT):
@@ -426,6 +438,87 @@ def hook_warning(root):
     return None if ok else f'WARNING: commit hook off ({detail}). Give the user that command; this warning does not stop the run.'
 
 
+def room(skill_text):
+    """Characters each `!` line of a skill may print: what its text leaves of the re-attached tokens, shared equally."""
+    left = (REATTACH_TOKENS - len(skill_text) / SKILL_CHARS_PER_TOKEN) * OUTPUT_CHARS_PER_TOKEN
+    return int(left // max(1, len(BANG.findall(skill_text))))
+
+
+def room_of(skill_md):
+    """The room a script fits its output to: room() of that SKILL.md (an empty one when missing), at least FLOOR."""
+    return max(room(skill_md.read_text() if skill_md.is_file() else ''), FLOOR)
+
+
+def spans(numbers):
+    """'3, 7-40, 52' of ascending numbers, the first six runs only."""
+    runs = []
+    for n in numbers:
+        if runs and runs[-1][1] == n - 1:
+            runs[-1][1] = n
+        else:
+            runs.append([n, n])
+    text = ', '.join(f'{a}-{b}' if b > a else str(a) for a, b in runs[:6])
+    return text + (' ...' if len(runs) > 6 else '')
+
+
+def cost(line):
+    """The room a printed line takes: its characters and newline, at least SHORT."""
+    return max(len(line) + 1, SHORT)
+
+
+def fit(lines, size, rest, keep=lambda line: False):
+    """`lines` printed one per line within `size` characters (at least len(rest) + 140 when they do not all fit), each
+    counted by cost() (SUP34): all when they fit, else whole lines, the first and
+    those `keep` marks chosen before the others, kept in their order; then the first and kept lines too long for that
+    are cut to what is left, when at least CUT characters are (a brief's Focus); then one line numbering the lines cut
+    or left out and naming `rest`, the file or command that holds them all."""
+    if sum(map(cost, lines)) <= size:
+        return list(lines)
+    chosen, left = {}, size - len(rest) - 140  # the closing line: at most 133 characters besides `rest`
+    order = sorted(range(len(lines)), key=lambda i: (i > 0 and not keep(lines[i]), i))
+    for i in order:
+        if cost(lines[i]) <= left:
+            chosen[i] = lines[i]
+            left -= cost(lines[i])
+    for i in order:
+        if i not in chosen and (i == 0 or keep(lines[i])) and left >= CUT:
+            chosen[i] = lines[i][:left - 3] + ' …'
+            left -= cost(chosen[i])
+    cut = [i + 1 for i in range(len(lines)) if chosen.get(i) != lines[i]]
+    return [chosen[i] for i in sorted(chosen)] + [f'... {len(cut)} of {len(lines)} lines cut or not printed (lines {spans(cut)}): {rest}']
+
+
+def spill(name, text):
+    """Write a cut output whole to <name>.txt in this session's scratchpad (CLAUDE.md, Output economy) when
+    CLAUDE_CODE_SESSION_ID names one, else in the temp directory's claude-<uid> folder; its path, or None if unwritable."""
+    base, sid = Path(tempfile.gettempdir()) / f'claude-{os.getuid()}', os.environ.get('CLAUDE_CODE_SESSION_ID', '')
+    pads = sorted(p for p in base.glob(f'*/{sid}') if p.is_dir()) if re.fullmatch(r'[\w-]+', sid) else []
+    path = (pads[0] if pads else base) / f'{name}.txt'
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+    except OSError:
+        return None
+    return path
+
+
+def reattach(root):
+    """03-consistency.py's skill_reattach warnings (SUP33, SUP34): a skill whose `!` lines get under MIN_FACTS characters
+    each, any other above nine tenths of the characters re-attached, and an unpiped `plan.py show` line not fitted to its
+    own skill with `--skill <name>`."""
+    out, whole = [], REATTACH_TOKENS * SKILL_CHARS_PER_TOKEN
+    for skill in sorted((root / '.claude/skills').glob('*/SKILL.md')):
+        text, rel, name = skill.read_text(), skill.relative_to(root), skill.parent.name
+        bangs = BANG.findall(text)
+        if bangs and (r := room(text)) < MIN_FACTS:
+            out.append(f'{rel}: leaves {r} characters for the output of each of its {len(bangs)} `!` line(s) (at least {MIN_FACTS})')
+        elif not bangs and len(text) > 0.9 * whole:
+            out.append(f'{rel}: {len(text)} characters, near the {whole:g} re-attached after a compaction')
+        out += [f'{rel}: `plan.py show` not fitted to this skill: add --skill {name}' for line in bangs
+                if re.search(r'plan\.py"? show\b', line) and '|' not in line and f'--skill {name} ' not in line + ' ']
+    return out
+
+
 def show(root, ident):
     batches, packages = load(root)
     bmap = {b['id']: b for b in batches['batches']}
@@ -712,7 +805,9 @@ def doctor_text(root, fix):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest='cmd', required=True)
-    sub.add_parser('show').add_argument('id')
+    sp = sub.add_parser('show')
+    sp.add_argument('id')
+    sp.add_argument('--skill', help="fit the brief to the room this skill's `!` line gets after a compaction")
     for name in ('status', 'next', 'render', 'rank', 'check', 'waiting'):
         sub.add_parser(name)
     sub.add_parser('ready').add_argument('--max', type=int, default=3, help='size of the disjoint parallel set')
@@ -724,7 +819,11 @@ def main():
     s.add_argument('--note', help='replace the package note')
     a = ap.parse_args()
     if a.cmd == 'show':
-        print(show(ROOT, a.id))
+        lines, skill = show(ROOT, a.id).split('\n'), ROOT / '.claude/skills' / (a.skill or '') / 'SKILL.md'
+        if a.skill and not skill.is_file():
+            raise SystemExit(f'No skill {a.skill!r}')
+        print('\n'.join(fit(lines, room_of(skill), f"run `python3 '{PLAN}/plan.py' show {a.id}` for the whole brief before acting on it",
+                            lambda line: line.startswith(('WARNING', 'STOP', 'Focus: '))) if a.skill else lines))
     elif a.cmd == 'status':
         print(status_text(ROOT))
     elif a.cmd == 'next':
