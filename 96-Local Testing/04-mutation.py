@@ -3,8 +3,8 @@
 
   run HEADER        copy the working tree into scratch shards (mewt mutates its target in place), generate the header's
                     mutants and select the sample: the lines changed since the blob the evidence record names (every line
-                    without a record, or with --whole); a whole-file campaign tests a seeded --sample of them, half of
-                    high severity, three tenths medium and the rest low (stratified()). Each stage tests the sampled
+                    without a record, or with --whole); every campaign tests a seeded --sample of them, a fifth of
+                    high severity, half medium and the rest low (stratified()). Each stage tests the sampled
                     mutants not yet caught: tester quick mode on the optimized build, then full mode on the optimized
                     build, then full mode on the builds not yet run in full (quick then full when the tester cannot select a build). A test
                     gets 3x its stage baseline's time (at least 60 s) and runs in its own memory-capped scope (3x the
@@ -380,11 +380,11 @@ def severity_map(shard):
 
 
 def stratified(classes, sample, seed):
-    """{severity: sorted ids}, at most `sample` ids of {severity: ids} in all: half high, three tenths medium, the rest low,
+    """{severity: sorted ids}, at most `sample` ids of {severity: ids} in all: a fifth high, half medium, the rest low,
     each class drawn uniformly with the seed. A share a class cannot fill passes to the next class, and what the last one
     leaves goes back to the first classes that hold more."""
     rng, take, spare = random.Random(seed), {}, 0
-    share = dict(zip(SEVERITIES, (sample // 2, 3 * sample // 10, sample - sample // 2 - 3 * sample // 10)))
+    share = dict(zip(SEVERITIES, (sample // 5, sample // 2, sample - sample // 5 - sample // 2)))
     for s in SEVERITIES:
         take[s] = min(len(classes[s]), share[s] + spare)
         spare += share[s] - take[s]
@@ -453,7 +453,7 @@ def campaign(a):
         if base == now:
             print(f'PASS {header}: the record already names blob {now[:12]}; --whole reruns the whole file')
             return 0
-    sample = a.sample if base is None else 0
+    sample = a.sample
     spec = dict(severity=a.severity, mutations=a.mutations, base=base, seed=a.seed, sample=sample)
     work = work or Path(tempfile.mkdtemp(prefix=f'cp-mutation-{stem}-'))
     meta_path = work / 'campaign.json'
@@ -637,9 +637,8 @@ def main(argv=None):
     r.add_argument('--whole', action='store_true', help='every line, not only those changed since the recorded blob')
     r.add_argument('--severity', help=f'comma-separated subset of {",".join(SEVERITIES)} (default: all)')
     r.add_argument('--mutations', help='comma-separated mewt mutation slugs (mewt print mutations)')
-    r.add_argument('--sample', type=int, default=250, help='whole-file campaigns test a seeded sample of at most this many of the '
-                   'selected mutants, half high, three tenths medium, the rest low (default 250; 0: all); a diff-scoped '
-                   'campaign tests all')
+    r.add_argument('--sample', type=int, default=50, help='a campaign tests a seeded sample of at most this many of the mutants '
+                   'in its scope, a fifth high, half medium, the rest low (default 50; 0: all)')
     r.add_argument('--workdir', help='campaign directory to create or resume (default: a new temporary directory, kept)')
     c = sub.add_parser('check', help='records match the current headers')
     c.add_argument('headers', nargs='*')

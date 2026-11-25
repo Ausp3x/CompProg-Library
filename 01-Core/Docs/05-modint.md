@@ -529,7 +529,7 @@ Verify runs (`/speed-sweep P005 verify` appends one row per problem):
 
 ## Mutation Testing
 
-Open: no campaign has run on this header. It is `python3 '96-Local Testing/04-mutation.py' run 01-Core/05-modint.hpp --whole` with the sample of 250 mutants (125 high, 75 medium, 50 low; user decision 2026-11-20), and the package stays `in-progress` until its record stands here. The records of 2026-11-17 belonged to an earlier header and are removed.
+Open: no campaign has run on this header. It is `python3 '96-Local Testing/04-mutation.py' run 01-Core/05-modint.hpp --whole` with the sample of 50 mutants (10 high, 25 medium, 15 low; user decision 2026-11-26), and the package stays `in-progress` until its record stands here. The records of 2026-11-17 belonged to an earlier header and are removed.
 
 In its place, on 2026-11-21, eleven defects were planted by hand, one at a time, in a copy of the header, in the code that day's review added (the tables, the quotient form, the Newton steps by exponent); each copy was built with one fixture (`g++ -O2`, assertions on) and run in quick mode to its first failure. All eleven are caught, four by a static assertion at compile time and seven at run time; the unchanged copy passes.
 
