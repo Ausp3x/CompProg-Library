@@ -95,7 +95,8 @@ baseline or a stage (exit 3, no test, the stage named) -> test_fake_gate_deadlin
 within --severity, with candidates/selected/strata in campaign.json and `sample of <candidates>: a high, b medium,
 c low` in the Record; 0 or at least the candidates: all and no sample wording; No record names stage quick on a stop
 before it) -> test_fake_sample; the shares, a class too small for its share and the spare passed on and back ->
-test_stratified; a diff scope is sampled too -> test_fake_resume_recorded;
+test_stratified; a diff scope is sampled too -> test_fake_resume_recorded; the SKIPPED types (Move Removal) are no
+candidates unless --mutations names them -> test_fake_skipped_types;
 timeouts retested (same timeout; a repeat timeout stays caught, a pass alone survives that
 stage and escalates, a fail alone is caught; in quick and in full; unconfirmed emptied) -> test_fake_timeouts_alone;
 retests side by side as far as each test keeps its own cores (shards divided by a test's concurrent builds) -> test_fake_retest_width;
@@ -1465,6 +1466,20 @@ class Fake(Base):
         flat = [i for p in picks.values() for i in p]
         self.true(picks[1] == sel and len(set(flat)) > 10 and abs(sum(flat) / len(flat) - 10.5) < 5, picks=picks)
         self.true(all(sorted(rank[i] for i in p) == ['high', 'low', 'low', 'medium', 'medium'] for p in picks.values()), picks=picks)
+
+    def test_fake_skipped_types(self):
+        # a Move Removal mutant is no candidate (without the std::move the code fails to compile or only runs slower) unless --mutations names its type
+        root, ms = self.repo(), self.mutants(12)
+        mr = next(m for m in ms if m[3] == 'low')
+        mr[1] = M.SKIPPED[0]
+        self.configure(ms)
+        code, out, err = self.go(root, '--workdir', str(self.tmp / 'w-skip'), '--budget', '1e-9')
+        meta = self.meta(self.tmp / 'w-skip')
+        self.true(code == 3 and (meta['generated'], meta['candidates']) == (12, 11) and meta['selected'] == [m[0] for m in ms if m is not mr],
+                  meta=meta, out=out, err=err)
+        code, out, err = self.go(root, '--workdir', str(self.tmp / 'w-named'), '--mutations', M.SKIPPED[0], '--budget', '1e-9')
+        meta = self.meta(self.tmp / 'w-named')
+        self.true(code == 3 and (meta['candidates'], meta['selected']) == (1, [mr[0]]), meta=meta, out=out, err=err)
 
     def test_stratified(self):
         classes = lambda h, m, l: dict(high=list(range(h)), medium=list(range(1000, 1000 + m)), low=list(range(5000, 5000 + l)))

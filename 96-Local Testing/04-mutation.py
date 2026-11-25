@@ -3,8 +3,8 @@
 
   run HEADER        copy the working tree into scratch shards (mewt mutates its target in place), generate the header's
                     mutants and select the sample: the lines changed since the blob the evidence record names (every line
-                    without a record, or with --whole); every campaign tests a seeded --sample of them, a fifth of
-                    high severity, half medium and the rest low (stratified()). Each stage tests the sampled
+                    without a record, or with --whole), without the SKIPPED types; every campaign tests a seeded --sample
+                    of them, a fifth of high severity, half medium and the rest low (stratified()). Each stage tests the sampled
                     mutants not yet caught: tester quick mode on the optimized build, then full mode on the optimized
                     build, then full mode on the builds not yet run in full (quick then full when the tester cannot select a build). A test
                     gets 3x its stage baseline's time (at least 60 s) and runs in its own memory-capped scope (3x the
@@ -69,6 +69,7 @@ SKIPPED = ('OLD/', '95-Resources/')  # never included by a tester; the rest of t
 RECORD = re.compile(r'blob `([0-9a-f]{40})`')
 CAUGHT = ('TestFail', 'Timeout')
 SEVERITIES = ('high', 'medium', 'low')
+SKIPPED = ('MR',)  # no candidates unless --mutations names them: without a std::move the code fails to compile or only runs slower
 
 
 class Failure(RuntimeError):
@@ -510,10 +511,11 @@ def campaign(a):
         found = listing()
         if len(found) != generated:
             raise Failure(f'parsed {len(found)} of the {generated} mutants mewt lists: the `print mutants` format changed')
-        classes = {s: [i for i, span in listing('--severity', s, *types) if keep is None or keep.intersection(span)]
+        skip = set() if types else {i for i, _ in listing('--mutation-types', ','.join(SKIPPED))}
+        classes = {s: [i for i, span in listing('--severity', s, *types) if i not in skip and (keep is None or keep.intersection(span))]
                    if not a.severity or s in a.severity.split(',') else [] for s in SEVERITIES}
         chosen = sorted(i for ids in classes.values() for i in ids)
-        if not types and not a.severity and keep is None and chosen != sorted(i for i, _ in found):
+        if not types and not a.severity and keep is None and chosen != sorted(i for i, _ in found if i not in skip):
             raise Failure(f'the severities {", ".join(SEVERITIES)} hold {len(chosen)} of the {generated} mutants: mewt changed its classes')
         strata = stratified(classes, sample, a.seed) if 0 < sample < len(chosen) else None
         meta = dict(header=header, blob=now, spec=spec, lines=None if keep is None else len(keep), seed=a.seed, jobs=len(shards),
@@ -636,7 +638,7 @@ def main(argv=None):
     r.add_argument('--timeout', type=int, default=0, help='seconds per mutant (default: 3x the stage baseline, at least 60)')
     r.add_argument('--whole', action='store_true', help='every line, not only those changed since the recorded blob')
     r.add_argument('--severity', help=f'comma-separated subset of {",".join(SEVERITIES)} (default: all)')
-    r.add_argument('--mutations', help='comma-separated mewt mutation slugs (mewt print mutations)')
+    r.add_argument('--mutations', help=f'comma-separated mewt mutation slugs (mewt print mutations; default: all but {",".join(SKIPPED)})')
     r.add_argument('--sample', type=int, default=50, help='a campaign tests a seeded sample of at most this many of the mutants '
                    'in its scope, a fifth high, half medium, the rest low (default 50; 0: all)')
     r.add_argument('--workdir', help='campaign directory to create or resume (default: a new temporary directory, kept)')
