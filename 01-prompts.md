@@ -51,7 +51,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P013 — MI01, MI02** (opus, M+M): 06-Miscellaneous — random, customhash, compression, bit operations, permutation.
 - [x] **P008 — GE02** (opus, L): 03-Geometry — closestpair, circle, rotatingcalipers, coordinate transform.
 - [x] **P009 — GE23** (opus, M): 03-Geometry — triangle.
-- [ ] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding. Status: in-progress. Note: MI16 done 2026-11-26: row 13 verified (minimumCoins, compositionCountTable, equalPartitionCount, signedSumCount added; the last two and row 39 lawlerMoore by user decision 2026-11-26). Next batch MI15: forEachSetBit, forEachCombinationSubmask, forEachSubmaskPair, forEachLabeledTree, forEachGrayCombination, forEachPairing in 12-enumeration.hpp; it rechecks row 12's probe passes that predate the 2026-11-12 runner fix. [evidence](06-Miscellaneous/Docs/12-enumeration.md) [evidence](06-Miscellaneous/Docs/13-knapsack.md) [evidence](06-Miscellaneous/Docs/14-cyclefinding.md)
+- [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding.
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
 - [x] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow.
 - [x] **P253 — SUP22** (opus, L): Symbol extractor (grab), extraction harness and mini-first checks.

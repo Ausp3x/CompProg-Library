@@ -157,6 +157,9 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | Package | Item | Reason |
 |---|---|---|
 | P042 | `widestPath` beside `minimaxPath` (`13-shortest_path_advanced.hpp`) | Mirror (ruling 3) |
+| P015 | `forEachCombinationMask<U>(n,k)` beside `forEachCombinationSubmask(lowMask(n),k)` (`12-enumeration.hpp`) | Named special case (clarified rule): the low-`n` mask without `select`, by the canonical `BitOps::nextCombination` |
+| P015 | `forEachSubsetMask<U>(n)` beside `forEachSupermask(U(0),n)` (`12-enumeration.hpp`) | Named special case (clarified rule): every low-`n` mask by a plain counter |
+| P015 | `forEachCombinationCoolLex(n,k)` beside `forEachCombinationMaskCoolLex<U>(n,k)` (`12-enumeration.hpp`) | Different algorithm and domain: Ruskey–Williams `Loopless(s,t)` on a byte vector for any `n`, against `Word(s,t)` arithmetic on one word with `n` up to its width; both added by user decision 2026-11-27 |
 | P042 | `radius`, `diameter`, `center`, `periphery` (`12-all_pairs_shortest_path.hpp`) | Fields of the `Eccentricities` result: derived formulas (clarified rule) |
 | P042 | `floydWarshall` beside `johnson` (`12-all_pairs_shortest_path.hpp`) | Different algorithm: O(n^3) dense matrix against SCC Bellman–Ford plus n Dijkstras, same results |
 | P042 | `minimaxFloydWarshall` (row 12) beside `minimaxPath`, `widestPath` (row 13) | Different algorithm and result: bitset closure for every pair against one bottleneck Dijkstra with parents per source set |
