@@ -315,6 +315,24 @@ Pages the three `@researcher` sweeps of the MI02 `/finish` fetched for rows `04`
 | https://raw.githubusercontent.com/maspypy/library/main/seq/cycle_decomposition.hpp, https://raw.githubusercontent.com/maspypy/library/main/seq/factorial_digit_system.hpp, https://raw.githubusercontent.com/maspypy/library/main/random/shuffle.hpp, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/combinatorial/chapter.tex, https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/combinatorics/combinatorics.py | 07: owned or covered (cycles, factorial digits, shuffle, derangements) |
 | https://maspypy.github.io/library/, https://nyaannyaan.github.io/library/, https://hitonanode.github.io/cplib-cpp/, https://ei1333.github.io/library/, https://tko919.github.io/library/, https://noshi91.github.io/Library/, https://github.com/ecnerwala/cp-book/tree/master/src, https://github.com/koosaga/olympiad/tree/master/Library/codes, https://github.com/verngutz/cp-library | indexes (maspypy, Nyaan, hitonanode and ei1333 read in part) |
 
+## P015 MI16 Sweep (2026-11-26)
+
+Pages the MI16 `@researcher` sweep of row `13` fetched. Decisions are in `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions, 2026-11-26). Indexes read in part are marked. The OI Wiki page https://oi-wiki.org/dp/knapsack/ returned an empty page, so its Markdown source was read instead. DMOJ Knapsack-3 and Knapsack-4 returned 403 to the sweep; the user supplied copies on 2026-11-26, listed below and in `95-Resources/99-sources.json` (local-only, git-ignored).
+
+| URL | Used for |
+|---|---|
+| https://cses.fi/problemset/ (tasks 1093, 1633–1636, 1745, 1158) | `13` `equalPartitionCount` (1093), `minimumCoins` (1634) and `compositionCountTable` (1633, 1635) semantics; aliases |
+| https://cp-algorithms.com/dynamic_programming/knapsack.html | `13` `signedSumCount` (its practice list's target-sum task); copy expansion and naive complete knapsack, dominated |
+| https://next.oi-wiki.org/dp/knapsack/, https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/dp/knapsack/basic.md | `13` variants already covered |
+| https://atcoder.jp/contests/dp/tasks, https://atcoder.jp/contests/dp/tasks/dp_x | `39` `lawlerMoore` (EDPC X, Tower); EDPC D, E, M aliases of `13` |
+| https://github.com/kth-competitive-programming/kactl/tree/main/content/various, https://atcoder.github.io/ac-library/production/document_en/, https://github.com/maspypy/library/tree/main/knapsack, https://github.com/cheran-senthil/PyRival/tree/master/pyrival | nothing new for `13` |
+| https://nyaannyaan.github.io/library/, https://ei1333.github.io/library/, https://suisen-cp.github.io/cp-library-cpp/, https://hitonanode.github.io/cplib-cpp/ (each read in part) | nothing new for `13`; ei1333 `knapsack-01-2` is `ValueKnapsackDP` |
+
+| Source and local copy | SHA-256 | Read | Finding |
+|---|---|---|---|
+| DMOJ, "Knapsack 3", https://dmoj.ca/problem/knapsack; `95-Resources/14-Web Pages/29-dmoj_knapsack-knapsack_3.pdf` | `abe9788543ddda626d7d4befbb55816d62053bd85ea68565415212c5414dba77` | pp. 1–2 (statement, constraints, sample) | Bounded knapsack, one of M capacities at most 5000 with a fixed cost each: a bounded `KnapsackDP` and `atMost(c_i) - f_i`, an alias of row `13`; row `29` `boundedKnapsackMonotoneQueue` is the O(N * W) form. |
+| DMOJ, "Knapsack 4" (2020 Multi-University Training Contest 4, Problem C, Rope Pulling), https://dmoj.ca/problem/knapsack4; `95-Resources/14-Web Pages/29-dmoj_knapsack4-knapsack_4.pdf` | `366546cc331552d2408bfe6b2eec3ad1dfe5b92b3bf0f528c21fabcd575242c9` | pp. 1–2 (statement, constraints, sample) | Maximum signed value of two teams with equal total strength (weights at most 1000, sum of n + m at most 10^4): two exact `KnapsackDP` tables cost O((n + m) * S) with S up to 10^6; the random-order windowed DP goes to row `29` as planned `zeroSumKnapsack` (user decision 2026-11-26). |
+
 ## Fetched 2026-11-22 (Source Check)
 
 The user supplied these copies on 2026-11-22. They are personal study copies, kept local and git-ignored under `95-Resources/13-Papers/` and `95-Resources/14-Web Pages/`; the manifest `95-Resources/99-sources.json` lists them. Page numbers are the PDF's, with the printed ones in parentheses.

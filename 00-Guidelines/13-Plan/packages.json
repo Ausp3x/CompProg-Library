@@ -266,7 +266,7 @@
         "06-Miscellaneous/Docs/13-knapsack.md",
         "06-Miscellaneous/Docs/14-cyclefinding.md"
       ],
-      "note": "P275 re-review 2026-11-10: implement forEachSetBit, forEachCombinationSubmask, forEachSubmaskPair, forEachLabeledTree, forEachGrayCombination in `12-enumeration.hpp`; minimumCoins, compositionCountTable in `13-knapsack.hpp`. P013 MI02 /finish 2026-11-17 (user decision): add forEachPairing (every perfect matching of [0, n), one element unpaired for odd n; VERN) in `12-enumeration.hpp`. The next run rechecks the probe passes of rows 12, 13 that predate the 2026-11-12 runner fix."
+      "note": "MI16 done 2026-11-26: row 13 verified (minimumCoins, compositionCountTable, equalPartitionCount, signedSumCount added; the last two and row 39 lawlerMoore by user decision 2026-11-26). Next batch MI15: forEachSetBit, forEachCombinationSubmask, forEachSubmaskPair, forEachLabeledTree, forEachGrayCombination, forEachPairing in 12-enumeration.hpp; it rechecks row 12's probe passes that predate the 2026-11-12 runner fix."
     },
     {
       "id": "P016",
@@ -1168,7 +1168,7 @@
         "06-Miscellaneous/Docs/54-kbest_enumeration.md",
         "06-Miscellaneous/Docs/55-fractional_programming.md"
       ],
-      "note": "KnapsackItem::weight is lng in 13 (P015 files migrated). P275 re-review 2026-11-10: implement connectedSetKnapsack, modularSubsetSum in `29-knapsack_advanced.hpp`; kSmallestSortedMatrix, kSmallestSortedLists, kSmallestSubarrayXors, kthSmallestPairProduct in `54-kbest_enumeration.hpp`; linearFractionalProgramming in `55-fractional_programming.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. The next run rechecks the probe passes of rows 29, 54, 55 that predate the 2026-11-12 runner fix."
+      "note": "KnapsackItem::weight is lng in 13 (P015 files migrated). P275 re-review 2026-11-10: implement connectedSetKnapsack, modularSubsetSum in `29-knapsack_advanced.hpp`; kSmallestSortedMatrix, kSmallestSortedLists, kSmallestSubarrayXors, kthSmallestPairProduct in `54-kbest_enumeration.hpp`; linearFractionalProgramming in `55-fractional_programming.hpp`. P015 MI16 /finish 2026-11-26 (user decision): add zeroSumKnapsack (DMOJ Knapsack 4; random order, windowed DP) in `29-knapsack_advanced.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open Questions) holds an item of this package to put to the user before implementing. The next run rechecks the probe passes of rows 29, 54, 55 that predate the 2026-11-12 runner fix."
     },
     {
       "id": "P035",

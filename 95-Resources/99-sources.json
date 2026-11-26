@@ -1716,6 +1716,32 @@
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
+    },
+    {
+      "file": "14-Web Pages/29-dmoj_knapsack-knapsack_3.pdf",
+      "title": "DMOJ, Knapsack 3",
+      "source_page": "https://dmoj.ca/problem/knapsack",
+      "downloaded": "2026-11-26",
+      "bytes": 76629,
+      "pages": 2,
+      "sha256": "abe9788543ddda626d7d4befbb55816d62053bd85ea68565415212c5414dba77",
+      "cited_in": "06-Miscellaneous/Docs/00-sources.md:333",
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/29-dmoj_knapsack4-knapsack_4.pdf",
+      "title": "DMOJ, Knapsack 4",
+      "source_page": "https://dmoj.ca/problem/knapsack4",
+      "downloaded": "2026-11-26",
+      "bytes": 69244,
+      "pages": 2,
+      "sha256": "366546cc331552d2408bfe6b2eec3ad1dfe5b92b3bf0f528c21fabcd575242c9",
+      "cited_in": "06-Miscellaneous/Docs/00-sources.md:334",
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
     }
   ]
 }
