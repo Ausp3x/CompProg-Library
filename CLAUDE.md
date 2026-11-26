@@ -49,7 +49,7 @@ python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'             # runs automatically after edits to Markdown, plan, headers, modules
 python3 '96-Local Testing/04-mutation.py' run <header>   # mutation campaign, /package step 7; check <header>... for records
 python3 '95-Resources/00-sources.py' commit             # back up new resources to the private repository (95-Resources/00-index.md, Storage)
-python3 '95-Resources/00-sources.py' file <file> '13-Papers/<name>' --title T --url U --cited-in <doc:line>   # file a source when first cited (95-Resources/00-index.md, Filing)
+python3 '95-Resources/00-sources.py' file <file> '13-Papers/<name>' --title T --url U --cited-in <doc>   # file a source when first cited (95-Resources/00-index.md, Filing)
 python3 '96-Local Testing/06-compare.py' run '96-Local Testing/01-Core/<NN-name>_compare.cpp' --gate   # Core full speed A/B against HEAD (05-testing.md, Benchmarks)
 python3 '97-Online Testing/03-workspace.py' --check      # workspace template is generated; never hand-edit
 ```

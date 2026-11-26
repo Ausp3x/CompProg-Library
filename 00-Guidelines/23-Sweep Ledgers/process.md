@@ -6,7 +6,7 @@ Line format: `- YYYY-MM-DD | package or batch | idea | the rule text it replaces
 
 ## Open
 
-- 2026-11-27 | final process change | A manifest entry's `cited_in` names the citing documents without line numbers, and `00-sources.py check` reports an entry no named document mentions | replaces the `doc:line` form of `cited_in` in `95-Resources/99-sources.json`, whose line numbers drift as documents change | on 2026-11-27, after MI16's two drifted references were corrected, 11 of 126 `cited_in` references still named a line that no longer mentions the file
+- 2026-11-27 | final process change | `plan.py check` accepts a Limits item handed off as `follow-up on Pxxx` only while Pxxx has an open follow-up, and `plan.py follow-up --done` names the items that still cite a follow-up it closes | none can go: it enforces the hand-off rule of `02-structure.md` (Names), which the `DECIDED` pattern of `plan.py` checks only as text | on 2026-11-27 one Limits item used the form, and its follow-up was open
 
 ## Recorded Decisions
 

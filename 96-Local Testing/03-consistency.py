@@ -557,13 +557,16 @@ skill_reattach = plan.reattach(ROOT)
 # LICENSE is the CC0-1.0 legal code verbatim (creativecommons.org legalcode.txt, identical in SPDX).
 require(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest() == 'a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499',
         'LICENSE differs from the CC0-1.0 legal code')
-# A source the work used is filed: documents cite its filed path, never a file in the inbox (95-Resources/00-index.md, Storage).
+# A source the work used is filed: documents cite its filed path, never a file in the inbox, and its manifest entry
+# lists documents that name it (95-Resources/00-index.md, Storage).
 spec = importlib.util.spec_from_file_location('library_sources_check', ROOT / '95-Resources/00-sources.py')
 sources = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sources)
 for hit in sources.citations(ROOT):
     require(False, 'Cites a file in 95-Resources/00-Inbox; file it with 00-sources.py file and cite the filed path '
                    '(95-Resources/00-index.md, Storage): ' + hit)
+for hit in sources.drifted(ROOT):
+    require(False, 'Manifest 95-Resources/99-sources.json (95-Resources/00-index.md, Filing): ' + hit)
 # A clone works anywhere: tracked files name no absolute home directory.
 tracked = subprocess.run(['git', 'ls-files', '-z'], cwd=ROOT, capture_output=True, text=True).stdout.split('\0')
 for path in tracked:

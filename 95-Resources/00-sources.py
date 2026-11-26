@@ -12,15 +12,18 @@ so the public repository never sees it. Maintainer only; the user pushes.
                  otherwise it is downloaded from its download_url and its SHA-256 verified; needs no private history (a
                  contributor's setup, CONTRIBUTING.md); a failure is listed for the user to supply in 00-Inbox/, and the
                  local-only entries without a URL are named in one line, not failed
-  file SRC DEST --title T --url U --cited-in DOC:LINE [--download-url D] [--pages N] [--provided-by P] [--reuse-note R]
+  file SRC DEST --title T --url U --cited-in DOC [--cited-in DOC ...] [--download-url D] [--pages N] [--provided-by P]
+       [--reuse-note R]
                  file a source the work uses (00-index.md, Storage): move SRC (an inbox file or the session's own
                  download) to DEST, 13-Papers/<name> or 14-Web Pages/<name> of the main checkout, add its manifest
-                 entry to this checkout's 99-sources.json, delete the request lines naming it, and with a private
-                 history commit the file there at once
+                 entry to this checkout's 99-sources.json with the documents citing it (paths from the checkout's root,
+                 no line numbers), delete the request lines naming it, and with a private history commit the file
+                 there at once
   check [ID ...] what Storage still requires, one line each, exit 1 if any (gaps.py prints it for /package and
                  /finish): inbox files placed for these package or batch ids, with no request line, or copies of filed
-                 ones; Markdown citing a file in 00-Inbox/; filed files without a manifest entry; with a private history,
-                 manifest files missing here and filed files not backed up
+                 ones; Markdown citing a file in 00-Inbox/; manifest entries whose cited_in names a document missing here
+                 or not naming the file; filed files without a manifest entry; with a private history, manifest files
+                 missing here and filed files not backed up
 """
 import argparse
 import datetime
@@ -133,8 +136,8 @@ def fetch():
             part.unlink(missing_ok=True)
             failed.append((e, str(ex)))
     if local:
-        print(f'{len(local)} entries without a download URL not fetched (local-only copies; each manifest entry names its '
-              f'source page): {", ".join(local)}')
+        print(f'not fetched, having no download URL (local-only copies; each manifest entry names its source page): '
+              f'{", ".join(local)}')
     for e, why in failed:
         print(f"FAIL {e['file']}: {why}\n     {e.get('title', '')} <{e.get('download_url') or e.get('source_page', '')}>")
     sys.exit(1 if failed else 0)
@@ -184,6 +187,24 @@ def citations(root):
     return out
 
 
+def drifted(root):
+    """Each manifest entry of the checkout whose cited_in does not list documents that exist there and name its file
+    (03-consistency.py rejects them); the 2026-09-27 downloads outside FOLDERS record their use instead."""
+    manifest, out = Path(root) / '95-Resources/99-sources.json', []
+    for e in json.loads(manifest.read_text())['resources'] if manifest.is_file() else []:
+        docs = e.get('cited_in')
+        if docs is None and not e['file'].startswith(FOLDERS):
+            continue
+        if not (isinstance(docs, list) and docs and all(isinstance(d, str) for d in docs)):
+            out.append(f"{e['file']}: cited_in must list the documents citing it")
+            continue
+        for doc in docs:
+            p = Path(root) / doc
+            if not (p.is_file() and Path(e['file']).name in p.read_text(errors='replace')):
+                out.append(f"{e['file']}: cited_in names {doc}, which " + ('does not name the file' if p.is_file() else 'does not exist'))
+    return out
+
+
 def file_(a):
     src = Path(a.source).resolve()
     folder, _, name = a.dest.partition('/')
@@ -192,6 +213,8 @@ def file_(a):
                  f'NN-short_title-author_year for a paper or NN-site_id-short_title for a page (00-index.md): {a.dest}')
     if not src.is_file():
         sys.exit(f'file: no file {src}')
+    if bad := [d for d in a.cited_in if not (HERE.parent / d).is_file()]:
+        sys.exit(f'file: --cited-in names a document of this checkout by its path from the root, without a line number: {", ".join(bad)}')
     digest, known = sha256(src), manifests()
     if clash := next((f for f, e in known.items() if f == a.dest or e['sha256'] == digest), None):
         sys.exit(f'file: the manifest already holds {clash}' + (', with these bytes: cite it and delete this copy'
@@ -212,7 +235,7 @@ def file_(a):
     manifest.write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
     if inbox:
         drop_request(src.name)
-    print(f'filed {a.dest} (SHA-256 {digest}); cite it by that path')
+    print(f'filed {a.dest} (SHA-256 {digest}); cite it by that path in {", ".join(a.cited_in)}')
     if GITDIR.exists():  # backed up at once, never left for a later step (00-index.md, Storage)
         git('add', '--', a.dest)
         git('commit', '-q', '-m', f'File {a.dest}')
@@ -236,6 +259,7 @@ def problems(keys=()):
         elif who in keys:
             out.append(f'{rel}: placed for {who}; file it (00-sources.py file)')
     out += [f'{hit}: cites a file in 00-Inbox; file it and cite the filed path' for hit in citations(HERE.parent)]
+    out += drifted(HERE.parent)
     for folder in FOLDERS:
         found = sorted(p for p in (WORK / folder).rglob('*') if p.is_file()) if (WORK / folder).is_dir() else []
         out += [f'{rel}: no manifest entry' for f in found if (rel := f.relative_to(WORK).as_posix()) not in known]
@@ -251,15 +275,16 @@ if __name__ == '__main__':
     ap.add_argument('command', choices=('init', 'status', 'commit', 'fetch', 'file', 'check'))
     ap.add_argument('args', nargs='*', help='file: SRC DEST; check: package or batch ids')
     ap.add_argument('-m', '--message')
-    for flag in ('--title', '--url', '--cited-in', '--download-url', '--provided-by', '--reuse-note'):
+    for flag in ('--title', '--url', '--download-url', '--provided-by', '--reuse-note'):
         ap.add_argument(flag)
+    ap.add_argument('--cited-in', action='append', help='file: a document citing the source; repeat for each')
     ap.add_argument('--pages', type=int)
     a = ap.parse_args()
     if a.command in ('status', 'commit') and not GITDIR.exists():
         sys.exit(f'no private history at {GITDIR}; run init first')
     if a.command == 'file':
         if len(a.args) != 2 or not (a.title and a.url and a.cited_in):
-            ap.error('file needs SRC DEST, --title, --url (the page or DOI the evidence cites) and --cited-in DOC:LINE')
+            ap.error('file needs SRC DEST, --title, --url (the page or DOI the evidence cites) and --cited-in DOC for each citing document')
         a.source, a.dest = a.args
         file_(a)
     elif a.command == 'check':

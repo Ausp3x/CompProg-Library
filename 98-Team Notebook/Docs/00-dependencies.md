@@ -42,9 +42,9 @@ Oracles:
 
 ```bash
 python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode quick                    # 2026-11-05: PASS, 30 tests, 32 s, peak 1331 MB
-python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full --seed 1            # 2026-11-27: PASS, 32 tests, 65 s, peak 1408 MB
-CXX=g++-14 CP_TEST_PREFLIGHT_MB=4096 python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full --seed 1   # 2026-11-27: PASS, 32 tests, 54 s, peak 1232 MB (History)
-python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode stress --seed 1          # 2026-11-27: PASS, 32 tests, 67 s, peak 1434 MB
+python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full --seed 1            # 2026-11-27: PASS, 32 tests, 38 s, peak 143 MB (warm ccache)
+CXX=g++-14 CCACHE_DISABLE=1 python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full --seed 1   # 2026-11-27: PASS, 32 tests, 266 s, peaks 1209 MB (pre-flight, cap 2048) and 2090 MB
+python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode stress --seed 1          # 2026-11-27: PASS, 32 tests, 41 s, peak 140 MB
 python3 '96-Local Testing/00-Tools/03-notebook_tester.py'                                     # 2026-11-05: PASS, 12 tests, 0 SKIP (node present), peak 34 MB
 python3 '00-Guidelines/13-Plan/plan.py' check                                                 # 2026-11-27: plan check: ok
 ```
@@ -66,3 +66,4 @@ Graph on 2026-10-24: 177 headers (14 aggregates) and 580 include edges (162 into
 - 2026-11-05: P253 retired the substitutes (TESTED_MINIS, Compact-skippable includes, mini notes); extraction by 10-grab.py replaces them; testers passed on g++ and g++-14.
 - 2026-11-24: `/finish SUP34` (P289, user decision 2026-11-24): the plan-rule fixture copied the whole working tree to `/tmp`, git-ignored caches included, and its 2 GB cap killed the full run's pre-flight once `96-Local Testing/.judge-cache` had grown to 19 GB, its copy filling the cap with tmpfs pages; it now copies only the files git lists (tracked and untracked, not ignored) outside `OLD` and `95-Resources`. The full run passed: 32 tests, peak 1,201 MB.
 - 2026-11-27: final process change (user decisions 2026-11-26 and 2026-11-27; `plan.py` follow-ups and the limits check): full and stress passed on g++. On `g++-14` the quick pre-flight was killed at its 2,048 MB cap, because C03's uncommitted `01-Core/05-modint.hpp` raises one `-fsyntax-only` unit of the `05-Mathematics` closure from 480 MB to 1,189 MB and two such compiles overlapped; with `CP_TEST_PREFLIGHT_MB=4096` the full run passed. Filed as a follow-up on P005, to settle before C03 lands.
+- 2026-11-27: P005's follow-up (user request 2026-11-27): the compile oracle admits each `-fsyntax-only` compile through the shared `Builder` admission at `COMPILE_MB` (1,300 MB) within the cap in force, in place of a fixed pool of four, so the 2,048 MB pre-flight compiles one at a time and the full run two at once. With C03's uncommitted `01-Core/05-modint.hpp` (blob `ed491fe7`) on `g++-14` without ccache, the pre-flight peaked at 1,209 MB and the full run at 2,090 MB; full, stress and `g++-14` with ccache passed too (Commands and Results).

@@ -9,10 +9,10 @@ discovers only the fake suites and keeps its .run-stats.json there.
 Every test queues in its own gate file (CP_MEMORY_GATE in its fixture, reserve 0), never the machine's.
 quick: output identity at -j 1 and -j 4, first-failure status, rerun alone, the jobs bound, parallel() budget and rerun,
 forwarding() handler restore, gate decide(), need_of()/recorded() and held().
-full: every test, including signals, real capped scopes, SIGTERM/SIGHUP sent to a supervisor pid alone (main run and
+full: every test, including a later task stopped after its result restarting without a NOTE, signals, real capped scopes, SIGTERM/SIGHUP sent to a supervisor pid alone (main run and
 pre-flight, and to the ad-hoc CLI's supervisor, each in a real scope; explicit SKIP without one), a supervisor's SIGKILL
 ending its whole scope (entry point or CLI reporter, and a grandchild), integration main() on a small fake repository, 2
-seeded random runs, and the gate: decide() (FIFO by since then pid, running entries' remaining growth, the exact
+seeded random runs (a task stopped as it finishes may restart without a NOTE), and the gate: decide() (FIFO by since then pid, running entries' remaining growth, the exact
 RESERVE boundary, free None, ancestors only and nothing else running admitted with their WARNING text, others running
 and short waiting, no queue inside a running ancestor's reservation, a waiter silent over STALE seconds holding no
 place, its beat rewritten at every poll), need_of, recorded (hit, resolved path, zero/negative/malformed peak, miss, malformed or missing
@@ -114,6 +114,7 @@ finally:
     t1 = time.monotonic(); os.remove(busy)
     with open(f"{d}/{me}.end", 'w') as f: json.dump(dict(t1=t1, code=code), f)
 open(f"{d}/{P['name']}.done", 'w').close()
+time.sleep(P.get('linger', 0))  # still running after its result is written, where a stop races its finish
 sys.exit(code)
 '''
 SIG = r'''import json, os, signal, subprocess, sys, time
@@ -368,6 +369,15 @@ class Runner(Base):
         self.assertGreater(restarted['t0'], rerun['t1'], 'the later task restarts after the rerun alone')
         self.check(f.run('-j', '1'), 0, f.expect(), '-j 1')
 
+    def test_stopped_after_finishing(self):
+        """A later task stopped for a rerun after it wrote its result restarts without a NOTE (P247 follow-up 2)."""
+        f = self.f
+        a, b, _ = f.add(dict(sleep=1, flaky=True), dict(linger=2), dict(sleep=1.5))
+        self.check(f.run('-j', '3'), 0, f.expect(notes={0}))
+        finished, restarted = f.recs(b)
+        self.assertEqual((finished['code'], restarted['code']), (0, 0), 'fixture premise: stopped after its result')
+        self.assertGreater(restarted['t0'], f.recs(a)[1]['t1'], 'restarted after the rerun alone')
+
     def test_jobs_bound(self):
         self.f.add(*[dict(sleep=0.6)] * 6)
         self.check(self.f.run('-j', '3'), 0, self.f.expect())
@@ -562,18 +572,30 @@ class Runner(Base):
                         code=rng.randint(4, 9) * (kind == 'x'), flaky=kind == 'f')
             mode, rounds, seed = rng.choice(('full', 'stress')), rng.randint(1, 2), rng.randint(0, 99)
             seeds = list(range(seed, seed + rounds)) if mode == 'stress' else [seed]
-            order = [(f.suites[rel], str(s)) for s in seeds for rel in sorted(f.suites, key=lambda rel: Path(rel).parts)]
+            keys = [(rel, str(s)) for s in seeds for rel in sorted(f.suites, key=lambda rel: Path(rel).parts)]
+            order = [(f.suites[rel], s) for rel, s in keys]
             upto = next((i for i, (P, _) in enumerate(order) if P['code']), None)
             ctx = f'round {r}: -j {j} cap {cap} budget {budget} mode {mode} seeds {seeds} suites {f.suites}'
             got = f.run('--mode', mode, '--rounds', str(rounds), '--seed', str(seed), '-j', str(j), '--memory-mb',
                         str(budget), CP_TEST_MEMORY_MB=str(cap))
             runs = [[x for x in f.recs(P['name']) if x['seed'] == s and x['code'] is not None] for P, s in order]  # stopped runs restart
-            notes = {i for i, x in enumerate(runs) if len(x) == 2}
+            # A task the runner stops for an earlier task's rerun may finish its record first (its exit races the stop) and
+            # restarts without a NOTE, so after an earlier failure one finished run more carries no NOTE (P247 follow-up 2).
+            late = {k for k in range(len(runs)) if any(x['code'] for done in runs[:k] for x in done)}
+            failed = {k for k, x in enumerate(runs) if len(x) >= 2 and x[-2]['code']}  # a failed run, then another
+            notes, note = set(), None
+            for line in got[1].splitlines():
+                if m := re.match(r'NOTE (\S+) exited ', line):
+                    note = m[1]
+                elif m := re.match(r'RUN (\S+) mode=\S+ seed=(\d+)$', line):
+                    notes |= {keys.index((m[1], m[2]))} if m[1] == note else set()
+                    note = None
+            self.assertTrue(failed - late <= notes <= failed, f'{ctx}: NOTEs {notes}, failed {failed}, late {late}')
             self.check(got, 0 if upto is None else order[upto][0]['code'], f.expect(mode, seeds, notes, upto), ctx)
             self.assertLessEqual(f.span(), max(1, min(j, budget // cap)), ctx)
-            self.assertTrue(all(len(x) <= 1 + (j > 1) for x in runs), ctx)
+            self.assertTrue(all(len(x) <= 1 + (j > 1) + (k in late) for k, x in enumerate(runs)), ctx)
             self.assertTrue(upto is None or upto not in notes or j > 1, f'{ctx}: only a failure beside others is rerun')
-            self.assertTrue(all(f.alone(x[1]) for x in runs if len(x) == 2), ctx)
+            self.assertTrue(all(f.alone(runs[k][-1]) for k in notes), f'{ctx}: a rerun runs alone')
 
 
 class Integration(Base):

@@ -6,7 +6,7 @@ closure; the closure concatenated in typing order, quoted includes removed, comp
 sample of 15 headers, every other repository oracle (scanner graph, typing order, line counts, describe text) on all
 headers, the plan.py checks on a copy of the working tree, and 20 seeded random DAGs.
 full: quick with both compiler oracles on every 01-07 header (thread pool; the compile oracle skips the 98/99
-aggregates) and 100 random DAGs.
+aggregates and admits its compiles within the memory cap in force, COMPILE_MB each) and 100 random DAGs.
 stress: full with --rounds random DAGs (default 1000), each also written to disk and checked through headers(),
 closure() and describe().
 Oracles: an os.walk/line scanner for the include graph, the preprocessor's own dependency list for closures, an
@@ -43,7 +43,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import cache_env, cached
+from _00_cpp_test_runner import Builder, cache_env, cached
 
 _00_memory_cap.ensure()
 
@@ -51,6 +51,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TOOL = ROOT / "98-Team Notebook" / "05-dependencies.py"
 PLAN = ROOT / "00-Guidelines" / "13-Plan" / "plan.py"
 CXX = os.environ.get("CXX", "g++")
+COMPILE_MB = 1300  # one -fsyntax-only TU: the 05-Mathematics closure peaked at 1189 MB on g++-14 with C03's 05-modint.hpp (2026-11-27)
 MODE, SEED, ROUNDS = "full", 42, 1000
 SAMPLE = ["05-Mathematics/12-combinatorics_advanced.hpp", "03-Geometry/14-minimumenclosingcircle.hpp",
           "05-Mathematics/07-primality_factorization.hpp", "01-Core/16-poly.hpp", "05-Mathematics/99-all.hpp",
@@ -531,6 +532,7 @@ class Repository(Base):
         if not shutil.which((shlex.split(CXX) or [""])[0]):
             self.skipTest(f"SKIP compiler {CXX} not found")
         hs = [h for h in hs if not re.search(r"/9[89]-", h)]
+        builder = Builder(shlex.split(CXX), self.root)  # admits compiles within the cap in force: one at a time under the pre-flight's
 
         def run(h):
             order = DEPS.closure(self.graph, h)
@@ -540,8 +542,9 @@ class Repository(Base):
             name = hashlib.sha1(tu.encode()).hexdigest()[:20] + ".cpp"  # named by content, so an unchanged TU hits ccache
             Path(self.root, name).write_text(tu, encoding="utf-8")
             command = [*cached(shlex.split(CXX)), "-std=gnu++20", "-fsyntax-only", "-x", "c++", name]
-            return order, command, subprocess.run(command, cwd=self.root, capture_output=True, text=True, timeout=600, env=cache_env())
-        with ThreadPoolExecutor(min(4, os.cpu_count() or 1)) as pool:  # about 400 MB per compiler; stays under the 2048 MB pre-flight cap
+            with builder.admitted(COMPILE_MB):
+                return order, command, subprocess.run(command, cwd=self.root, capture_output=True, text=True, timeout=600, env=cache_env())
+        with ThreadPoolExecutor(min(4, os.cpu_count() or 1)) as pool:
             for h, (order, command, r) in zip(hs, pool.map(run, hs)):
                 with self.subTest(header=h, CXX=CXX):
                     self.assertEqual(r.returncode, 0, f"typing order {order} does not compile as one TU "

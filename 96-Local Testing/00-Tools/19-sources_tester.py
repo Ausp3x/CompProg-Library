@@ -11,16 +11,18 @@ script's docstring; git's own record of the private history.
 Feature map:
 file moves an inbox file into 13-Papers or 14-Web Pages, adds the manifest entry with every field, keeps the manifest's
 format and non-ASCII text, deletes only its own request line, records the user as provider -> test_file_from_inbox;
-refusals (folder, name pattern, the same bytes or path already in the manifest, an unlisted file at the destination, a
-missing source, missing options) leave everything in place -> test_file_refusals;
+every --cited-in document in order -> test_file_from_inbox; refusals (folder, name pattern, the same bytes or path
+already in the manifest, an unlisted file at the destination, a missing source, missing options, a --cited-in document
+with a line number or missing from the checkout) leave everything in place -> test_file_refusals;
 a session's own download is provided by the session, --provided-by overrides, and with a private history the file is
 committed there at once with the push command printed -> test_file_backup;
 check: inbox files placed for the given ids, without a request line or copying a filed file reported and another
 session's request left alone; citations of inbox files in tracked and new Markdown, not in fences, OLD, 95-Resources or
 git-ignored files and not `00-Inbox/00-requests.md` or the bare folder; filed files without an entry; exit codes ->
-test_check; with a private history: manifest files missing here and filed files not backed up -> test_check_backup;
-a linked worktree files into the main checkout and its own manifest, and every checkout's manifest counts ->
-test_worktree; fetch moves a file the user placed in 00-Inbox with a missing entry's SHA-256 into place and drops its
+test_check; entries of 13-Papers and 14-Web Pages whose cited_in is not a non-empty list or names a document that is
+missing or does not name the file's basename, the books outside them exempt -> test_check_cited_in; with a private history: manifest files missing here and filed files not backed up -> test_check_backup;
+a linked worktree files into the main checkout and its own manifest, cites its own documents, and every checkout's
+manifest counts -> test_worktree; fetch moves a file the user placed in 00-Inbox with a missing entry's SHA-256 into place and drops its
 request line, downloads a missing entry by its URL and checks its SHA-256, names the entries without a URL in one line
 without failing, and fails on a wrong download or a changed local file, which check reports as the entry's file ->
 test_fetch.
@@ -48,10 +50,11 @@ LOCAL = 'Personal study copy; terms do not permit public redistribution, so the 
 OLD = b'old paper\n'
 ENTRY = {'file': '13-Papers/01-old_paper-a_2000.pdf', 'title': 'A, *Old*', 'source_page': 'https://example.invalid/old',
          'downloaded': '2026-11-22', 'bytes': len(OLD), 'sha256': hashlib.sha256(OLD).hexdigest(),
-         'cited_in': 'Docs/a.md:1', 'provided_by': 'user', 'reuse_note': LOCAL, 'committed': False}
+         'cited_in': ['Docs/a.md'], 'provided_by': 'user', 'reuse_note': LOCAL, 'committed': False}
 ENV = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')} | {
     'GIT_CONFIG_GLOBAL': os.devnull, 'GIT_CONFIG_SYSTEM': os.devnull, 'GIT_CONFIG_NOSYSTEM': '1',
     'GIT_AUTHOR_NAME': 'T', 'GIT_AUTHOR_EMAIL': 't@example.invalid', 'GIT_COMMITTER_NAME': 'T', 'GIT_COMMITTER_EMAIL': 't@example.invalid'}
+A_MD = f'# A\n\nCited: `95-Resources/{ENTRY["file"]}`.\n'  # the document ENTRY's cited_in names
 MODE = 'full'
 
 
@@ -81,7 +84,7 @@ class Sources(unittest.TestCase):
         (self.main / '.gitignore').write_text('95-Resources/00-Inbox\n95-Resources/13-Papers\n95-Resources/14-Web Pages\n'
                                               '__pycache__/\nignored/\n.claude/worktrees/\n')
         (self.main / 'Docs').mkdir()
-        (self.main / 'Docs/a.md').write_text('# A\n')
+        (self.main / 'Docs/a.md').write_text(A_MD)
         git(self.tmp, 'init', '-q', '--bare', '-b', 'master', str(self.remote))
         git(self.main, 'init', '-q', '-b', 'master')
         git(self.main, 'add', '-A')
@@ -110,9 +113,9 @@ class Sources(unittest.TestCase):
         path.write_bytes(data)
         return path
 
-    def file(self, src, dest, *extra, res=None):
+    def file(self, src, dest, *extra, res=None, cited=('Docs/a.md',)):
         return self.run_script('file', str(src), dest, '--title', 'R–W, *Coolest*', '--url', 'https://example.invalid/p',
-                               '--cited-in', 'Docs/a.md:3', *extra, res=res)
+                               *(x for doc in cited for x in ('--cited-in', doc)), *extra, res=res)
 
     def private(self):
         r = self.run_script('init')
@@ -128,21 +131,24 @@ class Sources(unittest.TestCase):
         (self.inbox / '00-requests.md').write_text(f'{head}{mine}\n{other}\n')
         r = self.file(src, '13-Papers/02-coolest-ruskey_2009.pdf', '--pages', '3')
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn('filed 13-Papers/02-coolest-ruskey_2009.pdf', r.stdout)
+        self.assertIn('filed 13-Papers/02-coolest-ruskey_2009.pdf (SHA-256 ' + sha(b'paper\n') + '); cite it by that path in Docs/a.md',
+                      r.stdout)
         self.assertNotIn('backed up', r.stdout, 'no private history')
         self.assertFalse(src.exists(), 'moved, not copied')
         self.assertEqual((self.res / '13-Papers/02-coolest-ruskey_2009.pdf').read_bytes(), b'paper\n')
         want = {'file': '13-Papers/02-coolest-ruskey_2009.pdf', 'title': 'R–W, *Coolest*', 'source_page': 'https://example.invalid/p',
-                'downloaded': str(datetime.date.today()), 'bytes': 6, 'pages': 3, 'sha256': sha(b'paper\n'), 'cited_in': 'Docs/a.md:3',
+                'downloaded': str(datetime.date.today()), 'bytes': 6, 'pages': 3, 'sha256': sha(b'paper\n'), 'cited_in': ['Docs/a.md'],
                 'provided_by': 'user', 'reuse_note': LOCAL, 'committed': False}
         self.assertEqual(self.manifest(), [ENTRY, want])
         text = (self.res / '99-sources.json').read_text()
         self.assertEqual(text, json.dumps(json.loads(text), indent=2, ensure_ascii=False) + '\n', 'format and non-ASCII kept')
         self.assertEqual((self.inbox / '00-requests.md').read_text(), f'{head}{other}\n', 'only its own request line goes')
+        (self.main / 'Docs/b c.md').write_text('B\n')
         r = self.run_script('file', str(self.place('y.pdf', b'y\n')), '14-Web Pages/03-site_1-page.pdf', '--title', 'Y', '--url', 'u',
-                            '--cited-in', 'Docs/a.md:4', '--download-url', 'https://example.invalid/y.pdf')
+                            '--cited-in', 'Docs/a.md', '--download-url', 'https://example.invalid/y.pdf', '--cited-in', 'Docs/b c.md')
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertEqual(self.manifest()[-1]['download_url'], 'https://example.invalid/y.pdf')
+        self.assertEqual([self.manifest()[-1][k] for k in ('download_url', 'cited_in')],
+                         ['https://example.invalid/y.pdf', ['Docs/a.md', 'Docs/b c.md']], 'every citing document, in order')
         self.assertTrue((self.res / '14-Web Pages/03-site_1-page.pdf').is_file())
         self.assertEqual((self.inbox / '00-requests.md').read_text(), head)
 
@@ -161,6 +167,10 @@ class Sources(unittest.TestCase):
         self.assertIn(f'already holds {ENTRY["file"]}, with these bytes: cite it and delete this copy', r.stderr)
         r = self.file(self.inbox / 'missing.pdf', '13-Papers/05-m-a_1.pdf')
         self.assertIn('no file', r.stderr)
+        for cited in (('Docs/a.md:3',), ('Docs/a.md', 'Docs/none.md'), ('a.md',)):
+            r = self.file(src, '13-Papers/07-c-a_1.pdf', cited=cited)
+            self.assertIn('--cited-in names a document of this checkout by its path from the root, without a line number: '
+                          + cited[-1], r.stderr, cited)
         r = self.run_script('file', str(src), '13-Papers/06-y-a_1.pdf', '--title', 'T', '--url', 'u')
         self.assertEqual(r.returncode, 2, 'argparse error without --cited-in')
         self.assertTrue(src.exists() and (self.inbox / 'Papers/dup.pdf').exists(), 'nothing moved')
@@ -189,7 +199,7 @@ class Sources(unittest.TestCase):
             self.place(name, data)
         cite = '`95-Resources/00-Inbox/Papers/a.pdf`'
         (self.main / 'Docs/a.md').write_text(f'# A\n\nSee {cite}.\nThe log `00-Inbox/00-requests.md` and the folder `00-Inbox/`.\n\n'
-                                             f'```bash\nls {cite}\n```\n')
+                                             f'```bash\nls {cite}\n```\n{A_MD}')
         (self.main / 'Docs/new.md').write_text(f'New {cite}\n')
         for kept in ('OLD', 'ignored'):
             (self.main / kept).mkdir()
@@ -209,10 +219,31 @@ class Sources(unittest.TestCase):
         self.assertIn('00-Inbox/Papers/b.pdf: placed for P901; file it (00-sources.py file)', r.stdout)
         self.assertNotIn('a.pdf: placed', r.stdout, "another session's request stays")
 
+    def test_check_cited_in(self):
+        book = {k: v for k, v in ENTRY.items() if k != 'cited_in'} | {'file': '02-book-b.pdf', 'sha256': sha(b'book\n')}
+        cases = [('02-gone', ['Docs/gone.md'], 'cited_in names Docs/gone.md, which does not exist'),
+                 ('03-moved', ['Docs/a.md'], 'cited_in names Docs/a.md, which does not name the file'),
+                 ('04-two', ['Docs/a.md', 'Docs/b.md'], 'cited_in names Docs/a.md, which does not name the file'),
+                 ('05-line', 'Docs/b.md:1', 'cited_in must list the documents citing it'),
+                 ('06-empty', [], 'cited_in must list the documents citing it'),
+                 ('07-none', None, 'cited_in must list the documents citing it')]
+        cited_book = dict(book, file='03-book-c.pdf', sha256=sha(b'c\n'), cited_in=['Docs/gone.md'])
+        entries = [dict(ENTRY, file=f'13-Papers/{n}-a_1.pdf', sha256=sha(n.encode()), cited_in=c) for n, c, _ in cases]
+        self.write_manifest(self.res, [ENTRY, book, cited_book, *entries])
+        (self.main / 'Docs/b.md').write_text(''.join(f'`95-Resources/13-Papers/{n}-a_1.pdf`\n' for n, _, _ in cases))
+        r = self.run_script('check')
+        self.assertEqual(r.returncode, 1, r.stderr)
+        self.assertEqual(r.stdout.splitlines(), ['03-book-c.pdf: cited_in names Docs/gone.md, which does not exist',
+                                                 *(f'13-Papers/{n}-a_1.pdf: {why}' for n, _, why in cases)],
+                         'a book outside 13-Papers and 14-Web Pages may record its use instead')
+        (self.main / 'Docs/a.md').write_text(A_MD + 'the paper 04-two-a_1.pdf\n')
+        self.assertNotIn('04-two', self.run_script('check').stdout, 'named by its basename anywhere in the document')
+
     def test_check_backup(self):
         self.full()
         two = dict(ENTRY, file='13-Papers/02-two-a_1.pdf', sha256=sha(b'two\n'))
         self.write_manifest(self.res, [ENTRY, two])
+        (self.main / 'Docs/a.md').write_text(f'{A_MD}`95-Resources/{two["file"]}`\n')
         (self.res / two['file']).write_bytes(b'two\n')
         priv = self.private()
         self.assertEqual(self.run_script('check').stdout, 'filed files not backed up (2): 00-sources.py commit\n', 'one per file')
@@ -231,8 +262,12 @@ class Sources(unittest.TestCase):
         (wt / 'Docs/w.md').write_text('`95-Resources/00-Inbox/Papers/x.pdf`\n')
         r = self.run_script('check', res=wt / '95-Resources')
         self.assertIn('Docs/w.md:1: cites a file in 00-Inbox; file it and cite the filed path', r.stdout, 'the worktree\'s documents')
-        r = self.file(src, '13-Papers/02-x-a_1.pdf', res=wt / '95-Resources')
-        self.assertEqual(r.returncode, 0, r.stderr)
+        r = self.file(src, '13-Papers/02-x-a_1.pdf', res=wt / '95-Resources', cited=('Docs/w.md',))
+        self.assertEqual(r.returncode, 0, r.stderr + ": a document only the worktree has")
+        self.assertIn('13-Papers/02-x-a_1.pdf: cited_in names Docs/w.md, which does not name the file',
+                      self.run_script('check', res=wt / '95-Resources').stdout)
+        (wt / 'Docs/w.md').write_text('`95-Resources/13-Papers/02-x-a_1.pdf`\n')
+        self.assertEqual(self.run_script('check', res=wt / '95-Resources').stdout, 'sources: nothing to file\n', "the worktree's documents")
         self.assertTrue((self.res / '13-Papers/02-x-a_1.pdf').is_file(), "filed in the main checkout's folder")
         self.assertEqual([e['file'] for e in self.manifest(wt / '95-Resources')], [ENTRY['file'], '13-Papers/02-x-a_1.pdf'])
         self.assertEqual(self.manifest(), [ENTRY], "the main checkout's manifest waits for the branch")
@@ -262,8 +297,8 @@ class Sources(unittest.TestCase):
         self.assertFalse((self.inbox / 'Papers/supplied.pdf').exists())
         self.assertEqual((self.inbox / '00-requests.md').read_text(), '', 'its request line goes')
         self.assertEqual(r.stdout.splitlines(), ['fetched 13-Papers/02-ok-a_1.pdf', 'moved from 00-Inbox: 13-Papers/04-local-b_1.pdf',
-                                                 '1 entries without a download URL not fetched (local-only copies; each manifest entry names '
-                                                 'its source page): 13-Papers/03-local-a_1.pdf'])
+                                                 'not fetched, having no download URL (local-only copies; each manifest entry names its '
+                                                 'source page): 13-Papers/03-local-a_1.pdf'])
         entries.append(dict(ENTRY, file='13-Papers/05-bad-a_1.pdf', download_url=(served / 'bad.pdf').as_uri(), sha256=sha(b'bad\n')))
         self.write_manifest(self.res, entries)
         (self.res / ENTRY['file']).write_bytes(b'edited\n')
