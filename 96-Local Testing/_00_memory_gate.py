@@ -21,13 +21,22 @@ they wait for it, when nothing else runs, since waiting would not free the memor
 running reservation waits for a queued run below it (two sessions' nested runs). Polls every second; a lock held for
 LOCK_WAIT seconds (a stopped holder) makes the run warn and go on without the gate.
 
+An exclusive run (`held(..., exclusive=True)`: a timing measurement, user decision 2026-11-26) needs the machine alone. It
+starts once no other gated run is running except its own ancestors and runs that wait for an exclusive run below them
+(idle until it ends), and no older exclusive run waits; it passes older ordinary waiters, never older exclusive ones.
+While it waits, no younger run starts past it except inside a running reservation (which must end first anyway); while
+it runs, every run but its own descendants waits. A nested run that breaks a wait cycle (above) never defers to an
+exclusive waiter, which waits for busy runs itself. Code from before this rule in another checkout sees its entry (an
+extra key `excl`) as an ordinary reservation.
+
 `remember()` merges peaks into `.run-stats.json` under its own lock, each record the maxima of its last RECENT runs:
 `supervise()` records the runs it starts and `01-run.py` its own.
 
 Environment: CP_MEMORY_GATE (the reservations file, default $XDG_RUNTIME_DIR/cp-memory-gate.json; `0` turns the gate
 off), CP_MEMORY_GATE_RESERVE_MB (default 2048), CP_MEMORY_GATE_STATE (a file the first held() of a process writes `wait`
 to while queued and `run` after, so a caller's timeout can leave out the queue: 05-extraction.py testers), CP_RUN_STATS
-(the recorded peaks, default `.run-stats.json` here; tests point it at a temporary file).
+(the recorded peaks, default `.run-stats.json` in this folder of the main checkout, which every linked worktree shares
+(user decision 2026-11-26); tests point it at a temporary file).
 """
 import contextlib
 import errno
@@ -50,7 +59,20 @@ WALL = 1e9  # seconds: wall-clock times since 2001; a monotonic reading reaches 
 LOCK_WAIT = 10.0  # seconds a lock may stay held before the run goes on without it: far above a locked section's time
 LOCK_POLL = 0.005
 HERE = Path(__file__).resolve().parent  # 96-Local Testing: keys name entries relative to it
-STATS = Path(os.environ.get('CP_RUN_STATS') or HERE / '.run-stats.json')
+
+
+def main_checkout(root):
+    """The main checkout of the repository whose top level is root: a linked worktree's `.git` file names its git
+    directory, whose `commondir` leads to the shared one (git-worktree(1)); root itself otherwise."""
+    try:
+        gitdir = root / (root / '.git').read_text().removeprefix('gitdir:').strip()
+        common = (gitdir / (gitdir / 'commondir').read_text().strip()).resolve()
+    except (OSError, ValueError):
+        return root
+    return common.parent if common.name == '.git' else root
+
+
+STATS = Path(os.environ.get('CP_RUN_STATS') or main_checkout(HERE.parent) / HERE.name / '.run-stats.json')
 RECENT = 3  # runs a record keeps
 
 
@@ -224,9 +246,10 @@ def shadow(spare, head, running, grows, used, now):
 
 
 def decide(free, me, entries, grows, mine, above=lambda e: (), used=lambda e: 0, now=None):
-    """(admit, warning) for entry me among the live entries: free is MemAvailable in MB, grows(entry) the MB a running
+    """(admit, text) for entry me among the live entries: free is MemAvailable in MB, grows(entry) the MB a running
     entry may still use and used(entry) the MB its run holds now, mine the pids of me's ancestors, above(entry) those of
-    another entry, now the poll's clock (default me's beat).
+    another entry, now the poll's clock (default me's beat). text is the WARNING of an admission, or why an exclusive run
+    holds me back.
 
     A waiter whose last poll is STALE seconds older than me's holds no place. A run inside a running reservation (its
     ancestor's) does not queue, since the waiters before it may wait for that very reservation, but must fit beside it,
@@ -242,6 +265,18 @@ def decide(free, me, entries, grows, mine, above=lambda e: (), used=lambda e: 0,
     spare = None if free is None else free - sum(map(grows, running)) - RESERVE_MB
     fits = spare is None or spare >= me['need']
     ahead = [e for e in waiting if order(e) < order(me)]
+    alone = [e for e in waiting if e.get('excl')]
+    if any(e.get('excl') for e in others):
+        return False, 'an exclusive (timed) run holds the machine'
+    if me.get('excl'):  # runs whose exclusive descendant waits are idle until it ends; older exclusive runs go first
+        busy = [e for e in others if not any(e['pid'] in above(w) for w in alone)]
+        if busy or any(order(w) < order(me) for w in alone):
+            return False, ''
+        if fits:
+            return True, ''
+        return True, f'{free} MB available, {me["need"]} MB needed and {RESERVE_MB} MB kept free; it runs alone now'
+    if not inside and any(order(w) < order(me) for w in alone):
+        return False, 'an exclusive (timed) run waits ahead of it'
     if not inside and ahead and not (fits and spare is not None and me.get('secs', 0) > 0
                                      and now + me['secs'] <= shadow(spare, min(ahead, key=order), running, grows, used, now)):
         return False, ''
@@ -253,7 +288,7 @@ def decide(free, me, entries, grows, mine, above=lambda e: (), used=lambda e: 0,
         return True, f'{short}; {held}, so it runs now'
     queued = [*waiting, me]
     lineage_of = lambda e: mine if e is me else above(e)
-    nested = [e for e in queued if any(r['pid'] in lineage_of(e) for r in running)]
+    nested = [e for e in queued if not e.get('excl') and any(r['pid'] in lineage_of(e) for r in running)]  # an exclusive one waits for runs
     if inside and all(any(r['pid'] in lineage_of(w) for w in queued) for r in running) and min(nested, key=order) is me:
         return True, f'{short}; every running gated run waits for a queued run below it, so the oldest of those runs now'
     return False, ''
@@ -333,8 +368,8 @@ def wait(path, me, label, out, until=None, state=None):
             runs = {e['pid'] for e in entries if e['state'] == 'run'}
             used = {pid: usage(pid, tree, runs - {pid}) for pid in runs}
             lines = {e['pid']: lineage(e['pid'], parent) for e in entries if e['state'] == 'wait'}
-            admit, warning = decide(available(), me, view, lambda e: max(0, e['need'] - used[e['pid']]), mine,
-                                    lambda e: lines[e['pid']], lambda e: used[e['pid']])
+            admit, text = decide(available(), me, view, lambda e: max(0, e['need'] - used[e['pid']]), mine,
+                                 lambda e: lines[e['pid']], lambda e: used[e['pid']])
             me['state'] = 'run' if admit else 'wait'
             if admit:
                 me['admit'] = me['beat']
@@ -347,26 +382,29 @@ def wait(path, me, label, out, until=None, state=None):
         if waited is None:
             waited = time.monotonic()
             mark(state, 'wait')
-            print(f'WAIT {label}: needs {me["need"]} MB beside the running gated runs (_00_memory_gate.py); queued', file=out, flush=True)
+            why = ('waits until no other gated run runs, to be timed alone' if me.get('excl') else text
+                   or f'needs {me["need"]} MB beside the running gated runs')
+            print(f'WAIT {label}: {why} (_00_memory_gate.py); queued', file=out, flush=True)
         time.sleep(POLL)
-    if warning:
-        print(f'WARNING {label}: memory gate: {warning}', file=out, flush=True)
+    if admit and text:
+        print(f'WARNING {label}: memory gate: {text}', file=out, flush=True)
     if waited is not None:
         print(f'ADMIT {label}: after {time.monotonic() - waited:.0f} s in the memory queue', file=out, flush=True)
     return True
 
 
 @contextlib.contextmanager
-def held(need, label, out=sys.stderr, until=None, secs=0):
+def held(need, label, out=sys.stderr, until=None, secs=0, exclusive=False):
     """Wait for admission of a run needing need MB and expected to take secs seconds (0: unknown), hold its reservation
-    while the block runs, then release it; a need of 0 or less, or the gate turned off, passes at once. Yields whether it
-    was admitted: False only when the time.monotonic() deadline until passed in the queue, and the caller then skips its run."""
+    while the block runs, then release it; an ordinary need of 0 or less, or the gate turned off, passes at once. With
+    exclusive (a timed run) it also waits until it can run alone (decide()), whatever its need. Yields whether it was
+    admitted: False only when the time.monotonic() deadline until passed in the queue, and the caller then skips its run."""
     path, state = store(), os.environ.pop('CP_MEMORY_GATE_STATE', None)
-    if path is None or need <= 0:
+    if path is None or (need <= 0 and not exclusive):
         yield True
         return
-    me = {'pid': os.getpid(), 'start': (stat(os.getpid()) or (0, 0))[1], 'need': int(need), 'label': label, 'state': 'wait',
-          'since': time.monotonic(), 'secs': secs}
+    me = {'pid': os.getpid(), 'start': (stat(os.getpid()) or (0, 0))[1], 'need': max(0, int(need)), 'label': label, 'state': 'wait',
+          'since': time.monotonic(), 'secs': secs, **({'excl': True} if exclusive else {})}
     patience = None
     try:
         try:

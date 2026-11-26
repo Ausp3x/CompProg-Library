@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Checks for the maintainer gate .claude/skills/merge-pr/merge_pr.py and the packages.json merge of
-00-Guidelines/13-Plan/worktree.py --sync (merge3, order, merge_plan and the conflict loop of sync).
+00-Guidelines/13-Plan/worktree.py --sync (merge3, order, merge_json and the conflict loop of sync).
 
 The real repository is only read. Synthetic repositories live in per-test temporary directories: under /tmp, except
 those whose worktree is sandboxed (Sandbox, Gates), which live under /var/tmp beside the gates' scratch directories
@@ -23,7 +23,7 @@ classification repositories, R//4 sync rounds (each at least the full count). Mo
 CP_TEST_MODE/CP_TEST_SEED.
 Oracles (written here, independent of the code under test): a schema-driven brute-force three-way merge of plan-like
 documents on canonical JSON (top keys, models per key, packages per string id, entry fields, the `extra` dict per key,
-anything else a leaf); edit-intent properties (disjoint edits on the two sides: no clash and the composition of both
+follow-ups as sets, anything else a leaf); edit-intent properties (disjoint edits on the two sides: no clash and the composition of both
 edit lists; one field edited differently on both: exactly that path); for order, the permutation, primary-order and
 predecessor characterisation (an id only the other side has sits right after its predecessor in that side's list, or
 first); a segment scanner for library paths, file modes, tags and the 01-prompts.md text outside the plan block; an
@@ -36,17 +36,20 @@ reproducer.
 
 Feature map:
 merge3 (one-sided change, equal changes, MISSING add/delete, dict per key, deletion vs unchanged deletes, deletion vs
-modification clashes, id lists per entry, other lists and scalars clash with the path, no input mutated; values compare
-as canonical JSON so 1, 1.0 and true differ and key order does not; id lists need a string id on every element; a
+modification clashes, id lists per entry and `file` lists (99-sources.json) per file, a package's follow-ups as sets
+(each side's additions stay, an item either side closed goes, none left drops the field), other lists and scalars clash
+with the path, no input mutated; values compare
+as canonical JSON so 1, 1.0 and true differ and key order does not; id lists need a string `id` (or `file`) on every element; a
 repeated id on any side clashes as `<where> (repeated id)` unless ours == theirs or theirs == base) ->
 test_merge3_exact, test_merge3_strict, test_merge3_random (with duplicated entries), test_merge3_disjoint_random,
 test_merge3_same_field_random;
 order (ours unless only theirs reordered, new ids after their predecessor or first, deleted ids kept for merge3) ->
 test_order_exact, test_order_random;
-merge_plan and the sync loop (packages.json merged then plan.py rank; plan block re-rendered; clash aborts with the
-path and leaves the branch; other file, outside-block, one-sided deletion and non-JSON side abort; a failing rank or
+merge_json and the sync loop (packages.json merged then plan.py rank; follow-ups filed and closed on both sides
+merged; 99-sources.json merged per file, a file added twice with different content aborts; plan block re-rendered; clash
+aborts with the path and leaves the branch; other file, outside-block, one-sided deletion and non-JSON side abort; a failing rank or
 render aborts the rebase and re-raises; two conflicting commits; random disjoint and clashing edits) ->
-test_sync_packages_conflict, test_sync_same_field_clash, test_sync_other_file_conflict, test_sync_prompts_only,
+test_sync_packages_conflict, test_sync_same_field_clash, test_sync_followups, test_sync_sources, test_sync_other_file_conflict, test_sync_prompts_only,
 test_sync_prompts_outside_block, test_sync_plan_deleted, test_sync_plan_not_json, test_sync_resolver_fails,
 test_sync_two_commits, test_sync_random;
 LIBRARY, HIDDEN, HOST_RUN, AGENT and changes (library and outside paths, 98-Team Notebook/02-selection.json and
@@ -58,8 +61,8 @@ test_classify_random, test_classify_old_mode, test_files_claim; HOST_RUN names e
 including a pull request's module (source or sourceless bytecode) that shadows a standard module beside them -> test_host_run_coverage,
 test_host_run_shadow;
 files (maintainer only, linked worktree refused, refused while the record's worktree exists, gh failure, STOP for
-draft, closed, merged, base not master; moved head; claim branch -> package, model, branch; non-claim and wrong-batch
-branch -> pr-N; CORE_FULL -> reviewer model fable, the CORE FULL line, `reviewer model <m or default>`; OUTSIDE,
+draft, closed, merged, base not master; moved head; claim branch, a follow-up claim `FU<n>` included -> package, model, branch;
+non-claim, wrong-batch and bare `FU` branch -> pr-N; CORE_FULL -> reviewer model fable, the CORE FULL line, `reviewer model <m or default>`; OUTSIDE,
 library and final lines; state file; DECISIONS: added non-blank lines naming the user's decision or a dated one, and
 lines other than headings added under a ledger's `## Recorded Decisions`, with path and line, 01-prompts.md skipped;
 INSTRUCTIONS: harness.py's blocks and prose lines of changed text files holding an added line, first added line and
@@ -130,6 +133,7 @@ _00_memory_cap.ensure()
 ROOT = Path(__file__).resolve().parents[2]
 PLAN_REL = '00-Guidelines/13-Plan'
 PJ = PLAN_REL + '/packages.json'
+SJ = '95-Resources/99-sources.json'
 MERGE_REL = '.claude/skills/merge-pr/merge_pr.py'
 CAP_REL = '96-Local Testing/_00_memory_cap.py'
 GATE_REL = '96-Local Testing/_00_memory_gate.py'  # _00_memory_cap.py imports it from its folder (SUP33)
@@ -212,7 +216,7 @@ def o_leaf(b, o, t):
     return raw[o], True
 
 
-CHILD = {'doc': {'models': 'dict', 'packages': 'ids'}, 'entry': {'extra': 'dict'}, 'dict': {}}
+CHILD = {'doc': {'models': 'dict', 'packages': 'ids'}, 'entry': {'extra': 'dict', 'followups': 'set'}, 'dict': {}}
 
 
 def o_merge(kind, b, o, t, where, out):
@@ -220,9 +224,16 @@ def o_merge(kind, b, o, t, where, out):
     v, clash = o_leaf(b, o, t)
     if not clash:
         return v
+    if kind == 'set' and all(x is M or isinstance(x, list) for x in (b, o, t)):  # an item stays when a side added it or neither closed it
+        B, O, T = ([] if x is M else x for x in (b, o, t))
+        res = []
+        for x in O + T:
+            if x not in res and not (x in B and (x not in O or x not in T)):
+                res.append(x)
+        return res or M
     ok = (lambda x: isinstance(x, list) and all(isinstance(e, dict) and type(e.get('id')) is str for e in x)) if kind == 'ids' else \
         (lambda x: isinstance(x, dict))
-    if kind == 'leaf' or not all(ok(x) for x in (b, o, t)):
+    if kind in ('leaf', 'set') or not all(ok(x) for x in (b, o, t)):
         out.append(where)
         return o
     if kind == 'ids':
@@ -476,7 +487,7 @@ FIELDS = ('label', 'batches', 'status', 'model', 'evidence', 'note', 'extra')
 def r_entry(rng, pid):
     return {'id': pid, 'label': 'L' + pid, 'batches': ['B' + pid[1:]], 'status': rng.choice(['planned', 'in-progress', 'verified']),
             'model': rng.choice(['fable', 'opus']), 'evidence': rng.choice([[], ['e1']]), 'note': rng.choice(['', 'n0']),
-            'extra': {'a': 0, 'b': 0}}
+            'extra': {'a': 0, 'b': 0}, **rng.choice([{}, {'followups': ['f0']}, {'followups': ['f0', 'f1']}])}
 
 
 def r_doc(rng, n):
@@ -493,7 +504,7 @@ def r_ops(rng, doc, side, ids, k, tops=(), new=(), moves=True, drops=True, dups=
     ops = []
     for n in range(k):
         tag = f'{side}{n}{rng.randint(0, 3)}'
-        kind = rng.choice(['set', 'set', 'sub', 'delsub', 'del', 'add'] + ['drop'] * drops + ['move'] * moves + ['dup'] * dups
+        kind = rng.choice(['set', 'set', 'sub', 'delsub', 'del', 'add', 'fu'] + ['drop'] * drops + ['move'] * moves + ['dup'] * dups
                           + ['new'] * bool(new) + ['top'] * bool(tops))
         if kind in ('new', 'top') or not ids:
             if new and (kind == 'new' or not tops):
@@ -514,6 +525,8 @@ def r_ops(rng, doc, side, ids, k, tops=(), new=(), moves=True, drops=True, dups=
             ops.append(('set', pid, rng.choice(FIELDS), None))
         elif kind == 'add':
             ops.append(('set', pid, 'x' + side, tag))
+        elif kind == 'fu':  # plan.py follow-up: add an item, or close one (the field goes when the last one does)
+            ops.append(('fu', pid, rng.choice([tag, 'f0', 'f1', None])))
         elif kind == 'dup':
             ops.append(('dup', pid))
         elif kind == 'drop':
@@ -560,6 +573,14 @@ def apply_ops(doc, ops):
                     e.pop(op[2], None)
                 else:
                     e[op[2]] = copy.deepcopy(op[3])
+            elif op[0] == 'fu':
+                fu = e.get('followups', [])
+                x = op[2] if op[2] is not None else (fu[0] if fu else None)
+                fu = [y for y in fu if y != x] if x in fu else fu + [x] if x is not None else fu
+                if fu:
+                    e['followups'] = fu
+                else:
+                    e.pop('followups', None)
             elif isinstance(e.get('extra'), dict):
                 if op[3] is None:
                     e['extra'].pop(op[2], None)
@@ -833,6 +854,24 @@ class Units(Base):
             self.assertEqual(sorted(clashes), sorted(wclash), f'clashes of merge3({b!r}, {o!r}, {t!r})')
         r, clashes = self.m3({'packages': [A()]}, {'packages': [A(note='o')]}, {'packages': [A(note='t')]})
         self.assertEqual(clashes, ['packages.json.packages[A].note'])
+        F = lambda *fu: {'packages': [A(followups=list(fu)) if fu else A()]}
+        R = lambda *fs: {'resources': [{'file': f, 'sha256': h} for f, h in fs]}
+        more = [((F(), F('x'), F('y')), F('x', 'y'), [], 'packages.json'), ((F('x', 'y'), F('y'), F('x', 'y', 'z')), F('y', 'z'), [], 'packages.json'),
+                ((F('x', 'y'), F('y'), F('x')), F(), [], 'packages.json'), ((F('x'), F(), F('x', 'y')), F('y'), [], 'packages.json'),
+                ((F('x'), F('x', 'y'), F('y', 'x')), F('x', 'y'), [], 'packages.json'), ((F(), F('x'), F('x')), F('x'), [], 'packages.json'),
+                ((F('x'), {'packages': [A(followups='s')]}, F('y')), {'packages': [A(followups='s')]}, ['packages.json.packages[A].followups'], 'packages.json'),
+                ((R(('a', 1)), R(('a', 1), ('b', 2)), R(('a', 1), ('c', 3))), R(('a', 1), ('c', 3), ('b', 2)), [], '99-sources.json'),
+                ((R(('a', 1), ('b', 2)), R(('a', 5), ('b', 2)), R(('b', 2), ('c', 3))), R(('a', 5), ('b', 2), ('c', 3)), ['99-sources.json.resources[a]'], '99-sources.json'),
+                ((R(('a', 1), ('b', 2)), R(('a', 5), ('b', 2)), R(('a', 1), ('b', 2), ('c', 3))), R(('a', 5), ('b', 2), ('c', 3)), [], '99-sources.json'),
+                ((R(('a', 1)), R(('a', 1), ('b', 2)), R(('a', 1), ('b', 3))), R(('a', 1), ('b', 2)), ['99-sources.json.resources[b]'], '99-sources.json'),
+                ((R(('a', 1)), R(('a', 1), ('a', 2)), R(('a', 1), ('c', 3))), R(('a', 1), ('a', 2)), ['99-sources.json.resources (repeated id)'], '99-sources.json'),
+                (({'r': [{'file': 'a'}]}, {'r': [{'file': 'a'}, {'id': 'b'}]}, {'r': [{'file': 'a'}, {'file': 'c'}]}), {'r': [{'file': 'a'}, {'id': 'b'}]},
+                 ['99-sources.json.r'], '99-sources.json')]
+        for (b, o, t), want, wclash, where in more:  # follow-ups merge as sets (user decision 2026-11-26), resources per file
+            r, clashes = self.m3(b, o, t, where)
+            info = f'merge3({b!r}, {o!r}, {t!r}, {where!r})'
+            self.assertEqual(sorted(clashes), sorted(wclash), info)
+            self.assertEqual(json.dumps(r), json.dumps(want), info)
 
     def check_random(self, base, a, b):
         """Error text when merge3 disagrees with the brute-force oracle on base edited by a (ours) and b (theirs)."""
@@ -1368,7 +1407,7 @@ class Sync(Base):
     def expect_abort(self, r, lines, head, **kw):
         info = self.info(stdout=r.stdout, stderr=r.stderr, **kw)
         self.assertNotEqual(r.returncode, 0, info)
-        self.assertIn('rebase stopped on conflicts outside the generated plan block and packages.json entries; aborted', r.stderr, info)
+        self.assertIn('rebase stopped on conflicts outside the generated plan block and the packages.json and 99-sources.json entries; aborted', r.stderr, info)
         listed = [l.strip() for l in r.stderr.split('Resolve by hand in the worktree:', 1)[-1].splitlines() if l.strip()]
         if lines is not None:
             self.assertEqual(sorted(listed), sorted(lines), info)
@@ -1405,6 +1444,46 @@ class Sync(Base):
         self.expect_abort(self.sync(), [f'packages.json.packages[{pa}].note'], head, package=pa)
         self.assertEqual(git(self.main, 'rev-parse', 'master'), master)
         self.assertEqual(next(p for p in packages(self.wt)['packages'] if p['id'] == pa)['note'], 'branch note')
+
+    def test_sync_followups(self):
+        """Follow-ups filed on one package on both sides merge as a set: each side's additions stay, an item either side
+        closed goes (user decision 2026-11-26)."""
+        pa, = self.runs(1)
+        plan_cmd(self.main, 'follow-up', pa, 'old item')
+        commit(self.main, 'master: old item')
+        git(self.wt, 'rebase', '-q', 'master')
+        plan_cmd(self.main, 'follow-up', pa, '--done', '1')
+        plan_cmd(self.main, 'follow-up', pa, 'master item')
+        commit(self.main, 'master: close old, add master item')
+        plan_cmd(self.wt, 'follow-up', pa, 'branch item')
+        commit(self.wt, 'branch: add branch item')
+        rc, files = self.conflicts()
+        self.assertIn(PJ, files, self.info(note='scenario does not conflict in packages.json', files=files))
+        self.expect_ok(self.sync(), self.edited({pa: {'followups': ['master item', 'branch item']}}), True, package=pa)
+
+    def sources(self, root, entries):
+        write(root, SJ, json.dumps({'description': 'd', 'resources': [{'file': f, 'sha256': h} for f, h in entries]}, indent=2) + '\n')
+
+    def test_sync_sources(self):
+        """95-Resources/99-sources.json merges entry by entry by file; the same file added with different content aborts."""
+        self.sources(self.main, [('a.pdf', '1'), ('b.pdf', '2')])
+        commit(self.main, 'master: manifest')
+        git(self.wt, 'rebase', '-q', 'master')
+        self.sources(self.main, [('a.pdf', '1'), ('b.pdf', '2'), ('m.pdf', '3')])
+        commit(self.main, 'master: m.pdf')
+        self.sources(self.wt, [('a.pdf', '1'), ('b.pdf', '2'), ('w.pdf', '4')])
+        commit(self.wt, 'branch: w.pdf')
+        rc, files = self.conflicts()
+        self.assertEqual(files, [SJ], self.info(note='scenario must conflict only in the manifest', files=files))
+        self.expect_ok(self.sync(), self.base, False)
+        got = json.loads((self.wt / SJ).read_text())
+        self.assertEqual(got, {'description': 'd', 'resources': [{'file': f, 'sha256': h} for f, h in
+                                                                  [('a.pdf', '1'), ('b.pdf', '2'), ('w.pdf', '4'), ('m.pdf', '3')]]})
+        self.sources(self.main, [('a.pdf', '1'), ('b.pdf', '2'), ('w.pdf', '4'), ('m.pdf', '3'), ('c.pdf', '5')])
+        commit(self.main, 'master: c.pdf')
+        self.sources(self.wt, [('a.pdf', '1'), ('b.pdf', '2'), ('w.pdf', '4'), ('m.pdf', '3'), ('c.pdf', '6')])
+        head = commit(self.wt, 'branch: another c.pdf')
+        self.expect_abort(self.sync(), ['99-sources.json.resources[c.pdf]'], head)
 
     def test_sync_other_file_conflict(self):
         write(self.main, 'notes.txt', 'master 1\nline 2\n')
@@ -1684,6 +1763,9 @@ class MergePR(Base):
         self.branch_name = 'P001-c01-carol'  # batch case-insensitive; the fable package's model is recorded
         self.view(headRefName=self.branch_name)
         self.expect_files(self.mp('files', 7), 'P001-c01-carol', 'P001', 'fable', 'C01')
+        self.branch_name = 'P250-fu261126-bob'  # a follow-up claim names its package (user decision 2026-11-26)
+        self.view(headRefName=self.branch_name)
+        self.expect_files(self.mp('files', 7), 'P250-fu261126-bob', 'P250', 'opus', 'FU261126')
 
     def test_files_core_full(self):
         """A changed 01-Core/NN-*.hpp without `mini` makes the reviewer model fable whatever the package."""
@@ -1748,7 +1830,7 @@ class MergePR(Base):
         self.assertTrue(o_decision('user decision') and not o_decision('a decision was made') and not o_decision('user ' + 'y' * 41 + ' decided'))
 
     def test_files_not_claim(self):
-        for branch in ('feature/x', 'P250-C01-bob', 'P999-SUP19-bob', 'P250-SUP19-'):
+        for branch in ('feature/x', 'P250-C01-bob', 'P999-SUP19-bob', 'P250-SUP19-', 'P250-FU-bob', 'P999-FU261126-bob'):
             with self.subTest(branch=branch):
                 if hasattr(self, 'main'):
                     shutil.rmtree(self.tmp / 'main')

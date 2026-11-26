@@ -10,7 +10,8 @@ Read `CLAUDE.md`: everything in it applies, with the Claude Code features it rel
   - `run_in_background`: use your tool's background mode, or a timeout of at least ten minutes; never poll with `sleep`.
   - `/package` step 1, and every skill step that refers to it: skip `harness.py --selftest`, which always fails outside Claude Code, and the comparison with the session's model; keep every other check of the brief. `harness.py --experiment` prints `none`; record it as printed.
   - `/pause`: run its facts command with `0` and write the handoff; skip the keep-alive pings, which only keep Claude's prompt cache warm.
-  - `/finish` step 7: in place of ExitWorktree, run `python3 '00-Guidelines/13-Plan/worktree.py' '<worktree path>' --finish` from the main checkout; in place of EnterWorktree, work in the worktree path.
+  - `/finish` step 1 asks for a fresh context: start a new session where it says `/clear`.
+  - `/finish` step 7 and `/package` step 13, which lands the same way: in place of ExitWorktree, run `python3 '00-Guidelines/13-Plan/worktree.py' '<worktree path>' --finish` from the main checkout; in place of EnterWorktree, work in the worktree path.
   - `/reap`, also the last step of `/package` and `/finish`: it ends only processes Claude Code started, so stop your own background jobs before running it.
   - `/omission-sweep` step 2: in place of the Workflow tool, run by hand the prompts `.claude/skills/omission-sweep/scan.js` builds, each as a separate `@researcher` returning the JSON its schema names: per manifest item the research prompt, then the library and source lens prompts on its candidates. A candidate's decision is the two lenses' shared verdict, otherwise `ask`.
   - `/harness-audit` audits Claude Code itself: skip it.

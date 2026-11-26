@@ -10,6 +10,8 @@
 
 Clone, then run `python3 '.claude/skills/setup-check/setup_check.py'` (or `/setup-check` in Claude Code) until it prints PASS. It declares every tool the scripts run, with its floor and its Ubuntu and Arch packages, probes the compilers' sanitizers and static linking, the memory-capped systemd scope, `gh auth status` and the commit hook ([CLAUDE.md](CLAUDE.md), Start Here), and prints the install commands for what is missing. A WARN disables only the feature named in its row. Open a new login shell after installing, so `~/.local/bin` (the GCC 16 link, `pipx ensurepath`) is on `PATH`.
 
+Then run `python3 '95-Resources/00-sources.py' fetch`: it downloads each source that `95-Resources/99-sources.json` gives a download URL and git does not hold, checks its SHA-256 and lists any it could not fetch. The papers and saved pages are the maintainer's local copies without one; it names them, and each manifest entry gives the page to read instead.
+
 Each tool's floor and packages are in its `TOOLS` entry, including Ubuntu's pre-release `g++-16` snapshot and Arch's AUR `gcc14`. `08-Python` modules keep their own baseline ([`04-python.md`](00-Guidelines/04-python.md)).
 
 ## Roles and Claims

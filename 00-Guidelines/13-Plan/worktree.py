@@ -6,12 +6,14 @@ Usage: worktree.py [PATH] [--sync | --finish] [--integration] [--remove]
   (no flag)      report: clean? branch tip in master? package status on master?
                  A clean, merged worktree is DONE; an unverified package is
                  only reported, since its work is already in master.
-  --sync         rebase the branch onto master. Only two conflicts are
+  --sync         rebase the branch onto master. Only three conflicts are
                  resolved: packages.json, merged entry by entry and field by
-                 field (a field both sides changed differently aborts) and then
-                 re-ranked, and the generated plan block of 01-prompts.md,
-                 re-rendered; a conflict marker left anywhere else aborts
-                 the rebase and is reported. The
+                 field (a field both sides changed differently aborts; the
+                 follow-up lists merge as sets) and then re-ranked, the
+                 resource manifest 95-Resources/99-sources.json, merged entry
+                 by entry by file, and the generated plan block of
+                 01-prompts.md, re-rendered; a conflict marker left anywhere
+                 else aborts the rebase and is reported. The
                  consistency validator runs before and after; new errors fail.
                  Notes other worktrees whose uncommitted edits touch the
                  files this branch changes.
@@ -32,7 +34,8 @@ import subprocess
 import sys
 
 PLAN_JSON = '00-Guidelines/13-Plan/packages.json'
-GENERATED = {'01-prompts.md', PLAN_JSON}
+SOURCES_JSON = '95-Resources/99-sources.json'  # parallel worktrees file sources (user decision 2026-11-26)
+GENERATED = {'01-prompts.md', PLAN_JSON, SOURCES_JSON}
 MARKER = re.compile(r'^(<{7} |={7}$|>{7} )', re.M)
 MISSING = object()
 
@@ -57,21 +60,32 @@ def canon(x):
     return x if x is MISSING else json.dumps(x, sort_keys=True)
 
 
+def ident(lists):
+    """The key naming every entry of these lists of objects: `id` (packages.json) or `file` (99-sources.json), else None."""
+    return next((k for k in ('id', 'file') if all(isinstance(e, dict) and isinstance(e.get(k), str) for x in lists for e in x)), None)
+
+
 def merge3(base, ours, theirs, where, clashes):
     """Three-way merge of JSON values (MISSING: absent), compared as canonical JSON: a change on one side wins over the
-    unchanged other; objects merge per key and lists of objects with a string `id` per entry; any other value both
-    sides changed differently, or such a list repeating an id, is a clash, appended to `clashes` as its path."""
+    unchanged other; objects merge per key and lists of objects per entry, named by a string `id` or `file` (ident());
+    a package's `followups` merge as sets, keeping what either side added and dropping what either closed (user decision
+    2026-11-26); any other value both sides changed differently, or such a list repeating a name, is a clash, appended to
+    `clashes` as its path."""
     b, o, t = canon(base), canon(ours), canon(theirs)
     if o == t or t == b:
         return ours
     if o == b:
         return theirs
+    if where.endswith('.followups') and all(x is MISSING or isinstance(x, list) for x in (base, ours, theirs)):
+        b, o, t = ([] if x is MISSING else x for x in (base, ours, theirs))
+        merged = [x for x in o if x in t or x not in b] + [x for x in t if x not in o and x not in b]
+        return merged or MISSING
     if all(isinstance(x, dict) for x in (base, ours, theirs)):
         merged = {k: merge3(base.get(k, MISSING), ours.get(k, MISSING), theirs.get(k, MISSING), f'{where}.{k}', clashes)
                   for k in [*ours, *(k for k in theirs if k not in ours)]}
         return {k: v for k, v in merged.items() if v is not MISSING}
-    if all(isinstance(x, list) and all(isinstance(e, dict) and isinstance(e.get('id'), str) for e in x) for x in (base, ours, theirs)):
-        maps = [{e['id']: e for e in x} for x in (base, ours, theirs)]
+    if all(isinstance(x, list) for x in (base, ours, theirs)) and (k := ident((base, ours, theirs))):
+        maps = [{e[k]: e for e in x} for x in (base, ours, theirs)]
         if any(len(m) != len(x) for m, x in zip(maps, (base, ours, theirs))):
             clashes.append(f'{where} (repeated id)')
             return ours
@@ -96,20 +110,20 @@ def order(base, ours, theirs):
     return res
 
 
-def merge_plan(path):
-    """Resolve a conflicted packages.json from its three index stages with merge3; returns the clashes, writing the
-    merged file only when there are none."""
-    shown = [git('show', f':{n}:{PLAN_JSON}', cwd=path, check=False) for n in (1, 2, 3)]
+def merge_json(path, rel=PLAN_JSON):
+    """Resolve a conflicted JSON file (packages.json, 99-sources.json) from its three index stages with merge3; returns
+    the clashes, writing the merged file only when there are none."""
+    shown = [git('show', f':{n}:{rel}', cwd=path, check=False) for n in (1, 2, 3)]
     if any(s.returncode for s in shown):
-        return [f'{PLAN_JSON} (added or deleted on one side)']
+        return [f'{rel} (added or deleted on one side)']
     try:
         base, ours, theirs = (json.loads(s.stdout) for s in shown)
     except ValueError:
-        return [f'{PLAN_JSON} (a side is not JSON)']
+        return [f'{rel} (a side is not JSON)']
     clashes = []
-    merged = merge3(base, ours, theirs, 'packages.json', clashes)
+    merged = merge3(base, ours, theirs, Path(rel).name, clashes)
     if not clashes:
-        (path / PLAN_JSON).write_text(json.dumps(merged, indent=2, ensure_ascii=False) + '\n')
+        (path / rel).write_text(json.dumps(merged, indent=2, ensure_ascii=False) + '\n')
     return clashes
 
 
@@ -213,17 +227,17 @@ def sync(path, facts, integration):
                 conflicts = git('diff', '--name-only', '--diff-filter=U', cwd=path).stdout.splitlines()
                 resolved = bool(conflicts) and set(conflicts) <= GENERATED
                 merged = resolved and PLAN_JSON in conflicts
-                if merged:
-                    clashes = merge_plan(path)
+                if resolved:
+                    clashes = [c for f in (PLAN_JSON, SOURCES_JSON) if f in conflicts for c in merge_json(path, f)]
                     resolved, conflicts = not clashes, clashes or conflicts
                 if resolved:  # rank re-orders the merged plan as `plan.py set` would, and both commands re-render the plan block
                     subprocess.run([sys.executable, str(path / '00-Guidelines/13-Plan/plan.py'), 'rank' if merged else 'render'], cwd=path, check=True, capture_output=True)
                     conflicts = [f for f in conflicts if MARKER.search((path / f).read_text())]
                     resolved = not conflicts
                 if not resolved:
-                    raise SystemExit('rebase stopped on conflicts outside the generated plan block and packages.json entries; aborted. Resolve by hand in the worktree:\n  '
+                    raise SystemExit('rebase stopped on conflicts outside the generated plan block and the packages.json and 99-sources.json entries; aborted. Resolve by hand in the worktree:\n  '
                                      + '\n  '.join(conflicts or [result.stderr.strip()]))
-                git('add', *GENERATED, cwd=path)
+                git('add', *(f for f in GENERATED if (path / f).exists()), cwd=path)
                 result = git('rebase', '--continue', cwd=path, check=False)
         except BaseException:  # any failure (a clash, a failing rank or render, a git error) leaves no rebase in progress
             git('rebase', '--abort', cwd=path, check=False)

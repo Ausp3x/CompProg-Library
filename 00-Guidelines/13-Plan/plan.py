@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Work-plan manifest CLI: show, status, next, set, render, rank, check, ready, doctor and waiting for packages and
-batches. show, next, status, ready and waiting also read the clone's role and the open pull requests."""
+"""Work-plan manifest CLI: show, status, next, set, follow-up, render, rank, check, ready, doctor and waiting for packages
+and batches. show, next, status, ready and waiting also read the clone's role and the open pull requests."""
 import argparse
 import collections
+import datetime
 import importlib.util
 import json
 import os
@@ -18,11 +19,15 @@ PLAN = '00-Guidelines/13-Plan'
 BEGIN, END = '<!-- plan:begin -->', '<!-- plan:end -->'
 PHASES = ['Foundations Re-audit', 'Core Full Types', 'Contest Core',
           'Python Contest Layer', 'Specialist and Research Families', 'Final Support Integration']
-LEGEND = ('Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model, size): label. Open packages add '
-          'their status (planned or in-progress) and note; `plan.py show Pxxx` gives a verified package\'s evidence and note.')
+LEGEND = ('Legend: `[ ]` planned, `[-]` in progress, `[x]` verified, `[!]` verified with open follow-ups; **package — batches in '
+          'order** (model, size): label. Open packages add their status and note, and any package its open follow-ups; '
+          '`plan.py show Pxxx` gives a verified package\'s evidence and note.')
 TIER_RANK = {'Basic': 0, 'Core': 0, 'Advanced': 1, 'Esoteric': 2}
 REPO = 'Ausp3x/CompProg-Library'  # canonical repository; `git config compprog.repo` overrides it
-CLAIM = re.compile(r'(P\d{3})-([A-Za-z]+\d+)-(.+)')  # claim branch Pxxx-<batch>-<user>
+CLAIM = re.compile(r'(P\d{3})-([A-Za-z]+\d+)-(.+)')  # claim branch Pxxx-<batch>-<user>, or Pxxx-FU<yymmdd>-<user> for follow-ups
+FOLLOW = re.compile(r'FU\d+')  # the batch part of a follow-up claim (user decision 2026-11-26)
+LIMITS = re.compile(r'(#{2,3}) .*\b(Limits|Handoffs?)\b')  # an evidence document's limits sections (02-structure.md, Names)
+DECIDED = re.compile(r'\buser decisions? \d{4}-\d\d-\d\d|\bfollow-up on P\d{3}\b')  # or work a rule handed to another package
 PR_PAGE = 30  # open pull requests `waiting` lists: their commits must stay under GitHub's GraphQL node limit
 TARGET = re.compile(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`')
 # Re-attachment room (SUP33, SUP34; 00-harness-review.md): after a compaction Claude Code re-attaches each invoked skill's
@@ -92,6 +97,16 @@ def link(path):
     return f'[evidence](<{path}>)' if ' ' in path else f'[evidence]({path})'
 
 
+def followups(p):
+    """A package's open follow-ups (`followups` in packages.json, absent when none): work filed on it that leaves its status as it is."""
+    return p.get('followups', [])
+
+
+def marker(p):
+    """The checklist box of a package: planned, in progress, verified, or verified with open follow-ups."""
+    return {'planned': '[ ]', 'in-progress': '[-]'}.get(p['status'], '[!]' if followups(p) else '[x]')
+
+
 def render_text(packages):
     out = [BEGIN, '', LEGEND]
     for phase in PHASES:
@@ -100,7 +115,8 @@ def render_text(packages):
             if p['phase'] == phase:
                 head = f'**{p["id"]} — {", ".join(p["batches"])}** ({p["model"]}, {p["size"]}): {p["label"]}.'
                 tail = ''.join([f' Note: {p["note"]}' if p['note'] else '', *(' ' + link(e) for e in p['evidence'])])
-                out.append(f'- [x] {head}' if p['status'] == 'verified' else f'- [ ] {head} Status: {p["status"]}.{tail}')
+                fu = ' Follow-ups: ' + '; '.join(f'({i}) {x}' for i, x in enumerate(followups(p), 1)) + '.' if followups(p) else ''
+                out.append(f'- {marker(p)} {head}{fu}' if p['status'] == 'verified' else f'- {marker(p)} {head} Status: {p["status"]}.{tail}{fu}')
     return '\n'.join(out + ['', END])
 
 
@@ -152,12 +168,18 @@ def late(status, d, p):
     return 'verified' not in (status[d], status[p])
 
 
+def pending(p):
+    """Whether a package has work left: open, or verified with open follow-ups."""
+    return p['status'] != 'verified' or bool(followups(p))
+
+
 def ready(batches, packages, skip=()):
-    """The first open package whose prerequisites are verified, leaving out `skip` (ids `gate` blocks)."""
+    """The first package with work left whose prerequisites are verified, leaving out `skip` (ids `gate` blocks): a
+    verified package with open follow-ups first, in schedule order, then the first open package."""
     status = {p['id']: p['status'] for p in packages['packages']}
     deps = prereqs(batches, packages)
-    return next((p for p in packages['packages'] if p['status'] != 'verified' and p['id'] not in skip
-                 and all(status[d] == 'verified' for d in deps[p['id']])), None)
+    fit = [p for p in packages['packages'] if pending(p) and p['id'] not in skip and all(status[d] == 'verified' for d in deps[p['id']])]
+    return next((p for p in fit if p['status'] == 'verified'), fit[0] if fit else None)
 
 
 def gh(root, *args):
@@ -203,10 +225,11 @@ def claims(root, packages):
     if prs is None:
         return {}, why
     owner = {b: p['id'] for p in packages['packages'] for b in p['batches']}
+    ids = {p['id'] for p in packages['packages']}
     res = {}
     for pr in sorted(prs, key=lambda pr: pr['number']):
         m = CLAIM.fullmatch(pr['headRefName'])
-        if m and owner.get(m[2].upper()) == m[1]:
+        if m and (owner.get(m[2].upper()) == m[1] or (m[1] in ids and FOLLOW.fullmatch(m[2].upper()))):
             res.setdefault(m[1], (pr['author']['login'], pr['headRefName'], pr['number'], pr['isDraft']))
     return res, ''
 
@@ -231,11 +254,11 @@ def current(root):
 
 def claim_branch(p, batch, branch, cl, me):
     """A contributor's claim branch for package p: their own open claim's branch, else the current `branch` when it is a
-    claim branch of a batch of p, else `<id>-<batch>-<login>`."""
+    claim branch of a batch or of the follow-ups of p, else `<id>-<batch>-<login>`."""
     if p['id'] in cl and cl[p['id']][0].lower() == me.lower():
         return cl[p['id']][1]
     m = CLAIM.fullmatch(branch or '')
-    return branch if m and m[1] == p['id'] and m[2].upper() in p['batches'] else f'{p["id"]}-{batch}-{me}'
+    return branch if m and m[1] == p['id'] and (m[2].upper() in p['batches'] or FOLLOW.fullmatch(m[2].upper())) else f'{p["id"]}-{batch}-{me}'
 
 
 def check(root=ROOT):
@@ -279,8 +302,15 @@ def check(root=ROOT):
         require(p['status'] in packages['statuses'], f'Bad status: {p["id"]} {p["status"]}')
         require(p['model'] in packages['models'], f'Bad model: {p["id"]} {p["model"]}')
         require(p['phase'] in PHASES, f'Bad phase: {p["id"]} {p["phase"]}')
+        fu = p.get('followups', [])
+        require(isinstance(fu, list) and fu and all(isinstance(x, str) and x.strip() and '\n' not in x for x in fu) and len(set(fu)) == len(fu)
+                if 'followups' in p else True, f'Bad followups: {p["id"]} (a non-empty list of distinct one-line texts, absent when none)')
         for e in p['evidence']:
             require((root / e).exists(), f'Missing evidence: {p["id"]} -> {e}')
+        if p['status'] == 'verified' and not fu and all(b in bmap for b in p['batches']):
+            left = open_limits(root, p, bmap)
+            require(not left, f'Undecided limits in verified {p["id"]}: {len(left)}, the first at {left[0].split(": ")[0] if left else ""}; '
+                              f'file a follow-up (plan.py follow-up {p["id"]} ...) or decide them (02-structure.md, Names)')
     found = dependencies(root).scan(root)
     for b, d, h, inc in include_edges(root, batches, found):
         require(d in bmap[b]['prerequisites'], f'Undeclared include edge: {h} -> {inc}; add {d} to the prerequisites of {b} (plan.py doctor --fix)')
@@ -336,6 +366,42 @@ def docs_for(root, target):
 def row_status(parts):
     """The status word of an inventory row's cells (`verified; [evidence](...)` -> `verified`)."""
     return parts[-1].split(';')[0].split(' ')[0].strip('*').lower()
+
+
+def undecided(doc):
+    """(line number, text) of each item under a limits heading (LIMITS) of an evidence document that names no
+    `user decision <date>` (02-structure.md, Names): a list item with its indented continuation lines, a table body row or
+    a paragraph; `none` items are skipped."""
+    out, level, item = [], 0, None
+    lines = doc.read_text(errors='replace').splitlines() if doc.is_file() else []
+    for i, line in enumerate(lines, 1):
+        heading, text = re.match(r'(#+) ', line), line.strip()
+        if heading and level and len(heading[1]) <= level:
+            level = 0
+        if heading and not level and LIMITS.match(line):
+            level, item = len(heading[1]), None
+        elif not level or heading or not text:
+            item = None
+        elif re.fullmatch(r'\|[\s|:-]+\|?', text):
+            out = out[:-1] if item and item[1].startswith('|') else out  # the row above a rule is the table's header
+            item = None
+        elif item and not item[1].startswith('|') and (line[:1] in ' \t' or not re.match(r'([-*+]|\d+[.)]) |\|', text)):  # continued, nested items too
+            item[1] += ' ' + text
+        else:
+            item = [i, text]
+            out.append(item)
+    return [(i, t) for i, t in out if not DECIDED.search(t) and not re.fullmatch(r'(([-*+]|\d+[.)]) )?none\.?', t, re.I)]
+
+
+def package_docs(root, p, bmap):
+    """The evidence documents of package p: its targets' and support targets' documents and its evidence paths."""
+    return sorted({d for b in p['batches'] for t in bmap[b]['targets'] + bmap[b].get('support_targets', []) for d in docs_for(root, t)}
+                  | set(p['evidence']))
+
+
+def open_limits(root, p, bmap):
+    """`path:line: text` of each undecided limit (undecided()) in the evidence documents of package p."""
+    return [f'{d}:{i}: {t[:140]}' for d in package_docs(root, p, bmap) for i, t in undecided(root / d)]
 
 
 CANDIDATES, VERDICTS = '### Optimization Candidates', ('adopted', 'rejected', 'other owner', 'none found')
@@ -540,9 +606,12 @@ def show(root, ident):
     else:
         raise SystemExit(f'Unknown package or batch: {ident}')
     command, check = launch(root, packages['models'][p['model']])
-    out = [f'{p["id"]} — {p["label"]} | {p["phase"]} | {p["size"]} | {p["status"]} | '
-           f'model: {p["model"]} ({packages["models"][p["model"]]}) | launch: {command}' + (f' | {check}' if check else ''), line]
+    fu = followups(p)
+    out = [f'{p["id"]} — {p["label"]} | {p["phase"]} | {p["size"]} | {p["status"]}' + (f' with {len(fu)} open follow-up(s)' if fu else '')
+           + f' | model: {p["model"]} ({packages["models"][p["model"]]}) | launch: {command}' + (f' | {check}' if check else ''), line]
     batch = shown[0] if len(shown) == 1 else next((b for b in p['batches'] if not batch_done(bmap[b], inv, fin)), p['batches'][0])
+    if p['status'] == 'verified' and fu:  # a follow-up claim (user decision 2026-11-26)
+        batch = f'FU{datetime.date.today():%y%m%d}'
     if p['id'] in block:
         out.append(f'STOP: {p["id"]} is {block[p["id"]]}; pick another package (`plan.py ready`).')
     elif p['id'] in cl:
@@ -557,10 +626,14 @@ def show(root, ident):
                    f"--allow-empty -m '{p['id']}: claim {batch}' && CP_USER=1 git push -u origin {b} && gh pr create --draft --fill "
                    f"--repo {config(root, 'compprog.repo') or REPO}`.")
     out.append('')
+    if fu:
+        out += [('Follow-ups: the package stays verified; /package runs only these and closes each one done with '
+                 f'`plan.py follow-up {p["id"]} --done <n>`:' if p['status'] == 'verified' else 'Follow-ups (part of this package\'s work):'),
+                *(f'{i}. {x}' for i, x in enumerate(fu, 1)), '']
     if len(p['batches']) > 1:
         out += ['Batches: ' + ', '.join(f'{b} ({"done" if batch_done(bmap[b], inv, fin) else "this brief" if shown == [b] else "open"})'
                                         for b in p['batches'])
-                + (f'. One batch per session, under its batch id: run `/package {batch}`, then `/finish {batch}`.' if not shown else ''), '']
+                + (f'. One batch per session, under its batch id: run `/package {batch}`, which lands it when nothing is open, else `/clear`, then `/finish {batch}`.' if not shown else ''), '']
     deps = prereqs(batches, packages)[p['id']]
     out.append('Prerequisite packages:' if deps else 'Prerequisite packages: none')
     out += [f'- {d} ({pmap[d]["status"]}) — {pmap[d]["label"]}' for d in deps]
@@ -604,7 +677,7 @@ def live(root, batches, packages):
     out = {owner.get(t, t) for t in map(str.upper, re.findall(r'(?<![A-Za-z0-9])[A-Za-z]+\d+(?![A-Za-z0-9])', names)) if t in owner or t in ids}
     changed = set(filter(None, (git('diff', '--name-only', '-z', 'HEAD') + git('ls-files', '-oz', '--exclude-standard')).split('\0')))
     for p in packages['packages']:
-        if p['status'] != 'verified' and p['id'] not in out:
+        if pending(p) and p['id'] not in out:
             files = set(p['evidence']) | {f for b in p['batches'] for t in bmap[b]['targets'] + bmap[b].get('support_targets', [])
                                           for f in [t, *docs_for(root, t), *tests_for(root, t)]}
             if files & changed:
@@ -613,16 +686,17 @@ def live(root, batches, packages):
 
 
 def ready_list(root=ROOT):
-    """Open packages whose prerequisites are all verified, in schedule order: (package, folders, live here, next open
-    batch of a multi-batch package, its done batch count, claim or block text), plus the `gate` claims line."""
+    """Packages with work left whose prerequisites are all verified, verified ones with open follow-ups first, then in
+    schedule order: (package, folders, live here, next open batch of a multi-batch package, its done batch count, claim or
+    block text), plus the `gate` claims line."""
     batches, packages = load(root)
     bmap = {b['id']: b for b in batches['batches']}
     status = {p['id']: p['status'] for p in packages['packages']}
     deps, busy, inv = prereqs(batches, packages), live(root, batches, packages), inventories(root)
     fin, (_, _, cl, line, block) = landed(root), gate(root, packages)
     out = []
-    for p in packages['packages']:
-        if p['status'] == 'verified' or not all(status[d] == 'verified' for d in deps[p['id']]):
+    for p in sorted(packages['packages'], key=lambda p: p['status'] != 'verified'):  # stable: schedule order within each part
+        if not pending(p) or not all(status[d] == 'verified' for d in deps[p['id']]):
             continue
         folders = sorted({bmap[b]['folder'] for b in p['batches']} | {t.split('/')[0] for b in p['batches'] for t in bmap[b]['targets']})
         done = [b for b in p['batches'] if batch_done(bmap[b], inv, fin)]
@@ -638,7 +712,7 @@ def ready_text(root, limit):
     """The ready list and a disjoint set: live and claimed packages reserve their folders, blocked ones are left out."""
     rows, line = ready_list(root)
     out = [line, 'Ready packages (prerequisites satisfied), schedule order:']
-    out += [f'- {p["id"]} [{p["status"]}, {p["model"]}, {p["size"]}] {", ".join(f)} — {p["label"]}'
+    out += [f'- {p["id"]} [{p["status"]}{f", {len(followups(p))} follow-up(s)" if followups(p) else ""}, {p["model"]}, {p["size"]}] {", ".join(f)} — {p["label"]}'
             + (' — live here' if busy else f' — next {nxt} ({done}/{len(p["batches"])} batches done)' if nxt and done else '')
             + (f' — {held}' if held else '')
             for p, f, busy, nxt, done, held in rows]
@@ -688,14 +762,16 @@ def waiting(root):
     me = login(root) if prs and r == 'contributor' else ''
     for pr in sorted(prs or [], key=lambda pr: pr['number']):
         n, who, m = pr['number'], pr['author']['login'], CLAIM.fullmatch(pr['headRefName'])
-        p = pmap.get(m[1]) if m and owner.get(m[2].upper()) == m[1] else None
+        fu = bool(m and FOLLOW.fullmatch(m[2].upper()))  # a follow-up claim is one unit, run as `/package Pxxx`
+        p = pmap.get(m[1]) if m and (fu or owner.get(m[2].upper()) == m[1]) else None
         what, nxt, prog = f'{p["id"]} ({m[2].upper()})' if p else f'"{pr["title"]}"', None, ''
         if p and 'commits' in pr:
             heads = [c.get('messageHeadline', '') for c in pr['commits']]
-            done = [b for b in p['batches'] if any(h.startswith(p['id'] + ': ') and h.endswith(' — verified')
-                                                   and (len(p['batches']) == 1 or re.match(rf'{p["id"]}: {b}\b', h, re.I)) for h in heads)]
-            nxt = next((b for b in p['batches'] if b not in done), None)
-            prog = f', {len(done)} of {len(p["batches"])} batches verified' + (f', next {nxt}' if nxt else '')
+            units = [m[2].upper()] if fu else p['batches']
+            done = [b for b in units if any(h.startswith(p['id'] + ': ') and h.endswith(' — verified')
+                                            and (len(units) == 1 or re.match(rf'{p["id"]}: {b}\b', h, re.I)) for h in heads)]
+            nxt = next((p['id'] if fu else b for b in units if b not in done), None)
+            prog = f', {len(done)} of {len(units)} {"follow-up runs" if fu else "batches"} verified' + (f', next {nxt}' if nxt else '')
         changes = pr.get('reviewDecision') == 'CHANGES_REQUESTED'
         if r == 'maintainer':
             line = f'#{n} {what} by @{who}'
@@ -741,6 +817,7 @@ def doctor(root=ROOT, fix=False):
     owner = {t: p['id'] for p in packages['packages'] for b in p['batches'] for t in bmap[b]['targets']}
     batch_of = {t: b for b in bmap for t in bmap[b]['targets']}
     pstatus = {p['id']: p['status'] for p in packages['packages']}
+    pmap = {p['id']: p for p in packages['packages']}
     todo, fixed = collections.defaultdict(list), []
     missing = {(b, d) for b, d, _, _ in include_edges(root, batches) if d not in bmap[b]['prerequisites']}
     if fix and missing:
@@ -771,7 +848,7 @@ def doctor(root=ROOT, fix=False):
             todo[key].append(f'{name}: row verified but package {pid} is {ps}; finish the package or downgrade the row')
         if ps == 'verified' and rstatus not in ('verified', 'partial'):
             todo[key].append(f'{name}: package verified but row is {rstatus}')
-        if ps == 'verified' and rstatus == 'partial':
+        if ps == 'verified' and rstatus == 'partial' and not followups(pmap[pid]):
             todo[key].append(f'{name}: partial row inside a verified package; operations still missing (see missing:)')
         tests = tests_for(root, t)
         if rstatus == 'verified' and not tests:
@@ -817,6 +894,10 @@ def main():
     s.add_argument('status')
     s.add_argument('--evidence', nargs='+', default=[], help='append repo-relative evidence paths')
     s.add_argument('--note', help='replace the package note')
+    f = sub.add_parser('follow-up', help='file a follow-up on a package (its status stays), or close done ones')
+    f.add_argument('id')
+    f.add_argument('text', nargs='?', help='one line: the work, its reason and who filed it')
+    f.add_argument('--done', type=int, nargs='+', metavar='N', help='close the follow-ups with these numbers (as `show` lists them)')
     a = ap.parse_args()
     if a.cmd == 'show':
         lines, skill = show(ROOT, a.id).split('\n'), ROOT / '.claude/skills' / (a.skill or '') / 'SKILL.md'
@@ -848,6 +929,28 @@ def main():
         if a.cmd == 'rank':
             rank(batches, packages)
             save(ROOT, packages)
+        if a.cmd == 'follow-up':
+            p = next((p for p in packages['packages'] if p['id'] == a.id), None)
+            if p is None or (a.text is None) == (a.done is None):
+                raise SystemExit(f'Unknown package {a.id}' if p is None else 'Give the follow-up text or --done N..., not both')
+            fu = followups(p)
+            if a.text is not None:
+                text = ' '.join(a.text.split())
+                if not text or text in fu:
+                    raise SystemExit('Empty follow-up' if not text else f'{a.id} already has this follow-up')
+                fu = [*fu, text]
+            else:
+                if not set(a.done) <= set(range(1, len(fu) + 1)):
+                    raise SystemExit(f'{a.id} has follow-ups 1 to {len(fu)}' if fu else f'{a.id} has no open follow-up')
+                fu = [x for i, x in enumerate(fu, 1) if i not in a.done]
+                if not fu and p['status'] == 'verified' and (left := open_limits(ROOT, p, {b['id']: b for b in batches['batches']})):
+                    raise SystemExit(f'{a.id} keeps its last follow-up while {len(left)} limit(s) lack a `user decision <date>` '
+                                     '(02-structure.md, Names):\n  ' + '\n  '.join(left))
+            p.pop('followups', None)
+            if fu:
+                p['followups'] = fu
+            save(ROOT, packages)
+            print('\n'.join([f'{a.id}: {len(fu)} open follow-up(s)', *(f'{i}. {x}' for i, x in enumerate(fu, 1))]))
         if a.cmd == 'set':
             p = next((p for p in packages['packages'] if p['id'] == a.id), None)
             if p is None or a.status not in packages['statuses']:
@@ -855,6 +958,12 @@ def main():
             missing = [e for e in a.evidence if not (ROOT / e).exists()]
             if missing:
                 raise SystemExit(f'Missing evidence paths: {missing}')
+            bmap = {b['id']: b for b in batches['batches']}
+            covered = p['status'] == 'verified' and followups(p)  # open follow-ups cover its limits, as in check()
+            if a.status == 'verified' and not covered and (left := open_limits(ROOT, {**p, 'evidence': p['evidence'] + a.evidence}, bmap)):
+                raise SystemExit(f'{a.id} not set verified: {len(left)} limit(s) without a `user decision <date>` (02-structure.md, Names). '
+                                 'Fix each that the package can do, move what the algorithm or contract implies to Contracts, and '
+                                 'ask the user about the rest:\n  ' + '\n  '.join(left))
             p['status'] = a.status
             p['evidence'] += [e for e in a.evidence if e not in p['evidence']]
             if a.note is not None:

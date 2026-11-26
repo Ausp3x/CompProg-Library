@@ -6,7 +6,8 @@ or worktree name (gaps.py, target). At startup and after /clear (argument `start
 /pause handoff with the git state, and nothing when there is none. Before a compaction (argument `precompact`) it
 prints instructions for the summary: the target, the skill to resume at its step, the ledger path and what to keep
 (CLAUDE.md, Compact Instructions). Plain stdout becomes context, or the summary's instructions; output over 10,000
-characters would be replaced by a file path or cut, so it stays below that."""
+characters would be replaced by a file path or cut, so it stays below that. In a linked worktree it first links SHARED,
+the git-ignored source folders, to the main checkout's (user decision 2026-11-26)."""
 import datetime
 import functools
 import importlib.util
@@ -17,6 +18,7 @@ import sys
 from pathlib import Path
 
 CAP = 9000
+SHARED = ('95-Resources/00-Inbox', '95-Resources/13-Papers', '95-Resources/14-Web Pages')  # git-ignored, no tracked file
 
 
 def run(*cmd, cwd):
@@ -91,6 +93,31 @@ def git_state(root):
             + '\n'.join(status[:30]) + ('\n...' if len(status) > 30 else ''))
 
 
+def link_shared(root):
+    """In a linked worktree, make each SHARED folder a link to the main checkout's (created there when missing), so the
+    files the user supplies and the sources filed from them are one set for every session; a folder the worktree holds
+    itself (not empty) is kept and named in the returned note ('' when there is nothing to say)."""
+    common = Path(run('git', 'rev-parse', '--path-format=absolute', '--git-common-dir', cwd=root) or root)
+    main = common.parent if common.name == '.git' else root
+    if main == root or not (main / '95-Resources').is_dir():
+        return ''
+    kept = []
+    for rel in SHARED:
+        here, there = root / rel, main / rel
+        if here.is_symlink():
+            continue
+        if here.is_dir() and not any(here.iterdir()):
+            here.rmdir()
+        if here.exists():
+            kept.append(rel)
+            continue
+        there.mkdir(parents=True, exist_ok=True)
+        here.parent.mkdir(parents=True, exist_ok=True)
+        here.symlink_to(there, target_is_directory=True)
+    return (f'Note from .claude/hooks/resume.py: {", ".join(kept)} in this worktree are folders of its own, not links to the '
+            f'main checkout\'s; move their files to {main / "95-Resources"} and delete them, so every session shares one set.') if kept else ''
+
+
 def handoff(root):
     """The newest /pause handoff with the git state, or '' when there is none."""
     notes = sorted((root / '.claude/pause').glob('*.md'), key=lambda f: f.stat().st_mtime, reverse=True)
@@ -112,7 +139,7 @@ def main():
     root = Path(run('git', 'rev-parse', '--show-toplevel', cwd=hook.get('cwd') or '.') or Path(__file__).resolve().parents[2])
     mode = sys.argv[1] if len(sys.argv) > 1 else hook.get('source', 'compact')
     if mode in ('startup', 'clear'):
-        print(handoff(root), end='')
+        print('\n\n'.join(filter(None, [link_shared(root), handoff(root)])), end='')
         return
     if mode == 'precompact':
         print(precompact(root, hook.get('transcript_path')), end='')

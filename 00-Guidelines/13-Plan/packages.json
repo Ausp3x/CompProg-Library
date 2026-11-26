@@ -23,7 +23,10 @@
       "evidence": [
         "09-Contest Testing/Docs/00-verification.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P002",
@@ -41,7 +44,10 @@
         "01-Core/Docs/02-debug.md",
         "01-Core/Docs/18-bitset.md"
       ],
-      "note": "Re-pass owed for `18-bitset.hpp` (template and debug are exempt): its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22). Candidates named in `18-bitset.md`: AVX-512 VPOPCNTDQ, Harley–Seal popcount, AVX2 edge handling for `combineRange`."
+      "note": "Re-pass owed for `18-bitset.hpp` (template and debug are exempt): its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22). Candidates named in `18-bitset.md`: AVX-512 VPOPCNTDQ, Harley–Seal popcount, AVX2 edge handling for `combineRange`.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P003",
@@ -72,7 +78,10 @@
         "01-Core/Docs/03-barrett.md",
         "01-Core/Docs/04-montgomery.md"
       ],
-      "note": "Handed over by P005's sweep (2026-11-18, GCC 15): Montgomery32::mul8 (04-montgomery.hpp:81) carries no always_inline, so a caller's lane loop called a local clone of it once per lane group (dynamic 32-bit batchInv 2.0-4.5% slower at sizes 80-384, +3.65 instructions an element); with always_inline on mul8 alone 20 calls remained through red8 and red4. Candidate for P004's own sweep, to be measured on its rows: always_inline on mul8, red8, red4, load and store. 05-modint.hpp no longer depends on it (its lane product is inlined from its own side). User decision 2026-11-19: done in P004's sweep, not in P005's landing. Also handed over by P005 (01-Core/Docs/05-modint.md, Dependent-Owner Handoff; GCC 15, 2026-11-18 to 2026-11-21): Montgomery64::redc's correction mispredicts 0.22 times a product in batch chains (a branch-free correction is the candidate; 05-modint.hpp carries its own branch-free product until then); Montgomery64 built from a known 2^128 mod m measured setmod-p30-given64 0.79-0.84. From 2026-11-16 (GCC 16): Barrett32::divMod's correction compiles to a branch that mispredicts on dividends near 2^63 and GCC stops inlining divMod into a larger caller; a branch-free multiplier select in Montgomery64::powMont measured 0.72-0.78 on random exponents. From P005 (01-Core/Docs/05-modint.md cites this note): Barrett32::pow and Barrett64::pow reduce their base redundantly (equivalent mutants CR 61 and CR 92 at 03-barrett.hpp lines 26 and 111), a removal candidate; this sweep reruns the Barrett mutation campaign under the current sample rule (05-testing.md, Mutation Testing). A change to Barrett or Montgomery code here triggers the P005 re-measurements its note lists."
+      "note": "Handed over by P005's sweep (2026-11-18, GCC 15): Montgomery32::mul8 (04-montgomery.hpp:81) carries no always_inline, so a caller's lane loop called a local clone of it once per lane group (dynamic 32-bit batchInv 2.0-4.5% slower at sizes 80-384, +3.65 instructions an element); with always_inline on mul8 alone 20 calls remained through red8 and red4. Candidate for P004's own sweep, to be measured on its rows: always_inline on mul8, red8, red4, load and store. 05-modint.hpp no longer depends on it (its lane product is inlined from its own side). User decision 2026-11-19: done in P004's sweep, not in P005's landing. Also handed over by P005 (01-Core/Docs/05-modint.md, Dependent-Owner Handoff; GCC 15, 2026-11-18 to 2026-11-21): Montgomery64::redc's correction mispredicts 0.22 times a product in batch chains (a branch-free correction is the candidate; 05-modint.hpp carries its own branch-free product until then); Montgomery64 built from a known 2^128 mod m measured setmod-p30-given64 0.79-0.84. From 2026-11-16 (GCC 16): Barrett32::divMod's correction compiles to a branch that mispredicts on dividends near 2^63 and GCC stops inlining divMod into a larger caller; a branch-free multiplier select in Montgomery64::powMont measured 0.72-0.78 on random exponents. From P005 (01-Core/Docs/05-modint.md cites this note): Barrett32::pow and Barrett64::pow reduce their base redundantly (equivalent mutants CR 61 and CR 92 at 03-barrett.hpp lines 26 and 111), a removal candidate; this sweep reruns the Barrett mutation campaign under the current sample rule (05-testing.md, Mutation Testing). A change to Barrett or Montgomery code here triggers the P005 re-measurements its note lists.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P005",
@@ -89,7 +98,10 @@
         "01-Core/Docs/05-modint.md",
         "01-Core/Docs/06-modintmini.md"
       ],
-      "note": "C03 landed on 2026-11-22 (/finish C03) with row 05 `existing-unverified` (user decision 2026-11-22): 01-Core/05-modint.hpp rewritten under the Core full rule (canonical storage kept, MontModInt64 and DynMontModInt64 added, every candidate of every operation decided on GCC 15: 01-Core/Docs/05-modint.md, Benchmarks), with its tests and evidence; the verification chain passed on the final header (Commands and Results). Open before C03 is verified (the same list stands in the document's Limits and Handoffs): (1) the mutation campaign, 04-mutation.py run 01-Core/05-modint.hpp --whole with the sample 10/25/15 of 50 (user decision 2026-11-26), and any test it shows missing; (2) the comparison against HEAD over the whole rig, 06-compare.py run '96-Local Testing/01-Core/05-modint_compare.cpp' --gate, its Comparison: line, the benchmark driver rerun (05-modint_benchmark.py --seed 20261116 --repetitions 5 --milliseconds 2 --passes 5) and the matrix_det_arbitrary_mod driver; (3) the static inverse table of 16,384 words, adopted by user decision 2026-11-22 and not yet in the header (faster on its rows, no row slower; 8.4 s and 596 MB against 2.7 s and 369 MB to compile four static types); (4) candidates named and not measured: a dynamic inverse table of 8192 or 16,384 pairs, INV_TINY 32 or 64, a shorter miss path of the dynamic table, the unexplained 1.06 of MontModInt64 inv-tiny; (5) a last @reviewer pass (the stop rule of 05-testing.md, Benchmarks); (6) /speed-sweep P005 verify, which only the user starts. When P004's sweep changes Barrett or Montgomery code, POW_MONT, POW_MONT63, BATCH_MONT, the own Montgomery product (against a branch-free redc), the AVX2 batchInv lanes and the setMod cost are re-measured. Then C16 reopens (user decisions 2026-11-19 and 2026-11-21): 06-modintmini.hpp, in one shared modintmini_detail namespace, takes the scalar wins the user chose on 2026-11-19 (products below 2^32 and large 64-bit products without the 128-bit division, the 32-bit dynamic product form, constructors without the 128-bit division with the bias for negative sources, -= as a borrow mask, unary minus without a branch, the pow loop in one register, the changed-exponent base-4 loop, Montgomery pow only after its gap is measured, the inverse on unsigned one-word coefficients if it wins); the scalar wins found after that list are offered to the user then (the binary inverse with its division step, the Newton steps by exponent, the quotient form and the inverse tables, the inline front of tryInv). Resume: /finish C03 reads the ledger .claude/finish/C03.txt."
+      "note": "C03 landed on 2026-11-22 (/finish C03) with row 05 `existing-unverified` (user decision 2026-11-22): 01-Core/05-modint.hpp rewritten under the Core full rule (canonical storage kept, MontModInt64 and DynMontModInt64 added, every candidate of every operation decided on GCC 15: 01-Core/Docs/05-modint.md, Benchmarks), with its tests and evidence; the verification chain passed on the final header (Commands and Results). Open before C03 is verified (the same list stands in the document's Limits and Handoffs): (1) the mutation campaign, 04-mutation.py run 01-Core/05-modint.hpp --whole with the sample 10/25/15 of 50 (user decision 2026-11-26), and any test it shows missing; (2) the comparison against HEAD over the whole rig, 06-compare.py run '96-Local Testing/01-Core/05-modint_compare.cpp' --gate, its Comparison: line, the benchmark driver rerun (05-modint_benchmark.py --seed 20261116 --repetitions 5 --milliseconds 2 --passes 5) and the matrix_det_arbitrary_mod driver; (3) the static inverse table of 16,384 words, adopted by user decision 2026-11-22 and not yet in the header (faster on its rows, no row slower; 8.4 s and 596 MB against 2.7 s and 369 MB to compile four static types); (4) candidates named and not measured: a dynamic inverse table of 8192 or 16,384 pairs, INV_TINY 32 or 64, a shorter miss path of the dynamic table, the unexplained 1.06 of MontModInt64 inv-tiny; (5) a last @reviewer pass (the stop rule of 05-testing.md, Benchmarks); (6) /speed-sweep P005 verify, which only the user starts. When P004's sweep changes Barrett or Montgomery code, POW_MONT, POW_MONT63, BATCH_MONT, the own Montgomery product (against a branch-free redc), the AVX2 batchInv lanes and the setMod cost are re-measured. Then C16 reopens (user decisions 2026-11-19 and 2026-11-21): 06-modintmini.hpp, in one shared modintmini_detail namespace, takes the scalar wins the user chose on 2026-11-19 (products below 2^32 and large 64-bit products without the 128-bit division, the 32-bit dynamic product form, constructors without the 128-bit division with the bias for negative sources, -= as a borrow mask, unary minus without a branch, the pow loop in one register, the changed-exponent base-4 loop, Montgomery pow only after its gap is measured, the inverse on unsigned one-word coefficients if it wins); the scalar wins found after that list are offered to the user then (the binary inverse with its division step, the Newton steps by exponent, the quotient form and the inverse tables, the inline front of tryInv). Resume: /finish C03 reads the ledger .claude/finish/C03.txt.",
+      "followups": [
+        "Before C03 lands: CXX=g++-14 04-dependencies_tester.py --mode full had its quick pre-flight killed at the 2048 MB cap (2026-11-27, seed 1): with the rewritten 01-Core/05-modint.hpp one -fsyntax-only unit of the 05-Mathematics closure peaks at 1189 MB on g++-14 against 480 MB at HEAD, so two overlapping compiles exceed the cap (it passed with CP_TEST_PREFLIGHT_MB=4096, peak 1232 MB); lower the header compile memory or give that tester the memory it needs; filed by the final process change"
+      ]
     },
     {
       "id": "P006",
@@ -112,7 +124,10 @@
         "02-Data Structures/Docs/07-ordered_set.md",
         "02-Data Structures/Docs/08-monotone_stack.md"
       ],
-      "note": "DS01 and DS02 done 2026-11-12 (rows 01-08 verified). The calls Claude made while the user was away (MovableDSU left to row 65 (P035); COS 411 and the BlockList::locate bound survivors untestable; the any-assert probe caveat on COS 528 and the Fenwick get survivors) were confirmed by the user on 2026-11-13. Follow-ups moved to their owners: the any-assert death checks (Core and contest) and the masked survivors to P288; the harness tester's load-only failure to P224."
+      "note": "DS01 and DS02 done 2026-11-12 (rows 01-08 verified). The calls Claude made while the user was away (MovableDSU left to row 65 (P035); COS 411 and the BlockList::locate bound survivors untestable; the any-assert probe caveat on COS 528 and the Fenwick get survivors) were confirmed by the user on 2026-11-13. Follow-ups moved to their owners: the any-assert death checks (Core and contest) and the masked survivors to P288; the harness tester's load-only failure to P224.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P007",
@@ -151,7 +166,10 @@
         "04-Graphs/Docs/05-shortest_path.md",
         "04-Graphs/Docs/06-mst.md"
       ],
-      "note": "Follow-ups: cost-oracle Prim (row 43), XOR MST (row 43 or 95), Held-Karp 1-tree (row 73)."
+      "note": "Follow-ups: cost-oracle Prim (row 43), XOR MST (row 43 or 95), Held-Karp 1-tree (row 73).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P011",
@@ -171,7 +189,10 @@
         "04-Graphs/Docs/10-euleriantrail.md",
         "04-Graphs/Docs/11-functionalgraph.md"
       ],
-      "note": "User decisions 2026-11-15: meet kept as a free function calling rerootedLCA (duplicates.md Keeps); lcaSet, maximumWeightWalk, evenOutdegreeOrientation and localBridges adopted; DAG LCA left out. User decisions 2026-11-16: the order of mutually unreachable SCCs stays unspecified; COS 464 (evenOutdegreeOrientation rev guard under NDEBUG) accepted. maximumWeightWalk witness and reachabilityRealization arc order are fixed by contract (08-scc.md). Mutation runtime-only survivors of localBridges recorded with measurements (09-bridges_articulation.md)."
+      "note": "User decisions 2026-11-15: meet kept as a free function calling rerootedLCA (duplicates.md Keeps); lcaSet, maximumWeightWalk, evenOutdegreeOrientation and localBridges adopted; DAG LCA left out. User decisions 2026-11-16: the order of mutually unreachable SCCs stays unspecified; COS 464 (evenOutdegreeOrientation rev guard under NDEBUG) accepted. maximumWeightWalk witness and reachabilityRealization arc order are fixed by contract (08-scc.md). Mutation runtime-only survivors of localBridges recorded with measurements (09-bridges_articulation.md).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P012",
@@ -192,7 +213,10 @@
         "05-Mathematics/Docs/05-combinatorics.md",
         "05-Mathematics/Docs/06-segmentedsieve.md"
       ],
-      "note": "MA02 finished 2026-11-14 by /finish: rows 04 and 05 verified. The user decisions of 2026-11-14 are recorded in 05-Mathematics/Docs/00-notes.md (P012 MA02): every sweep omission implemented (combiNonAdjacent, multiFactorial, multiFactorialExact, the large log forms, SieveOfErathSpf, FieldCombinatorics), OddBitSieve beside the byte SieveOfErath, the Kahan-compensated LogCombinatorics table, circularPermutation composing permuNR, and runtime-only mutants (00-Guidelines/05-testing.md). Follow-ups for other rows are in the notes of P060, P192, P196, P205, P270 and P288. The PrimeCombinatorics M = mint default stays for P258/P260. The next run rechecks the probe passes of row 06 that predate the 2026-11-12 runner fix."
+      "note": "MA02 finished 2026-11-14 by /finish: rows 04 and 05 verified. The user decisions of 2026-11-14 are recorded in 05-Mathematics/Docs/00-notes.md (P012 MA02): every sweep omission implemented (combiNonAdjacent, multiFactorial, multiFactorialExact, the large log forms, SieveOfErathSpf, FieldCombinatorics), OddBitSieve beside the byte SieveOfErath, the Kahan-compensated LogCombinatorics table, circularPermutation composing permuNR, and runtime-only mutants (00-Guidelines/05-testing.md). Follow-ups for other rows are in the notes of P060, P192, P196, P205, P270 and P288. The PrimeCombinatorics M = mint default stays for P258/P260. The next run rechecks the probe passes of row 06 that predate the 2026-11-12 runner fix.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P013",
@@ -214,7 +238,10 @@
         "06-Miscellaneous/Docs/59-permutation_orders.md",
         "06-Miscellaneous/Docs/60-permutation_problems.md"
       ],
-      "note": "MI02 /finish (2026-11-17): rows 04, 06, 07 extended and the Esoteric rows 59 (Trotter-Johnson order, forEachTrotterJohnson) and 60 (permutationWithInversions, moved from 07) added by user decisions, with SortedVector minGeq/maxLeq/minGt/maxLt in P006's 07-ordered_set.hpp (user's yes); HashedEncounterCompression takes a Map parameter (default unordered_map; HashMap passable, a HashMap default would make P013 and P227 depend on each other). Full and stress on g++ and g++-14, extraction, integration and mutation records current; two @reviewer passes, findings fixed (ledger in the commit message). P072 keeps the knapsack01 open question."
+      "note": "MI02 /finish (2026-11-17): rows 04, 06, 07 extended and the Esoteric rows 59 (Trotter-Johnson order, forEachTrotterJohnson) and 60 (permutationWithInversions, moved from 07) added by user decisions, with SortedVector minGeq/maxLeq/minGt/maxLt in P006's 07-ordered_set.hpp (user's yes); HashedEncounterCompression takes a Map parameter (default unordered_map; HashMap passable, a HashMap default would make P013 and P227 depend on each other). Full and stress on g++ and g++-14, extraction, integration and mutation records current; two @reviewer passes, findings fixed (ledger in the commit message). P072 keeps the knapsack01 open question.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P008",
@@ -232,7 +259,10 @@
         "03-Geometry/Docs/07-rotatingcalipers.md",
         "03-Geometry/Docs/08-coordinate_transform.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P009",
@@ -247,7 +277,10 @@
       "evidence": [
         "03-Geometry/Docs/09-triangle.md"
       ],
-      "note": "Follow-ups outside P009: P037 duplicates.md item (EnclosingCircle three-point center/radius2 should call Triangle2::circumcenter/circumradius2); P019 Rational<InfIntMini>::toLongDouble does not compile."
+      "note": "Follow-ups outside P009: P037 duplicates.md item (EnclosingCircle three-point center/radius2 should call Triangle2::circumcenter/circumradius2); P019 Rational<InfIntMini>::toLongDouble does not compile.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P015",
@@ -266,7 +299,10 @@
         "06-Miscellaneous/Docs/13-knapsack.md",
         "06-Miscellaneous/Docs/14-cyclefinding.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P016",
@@ -288,7 +324,10 @@
         "07-Strings/Docs/05-manacher.md",
         "07-Strings/Docs/09-runlength.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P250",
@@ -305,7 +344,10 @@
       "evidence": [
         "00-Guidelines/13-Plan/Docs/00-contribution.md"
       ],
-      "note": "Follow-up from P032 DS27 /finish (user decision 2026-11-02): 96-Local Testing/03-consistency.py ignored() exempts absent git-ignored archive files only in a linked worktree, so a fresh main-checkout clone without the 7 git-ignored OLD binaries in Ledgers/archive-map.json (e.g. OLD/Team Notebook/src/algs.exe) crashes with FileNotFoundError at the archive hash check. Reproducer: clone, do not copy the binaries, run 03-consistency.py in the main checkout."
+      "note": "Follow-up from P032 DS27 /finish (user decision 2026-11-02): 96-Local Testing/03-consistency.py ignored() exempts absent git-ignored archive files only in a linked worktree, so a fresh main-checkout clone without the 7 git-ignored OLD binaries in Ledgers/archive-map.json (e.g. OLD/Team Notebook/src/algs.exe) crashes with FileNotFoundError at the archive hash check. Reproducer: clone, do not copy the binaries, run 03-consistency.py in the main checkout.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P253",
@@ -320,7 +362,10 @@
       "evidence": [
         "96-Local Testing/Docs/00-extraction.md"
       ],
-      "note": "Follow-ups outside P253: 126 identifier-like Operations entries name nothing their header declares (05-extraction.py ops -v), all in rows not yet verified except kLargest (kept 2026-10-23), e.g. aStar in 04-Graphs/13, hankelSolve in 01-Core/10, build in 04-Graphs/16 (its ctor); 236 templates no probe candidate instantiates; 194 full-only and 205 consistency mini-first findings stay pending for the open 2026-11-05 batches; 06-divisionmini TLEs on 9 of 26 Library Checker tests (mini division speed, P255-P257)."
+      "note": "Follow-ups outside P253: 126 identifier-like Operations entries name nothing their header declares (05-extraction.py ops -v), all in rows not yet verified except kLargest (kept 2026-10-23), e.g. aStar in 04-Graphs/13, hankelSolve in 01-Core/10, build in 04-Graphs/16 (its ctor); 236 templates no probe candidate instantiates; 194 full-only and 205 consistency mini-first findings stay pending for the open 2026-11-05 batches; 06-divisionmini TLEs on 9 of 26 Library Checker tests (mini division speed, P255-P257).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P263",
@@ -335,7 +380,10 @@
       "evidence": [
         "96-Local Testing/Docs/00-search.md"
       ],
-      "note": "Decisions (user, 2026-11-07) are listed in 00-search.md, Decisions."
+      "note": "Decisions (user, 2026-11-07) are listed in 00-search.md, Decisions.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P254",
@@ -350,7 +398,10 @@
       "evidence": [
         "00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md"
       ],
-      "note": "Sweep 02–07 applied 2026-11-08: 243 row edits and 21 new rows (batches DS54–56, GE52–58, GR77–79, MA55–58, MI36, ST42–44; packages P264–P273), 48 verified rows reopened as partial and 29 packages reopened (P027, P028 partial; P029, P032 in-progress with rows verified for their doc-only notes; P034, P035 for those notes and their partial rows; P033's reversed omission lands in P027's row 11; P115 widened; P014 and P017 moved to Contest Core); omissions in the folders' `Docs/00-notes.md` (Omission Sweep 2026-11-08), sources in `Docs/00-sources.md` (Fetched 2026-11-08). User follow-ups the same day (`10-decisions.md`, 2026-11-08 One API by Context, Operation Names, Source Keys): One API per context, wrappers, named compositions and catalogued one-problem algorithms; operation-name vocabulary and the collision check, with the clashes fixed; one library source key list. Re-review planned as P275, renames as P276. /finish P254 (2026-11-08): evidence in `00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md`."
+      "note": "Sweep 02–07 applied 2026-11-08: 243 row edits and 21 new rows (batches DS54–56, GE52–58, GR77–79, MA55–58, MI36, ST42–44; packages P264–P273), 48 verified rows reopened as partial and 29 packages reopened (P027, P028 partial; P029, P032 in-progress with rows verified for their doc-only notes; P034, P035 for those notes and their partial rows; P033's reversed omission lands in P027's row 11; P115 widened; P014 and P017 moved to Contest Core); omissions in the folders' `Docs/00-notes.md` (Omission Sweep 2026-11-08), sources in `Docs/00-sources.md` (Fetched 2026-11-08). User follow-ups the same day (`10-decisions.md`, 2026-11-08 One API by Context, Operation Names, Source Keys): One API per context, wrappers, named compositions and catalogued one-problem algorithms; operation-name vocabulary and the collision check, with the clashes fixed; one library source key list. Re-review planned as P275, renames as P276. /finish P254 (2026-11-08): evidence in `00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md`.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P274",
@@ -365,7 +416,10 @@
       "evidence": [
         "96-Local Testing/Docs/00-parallel.md"
       ],
-      "note": "Decisions (confirmed by the user 2026-11-22): 96-Local Testing/Docs/00-parallel.md, Design (P274 choices)."
+      "note": "Decisions (confirmed by the user 2026-11-22): 96-Local Testing/Docs/00-parallel.md, Design (P274 choices).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P275",
@@ -380,7 +434,10 @@
       "evidence": [
         "00-Guidelines/23-Sweep Ledgers/Docs/00-duplicate-rereview.md"
       ],
-      "note": "Open questions left for owners in duplicates.md and omissions.md (Open Questions). Follow-ups: Matrix<ModInt<MOD>> MOD>=2^31 int(T(-1)) defect (P020 note); P276 rename list; one-problem /omission-sweep pass for unrecorded candidates (evidence Limits)."
+      "note": "Open questions left for owners in duplicates.md and omissions.md (Open Questions). Follow-ups: Matrix<ModInt<MOD>> MOD>=2^31 int(T(-1)) defect (P020 note); P276 rename list; one-problem /omission-sweep pass for unrecorded candidates (evidence Limits).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P276",
@@ -395,7 +452,10 @@
       "evidence": [
         "00-Guidelines/23-Sweep Ledgers/Docs/00-operation-renames.md"
       ],
-      "note": "Core renames handed off: P258 (getBaseId -> baseId, divModSlow -> divModQuadratic or divModKnuth, Poly::sparseMul), P256 (getBaseId), P023 (sparseGauss), P020 (rref<1>; invReal, rankReal, solveReal remove row-only items)."
+      "note": "Core renames handed off: P258 (getBaseId -> baseId, divModSlow -> divModQuadratic or divModKnuth, Poly::sparseMul), P256 (getBaseId), P023 (sparseGauss), P020 (rref<1>; invReal, rankReal, solveReal remove row-only items).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P287",
@@ -412,7 +472,10 @@
       "evidence": [
         "00-Guidelines/13-Plan/Docs/00-harness-audit.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P289",
@@ -430,7 +493,10 @@
         "00-Guidelines/13-Plan/Docs/00-harness-review.md",
         "00-Guidelines/13-Plan/Docs/00-harness-audit.md"
       ],
-      "note": "SUP34 verified 2026-11-24; the click-to-focus live checks passed with the user in /finish SUP34: A the terminal-focus extension here, B the WinApps VM toast through the extension, C a portable VS Code."
+      "note": "SUP34 verified 2026-11-24; the click-to-focus live checks passed with the user in /finish SUP34: A the terminal-focus extension here, B the WinApps VM toast through the extension, C a portable VS Code.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P025",
@@ -445,7 +511,10 @@
       "evidence": [
         "01-Core/Docs/16-poly.md"
       ],
-      "note": "Re-pass owed: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22). Candidates named so far: Karatsuba for `convolution_F_2_64` (8.9 s on judge submission #417051 against the 10 s limit; `97-Online Testing/Docs/00-judge-sources.md`), and from `16-poly.md` (Limits and Handoffs) the Lin–Chung–Han additive transform for `convolutionGF2k`, a polynomial-matrix `composeMod`, a half-gcd Berlekamp–Massey and baby-step giant-step distinct-degree factorization. Rational on Poly's row is P258's. Also from the 2026-11-22 source check: `compose` pads to N = max(n, |f|) and runs in O(M(N) log N), while Kinoshita–Li (Theorem 1) give O(M(n) log m + M(m)) for |f| = m; and from Codeforces blog 142063 (`95-Resources/14-Web Pages/04-codeforces_blog_142063-ntt_convolution_with_avx2.pdf`) on-the-fly twiddles from O(log n) stored ratios with `tzcnt` (p. 3), bottom levels as products modulo x^8 − w_i (pp. 6–7, which also lifts the 998244353 length limit from 2^23 to 2^26 and so touches the `nttMaxLength` contract) and a recursive, cache-friendly level order (pp. 7–8)."
+      "note": "Re-pass owed: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22). Candidates named so far: Karatsuba for `convolution_F_2_64` (8.9 s on judge submission #417051 against the 10 s limit; `97-Online Testing/Docs/00-judge-sources.md`), and from `16-poly.md` (Limits and Handoffs) the Lin–Chung–Han additive transform for `convolutionGF2k`, a polynomial-matrix `composeMod`, a half-gcd Berlekamp–Massey and baby-step giant-step distinct-degree factorization. Rational on Poly's row is P258's. Also from the 2026-11-22 source check: `compose` pads to N = max(n, |f|) and runs in O(M(N) log N), while Kinoshita–Li (Theorem 1) give O(M(n) log m + M(m)) for |f| = m; and from Codeforces blog 142063 (`95-Resources/14-Web Pages/04-codeforces_blog_142063-ntt_convolution_with_avx2.pdf`) on-the-fly twiddles from O(log n) stored ratios with `tzcnt` (p. 3), bottom levels as products modulo x^8 − w_i (pp. 6–7, which also lifts the 998244353 length limit from 2^23 to 2^26 and so touches the `nttMaxLength` contract) and a recursive, cache-friendly level order (pp. 7–8).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P026",
@@ -460,7 +529,10 @@
       "evidence": [
         "01-Core/Docs/17-polymini.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P018",
@@ -476,7 +548,10 @@
         "01-Core/Docs/07-infint.md",
         "01-Core/Docs/19-fastio.md"
       ],
-      "note": "Stages 1-4 and the Core fast I/O header verified (/finish 2026-11-02); HUGE_FROM back to 2 MiB after the judge (07-infint.md, Benchmarks); the judge results of the final revision are in 07-infint.md, Library Checker reproduction. P275 handoff 2026-11-10: `Docs/07-infint.md` still says `nextPrime`/`prevPrime` have no owner; Mathematics row 36 `nextPrimeBig`/`prevPrimeBig` and row 05 `primorial` own them now. Re-pass owed for `07-infint.hpp` and `19-fastio.hpp`: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22)."
+      "note": "Stages 1-4 and the Core fast I/O header verified (/finish 2026-11-02); HUGE_FROM back to 2 MiB after the judge (07-infint.md, Benchmarks); the judge results of the final revision are in 07-infint.md, Library Checker reproduction. P275 handoff 2026-11-10: `Docs/07-infint.md` still says `nextPrime`/`prevPrime` have no owner; Mathematics row 36 `nextPrimeBig`/`prevPrimeBig` and row 05 `primorial` own them now. Re-pass owed for `07-infint.hpp` and `19-fastio.hpp`: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P019",
@@ -493,7 +568,10 @@
         "01-Core/Docs/08-infintmini.md",
         "01-Core/Docs/09-rational.md"
       ],
-      "note": "Re-pass owed for `09-rational.hpp`: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22)."
+      "note": "Re-pass owed for `09-rational.hpp`: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P255",
@@ -719,7 +797,10 @@
       "evidence": [
         "96-Local Testing/Docs/00-memory-safety.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P081",
@@ -1203,7 +1284,10 @@
       "evidence": [
         "98-Team Notebook/Docs/00-dependencies.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P247",
@@ -1218,7 +1302,11 @@
       "evidence": [
         "96-Local Testing/Docs/00-parallel.md"
       ],
-      "note": "01-run.py and 02-integration.py run parallel memory-bounded jobs; a failure counts only alone. Defaults and limits accepted by the user (2026-10-25). Testers build in one compile-and-link step, so only integration uses ccache."
+      "note": "01-run.py and 02-integration.py run parallel memory-bounded jobs; a failure counts only alone. Defaults and limits accepted by the user (2026-10-25). Testers build in one compile-and-link step, so only integration uses ccache.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27",
+        "05-runner_tester test_random_runs failed beside seven concurrent stress runs (--mode stress --seed 1, round 4: the oracle expected \"NOTE 01-r1 exited 3 beside\" and got its RUN line) and passed alone: make the oracle robust to a stop that lands as a suite exits; filed by the final process change 2026-11-27"
+      ]
     },
     {
       "id": "P239",
@@ -1233,7 +1321,10 @@
       "evidence": [
         "98-Team Notebook/Docs/00-site.md"
       ],
-      "note": "build/serve need Zensical (preferred, pipx) or MkDocs Material with pymdown-extensions installed by the user; Material announces end of life on 2027-05-05; articles and practice lists follow in P240-P246."
+      "note": "build/serve need Zensical (preferred, pipx) or MkDocs Material with pymdown-extensions installed by the user; Material announces end of life on 2027-05-05; articles and practice lists follow in P240-P246.",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P030",
@@ -1248,7 +1339,10 @@
       "evidence": [
         "02-Data Structures/Docs/18-persistentsegmenttree.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P058",
@@ -1336,7 +1430,10 @@
       "evidence": [
         "96-Local Testing/Docs/00-mutation.md"
       ],
-      "note": "mewt 4.0.0 campaign on 02-Data Structures/01-dsu.hpp; extension to every package planned as P252 (user decision 2026-11-03, superseding the Handoff of 00-mutation.md)."
+      "note": "mewt 4.0.0 campaign on 02-Data Structures/01-dsu.hpp; extension to every package planned as P252 (user decision 2026-11-03, superseding the Handoff of 00-mutation.md).",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P252",
@@ -1351,7 +1448,10 @@
       "evidence": [
         "96-Local Testing/Docs/00-mutation.md"
       ],
-      "note": ""
+      "note": "",
+      "followups": [
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+      ]
     },
     {
       "id": "P042",

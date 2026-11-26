@@ -17,12 +17,14 @@ uncapped invocation becomes a small supervisor:
 
 5. Before any of it, the supervisor waits until ``_00_memory_gate.py`` admits the run's expected peak (the peak
    recorded for the entry and mode, else the cap; ``--need`` or ``ensure(need=...)`` override), so concurrent
-   runs of several sessions queue instead of being killed.
+   runs of several sessions queue instead of being killed. A benchmark driver (``*_benchmark.py``) and a command
+   given ``--alone`` also wait until they can run alone, and hold every other gated run back while they run
+   (an exclusive reservation, user decision 2026-11-26), since a timing taken beside other runs is not evidence.
 6. After a passing run of a tester or benchmark that reserved its recorded peak, the supervisor records its peak (the largest of
    the pre-flight's and the main scope's, which the scope's first process writes to CP_MEMORY_PEAK) and seconds in
    ``.run-stats.json``, unless 01-run.py started it (CP_RUN_STATS_OWNER), which records its own runs.
 
-Ad-hoc probes and benchmarks: ``python3 _00_memory_cap.py [--mb N] [--need N] -- <command> [args...]``.
+Ad-hoc probes and benchmarks: ``python3 _00_memory_cap.py [--mb N] [--need N] [--alone] -- <command> [args...]``.
 
 Environment: CP_TEST_MEMORY_MB (main cap, default 4096), CP_TEST_PREFLIGHT_MB (default 2048),
 CP_TEST_PREFLIGHT=0 skips the pre-flight, CP_MEMORY_CAPPED marks a process already inside a cap,
@@ -201,16 +203,16 @@ def forwarding(command, **kw):
         return subprocess.CompletedProcess(command, p.returncode, out, err)
 
 
-def supervise(command, mode=None, source='env', label=None, need=None, key=None):
+def supervise(command, mode=None, source='env', label=None, need=None, key=None, alone=False):
     """Run command under the pre-flight (when mode is full/stress) and main caps, once the memory gate admits need MB
-    (default: the main cap; _00_memory_gate.py); return its exit status. With key (its .run-stats.json key) a passing run
+    (default: the main cap; _00_memory_gate.py), alone when `alone` (an exclusive reservation); return its exit status. With key (its .run-stats.json key) a passing run
     adds its peak and seconds to its record (_00_memory_gate.remember()), unless 01-run.py started it (CP_RUN_STATS_OWNER), which
     records its own runs."""
     label = label or Path(command[1] if len(command) > 1 else command[0]).name
     secs = _00_memory_gate.stats(key)[1]  # read before 01-run.py's mark drops the key, so its suites backfill too
     key = None if os.environ.pop('CP_RUN_STATS_OWNER', None) else key  # popped: entries this run starts record themselves
     peaks = [] if key else None
-    with _00_memory_gate.held(MAIN_MB if need is None else need, label, secs=secs):
+    with _00_memory_gate.held(MAIN_MB if need is None else need, label, secs=secs, exclusive=alone):
         start = time.monotonic()
         code = capped_run(command, mode, source, label, peaks)
         seconds = round(time.monotonic() - start, 1)
@@ -303,14 +305,18 @@ def ensure(force=False, mb=None, need=None, variant=None):
     v = variant() if variant and need is None else None  # parsed before the cap: a bad option exits uncapped
     key = _00_memory_gate.key(mode, main, v) if need is None and (main.name.endswith(ENTRY_SUFFIXES) or v) else None
     need = need if need is not None else _00_memory_gate.recorded(mode, main, MAIN_MB, v) if key else MAIN_MB  # a record only under a key it writes
-    raise SystemExit(supervise([sys.executable, str(main), *sys.argv[1:]], mode, source, main.name, need, key))
+    raise SystemExit(supervise([sys.executable, str(main), *sys.argv[1:]], mode, source, main.name, need, key,
+                               main.name.endswith('_benchmark.py')))
 
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    usage = 'usage: _00_memory_cap.py [--mb N] [--need N] -- <command> [args...]'
-    need = None
-    while args and args[0].split('=', 1)[0] in ('--mb', '--need'):
+    usage = 'usage: _00_memory_cap.py [--mb N] [--need N] [--alone] -- <command> [args...]'
+    need, alone = None, False
+    while args and (args[0] == '--alone' or args[0].split('=', 1)[0] in ('--mb', '--need')):
+        if args[0] == '--alone':
+            alone, args = True, args[1:]
+            continue
         flag, (value, args) = args[0].split('=', 1)[0], (args[0].split('=', 1)[1], args[1:]) if '=' in args[0] else ((args[1:2] or [''])[0], args[2:])
         if not value.isdigit() or (flag == '--mb' and int(value) < 16):
             raise SystemExit(usage + '\n--mb needs an integer of at least 16, --need a nonnegative integer')
@@ -326,4 +332,4 @@ if __name__ == '__main__':
     reporter = [sys.executable, '-c', 'import signal, subprocess, sys; signal.signal(signal.SIGINT, lambda *_: None); sys.path.insert(0, sys.argv[1]); '
                 'import _00_memory_cap as m; m.lead(); code = m.forwarding(sys.argv[2:]).returncode; m.report(); sys.exit(m.exit_code(code))',
                 str(Path(__file__).resolve().parent), *args]
-    raise SystemExit(supervise(reporter, None, 'env', Path(args[0]).name, need))
+    raise SystemExit(supervise(reporter, None, 'env', Path(args[0]).name, need, alone=alone))

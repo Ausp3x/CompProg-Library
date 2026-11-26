@@ -21,7 +21,7 @@ Scope: [`07-judge.py`](../00-Tools/07-judge.py) fetches the fastest submissions,
   Each test takes the minimum over `--runs` (default 3). The CPU limit is 2 × the time limit + 1 s. The status is AC through the problem's checker, otherwise WA, RE, or TLE (wall time above the limit, or SIGXCPU/SIGKILL). The whole reproduction runs under `_00_memory_cap.ensure(force=True)`, 4096 MB by default (`--mb`).
 
   Results go to `.judge-cache/results/<problem>/<label>.json` with the CPU, compiler, flags, runs, tests commit and the `untrusted` flag.
-- **Untrusted sources.** `reproduce` refuses a path under `.judge-cache/sources` unless `--untrusted` is given (user decision 2026-10-25: opt-in, with the user's yes per sweep). Both the build and the timing loop (`07-judge.py _time`) then run under `bwrap`:
+- **Untrusted sources.** `reproduce` refuses a path under `.judge-cache/sources` unless `--untrusted` is given (user decision 2026-10-25; since 2026-11-26 the user's standing yes covers the top five leaders of every sweep, `09-sources.md`, Fastest Submissions). Both the build and the timing loop (`07-judge.py _time`) then run under `bwrap`:
   - `/` is read-only, with a private `/tmp` and every namespace unshared, so there is no network;
   - `96-Local Testing` and the tests are bound read-only;
   - only the work directory is writable.
@@ -32,7 +32,8 @@ Scope: [`07-judge.py`](../00-Tools/07-judge.py) fetches the fastest submissions,
   - `judge gap` (ours ÷ best leader on the judge) and `local gap` (ours ÷ best leader locally);
   - `max` (the score) and `sum` rows;
   - our local max × 1.3 as a judge estimate.
-- **Cache.** `96-Local Testing/.judge-cache` is git-ignored (`CP_JUDGE_CACHE` overrides it). It is per worktree, and `03-consistency.py` skips it.
+- **Exclusive timing.** The timing loop holds the memory gate's exclusive reservation (`_00_memory_gate.py`, user decision 2026-11-26), so no other gated run of any session shares the machine while it times; the build and test generation run beside other sessions' runs.
+- **Cache.** `96-Local Testing/.judge-cache` is git-ignored (`CP_JUDGE_CACHE` overrides it), and `03-consistency.py` skips it. Every linked worktree uses the main checkout's cache (user decision 2026-11-26): `put` replaces a file atomically, so a reader in another session sees the old file or the new one, and the sparse clone and the regenerated tests change only under the cache's `flock` (`cache_lock`).
 
 ## Feature-to-Test Map
 
@@ -44,7 +45,8 @@ Scope: [`07-judge.py`](../00-Tools/07-judge.py) fetches the fastest submissions,
 | `--offline`, `problems` | `test_offline`, `test_problems` |
 | `mine`, newest AC past a newer WA | `test_mine` |
 | `compare`: columns, cells, non-AC marks, judge-only cases, gaps, max and sum, estimate, `--user` | `test_compare` |
-| `reproduce`: params.h, generator inputs against a Python oracle, answers, case order, AC, min of three runs, small RSS (8 MB, or 64 MB when `native()` is false and qemu-user's own RSS counts), work directory removed, CLI | `test_reproduce_ok` |
+| `reproduce`: params.h, generator inputs against a Python oracle, answers, case order, AC, min of three runs, small RSS (8 MB, or 64 MB when `native()` is false and qemu-user's own RSS counts), work directory removed, CLI, timing under an exclusive reservation and preparation under none | `test_reproduce_ok` |
+| Atomic `put` (a failed write keeps the old file and leaves no temporary), `cache_lock` excludes another holder, the main checkout's cache by default and `CP_JUDGE_CACHE` | `test_cache_files` |
 | WA, RE, TLE by wall time, TLE by CPU limit, build failure, function-only refusal, grader problem with a stdin reference | `test_reproduce_failures` |
 | Regeneration only when `info.toml` changes | `test_regeneration_stamp` |
 | Fetched-source refusal; `--untrusted` under bwrap: read-only tests and no network, proven from inside the solution; result flag | `test_untrusted` (SKIP without bwrap) |
@@ -68,9 +70,9 @@ Mutation checks on 2026-10-25 (a copy outside `/tmp`), each caught by the named 
 | Command | Result |
 |---|---|
 | `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode quick` | 8 tests, 3.1 s, PASS, peak 70 MB |
-| `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full` | 12 tests, 9.8 s, PASS, peak 79 MB |
-| `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode stress --seed 7 --rounds 3` | PASS, peak 82 MB |
-| `CXX=g++-14 python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full` | PASS, peak 71 MB |
+| `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full` (2026-11-26) | 13 tests, 16.3 s, PASS, peak 80 MB |
+| `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode stress --seed 1` (2026-11-26) | 13 tests, 13.7 s, PASS, peak 78 MB |
+| `CXX=g++-14 python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full` (2026-11-26) | 13 tests, 13.6 s, PASS, peak 70 MB |
 | `CXX=aarch64-linux-gnu-g++ QEMU_LD_PREFIX=/usr/aarch64-linux-gnu python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode quick` | PASS, peak 70 MB (qemu-user) |
 | live: `fastest addition_of_hex_big_integers`, `mine Ausp3x …` (the maintainer's judge account), `reproduce … '97-Online Testing/src/01-Yosupo/02-Big Integers/07-additionhex.cpp' --label ours`, `compare … --user Ausp3x --top 3` | 29 distinct entries with the copy merged; 24 tests AC, local max 50 ms (`small_00`), reproduction peak 548 MB; judge gap 4.89 on `small_00` |
 
@@ -89,3 +91,4 @@ The launcher and a direct Python spawn timed the same binary within noise: `smal
 - 2026-10-30: SUP18 portability: `-march=native` only for an x86-64 target, the RSS bound widened under qemu-user; quick, full, stress, g++-14 and arm64 quick passed.
 - 2026-11-15: the queued status `-` and `k/n` progress count as pending (`pending`), so neither is cached as a verdict; found by the maintainer's first live `04-submit.py` run (#417103 printed as `-`); quick, full, stress and g++-14 full passed.
 - 2026-11-15: a grader problem that ships `sol/correct.cpp` is no longer refused (stdin solutions are accepted there; found by P225 on `convolution_mod`, user's yes); the tester adds the case; quick, full, stress and g++-14 passed, and `convolution_mod` reproduced 53/53.
+- 2026-11-26: shared cache and exclusive timing (final process change, user decisions 2026-11-26): every worktree uses the main checkout's cache through atomic writes and the cache lock, and `reproduce` times under the gate's exclusive reservation; `test_cache_files` added and `test_reproduce_ok` extended.

@@ -12,13 +12,18 @@
 
 Everything fetched or built lives in the git-ignored cache `96-Local Testing/.judge-cache` (CP_JUDGE_CACHE overrides):
 api/ (responses; submission details are reused once final, lists are refetched unless --offline), sources/,
-library-checker-problems/ (sparse clone), tests/<problem>/, results/<problem>/<label>.json. Fetched sources are untrusted
-data: `reproduce` refuses one unless --untrusted, which builds and runs it under bwrap (read-only filesystem, no
-network, only its work directory writable); the result records the flag. The tool never submits.
+library-checker-problems/ (sparse clone), tests/<problem>/, results/<problem>/<label>.json. Every linked worktree uses
+the main checkout's cache (user decision 2026-11-26): files are replaced atomically, and the sparse clone and the
+regenerated tests change under the cache's lock. Fetched sources are untrusted data: `reproduce` refuses one unless
+--untrusted, which builds and runs it under bwrap (read-only filesystem, no network, only its work directory writable);
+the result records the flag. `reproduce` times under the memory gate's exclusive reservation (_00_memory_gate.py), so no
+other gated run shares the machine meanwhile. The tool never submits.
 """
 import argparse
 from collections import Counter
+import contextlib
 import datetime
+import fcntl
 import hashlib
 import json
 import math
@@ -34,6 +39,7 @@ import urllib.parse
 import urllib.request
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+import _00_memory_gate
 from _00_cpp_test_runner import x86_only
 
 API = 'https://v3.api.judge.yosupo.jp'
@@ -42,7 +48,8 @@ FLAGS = ['-O2', '-std=c++23', '-DEVAL', '-DONLINE_JUDGE', *x86_only(['-march=nat
 JUDGE_FACTOR = 1.3  # Library Checker (Zen3) wall time over the i9-11900H's
 SIMILAR = 0.9       # line-multiset Jaccard index above which two sources count as one
 PENDING = {'WJ', '-', 'Fetching', 'Compiling', 'Executing'}  # with 'k/n' progress, the judge's statuses before a verdict
-CACHE = Path(os.environ.get('CP_JUDGE_CACHE', Path(__file__).resolve().parents[1] / '.judge-cache')).resolve()
+HERE = Path(__file__).resolve().parents[1]
+CACHE = Path(os.environ.get('CP_JUDGE_CACHE') or _00_memory_gate.main_checkout(HERE.parent) / HERE.name / '.judge-cache').resolve()
 OFFLINE = False
 LAUNCHER = r'''#include <fcntl.h>
 #include <stdio.h>
@@ -82,9 +89,31 @@ def get(path, keep=None, **query):
     if OFFLINE:
         raise SystemExit(f'--offline: {url} is not cached')
     data = json.loads(fetch(url))
-    key.parent.mkdir(parents=True, exist_ok=True)
-    key.write_text(json.dumps(data))
+    put(key, json.dumps(data))
     return data
+
+
+def put(path, text):
+    """Write path atomically: a reader in another session sees the old file or the new one, never a part."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f'.{path.name}.{os.getpid()}')
+    try:
+        tmp.write_text(text)
+        tmp.replace(path)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+@contextlib.contextmanager
+def cache_lock():
+    """The cache's lock, held while the sparse clone or the regenerated tests change."""
+    CACHE.mkdir(parents=True, exist_ok=True)
+    with open(CACHE / '.lock', 'a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
 
 
 def pending(status):
@@ -99,8 +128,7 @@ def submission(sid):
     ext = '.cpp' if lang.startswith('cpp') else '.py' if lang.startswith(('python', 'pypy')) else '.rs' if lang == 'rust' else '.txt'
     path = CACHE / 'sources' / f'{sid}{ext}'
     if not path.exists():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(d['source'])
+        put(path, d['source'])
     return d, path
 
 
@@ -264,8 +292,9 @@ def reproduce(problem, solution, label=None, runs=3, untrusted=False, repo=None)
         raise SystemExit(f'{solution} is a fetched source (data only); --untrusted builds and runs it sandboxed')
     if untrusted and not shutil.which('bwrap'):
         raise SystemExit('--untrusted needs bwrap (bubblewrap)')
-    root, pdir = problem_dir(problem, repo)
-    files, tl, checker = prepare(root, pdir)
+    with cache_lock():
+        root, pdir = problem_dir(problem, repo)
+        files, tl, checker = prepare(root, pdir)
     (CACHE / 'run').mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(dir=CACHE / 'run'))
     try:
@@ -276,12 +305,13 @@ def reproduce(problem, solution, label=None, runs=3, untrusted=False, repo=None)
         if r.returncode:
             raise SystemExit(f'{solution.name} does not build:\n{r.stderr[-2000:]}')
         m = dict(exe=str(exe), cases=[(c, str(i), str(work / f'{c}.out')) for c, i, _ in files], runs=runs, limit=tl)
-        if untrusted:
-            (work / 'manifest.json').write_text(json.dumps(m))
-            run(wrap([sys.executable, '-I', Path(__file__).resolve(), '_time', work / 'manifest.json']))
-            times = json.loads((work / 'times.json').read_text())
-        else:
-            times = time_cases(m)
+        with _00_memory_gate.held(0, f'{problem} {label or solution.stem} timing', sys.stdout, exclusive=True):
+            if untrusted:
+                (work / 'manifest.json').write_text(json.dumps(m))
+                run(wrap([sys.executable, '-I', Path(__file__).resolve(), '_time', work / 'manifest.json']))
+                times = json.loads((work / 'times.json').read_text())
+            else:
+                times = time_cases(m)
         rows = []
         for c, inp, ans in files:
             t, rss, code = times[c]
@@ -297,8 +327,7 @@ def reproduce(problem, solution, label=None, runs=3, untrusted=False, repo=None)
                   cxx=run([os.environ.get('CXX', 'g++'), '--version']).splitlines()[0], commit=commit,
                   date=datetime.datetime.now().isoformat(timespec='seconds'), cases=rows)
     path = CACHE / 'results' / problem / f'{label}.json'
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(result, indent=1))
+    put(path, json.dumps(result, indent=1))
     table(['case', 'ms', 'MiB', 'status'], [(r['case'], f"{r['time'] * 1000:.1f}", f"{r['memory'] / 2**20:.1f}", r['status']) for r in rows])
     worst = max(r['time'] for r in rows)
     print(f'{label}: max {worst * 1000:.1f} ms (judge estimate {worst * JUDGE_FACTOR * 1000:.0f} ms), '

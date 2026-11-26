@@ -6,12 +6,16 @@ other whitespace, a pending submission that passes WJ, -, Fetching, Compiling an
 is a fixture `sample/aplusb` (two .in examples, a seeded generator using params.h, a reference solution, a token checker)
 plus `sample/tiny` (one example, 0.2 s limit). Oracles: generator inputs and params.h recomputed in Python, the
 statuses each fixture solution must get, hand-computed similarities and table cells, fetch counters for caching.
-quick: similarity, dedupe, caching, offline, mine, compare, problems and one trusted reproduction.
+Every run uses a gate file of its own (CP_MEMORY_GATE), so the timed runs wait for no other gated run of the machine.
+quick: similarity, dedupe, caching, offline, mine, compare, problems, one trusted reproduction (regenerated under the
+cache lock, timed under the exclusive reservation) and the cache files (atomic put, the lock, the main checkout's
+default).
 full: also WA/RE/TLE (wall and CPU limit), min-of-runs, regeneration stamps, the fetched-source refusal and the bwrap
 sandbox (SKIP without bwrap). stress: full plus --rounds x 50 seeded random similarity cases.
 """
 import argparse
 import contextlib
+import fcntl
 import importlib.util
 import io
 import json
@@ -35,7 +39,7 @@ J = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(J)
 MODE, SEED, ROUNDS = 'full', 42, 6
 QUICK = {'test_similarity', 'test_fastest_dedupe', 'test_submission_cache', 'test_offline', 'test_mine', 'test_compare',
-         'test_problems', 'test_reproduce_ok'}
+         'test_problems', 'test_reproduce_ok', 'test_cache_files'}
 
 A = '#include <cstdio>\nint main() {\n    long long a, b; // read\n    scanf("%lld%lld", &a, &b);\n    printf("%lld //x\\n", a + b);\n}\n'
 A_COPY = '/* Copied by Rohan_Kapri\n   2026 */\n#include <cstdio>\nint main()   {\n\tlong long a,b;\n  scanf("%lld%lld",&a,&b);\n' \
@@ -142,7 +146,7 @@ class Judge(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix='judge_tester_'))
         self.api = Api()
         self.patches = [patch.object(J, 'CACHE', self.tmp / 'cache'), patch.object(J, 'fetch', self.api.fetch),
-                        patch.object(J, 'OFFLINE', False)]
+                        patch.object(J, 'OFFLINE', False), patch.dict(os.environ, CP_MEMORY_GATE=str(self.tmp / 'gate.json'))]  # timing alone in a gate of its own
         for p in self.patches:
             p.start()
         self.repo = self.tmp / 'repo'
@@ -264,12 +268,30 @@ class Judge(unittest.TestCase):
         _, text = out(J.main, ['compare', 'aplusb', '--user', 'Ausp3x', '--label', 'none', '--top', '1'])
         self.assertEqual(rows(text)[0], ['case', 'ours judge #21', 'Rohan_Kapri #12', 'judge gap', 'local gap'])
 
+    def gate(self):
+        return [(e['need'], e['label'], e['state'], e.get('excl')) for e in J._00_memory_gate.load(self.tmp / 'gate.json')]
+
+    def locked(self):
+        """Whether another holder has the cache's lock."""
+        with open(J.CACHE / '.lock', 'a') as f:
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return True
+            fcntl.flock(f, fcntl.LOCK_UN)
+            return False
+
     def test_reproduce_ok(self):
         count = self.tmp / 'count'
         (self.sol / 'counted.cpp').write_text(COUNTED)
-        with patch.dict(os.environ, COUNT=str(count)):
+        seen, time_cases, prepare = [], J.time_cases, J.prepare
+        with patch.dict(os.environ, COUNT=str(count)), patch.object(J, 'time_cases', lambda m: seen.append(('time', self.gate(), self.locked())) or time_cases(m)), \
+                patch.object(J, 'prepare', lambda *x: seen.append(('prepare', self.gate(), self.locked())) or prepare(*x)):
             bad, text = out(J.main, ['reproduce', 'aplusb', str(self.sol / 'counted.cpp'), '--repo', str(self.repo), '--label', 'ours'])
         self.assertEqual(bad, 0, text)
+        self.assertEqual(seen, [('prepare', [], True), ('time', [(0, 'aplusb ours timing', 'run', True)], False)],
+                         'tests regenerated under the cache lock, timed under the exclusive reservation (user decision 2026-11-26)')
+        self.assertEqual(self.gate(), [], 'released')
         tests = J.CACHE / 'tests' / 'aplusb'
         self.assertEqual((self.repo / 'sample/aplusb/params.h').read_text(), '#define A_MAX (long long)1000\n#define RATIO 0.5\n#define NAME "ab"\n')
         self.assertEqual([(tests / f'random_{s:02d}.in').read_text() for s in range(3)], [gen_oracle(s) for s in range(3)])
@@ -283,6 +305,28 @@ class Judge(unittest.TestCase):
         self.assertEqual((r['flags'], r['runs'], r['untrusted']), (J.FLAGS, 3, False))
         self.assertEqual(list((J.CACHE / 'run').iterdir()), [], 'the work directory is removed')
         self.assertIn('ours: max', text)
+
+    def test_cache_files(self):
+        """put() replaces a file whole (a failed write leaves the old one and no temporary), cache_lock() excludes another
+        holder, and CACHE defaults to the main checkout's (user decision 2026-11-26) unless CP_JUDGE_CACHE names one."""
+        path = J.CACHE / 'api' / 'x.json'
+        J.put(path, 'old')
+        J.put(path, 'new')
+        self.assertEqual((path.read_text(), sorted(p.name for p in path.parent.iterdir())), ('new', ['x.json']))
+        with patch.object(Path, 'replace', side_effect=OSError('disk full')), self.assertRaises(OSError):
+            J.put(path, 'partial')
+        self.assertEqual((path.read_text(), sorted(p.name for p in path.parent.iterdir())), ('new', ['x.json']))
+        self.assertFalse(self.locked())
+        with J.cache_lock():
+            self.assertTrue(self.locked())
+        self.assertFalse(self.locked())
+        main = self.tmp / 'main'
+        for env, want in (({}, main / '96-Local Testing/.judge-cache'), ({'CP_JUDGE_CACHE': str(self.tmp / 'own')}, self.tmp / 'own')):
+            fresh = importlib.util.module_from_spec(spec)
+            with patch.dict(os.environ, env), patch.object(J._00_memory_gate, 'main_checkout', lambda root: main):
+                os.environ.pop('CP_JUDGE_CACHE', None) if not env else None
+                spec.loader.exec_module(fresh)
+            self.assertEqual(fresh.CACHE, want.resolve(), env)
 
     def test_reproduce_failures(self):
         self.assertEqual(self.reproduce('wrong.cpp')[0], 5)

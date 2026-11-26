@@ -3,8 +3,11 @@
 
 Usage: gaps.py [Pxxx | batch id]. Without an argument the target comes from the batch or package id in the
 branch or worktree name (a batch id wins); with neither, the target is the branch itself.
-gaps.py --reviewed <Pxxx | batch id> records /package's review (step 10): the blobs of the targets, their tests and
-evidence documents, and the reviewer's report read from standard input. /finish reuses it while those files are unchanged.
+gaps.py --reviewed <Pxxx | batch id> [--wrong] records /package's review (step 10): the blobs of the targets, their tests
+and evidence documents (stored in git's object database), the reviewer's report read from standard input, and with --wrong
+that the review confirmed a wrong answer or undefined behavior. /finish reuses the report while those files are unchanged,
+reviews only their diff since the review otherwise (written to .claude/finish/<key>.since-review.diff), and runs a full
+audit only without a record or after --wrong (user decision 2026-11-26).
 gaps.py --start <Pxxx | batch id>, run by /package's `!` line, records once per key the files uncommitted when the batch
 starts (.claude/finish/<key>.start.json, deleted with the ledger), which a batch without targets leaves out of its review
 while they keep that content: in the main checkout they are other work's (SUP34).
@@ -116,8 +119,9 @@ def section(title, lines, cap=400):
     SECTIONS.append((title, (lines[:cap] + [f'... {len(lines) - cap} more'] if len(lines) > cap else lines) or ['(none)']))
 
 
-ORDER = ('Ledger', 'Review record', 'Undecided optimization', 'Mutation records', 'Agent-made', 'Open sweep', 'Recorded limits',
-         'Comparison record', 'Packages filed', 'TODO markers', 'Branch and', 'Other worktrees', 'Brief')  # most needed first
+ORDER = ('Ledger', 'Review record', 'Undecided limits', 'Follow-ups', 'Sources', 'Undecided optimization', 'Mutation records', 'Agent-made',
+         'Open sweep', 'Recorded limits', 'Comparison record', 'Packages filed', 'TODO markers', 'Branch and', 'Other worktrees',
+         'Brief')  # most needed first
 
 
 def emit(head, key, root):
@@ -230,8 +234,9 @@ def review_paths(root, key, pkg, scope, batches):
     return sorted(f for f in {*targets, *docs, *tests, *changed} if (root / f).is_file())
 
 
-def blobs(root, paths):
-    return dict(zip(paths, git('hash-object', '--', *paths, cwd=root).split())) if paths else {}
+def blobs(root, paths, store=False):
+    """{path: blob} of paths as they are now; store writes the blobs to git's object database, so a later diff finds them."""
+    return dict(zip(paths, git('hash-object', *(['-w'] if store else []), '--', *paths, cwd=root).split())) if paths else {}
 
 
 COMPARISON = re.compile(r'Comparison: (\d{4}-\d\d-\d\d), rig (.+?) ([0-9a-f]{12}), base [0-9a-f]{12}, headers (.*?), ((?:\S+ [\d.]+, )+)CPU')
@@ -239,7 +244,8 @@ COMPARISON = re.compile(r'Comparison: (\d{4}-\d\d-\d\d), rig (.+?) ([0-9a-f]{12}
 
 def comparison(doc, root):
     """The newest `Comparison:` line of 06-compare.py in an evidence document against the current rig, Core headers and
-    compilers (05-testing.md, Stale evidence): one line saying it is current, or what changed."""
+    deciding compiler, the first it lists (05-testing.md, Stale evidence; user decision 2026-11-26): one line saying it is
+    current, or what changed."""
     name = doc.relative_to(root)
     found = COMPARISON.findall(doc.read_text(errors='replace')) if doc.is_file() else []
     if not found:
@@ -248,11 +254,23 @@ def comparison(doc, root):
     blob = lambda path: git('hash-object', '--', str(path), cwd=root)[:12] if path.is_file() else 'missing'
     changed = [f'{label} changed' for label, path, old in [('the rig', root / rig, rig_blob), *((h, root / '01-Core' / h, b) for h, b in re.findall(r'(\S+) ([0-9a-f]{12})', headers))]
                if blob(path) != old]
-    for exe, version in re.findall(r'(\S+) ([\d.]+), ', compilers):
+    for exe, version in re.findall(r'(\S+) ([\d.]+), ', compilers)[:1]:
         now = subprocess.run([exe, '-dumpfullversion'], capture_output=True, text=True).stdout.strip() if shutil.which(exe) else 'not installed'
         if now != version:
             changed.append(f'{exe} {version} is now {now}')
     return f'{name}: comparison of {date} ' + ('is current' if not changed else 'is STALE, rerun it: ' + ', '.join(changed))
+
+
+def since(root, path, old, new):
+    """The diff of path from its reviewed blob old to its blob new (None: absent then or now); a blob git no longer has
+    gives the whole file."""
+    have = lambda b: b and subprocess.run(['git', 'cat-file', '-e', b], cwd=root, capture_output=True).returncode == 0
+    if have(old) and have(new):
+        body = git('diff', '--no-color', old, new, cwd=root, raw=True).split('\n')  # four header lines name blobs, not files
+        return f'=== {path}\n' + '\n'.join(body[4:])
+    if not new:
+        return f'=== {path}: deleted since the review\n'
+    return f'=== {path}: ' + ('new since the review' if not old else 'its reviewed blob is gone, so the whole file') + '\n'
 
 
 def main():
@@ -268,10 +286,11 @@ def main():
         key, pkg, scope, _ = target(root, sys.argv[2] if len(sys.argv) > 2 else '')
         if not pkg:
             raise SystemExit('gaps.py --reviewed: no package or batch id')
-        files = blobs(root, review_paths(root, key, pkg, scope, plan_data(root)[1]))
+        files = blobs(root, review_paths(root, key, pkg, scope, plan_data(root)[1]), store=True)
         record = root / '.claude/finish' / f'{key}.review.json'
         record.parent.mkdir(parents=True, exist_ok=True)
-        record.write_text(json.dumps({'files': files, 'report': '' if sys.stdin.isatty() else sys.stdin.read().strip()}, indent=1))
+        record.write_text(json.dumps({'files': files, 'wrong': '--wrong' in sys.argv[3:],
+                                      'report': '' if sys.stdin.isatty() else sys.stdin.read().strip()}, indent=1))
         print(f'review of {key} recorded: {len(files)} files, {record.relative_to(root)}')
         return
     worktrees = [l.split(' ', 1)[1] for l in git('worktree', 'list', '--porcelain', cwd=root).splitlines() if l.startswith('worktree ')]
@@ -316,14 +335,26 @@ def main():
         notes = sorted({root / t.split('/', 1)[0] / 'Docs/00-notes.md' for t in targets})
         found = [line for d in docs for line in limits(d, root)]
         section('Recorded limits (evidence headings)', found, max(len(found), 1))
+        section('Undecided limits (no `user decision <date>`: fix, move to Contracts or ask; plan.py set verified refuses them)',
+                [f'{d.relative_to(root)}:{i}: {t[:140]}' for d in docs for i, t in plan.undecided(d)])
+        fu = plan.followups(pkg)
+        section(f'Follow-ups of {pkg["id"]} (close each one done: plan.py follow-up {pkg["id"]} --done <n>)',
+                [f'{i}. {x}' for i, x in enumerate(fu, 1)])
         section('Agent-made omissions and deferrals (notes lines without a user decision)',
                 [hit for f in notes for hit in grep(f, DEFERRAL, root, lambda line: mentions(line, pkg['id']) and not DECIDED.search(line))])
         record = root / '.claude/finish' / f'{key}.review.json'
-        if record.is_file():  # /finish step 2: one full review per package (user decision 2026-11-17)
-            data, now = json.loads(record.read_text()), blobs(root, review_paths(root, key, pkg, scope, batches))
+        if record.is_file():  # /finish step 2: one full review per package (user decisions 2026-11-17, 2026-11-26)
+            data, now = json.loads(record.read_text()), blobs(root, review_paths(root, key, pkg, scope, batches), store=True)
             moved = sorted(f for f in {*now, *data['files']} if now.get(f) != data['files'].get(f))
-            section("Review record (/package step 10)", ['changed since the review; the step 2 audit covers these files:', *moved] if moved
-                    else ['covers the current files: step 2 reuses this report and starts no audit', *data['report'].splitlines()], 200)
+            if data.get('wrong'):
+                lines = ['the review found a wrong answer or undefined behavior: step 2 runs the full audit']
+            elif moved:
+                diff = root / '.claude/finish' / f'{key}.since-review.diff'
+                diff.write_text(''.join(since(root, f, data['files'].get(f), now.get(f)) for f in moved))
+                lines = [f'changed since the review: step 2 reviews only these changes, in {diff.relative_to(root)}:', *moved]
+            else:
+                lines = ['covers the current files: step 2 reuses this report and starts no audit', *data['report'].splitlines()]
+            section("Review record (/package step 10)", lines, 200)
         else:
             section("Review record (/package step 10)", ['none: step 2 runs the full audit'])
         full = sorted({root / evidence_doc(t) for t in targets if CORE_FULL.fullmatch(t)})
@@ -355,8 +386,14 @@ def main():
         own = set(pkg['evidence']) if pkg else set()
         others = {d for p in packages if not pkg or p['id'] != pkg['id'] for d in p['evidence']} - own  # their headers: existing records only
         mine = [h for h in heads if mutation.evidence(h) not in others]
-        section('Mutation records (04-mutation.py check on changed headers; /package step 6)',
+        section('Mutation records (04-mutation.py check on changed headers; /package step 7)',
                 [f'{h}: {why}' for h, why in mutation.stale(root, mine) + mutation.stale(root, [h for h in heads if h not in mine], True)])
+    script = root / '95-Resources/00-sources.py'
+    if script.is_file():  # every source the work used is filed and backed up (95-Resources/00-index.md, Storage)
+        spec = importlib.util.spec_from_file_location('finish_sources', script)
+        sources = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sources)
+        section('Sources (95-Resources/00-index.md, Storage; 00-sources.py check)', sources.problems({key, *(pkg and [pkg['id']] or [])}))
     section('TODO markers in changed files', [hit for f in changed if (root / f).suffix in ('.hpp', '.cpp', '.py', '.md')
                                                 for hit in grep(root / f, MARKER, root)])
     overlap = []

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Checks for .claude/hooks/shell.py (the Bash pre/post hook), the validator entry of .claude/hooks/consistency.py, and
-(SUP32) the PreCompact mode of .claude/hooks/resume.py and the Notification hook .claude/hooks/notify.py.
+(SUP32) the PreCompact mode of .claude/hooks/resume.py and the Notification hook .claude/hooks/notify.py, and the
+shared source folders resume.py links into a linked worktree at startup.
 
 Every case runs copies of both hooks in a temporary `git init` repository with a stub `96-Local Testing/03-consistency.py`
 (logs each run to HOOK_LOG; fails with the lines of HOOK_FAIL when that file exists, and lists the lines of
@@ -90,6 +91,10 @@ keeping the earlier, quoted args, quoted commands, other commands, broken, non-o
 transcript, an arg naming nothing, a linked worktree on a claim branch with and without a typed command -> test_pause_key;
 pause.py's longest output (24 hours, 28 pings) within plan.FLOOR, so it needs no fitting, and 24.01 hours refused ->
 test_pause_bound;
+resume.py startup and clear in a linked worktree: 95-Resources/00-Inbox, 13-Papers and 14-Web Pages linked to the main
+checkout's (created there), an empty folder replaced, one with files kept and named in the note, idempotent, nothing in
+the main checkout or without 95-Resources, the links ignored by the real .gitignore's patterns, `git worktree remove
+--force` keeping the files behind them -> test_link_shared;
 notify.py: title from the newest custom-title record (compact or spaced JSON, escapes, whitespace stripped), not from a
 tool result quoting one, also one 2 MiB before the end; fallback '<checkout folder> (<branch>)' for a
 missing, title-less or wrong-typed transcript, a subfolder, another branch, detached HEAD (folder only), a non-git
@@ -849,6 +854,53 @@ class Hooks(unittest.TestCase):
                             json.dumps([[str(root), arg] for root, arg in cases])], capture_output=True, text=True, env=self.env, timeout=60)
         self.assertEqual((r.returncode, r.stderr), (0, ''))
         return [json.loads(l) for l in r.stdout.splitlines()]
+
+    def test_link_shared(self):
+        """resume.py startup in a linked worktree links 95-Resources/00-Inbox, 13-Papers and 14-Web Pages to the main
+        checkout's (user decision 2026-11-26): created there when missing, an empty folder replaced, a folder with files
+        kept and named; nothing in the main checkout or without 95-Resources; the real .gitignore ignores the links;
+        worktree removal with --force leaves the files behind the links."""
+        shared = ('95-Resources/00-Inbox', '95-Resources/13-Papers', '95-Resources/14-Web Pages')
+        ignore = [l for l in (ROOT / '.gitignore').read_text().splitlines() if l.startswith('/95-Resources/')]
+        self.assertEqual(sorted(ignore), sorted('/' + r for r in shared), 'the real .gitignore names exactly these folders')
+        self.write('.claude/hooks/resume.py', (HOOKS / 'resume.py').read_text())
+        self.write('.gitignore', '\n'.join(ignore) + '\n')
+        start = lambda cwd, mode='startup': self.script('resume.py', mode, raw=json.dumps({'cwd': str(cwd), 'source': mode}), cwd=self.tmp)
+        git(self.repo, 'add', '-A')
+        git(self.repo, 'commit', '-q', '-m', 'resume')
+        wt = self.repo / '.claude/worktrees/W'
+        git(self.repo, 'worktree', 'add', '-q', '-b', 'w', str(wt))
+        self.assertEqual(start(wt), (0, '', ''), 'no 95-Resources in the main checkout: nothing')
+        self.assertFalse((wt / '95-Resources').exists())
+        self.write('95-Resources/00-index.md', 'index\n')
+        git(self.repo, 'add', '-A')
+        git(self.repo, 'commit', '-q', '-m', 'resources')
+        git(wt, 'merge', '-q', '--ff-only', 'master')
+        self.assertEqual(start(self.repo), (0, '', ''))
+        self.assertEqual([(self.repo / r).exists() for r in shared], [False] * 3, 'the main checkout is left alone')
+        (wt / '95-Resources/00-Inbox').mkdir()
+        (wt / '95-Resources/13-Papers').mkdir()
+        (wt / '95-Resources/13-Papers/own.pdf').write_text('own')
+        rc, out, err = start(wt, 'clear')
+        self.assertEqual((rc, err), (0, ''))
+        self.assertEqual(out, 'Note from .claude/hooks/resume.py: 95-Resources/13-Papers in this worktree are folders of its own, not links to '
+                              f"the main checkout's; move their files to {self.repo.resolve() / '95-Resources'} and delete them, so every session shares one set.")
+        for r in shared:
+            here, there = wt / r, self.repo.resolve() / r
+            if r.endswith('13-Papers'):
+                self.assertFalse(here.is_symlink(), 'a folder with files is kept')
+                self.assertFalse(there.exists())
+            else:
+                self.assertTrue(here.is_symlink() and here.resolve() == there and there.is_dir(), r)
+        (wt / '95-Resources/13-Papers/own.pdf').unlink()
+        self.assertEqual(start(wt), (0, '', ''), 'once emptied, it is replaced by a link')
+        self.assertTrue((wt / '95-Resources/13-Papers').is_symlink())
+        self.assertEqual(start(wt), (0, '', ''), 'idempotent')
+        (self.repo / '95-Resources/14-Web Pages/page.pdf').write_text('page')
+        self.assertEqual((wt / '95-Resources/14-Web Pages/page.pdf').read_text(), 'page', 'one set of files')
+        self.assertEqual(git(wt, 'status', '--porcelain'), '', 'the links are ignored')
+        git(self.repo, 'worktree', 'remove', '--force', str(wt))
+        self.assertEqual((self.repo / '95-Resources/14-Web Pages/page.pdf').read_text(), 'page', 'removal keeps the target files')
 
     def test_gaps_target(self):
         """The real gaps.target(): a batch id wins over a package id, arg before the branch and worktree names (a warning when arg

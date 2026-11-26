@@ -1,6 +1,6 @@
 ---
 name: speed-sweep
-description: Optimality research for Core full types against the fastest judge submissions of their problems (Library Checker first). `scout` (default) ranks the leaders, reproduces our solutions with the judge's flags, has @speedscout explain the gaps and writes an "Optimality Gap" section; `verify` refreshes the numbers after a package stage.
+description: Optimality research for Core full types against the fastest judge submissions of their problems (Library Checker first). `scout` (default) ranks the leaders, reproduces our solutions with the judge's flags, has @speedscout explain the gaps and writes an "Optimality Gap" section; `verify` refreshes the numbers once, at the end of the header's optimization sweep.
 disable-model-invocation: true
 argument-hint: "Pxxx | <header path> [scout | verify]"
 model: claude-fable-5-2
@@ -24,7 +24,7 @@ effort: high
 5. **Reproduce.** Per problem:
    - `J reproduce <problem> <our source> --label ours` builds with the judge's flags, takes the minimum of three wall times per regenerated test and checks each output with the problem's checker.
    - `J compare <problem> --user Ausp3x` gives the per-case table.
-   - Leaders' local times need the user's yes. Ask once with AskUserQuestion, naming the submission ids, then run `J reproduce <problem> <cached source> --untrusted` for each approved id. It builds and runs the source under bwrap, with a read-only filesystem and no network. Rerun `compare`. A leader whose source does not build is noted, not fixed.
+   - Leaders' local times run on the user's standing yes (user decision 2026-11-26, `09-sources.md`, Fastest Submissions): `J reproduce <problem> <cached source> --untrusted` for each of the top five ids. It builds and runs the source under bwrap, with a read-only filesystem and no network. Rerun `compare`. A leader whose source does not build is noted, not fixed.
 6. **Analyse.** Start one `@speedscout` agent per header, at most four at a time. Give each:
    - the header and our solution paths, the problems, the compare tables;
    - the leaders' ids with their cached source paths;
@@ -46,12 +46,12 @@ effort: high
 
 ## Verify
 
-1. **Scope.** Steps 1–2 of Scout. If a header's evidence document has no `### Optimality Gap`, stop and suggest `scout`.
+1. **Scope.** Steps 1–2 of Scout. It runs once, at the end of the header's optimization sweep (`05-testing.md`, Benchmarks, Schedule; user decision 2026-11-26). If a header's evidence document has no `### Optimality Gap`, stop and suggest `scout`.
 2. **Refresh.** Per problem:
    - `J fastest <problem>`, then `J mine Ausp3x <problem>` for the maintainer's latest per-case table;
    - `J reproduce <problem> <our source> --label ours`, then `J compare <problem> --user Ausp3x`.
 
-   Rerun `--untrusted` only for the leader ids the section already records with the user's yes.
+   Rerun `--untrusted` for the leader ids the section records.
 3. **Append.** Add one row per problem to the `Verify runs` table, with the date and the header's commit (`git log -1 --format=%h -- <header>`). Note any leader newer than the section's table, and any case whose gap grew by more than 10%. Add a `## History` line.
 4. **Escalate.** A problem escalates when a package stage took its targets (the header's commit is newer than the section's tests commit), it still has a case with a gap above 1.5, and the section's ranked causes no longer account for that gap. For each such problem, rerun Scout step 6 with one `@speedscout` at Agent `effort: xhigh`, giving it the refreshed tables and the section's causes. Replace that problem's causes and targets in the section, and mark the `## History` line `(xhigh scout)`. A problem whose xhigh rerun explains nothing new is reported, not rerun.
 5. **Report** the changes in standing and gaps and any escalation, and give the commit command of Scout step 8.

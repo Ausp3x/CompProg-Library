@@ -6,7 +6,7 @@
 
 - **Sides.** `base` is `01-Core` exported from a git ref (`--base`, default `HEAD`), `work` the working tree. `--side NAME=DIR[,MACRO...]` adds a directory of headers that comes first on the include path, with `-DMACRO` options; a prototype with switches is compared this way before the header is written.
 - **Builds.** The deciding compiler is the first of `--compilers` (default `g++-15,g++-14,g++`; `03-cpp.md`, Toolchain and Judges). Each side is built with it three times: `-O2` (scalar), `-O2 -mavx2 -mbmi2 -mfma` (ISA) and `-O2 -falign-functions=64 -falign-loops=32` (layout). `--gate` adds an `-O2 -march=native` build on the deciding compiler, which the summary lists as a group of its own (`g++-15 native`), and the scalar build on every further compiler. Builds go through the test runner's `Builder` (ccache, at most three at once inside the memory cap).
-- **Timing.** Every binary runs once per pass, interleaved, pinned to one CPU with `taskset` (`--core`, default 5). A row's value is its minimum cycle count over the passes (`--passes`, default 3), with that pass's instruction and misprediction counts. Interleaving and the minimum remove the thermal drift this machine shows under sustained load.
+- **Timing.** Every binary runs once per pass, interleaved, pinned to one CPU with `taskset` (`--core`, default 5). A row's value is its minimum cycle count over the passes (`--passes`, default 3), with that pass's instruction and misprediction counts. Interleaving and the minimum remove the thermal drift this machine shows under sustained load. The passes hold the memory gate's exclusive reservation (`_00_memory_gate.py`; user decision 2026-11-26): they start once no other gated run of any session runs and hold every other run back until they end, while the builds before them share the machine.
 - **Checks.** A row's checksum must agree between all sides of a build and between passes, and all binaries must print the same rows; otherwise the run fails and writes no log.
 - **Summary.** Per side and build: the geometric mean of the ratios to `--against` (default `base`) and the number of rows more than `--loss` (default 3%) slower or faster. Per compiler: `losing` rows are over the line in every build of that compiler, `layout` rows in only some, which marks them as code placement and not as the change. `show <log.json>` prints the summary of a recorded run again.
 - **Record.** The log is `<rig stem>.json` beside the rig (git-ignored). The last summary line starts with `Comparison:` and holds the date, the blobs of the rig and of every `01-Core` header the rig includes, the base commit, the compiler versions, the CPU, the passes and the row and losing-row counts. It goes into the header's evidence document under `## Benchmarks`; `/finish` (`gaps.py`, Comparison record) reports it stale when a compiler version or one of those blobs has changed (`05-testing.md`, Stale evidence).
@@ -31,8 +31,8 @@ Rows follow the benchmark matrix (`05-testing.md`, Matrix first): a branchy kern
 [`00-Tools/18-compare_tester.py`](../00-Tools/18-compare_tester.py): its docstring lists every test. The quick tests use fixtures and fake binaries; the full run builds a small rig with the real compiler against the real tree and checks that a side slowed eightfold is listed as losing in every build.
 
 ```bash
-python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full                 # PASS, 10 tests, 68 s, peak 362 MB (2026-11-23, P289 SUP33, g++ 16.2)
-CXX=g++-14 python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full      # PASS, 10 tests, 48 s, peak 342 MB (2026-11-23, P289 SUP33)
+python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full                 # PASS, 11 tests, 69 s, peak 338 MB (2026-11-26, final process change, g++ 16.2); stress --seed 1 PASS
+CXX=g++-14 python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full      # PASS, 11 tests, 79 s, peak 357 MB (2026-11-26)
 python3 '96-Local Testing/06-compare.py' --help                                      # MEMORY ... cap=8824MB: runs capped (2026-11-23, P289 SUP33)
 ```
 
@@ -42,3 +42,4 @@ python3 '96-Local Testing/06-compare.py' --help                                 
 - 2026-11-18 (P005, `/finish C03`): `--gate` adds the `-march=native` build as its own group (user decision); `Rows::net` for evicting rows; 10 tests passed.
 - 2026-11-22 (P005 `/finish`): `18-compare_tester.py` passed, 10 tests.
 - 2026-11-23 (P289 SUP33): runs capped and gated as an entry point of `_00_memory_cap.py` (user decision); `18-compare_tester.py` rerun, see Tester.
+- 2026-11-26 (final process change): the counter passes run under the memory gate's exclusive reservation (user decision 2026-11-26); `test_exclusive_passes` added.

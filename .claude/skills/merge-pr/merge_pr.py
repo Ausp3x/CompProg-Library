@@ -49,7 +49,7 @@ HIDDEN = re.compile(r'\..*|CLAUDE.*\.md|AGENTS\.md|__pycache__|.*\.(pyc|so)')
 # module or package beside them, since their folders are on the import path and can shadow standard modules ...
 HOST_RUN = re.compile(r'(96-Local Testing|00-Guidelines/13-Plan)/([^/]+\.(py|pyc|so)|[A-Za-z_]\w*/.+)'
                       r'|09-Contest Testing/(10-grab|_11_search)\.py|98-Team Notebook/(01-notebook|05-dependencies)\.py'
-                      r'|\.claude/skills/setup-check/setup_check\.py')
+                      r'|\.claude/skills/setup-check/setup_check\.py|95-Resources/00-sources\.py')
 AGENT = re.compile(r'(.+/)?\.claude/.+|(.+/)?(CLAUDE[^/]*\.md|AGENTS\.md)|\.mcp\.json')  # ... and those Claude Code loads in the worktree
 HEADER = re.compile(r'0[1-8]-[^/]+/(\d{2}-[^/]+\.hpp|_\d{2}_[^/]+\.py)')  # an inventory target
 MUTATED = re.compile(r'0[1-7]-[^/]+/(?!9[89]-)\d{2}-[^/]+\.hpp')  # 04-mutation.py HEADER (10-merge_tester compares them)
@@ -220,7 +220,8 @@ def files(n):
     base = git('merge-base', 'master', head)
     _, packages = plan.load(ROOT)
     m = plan.CLAIM.fullmatch(pr['headRefName'])
-    pkg = next((p for p in packages['packages'] if m and p['id'] == m[1] and m[2].upper() in p['batches']), None)
+    pkg = next((p for p in packages['packages'] if m and p['id'] == m[1]
+                and (m[2].upper() in p['batches'] or plan.FOLLOW.fullmatch(m[2].upper()))), None)  # a batch, or follow-ups (FU<n>)
     rows = changes(base, head)
     core = [p for _, p, _ in rows if CORE_FULL.fullmatch(p)]
     model = 'fable' if core else pkg and pkg['model']

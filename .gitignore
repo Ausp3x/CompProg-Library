@@ -26,9 +26,9 @@
 96-Local Testing/**/*_benchmark.jsonl
 96-Local Testing/**/*_compare.json
 /99-Workspace/*
-/95-Resources/00-Inbox/
-/95-Resources/13-Papers/*
-/95-Resources/14-Web Pages/*
+/95-Resources/00-Inbox
+/95-Resources/13-Papers
+/95-Resources/14-Web Pages
 !/99-Workspace/template.cpp
 96-Local Testing/.run-stats.json
 96-Local Testing/.run-stats.json.*

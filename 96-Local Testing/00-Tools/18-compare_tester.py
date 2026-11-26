@@ -23,10 +23,13 @@ count); --against another side -> test_summary;
 Rows::net subtracts the counters of a shared prefix and never prints a value below the least one -> test_net;
 the gate's native build is a group of its own, so a row slower only there is `losing` -> test_summary_native_group;
 run builds every side in the three flag sets, writes the log, prints the summary; show prints it again; a slowed side
-loses; --only, --filter; --gate adds the native build; a missing compiler fails with the tool's name -> test_e2e, test_e2e_missing_tool.
+loses; --only, --filter; --gate adds the native build; a missing compiler fails with the tool's name -> test_e2e, test_e2e_missing_tool;
+the passes alone hold the memory gate's exclusive reservation (need 0, `<rig> counters`), the builds none -> test_exclusive_passes.
 """
 import argparse
+import contextlib
 import importlib.util
+import io
 import json
 import math
 import os
@@ -37,6 +40,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
@@ -205,7 +209,28 @@ class Compare(unittest.TestCase):
         self.assertEqual(lines[7], '  g++-15 native losing (2): T|d 1.20, T|a 1.05')
 
     def run_tool(self, *args):
-        return subprocess.run([sys.executable, str(TOOL), *args], capture_output=True, text=True, timeout=900)
+        """The tool on a gate file of its own: its exclusive passes would otherwise wait for every other gated run of the
+        machine, and this tester's reservation already covers its builds."""
+        return subprocess.run([sys.executable, str(TOOL), *args], capture_output=True, text=True, timeout=900,
+                              env=dict(os.environ, CP_MEMORY_GATE=str(self.tmp / 'gate.json')))
+
+    def test_exclusive_passes(self):
+        """The passes, and only they, hold the gate's exclusive reservation (user decision 2026-11-26)."""
+        if MODE == 'quick':
+            self.skipTest('full mode')
+        cxx, rig = self.rig()
+        gate, seen = self.tmp / 'gate.json', []
+        measure, build_all = CMP.measure, CMP.Builder.build_all
+        load = lambda: [(e['pid'], e['need'], e['label'], e['state'], e.get('excl')) for e in CMP._00_memory_gate.load(gate)]
+        a = argparse.Namespace(rig=rig, compilers=cxx, gate=False, base='HEAD', side=[], only='base', filter='', passes=1, core=0, timeout=600,
+                               out=self.tmp / 'log.json', against='base', loss=0.03, top=40)
+        with unittest.mock.patch.dict(os.environ, CP_MEMORY_GATE=str(gate)), \
+                unittest.mock.patch.object(CMP, 'measure', lambda *x: seen.append(('measure', load())) or measure(*x)), \
+                unittest.mock.patch.object(CMP.Builder, 'build_all', lambda *x: seen.append(('build', load())) or build_all(*x)), \
+                contextlib.redirect_stdout(io.StringIO()):
+            CMP.run(a)
+        self.assertEqual(seen, [('build', []), ('measure', [(os.getpid(), 0, 'small_compare.cpp counters', 'run', True)])])
+        self.assertEqual(load(), [], 'released')
 
     def rig(self):
         cxx = os.environ.get('CXX', 'g++')

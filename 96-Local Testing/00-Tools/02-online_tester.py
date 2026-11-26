@@ -17,6 +17,7 @@ import tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+import _00_memory_gate
 from _00_cpp_test_runner import Builder, compiler_command
 
 os.environ['CP_TEST_PREFLIGHT'] = '0'  # every mode runs the same checks: a quick pre-flight would run them twice
@@ -136,8 +137,8 @@ def test_expander_grab(temp: Path) -> None:
                 "01-Core/01-template.hpp", "01-Core/02-debug.hpp", "02-Data Structures/01-dsu.hpp"):
         (library / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / rel, library / rel)
-    if (ROOT / GRAB_CACHE).is_dir():
-        shutil.copytree(ROOT / GRAB_CACHE, library / GRAB_CACHE)
+    if (cache := _00_memory_gate.main_checkout(ROOT) / GRAB_CACHE).is_dir():  # grab's cache: the main checkout's, shared by worktrees
+        shutil.copytree(cache, library / GRAB_CACHE)
     source = online / "src" / "judge" / "dsu.cpp"
     source.parent.mkdir(parents=True)
     text = ('#include "../../../02-Data Structures/01-dsu.hpp"\n\nint main() {\n    int n, q;\n    cin >> n >> q;\n    DSU d(n);\n'

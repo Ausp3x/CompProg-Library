@@ -12,7 +12,7 @@ Maximal competitive-programming library: C++20 headers in `01-Core` … `07-Stri
 
 ## Git
 
-`git config compprog.role` is `contributor` unless the owner has set `maintainer` (once per clone). The maintainer, when asked to commit, commits directly to local `master` without creating a branch unless asked; in a worktree, `/finish` commits to the worktree branch and lands it on `master` (its step 7). A contributor claims a package before starting, with a draft pull request on a `Pxxx-<batch>-<user>` branch created in the checkout the session works in. All their commits go to that branch, their `/finish` stops before landing, and the maintainer lands their pull request with `/merge-pr <N>`. Core full packages are maintainer-only. Never push: the user pushes. The pre-push hook `.claude/githooks/pre-push` and `97-Online Testing/04-submit.py` refuse every shell Claude Code starts, and a `!` command the user types shares that environment, so the user's own push or submission inside a session starts with `CP_USER=1` (`! CP_USER=1 git push`; user decision 2026-11-23). Claude never sets it.
+`git config compprog.role` is `contributor` unless the owner has set `maintainer` (once per clone). The maintainer, when asked to commit, commits directly to local `master` without creating a branch unless asked; in a worktree, `/finish` commits to the worktree branch and lands it on `master` (its step 7), as `/package` does for a package with nothing open (its step 13). A contributor claims a package before starting, with a draft pull request on a `Pxxx-<batch>-<user>` branch (`Pxxx-FU<yymmdd>-<user>` for a verified package's follow-ups) created in the checkout the session works in. All their commits go to that branch, their `/finish` stops before landing, and the maintainer lands their pull request with `/merge-pr <N>`. Core full packages are maintainer-only. Never push: the user pushes. The pre-push hook `.claude/githooks/pre-push` and `97-Online Testing/04-submit.py` refuse every shell Claude Code starts, and a `!` command the user types shares that environment, so the user's own push or submission inside a session starts with `CP_USER=1` (`! CP_USER=1 git push`; user decision 2026-11-23). Claude never sets it.
 
 ## Models and Delegation
 
@@ -26,7 +26,7 @@ Maximal competitive-programming library: C++20 headers in `01-Core` … `07-Stri
   - A scratchpad gets copies of the files a check needs, as many as it needs (a header, a tester's files, their includes), never the working tree or a folder of it with git-ignored caches: `96-Local Testing/.judge-cache` holds many gigabytes, `/tmp` may be RAM-backed, and such a copy ended a session out of memory. `04-mutation.py` makes its own copies of the files git lists (user decision 2026-11-17).
   - A subagent not told the scratchpad's path uses a folder in `$(ls -d /tmp/claude-$(id -u)/*/$CLAUDE_CODE_SESSION_ID | head -1)`. `/package` and `/finish` delete an ended session's scratchpad once it has been idle for 24 hours (`/reap`, user decision 2026-11-16).
 - Fable main sessions (Anthropic's Fable 5.2 prompting guidance; read-only agents keep their own rules):
-  - Ownership, in `/package`, `/prune` and `/finish`: you are the owner and long-term maintainer of the package's headers, tests and evidence, and their design is up to you. Restructure them, merge repeated code and fix their defects instead of reporting them. A shortfall against the brief is still raised with the user, and the public contract (the inventory row, `Docs/00-notes.md`) changes only with the user's yes. Other skills and prompts keep the edit scope they state.
+  - Ownership, in `/package`, `/prune` and `/finish`: you are the owner and long-term maintainer of the package's headers, tests and evidence, and their design is up to you. Restructure them, merge repeated code and fix their defects instead of reporting them. A shortfall against the brief is fixed (`01-principles.md`, Scope Discipline); dropping or narrowing anything in the public contract (the inventory row, `Docs/00-notes.md`) needs the user's yes. Other skills and prompts keep the edit scope they state.
   - Finishing: carry the task to its last step without stopping midway to offer to continue; the final report still lists what remains (`01-principles.md`, Scope Discipline). Diagnose an ordinary obstacle (a failed build, a timeout, a held lock, an empty result) and work through it. Stop only where the skill says to stop, for a decision that is the user's, or at a deliberate blocker (a hook refusal, `OLD/`, never push, never submit), and say plainly which.
   - No approval is needed for rerunning a build, test, benchmark or mutation stage that failed or timed out, for editing the files the task may edit, or for the subagents a skill step names. Start no other subagent except for independent parallel work, and none to review your own work outside the skills' `@reviewer` steps: subagents are a large share of a Fable session's cost.
   - Final reports (`/finish`, `/pause`, a skill's report) are for a reader who saw none of the tool calls: key points first, plain full sentences, no term coined during the work, paragraphs where ideas connect and bullets for separate items.
@@ -41,13 +41,15 @@ Sessions auto-compact at 400k tokens (`autoCompactWindow` in `.claude/settings.j
 ```bash
 python3 '00-Guidelines/13-Plan/plan.py' show P018       # package brief
 python3 '00-Guidelines/13-Plan/plan.py' set P018 verified --evidence '01-Core/Docs/07-infint.md'
+python3 '00-Guidelines/13-Plan/plan.py' follow-up P018 '<text>'   # work filed on a package (it stays verified); --done <n> closes one
 python3 '96-Local Testing/01-run.py' --mode quick        # all suites, quick
 python3 '96-Local Testing/_00_memory_cap.py' -- <cmd>    # run any ad-hoc binary, probe or benchmark memory-capped (testers cap themselves)
 python3 '96-Local Testing/<folder>/<NN-name>_tester.py' --mode full --seed 1
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'             # runs automatically after edits to Markdown, plan, headers, modules
-python3 '96-Local Testing/04-mutation.py' run <header>   # mutation campaign, /package step 6; check <header>... for records
+python3 '96-Local Testing/04-mutation.py' run <header>   # mutation campaign, /package step 7; check <header>... for records
 python3 '95-Resources/00-sources.py' commit             # back up new resources to the private repository (95-Resources/00-index.md, Storage)
+python3 '95-Resources/00-sources.py' file <file> '13-Papers/<name>' --title T --url U --cited-in <doc:line>   # file a source when first cited (95-Resources/00-index.md, Filing)
 python3 '96-Local Testing/06-compare.py' run '96-Local Testing/01-Core/<NN-name>_compare.cpp' --gate   # Core full speed A/B against HEAD (05-testing.md, Benchmarks)
 python3 '97-Online Testing/03-workspace.py' --check      # workspace template is generated; never hand-edit
 ```
@@ -57,5 +59,5 @@ Run a command that may exceed two minutes in the foreground with a `timeout` of 
 ## Toolchain
 
 - Local: GCC 16.2 (`g++`), GCC 14.4.1 (`g++-14`), GCC 15.3 (`g++-15`, the deciding compiler of Core full speed comparisons), CPython 3.14, PyPy 8.0.1 (`pypy3`, Python 3.12) and mewt 4.0.0 (mutation testing, pinned and installed by `04-mutation.py install`). `oj-bundle` and `lualatex` are optional; a missing tool is reported as SKIP, never a faked pass.
-- Floors: `03-cpp.md` (Toolchain and Judges) and `04-python.md` (Baseline) for the library; the per-package `CXX=g++-14` full run in `05-testing.md` (Coverage). Every tool the scripts run, with its floor and its Ubuntu and Arch packages, is listed in `TOOLS` of `.claude/skills/setup-check/setup_check.py`, which `03-consistency.py` holds complete.
+- Floors: `03-cpp.md` (Toolchain and Judges) and `04-python.md` (Baseline) for the library; the per-package `CXX=g++-14` full run in `05-testing.md` (Package Checks). Every tool the scripts run, with its floor and its Ubuntu and Arch packages, is listed in `TOOLS` of `.claude/skills/setup-check/setup_check.py`, which `03-consistency.py` holds complete.
 - When work needs a missing or blocked tool, ask the user with its install command (`/setup-check` prints them) and continue once it is installed; a cheap workaround may run meanwhile if named.

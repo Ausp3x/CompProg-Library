@@ -15,6 +15,6 @@ Claude Code loads rules `01`–`08` through `.claude/rules/` symlinks: `01-princ
 | [09-sources](09-sources.md) | on request | Completeness sweep catalogs, fastest judge submissions (`/speed-sweep`), provenance rules |
 | [10-decisions](10-decisions.md) | on request | Decision log and rationale |
 | [13-Plan](13-Plan/00-index.md) | via `plan.py` | Work manifest: batches, packages, statuses, models; worktree and context-usage tools |
-| [23-Sweep Ledgers](<23-Sweep Ledgers/00-index.md>) | via skills | Sweep ledgers with the user's binding decisions: `duplicates.md` (`/duplicate-sweep`, `/prune`), `omissions.md` (`/omission-sweep`) |
+| [23-Sweep Ledgers](<23-Sweep Ledgers/00-index.md>) | via skills | Sweep ledgers with the user's binding decisions: `duplicates.md` (`/duplicate-sweep`, `/prune`), `omissions.md` (`/omission-sweep`), `process.md` (process ideas, `/reflect`) |
 | [History](History/2026-09-27-migration.md) | on request | Dated migration and audit records: migration, monolith transfer, inventory audit, Core migration |
 | `Ledgers/` | never whole | Machine-readable maps, checked by the validator: `path-map`, `monolith-map`, `path-updates`, `core-path-updates`, `archive-map` (archive accounting), `library-checker-coverage` (judge families to owners); unchecked: `research-sources` (read scopes). Query with `rg` or Python |

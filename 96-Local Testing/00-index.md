@@ -39,6 +39,7 @@ python3 '96-Local Testing/00-Tools/15-harness_tester.py' --mode full  # the mode
 python3 '96-Local Testing/00-Tools/16-submit_tester.py' --mode full   # 97-Online Testing/04-submit.py against a fake judge
 python3 '96-Local Testing/00-Tools/17-reap_tester.py' --mode full     # /reap's reap.py on synthetic tables and fake sessions
 python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full  # 06-compare.py and 00-perf.hpp
+python3 '96-Local Testing/00-Tools/19-sources_tester.py' --mode full  # 95-Resources/00-sources.py: filing, the Storage check, fetch and the private backup
 python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Checker fetch, reproduce and compare (/speed-sweep)
 ```
 

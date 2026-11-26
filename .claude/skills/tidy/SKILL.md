@@ -1,13 +1,13 @@
 ---
 name: tidy
-description: Documentation and configuration hygiene. Read-only audits per scope unit, then fixes backed by a rule (stale or contradicted claims, dead references, restated rules, superseded run narrative, contract violations); judgement calls go to the user. Code and tests are out of scope.
+description: Documentation and configuration hygiene, in the process batch after /reflect. Read-only audits per scope unit changed since the last run, then fixes backed by a rule (stale or contradicted claims, dead references, restated rules, superseded run narrative, contract violations); judgement calls go to the user. Code and tests are out of scope.
 disable-model-invocation: true
-argument-hint: "[.claude | 00-Guidelines | folder prefixes | evidence | tools] (default: all)"
+argument-hint: "[.claude | 00-Guidelines | folder prefixes | evidence | tools] (default: the units changed since the last Tidy commit)"
 model: claude-opus-5-5
 effort: high
 ---
 
-Scope units: `.claude` with `CLAUDE.md`, `AGENTS.md`, the root `00-index.md`, `01-prompts.md` above the plan block and the auto-memory; `00-Guidelines` with its ledgers; each library folder (`00-index.md`, `Docs/00-notes.md`, `Docs/00-sources.md`, `97-Legacy/00-index.md`); `evidence`, the `Docs/<NN-name>.md` documents, one unit per folder; `tools`, the indexes and documents of `09`, `95`–`98` and `OLD/00-index.md`.
+Scope units: `.claude` with `CLAUDE.md`, `AGENTS.md`, the root `00-index.md`, `01-prompts.md` above the plan block and the auto-memory; `00-Guidelines` with its ledgers; each library folder (`00-index.md`, `Docs/00-notes.md`, `Docs/00-sources.md`, `97-Legacy/00-index.md`); `evidence`, the `Docs/<NN-name>.md` documents, one unit per folder; `tools`, the indexes and documents of `09`, `95`–`98` and `OLD/00-index.md`. Without a scope, only the units holding a file changed since the last `Tidy` commit (`git log -1 --format=%h --grep='^Tidy '`, then `git diff --name-only <it>`) are audited, every unit when there is none (user decision 2026-11-26).
 
 1. **Audit.** One read-only `general-purpose` agent per unit, at most 8 at a time. It checks the unit against `01-principles.md` (each rule stated once, in its owning file), `02-structure.md` (Inventory Contract, companion documents, latest-run rule, readable writing and Title Case headings) and the repository (paths, rows, statuses, files on disk), and returns file:line, class, evidence and the minimal fix, confirmed findings apart from judgement calls. Omission lists in `Docs/00-notes.md` and dated source sections are intended (`/package` step 3, `09-sources.md`).
 2. **Ask** the judgement calls with AskUserQuestion.

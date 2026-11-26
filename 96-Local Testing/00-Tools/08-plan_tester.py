@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Checks for the contributor roles and pull-request claims of 00-Guidelines/13-Plan/plan.py and the role line, ledger
-rows and facts output of .claude/skills/finish/gaps.py.
+"""Checks for the contributor roles and pull-request claims, the follow-ups and the limits gate of
+00-Guidelines/13-Plan/plan.py and the role line, ledger rows and facts output of .claude/skills/finish/gaps.py.
 
 No test touches the network or the real git configuration. A fake `gh` (a shell wrapper around a Python script) sits
 alone with a `git` symlink on PATH and answers `api user` and `pr list` from fixture files, logs its arguments, and can
@@ -39,12 +39,13 @@ gh (missing, non-zero exit first stderr line or 'gh <cmd> failed', success, 10 s
 config and the claims repository (REPO default, compprog.repo override) -> test_config_and_claims_repo;
 login (gh api user only when ask, git user.name fallback also for empty or whitespace-only gh output, slug, 'user') ->
 test_login, test_login_ask_false, test_login_fallbacks, test_login_random;
-claims (arguments, CLAIM fullmatch, batch owner, case of the batch, lowest number, value, SKIP reason, non-JSON output ->
-'gh pr list printed no JSON') -> test_claims_fixture, test_claims_random, test_syn_no_json_skip;
+claims (arguments, CLAIM fullmatch, batch owner, case of the batch, a follow-up claim `FU<n>` of any package, lowest
+number, value, SKIP reason, non-JSON output -> 'gh pr list printed no JSON') -> test_claims_fixture, test_claims_random,
+test_syn_no_json_skip;
 gate (role, login only when needed and without gh after a SKIP, block texts, case-insensitive self, maintainer-only,
 claims line) -> test_gate_*, test_gate_random;
-claim_branch (own claim, current claim branch of a batch of the package, '<id>-<batch>-<me>') -> test_claim_branch,
-test_claim_branch_random;
+claim_branch (own claim, current claim branch of a batch or of the follow-ups of the package, '<id>-<batch>-<me>') ->
+test_claim_branch, test_claim_branch_random;
 landed ('verified' lines only; 'partial' and 'branch' do not count) and batch_done of support batches ->
 test_syn_show_unclaimed, test_gaps_role_line, test_real_show_unclaimed, test_real_gaps_role_line;
 live (linked worktree directory name and branch only, whole tokens only (agent-a1c07e2f names nothing), a claim name
@@ -60,9 +61,10 @@ sweeps (verified Core full headers without a candidates table are pending; minis
 shape, verdict words, empty evidence and undecided wording are faults; the Operation column's names; the maintainer's
 waiting line) -> test_syn_sweeps;
 gaps.py Core full sections (undecided wording and a missing candidates table; the newest Comparison line of 06-compare.py
-against the current rig, header blobs and compiler versions; neither section for a contest batch) -> test_gaps_core_full;
-gaps.py review record (--reviewed stores the blobs of targets, tests and evidence with the report; Facts: none, covers
-with the report, changed, added and removed files; no id fails) -> test_gaps_review_record; a batch without targets
+against the current rig, header blobs and the deciding compiler's version, the first listed; neither section for a contest batch) -> test_gaps_core_full;
+gaps.py review record (--reviewed stores the blobs of targets, tests and evidence in git's object database with the
+report, --wrong the full-audit flag; Facts: none, covers with the report, changed, added and removed files with their
+diff since the review in <key>.since-review.diff, a recorded wrong answer; no id fails) -> test_gaps_review_record; a batch without targets
 covering the package's evidence and the branch's and uncommitted changes, not plan.py's four files or .claude/finish, an
 edit and a new file reopening it (user decision 2026-11-23), its facts reading the package's evidence headings ->
 test_gaps_review_record_support;
@@ -118,10 +120,24 @@ file past 400 lines and 160 characters, the printed cap) -> test_gaps_limits, te
 (once per key, an unknown id, a batch without targets leaving out unchanged files uncommitted at the start, covering a
 new file and one changed since, other work changed later reopening it, an unreadable record) -> test_gaps_review_start;
 every open package's gaps.py facts and fitted briefs within their rooms on the real plan (quick: the first 12) ->
-test_real_rooms; gaps.py --reviewed after the change -> test_gaps_review_record.
+test_real_rooms; gaps.py --reviewed after the change -> test_gaps_review_record;
+follow-ups (user decision 2026-11-26): the checklist markers `[ ]`, `[-]`, `[x]`, `[!]` and the ' Follow-ups: (1) a; (2) b.'
+suffix of any package -> test_render_markers; `plan.py follow-up` (one-line text, refusals, --done by number, the field
+dropped with the last, saved and re-rendered) -> test_syn_follow_up_cli; a verified package with follow-ups as ready
+work first in ready/next, its show block with the follow-up claim batch, waiting's follow-up claims ->
+test_syn_follow_up_ready_and_show, test_syn_waiting; check's format rule, doctor's partial row and check's undecided
+limits in a verified package, both allowed while follow-ups are open -> test_syn_follow_up_check_and_doctor;
+undecided limits: plan.undecided (items under level-2 and level-3 Limits or Handoff headings without `user decision
+<date>` or `follow-up on Pxxx`; paragraphs, list items with continuations and nested items, table body rows; none skipped) ->
+test_undecided; `plan.py set Pxxx verified` refusing a package whose evidence (with the new --evidence paths) holds one,
+unless open follow-ups of a verified package cover it, and `--done` keeping its last follow-up meanwhile -> test_syn_set_verified_gate;
+gaps.py's Undecided limits and Follow-ups sections after the review record -> test_gaps_undecided_and_follow_ups;
+gaps.py's Sources section, the checkout's 00-sources.py check for the key and package, after the follow-ups and absent
+without the script (user decision 2026-11-27) -> test_gaps_sources.
 """
 import argparse
 import contextlib
+import datetime
 import errno
 import fcntl
 import importlib.util
@@ -217,15 +233,21 @@ def o_parse(branch):
     return branch[:4], branch[5:k]
 
 
+def o_follow(batch):
+    """Whether a claim's batch part names follow-ups: FU then digits, in any case (user decision 2026-11-26)."""
+    return len(batch) > 2 and batch[:2].upper() == 'FU' and all(c in DIGITS for c in batch[2:])
+
+
 def o_claims(prs, packages):
-    owner = {}
+    owner, ids = {}, set()
     for p in packages['packages']:
+        ids.add(p['id'])
         for b in p['batches']:
             owner[b] = p['id']
     best = {}
     for pr in prs:
         r = o_parse(pr['headRefName'])
-        if r and owner.get(r[1].upper()) == r[0] and (r[0] not in best or pr['number'] < best[r[0]][2]):
+        if r and (owner.get(r[1].upper()) == r[0] or (r[0] in ids and o_follow(r[1]))) and (r[0] not in best or pr['number'] < best[r[0]][2]):
             best[r[0]] = (pr['author']['login'], pr['headRefName'], pr['number'], pr['isDraft'])
     return best
 
@@ -264,12 +286,12 @@ def o_deps(batches, packages):
 
 
 def o_claim_branch(pid, pbatches, batch, branch, claims, me):
-    """The user's own claim's branch, else the current branch if it is a claim branch of a batch of pid, else
-    '<pid>-<batch>-<me>'."""
+    """The user's own claim's branch, else the current branch if it is a claim branch of a batch or of the follow-ups
+    of pid, else '<pid>-<batch>-<me>'."""
     if pid in claims and claims[pid][0].lower() == me.lower():
         return claims[pid][1]
     m = o_parse(branch or '')
-    if m and m[0] == pid and m[1].upper() in pbatches:
+    if m and m[0] == pid and (m[1].upper() in pbatches or o_follow(m[1])):
         return branch
     return pid + '-' + batch + '-' + me
 
@@ -289,8 +311,9 @@ def o_gaps_line(b, last, repo, n=None):
             + ('last open batch: mark the pull request ready if verified' if last else 'more batches follow: the pull request stays a draft'))
 
 
-FACTS_ORDER = ('Ledger', 'Review record', 'Undecided optimization', 'Mutation records', 'Agent-made', 'Open sweep', 'Recorded limits',
-               'Comparison record', 'Packages filed', 'TODO markers', 'Branch and', 'Other worktrees', 'Brief')  # most needed first (SUP33)
+FACTS_ORDER = ('Ledger', 'Review record', 'Undecided limits', 'Follow-ups', 'Undecided optimization', 'Mutation records', 'Agent-made',
+               'Open sweep', 'Recorded limits', 'Comparison record', 'Packages filed', 'TODO markers', 'Branch and', 'Other worktrees',
+               'Brief')  # most needed first (SUP33; limits and follow-ups 2026-11-26)
 MIN_ROOM, FLOOR, CAP_LINES = 2500, 1500, 12  # validator minimum; printed floor; lines per section (SUP33)
 NO_SKILL = 10000  # o_room(''): 5,000 tokens x 2.0 characters of output
 ROW_POOLS = {'id': (['A1', 'x', '9z', 'D-3', 'a.b_c', 'P250-SUP17', 'AÄ'], ['', '-a', '_a', '.a', 'a b', 'a/b', 'Ä1', '#1']),
@@ -411,21 +434,24 @@ def sections_of(text):
 
 
 def o_ready(batches, packages, skip):
+    """The first verified package with follow-ups whose prerequisites are verified, else the first such open package."""
     status = {p['id']: p['status'] for p in packages['packages']}
     deps = o_deps(batches, packages)
-    for p in packages['packages']:
-        if p['status'] != 'verified' and p['id'] not in skip and all(status[d] == 'verified' for d in deps[p['id']]):
-            return p['id']
+    for verified in (True, False):
+        for p in packages['packages']:
+            if ((p['status'] == 'verified') == verified and (not verified or p.get('followups')) and p['id'] not in skip
+                    and all(status[d] == 'verified' for d in deps[p['id']])):
+                return p['id']
     return None
 
 
 def o_ready_rows(batches, packages):
-    """[(id, folders)] of the open packages whose prerequisites are verified, in order."""
+    """[(id, folders)] of the verified packages with follow-ups, then the open packages, whose prerequisites are verified, in order."""
     bmap = {b['id']: b for b in batches['batches']}
     status, deps = {p['id']: p['status'] for p in packages['packages']}, o_deps(batches, packages)
     rows = []
-    for p in packages['packages']:
-        if p['status'] == 'verified' or any(status[d] != 'verified' for d in deps[p['id']]):
+    for p in [q for q in packages['packages'] if q['status'] == 'verified'] + [q for q in packages['packages'] if q['status'] != 'verified']:
+        if (p['status'] == 'verified' and not p.get('followups')) or any(status[d] != 'verified' for d in deps[p['id']]):
             continue
         fs = {bmap[b]['folder'] for b in p['batches']} | {t.split('/')[0] for b in p['batches'] for t in bmap[b]['targets']}
         rows.append((p['id'], (fs - {'support'}) or {'support'}))
@@ -506,7 +532,9 @@ def rand_prs(rng, packages, authors, k):
         b = rng.choice(p['batches'])
         b = b.lower() if rng.random() < 0.2 else b
         user = rng.choice(['x', 'bob', 'a-b', 'feat/1', 'ü'])
-        if kind < 0.6:
+        if kind < 0.08:  # a follow-up claim (user decision 2026-11-26), well formed or not
+            branch = f'{p["id"]}-{rng.choice(["FU", "fu", "Fu", "FUX", "F"])}{rng.choice(["261126", "1", ""])}-{user}'
+        elif kind < 0.6:
             branch = f'{p["id"]}-{b}-{user}'
         elif kind < 0.7:
             branch = f'{p["id"]}-{rng.choice(batches)}-{user}'
@@ -524,7 +552,7 @@ def syn_plan(rng, n):
         own = [f'B{chr(65 + i)}{j}' for j in range(rng.randint(1, 3))]
         ids += own
         pkgs.append({'id': f'P{100 + i}', 'batches': own, 'status': rng.choice(['planned', 'in-progress', 'verified']),
-                     'model': rng.choice(['opus', 'opus', 'fable'])})
+                     'model': rng.choice(['opus', 'opus', 'fable'])} | ({'followups': ['f']} if rng.random() < 0.3 else {}))
     for b in ids:
         pre = rng.sample(ids, rng.randint(0, min(2, len(ids)))) + (['ZZ99'] if rng.random() < 0.1 else [])
         batches.append({'id': b, 'folder': rng.choice(['01-Core', '04-Graphs', 'support']), 'targets': [], 'prerequisites': pre})
@@ -840,7 +868,11 @@ class Units(Base):
                                             ('SUP17', 'P2500-SUP17-x', {}, 'alice', 'P250-SUP17-alice'),
                                             ('SUP17', 'P250-SUP17-', {}, 'alice', 'P250-SUP17-alice'),
                                             ('SUP17', None, {}, 'alice', 'P250-SUP17-alice'),
-                                            ('SUP17', 'x/P250-SUP17-x', {}, 'alice', 'P250-SUP17-alice')):
+                                            ('SUP17', 'x/P250-SUP17-x', {}, 'alice', 'P250-SUP17-alice'),
+                                            ('FU261126', 'P250-fu261125-x', {}, 'alice', 'P250-fu261125-x'),  # follow-up claims (2026-11-26)
+                                            ('FU261126', 'P250-FUX1-x', {}, 'alice', 'P250-FU261126-alice'),
+                                            ('FU261126', 'P250-FU-x', {}, 'alice', 'P250-FU261126-alice'),
+                                            ('SUP17', 'P250-FU1-x', {}, 'alice', 'P250-FU1-x')):
             want_o = o_claim_branch(p['id'], p['batches'], batch, branch, cl, me)
             self.assertEqual(want_o, want, f'oracle self-check {branch!r}')
             self.assertEqual(PLAN.claim_branch(p, batch, branch, cl, me), want, f'{batch} {branch!r} {cl} {me}')
@@ -863,9 +895,11 @@ class Units(Base):
                pr(1, 'P020-SUP17-x', 'x'), pr(3, 'feature/P031-DS02-x', 'x'), pr(5, 'P031-DS02-', 'x'),
                pr(6, 'P0310-DS02-x', 'x'), pr(7, 'p031-DS02-x', 'x'), pr(8, 'P031-DS02', 'x'), pr(10, 'P031-ds27-a-b/c', 'Dave'),
                pr(12, 'P031-DS02-eve', 'eve'), pr(13, 'P018-C04x-y', 'y'), pr(14, 'P018-C-y', 'y'), pr(15, 'P018-4-y', 'y'),
-               pr(16, 'P999-C04-y', 'y')]
+               pr(16, 'P999-C04-y', 'y'), pr(17, 'P018-fu261126-zed', 'zed'), pr(18, 'P999-FU1-y', 'y'), pr(19, 'P020-FUX2-y', 'y'),
+               pr(20, 'P020-FU-y', 'y')]
         self.prs(prs)
-        want = {'P250': ('carol', 'P250-sup17-carol', 4, True), 'P031': ('Dave', 'P031-ds27-a-b/c', 10, False)}
+        want = {'P250': ('carol', 'P250-sup17-carol', 4, True), 'P031': ('Dave', 'P031-ds27-a-b/c', 10, False),
+                'P018': ('zed', 'P018-fu261126-zed', 17, False)}
         self.assertEqual(o_claims(prs, self.PKGS), want, 'oracle self-check')
         with self.environ():
             self.assertEqual(PLAN.claims(self.repo, self.PKGS), (want, ''))
@@ -979,6 +1013,43 @@ class Units(Base):
             got = (PLAN.ready(batches, packages, skip) or {}).get('id')
             self.assertEqual(got, o_ready(batches, packages, skip),
                              self.fail_info(round=r, skip=sorted(skip), batches=json.dumps(batches), packages=json.dumps(packages)))
+
+
+    def test_render_markers(self):
+        """The checklist boxes (user decision 2026-11-26): `[ ]` planned, `[-]` in progress, `[x]` verified, `[!]` verified with
+        open follow-ups, which every package lists after its other text."""
+        pk = lambda i, s, fu=None, note='': ({'id': i, 'batches': ['B1'], 'model': 'opus', 'size': 'S', 'label': 'L', 'phase': 'Contest Core',
+                                              'status': s, 'note': note, 'evidence': []} | ({'followups': fu} if fu else {}))
+        text = PLAN.render_text({'packages': [pk('P001', 'planned'), pk('P002', 'in-progress', ['x'], 'n'), pk('P003', 'verified'),
+                                              pk('P004', 'verified', ['a', 'b; c'])]})
+        self.assertEqual([l for l in text.split('\n') if l.startswith('- ')], [
+            '- [ ] **P001 — B1** (opus, S): L. Status: planned.', '- [-] **P002 — B1** (opus, S): L. Status: in-progress. Note: n Follow-ups: (1) x.',
+            '- [x] **P003 — B1** (opus, S): L.', '- [!] **P004 — B1** (opus, S): L. Follow-ups: (1) a; (2) b; c.'])
+        self.assertIn('`[ ]` planned, `[-]` in progress, `[x]` verified, `[!]` verified with open follow-ups', text)
+
+    def test_undecided(self):
+        """plan.undecided (user decision 2026-11-26): the items of the level-2 and level-3 headings naming Limits or a
+        Handoff, each a list item or a paragraph with its continuation lines, or a table body row, that name no
+        `user decision <date>`; `none` items and table headers are skipped; a section ends at the next heading of its level
+        or above, while a deeper heading only ends the item before it; an indented item continues its parent, and an item naming
+        the follow-up it filed (`follow-up on Pxxx`) is decided too (review of 2026-11-26); a missing file gives none."""
+        doc = self.tmp / 'Docs/01-x.md'
+        doc.parent.mkdir()
+        text = ('# Doc\n## Contracts\n- c\n## Limits and Handoffs\n- open one\n  continued here\n- decided (user decision 2026-11-26)\n'
+                '- also decided, user decisions 2026-11-17 and 2026-11-18\n* star item\n1. numbered\n   more\n\nA paragraph\nsecond line of it\n\n'
+                '### Sub detail\n- nested\n| A | B |\n|---|---|\n| row | x |\n| row2 user decision 2026-01-02 | y |\n- None.\n'
+                '- user decision (no date)\n## History\n- h\n### Dependent-Owner Handoff\n- handoff item\n#### deep\n- deep item\n'
+                '## Limits\n- none\n2) n\n- handed on (follow-up on P031)\n- parent (user decision 2026-11-26):\n  - child a;\n  - child b.\n'
+                '- open two\n    - its child\n## Open questions\n- not a limits heading\n# Top Limits\n- level 1 is not\n')
+        doc.write_text(text)
+        lines = text.split('\n')
+        at = lambda t: lines.index(t) + 1
+        self.assertEqual(PLAN.undecided(doc), [
+            (at('- open one'), '- open one continued here'), (at('* star item'), '* star item'), (at('1. numbered'), '1. numbered more'),
+            (at('A paragraph'), 'A paragraph second line of it'), (at('- nested'), '- nested'), (at('| row | x |'), '| row | x |'),
+            (at('- user decision (no date)'), '- user decision (no date)'), (at('- handoff item'), '- handoff item'),
+            (at('- deep item'), '- deep item'), (at('2) n'), '2) n'), (at('- open two'), '- open two - its child')])
+        self.assertEqual(PLAN.undecided(self.tmp / 'none.md'), [])
 
 
 class Facts(Base):
@@ -1184,9 +1255,10 @@ class Facts(Base):
         led = 'Ledger .claude/finish/K.txt (open rows)'
         rows = [f'D{i:03} | defect | 01-Core/10-x.hpp:{i:03} | gap {"g" * 20} | review | open' for i in range(100)]
         others = ['Brief', 'Recorded limits (evidence headings)', 'Agent-made omissions and deferrals (notes lines without a user decision)',
+                  'Undecided limits (no `user decision <date>`)', 'Follow-ups of P123',
                   'Review record (/package step 10)', 'Undecided optimization candidates (Core full evidence)',
                   'Comparison record (05-testing.md, Stale evidence)', 'Packages filed by P123', 'Open sweep ledger rows',
-                  'Branch and uncommitted changes', 'Mutation records (04-mutation.py check on changed headers; /package step 6)',
+                  'Branch and uncommitted changes', 'Mutation records (04-mutation.py check on changed headers; /package step 7)',
                   'TODO markers in changed files', 'Other worktrees touching the same files (committed work; worktree.py --finish adds their uncommitted edits)']
         sections = [(led, rows + ['3 fixed or answered rows not shown'])] + [(t, ['t'] * 20 if t.startswith('TODO') else ['x' * 50]) for t in others]
         facts = self.tmp / 'root/.claude/finish/K.facts.txt'
@@ -1367,7 +1439,7 @@ class Synthetic(Base):
         for ident, p, b in (('P250', 'P250', 'SUP18'), ('SUP17', 'P250', 'SUP17'), ('SUP19', 'P250', 'SUP19'), ('P031', 'P031', 'DS02'),
                             ('P021', 'P021', 'C08')):
             self.assertEqual(self.show(ident)[2], o_claim_line(False, p, b, f'{p}-{b}-alice', REPO), ident)
-        hint = '. One batch per session, under its batch id: run `/package SUP18`, then `/finish SUP18`.'
+        hint = '. One batch per session, under its batch id: run `/package SUP18`, which lands it when nothing is open, else `/clear`, then `/finish SUP18`.'
         self.assertEqual([l for l in self.show('P250') if l.startswith('Batches: ')],
                          ['Batches: SUP17 (done), SUP18 (open), SUP19 (open)' + hint], 'the hint reuses the brief batch')
         with self.environ('contributor', cfg={'compprog.repo': 'fork/Lib'}):
@@ -1520,6 +1592,124 @@ class Synthetic(Base):
             self.assertEqual(PLAN.live(self.root, SYN_BATCHES, SYN_PACKAGES), {'P250'}, 'ST01 belongs to verified P900')
             self.assertEqual(PLAN.live(self.root, batches, SYN_PACKAGES), {'P250', 'P260'}, 'a changed support target is live')
 
+    def test_syn_follow_up_cli(self):
+        """plan.py follow-up (user decision 2026-11-26): adds a one-line text (whitespace runs joined), refuses an empty or
+        repeated one, an unknown package, both or neither of text and --done, and numbers outside 1..n; --done closes by
+        number and drops the field with the last; each change saves packages.json and re-renders the checklist."""
+        cli = lambda *a: self.run_py(self.cli, 'follow-up', *a, cwd=self.root, role='maintainer')
+        pkg = lambda pid: next(p for p in json.loads((self.root / '00-Guidelines/13-Plan/packages.json').read_text())['packages'] if p['id'] == pid)
+        line = lambda pid: next(l for l in (self.root / '01-prompts.md').read_text().splitlines() if f'**{pid} ' in l)
+        r = cli('P900', '  limits   recheck\n of 01-s ')
+        self.assertEqual((r.returncode, r.stdout), (0, 'P900: 1 open follow-up(s)\n1. limits recheck of 01-s\nRendered 01-prompts.md (9 packages)\n'), r.stderr)
+        self.assertEqual((pkg('P900')['followups'], pkg('P900')['status']), (['limits recheck of 01-s'], 'verified'))
+        self.assertEqual(line('P900'), '- [!] **P900 — ST01** (opus, M): LP900. Follow-ups: (1) limits recheck of 01-s.')
+        for args, err in ((('P900', 'limits recheck of 01-s'), 'already has this follow-up'), (('P900', '  '), 'Empty follow-up'),
+                          (('P777', 'x'), 'Unknown package P777'), (('P900',), 'not both'), (('P900', 'x', '--done', '1'), 'not both'),
+                          (('P900', '--done', '2'), 'has follow-ups 1 to 1'), (('P031', '--done', '1'), 'has no open follow-up')):
+            r = cli(*args)
+            self.assertEqual((r.returncode != 0, err in r.stderr), (True, True), (args, r.stderr))
+        cli('P900', 'second')
+        cli('P900', 'third')
+        self.assertEqual(cli('P900', '--done', '1', '3').stdout.split('\n')[:2], ['P900: 1 open follow-up(s)', '1. second'])
+        cli('P900', '--done', '1')
+        self.assertNotIn('followups', pkg('P900'))
+        self.assertEqual(line('P900'), '- [x] **P900 — ST01** (opus, M): LP900.')
+        cli('P030', 'on an open package')
+        self.assertEqual(line('P030'), '- [-] **P030 — DS01** (opus, M): LP030. Status: in-progress. Follow-ups: (1) on an open package.')
+
+    def test_syn_follow_up_check_and_doctor(self):
+        """check's followups rule (a non-empty list of distinct one-line texts, absent when none), and doctor's partial row and
+        check's undecided limit in a verified package, each allowed while it has open follow-ups (user decision 2026-11-26)."""
+        for rel in ('98-Team Notebook/05-dependencies.py', '96-Local Testing/01-run.py'):  # check and doctor read them
+            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / rel, self.root / rel)
+        plan = self.root / '00-Guidelines/13-Plan/packages.json'
+        data = json.loads(plan.read_text())
+        p900 = next(p for p in data['packages'] if p['id'] == 'P900')
+        bad = lambda: [l for l in self.run_py(self.cli, 'check', cwd=self.root, role='maintainer').stdout.splitlines() if 'Bad followups' in l]
+        for value, want in ((None, False), (['a'], False), (['a', 'b'], False), ([], True), (['a', 'a'], True), (['a\nb'], True), ([' '], True),
+                            ('a', True), ([1], True), ([{'a': 1}], True)):
+            p900.pop('followups', None)
+            if value is not None:
+                p900['followups'] = value
+            plan.write_text(json.dumps(data))
+            self.assertEqual(bool(bad()), want, value)
+        p900.pop('followups')
+        plan.write_text(json.dumps(data))
+        (self.root / '07-Strings/Docs').mkdir(parents=True, exist_ok=True)
+        (self.root / '07-Strings/01-s.hpp').write_text('#pragma once\n')
+        (self.root / '07-Strings/00-index.md').write_text('# 07 Strings — Inventory\n\n## Basic\n\n| Header | Operations | Status |\n|---|---|---|\n'
+                                                          '| `01-s.hpp` | s; t | partial missing: t; [evidence](Docs/01-s.md) |\n')
+        doctor = lambda: self.run_py(self.cli, 'doctor', cwd=self.root, role='maintainer')
+        partial = lambda: [l for l in doctor().stdout.splitlines() if 'partial row inside' in l]
+        self.assertEqual(len(partial()), 1, f'a partial row in a verified package without follow-ups: {doctor()}')
+        self.assertEqual(self.run_py(self.cli, 'follow-up', 'P900', 'implement t', cwd=self.root, role='maintainer').returncode, 0)
+        self.assertEqual(partial(), [], 'allowed while a follow-up is open')
+        doc = self.root / '07-Strings/Docs/01-s.md'
+        limits = lambda: [l for l in self.run_py(self.cli, 'check', cwd=self.root, role='maintainer').stdout.splitlines() if 'Undecided limits' in l]
+        doc.write_text('# s\n\n## Contracts\n\n- inherent, no decision.\n\n## Limits and Handoffs\n\n- t not tested.\n')
+        self.assertEqual(limits(), [], 'an undecided limit is allowed while a follow-up is open')
+        doc.write_text('# s\n')
+        self.assertEqual(self.run_py(self.cli, 'follow-up', 'P900', '--done', '1', cwd=self.root, role='maintainer').returncode, 0)
+        doc.write_text('# s\n\n## Contracts\n\n- inherent, no decision.\n\n## Limits and Handoffs\n\n- t not tested.\n')  # e.g. a later edit
+        self.assertEqual(limits(), ['Undecided limits in verified P900: 1, the first at 07-Strings/Docs/01-s.md:9; file a follow-up '
+                                    '(plan.py follow-up P900 ...) or decide them (02-structure.md, Names)'], 'verified without follow-ups')
+        doc.write_text(doc.read_text().replace('tested.', 'tested (user decision 2026-11-26).'))
+        self.assertEqual(limits(), [], 'a decided limit')
+
+    def test_syn_follow_up_ready_and_show(self):
+        """A verified package with open follow-ups is ready work ahead of open packages (next, ready, status), keeps its
+        status, lists its follow-ups in its brief, and a contributor claims it on `Pxxx-FU<yymmdd>-<login>`."""
+        plan = json.loads((self.root / '00-Guidelines/13-Plan/packages.json').read_text())
+        next(p for p in plan['packages'] if p['id'] == 'P900')['followups'] = ['recheck limits', 'second']
+        (self.root / '00-Guidelines/13-Plan/packages.json').write_text(json.dumps(plan))
+        r = self.run_py(self.cli, 'next', cwd=self.root, role='maintainer')
+        self.assertEqual(r.stdout, 'P900\n', r.stderr)
+        with self.environ('maintainer'):
+            first = parse_ready_text(PLAN.ready_text(self.root, 3))[1][0]
+        self.assertTrue(first.startswith('- P900 [verified, 2 follow-up(s), opus, M] 07-Strings — LP900'), first)
+        out = self.show('P900', 'maintainer')
+        self.assertIn('| verified with 2 open follow-up(s) |', out[0])
+        i = out.index('Follow-ups: the package stays verified; /package runs only these and closes each one done with '
+                      '`plan.py follow-up P900 --done <n>`:')
+        self.assertEqual(out[i + 1:i + 4], ['1. recheck limits', '2. second', ''])
+        today = f'FU{datetime.date.today():%y%m%d}'
+        self.assertEqual(self.show('P900')[2], o_claim_line(False, 'P900', today, f'P900-{today}-alice', REPO))
+
+    def test_syn_set_verified_gate(self):
+        """plan.py set Pxxx verified (user decision 2026-11-26) refuses while an evidence document of the package (a
+        target's or an --evidence path) has a limit without a `user decision <date>`, naming each, and changes nothing;
+        once each is decided it sets the status. Open follow-ups of a verified package cover its limits, as in check, and its
+        last follow-up stays open until they are decided."""
+        doc = self.root / '02-Data Structures/Docs/01-dsu.md'
+        doc.parent.mkdir(parents=True)
+        doc.write_text('# DSU\n## Limits and Handoffs\n- open limit\n- decided (user decision 2026-11-26)\n')
+        before = (self.root / '00-Guidelines/13-Plan/packages.json').read_text()
+        r = self.run_py(self.cli, 'set', 'P030', 'verified', cwd=self.root, role='maintainer')
+        self.assertEqual((r.returncode, r.stderr.split('\n')[1:]), (1, ['  02-Data Structures/Docs/01-dsu.md:3: - open limit', '']), r.stderr)
+        self.assertIn('P030 not set verified: 1 limit(s) without a `user decision <date>`', r.stderr)
+        self.assertEqual((self.root / '00-Guidelines/13-Plan/packages.json').read_text(), before)
+        (self.root / 'notes').mkdir(exist_ok=True)
+        (self.root / 'notes/extra.md').write_text('## Handoff\n- to another package\n')
+        doc.write_text('# DSU\n## Limits and Handoffs\n- decided (user decision 2026-11-26)\n')
+        r = self.run_py(self.cli, 'set', 'P030', 'verified', '--evidence', 'notes/extra.md', cwd=self.root, role='maintainer')
+        self.assertIn('notes/extra.md:2: - to another package', r.stderr, 'an --evidence path counts too')
+        r = self.run_py(self.cli, 'set', 'P030', 'in-progress', '--evidence', 'notes/extra.md', cwd=self.root, role='maintainer')
+        self.assertEqual(r.returncode, 0, 'other statuses pass')
+        (self.root / 'notes/extra.md').write_text('## Handoff\n- to another package (user decision 2026-11-26)\n')
+        r = self.run_py(self.cli, 'set', 'P030', 'verified', cwd=self.root, role='maintainer')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        doc.write_text('# DSU\n## Limits and Handoffs\n- open again\n')
+        cli = lambda *a: self.run_py(self.cli, *a, cwd=self.root, role='maintainer')
+        self.assertEqual(cli('follow-up', 'P030', 'recheck the limits').returncode, 0)
+        r = cli('set', 'P030', 'verified', '--note', 'state')
+        self.assertEqual(r.returncode, 0, 'a verified package with open follow-ups updates its note: they cover its limits')
+        r = cli('follow-up', 'P030', '--done', '1')
+        self.assertEqual((r.returncode, r.stderr), (1, 'P030 keeps its last follow-up while 1 limit(s) lack a `user decision <date>` '
+                                                       '(02-structure.md, Names):\n  02-Data Structures/Docs/01-dsu.md:3: - open again\n'))
+        doc.write_text('# DSU\n## Limits and Handoffs\n- open again (user decision 2026-11-26)\n')
+        self.assertEqual(cli('follow-up', 'P030', '--done', '1').returncode, 0, 'closed once its limits are decided')
+
     def test_syn_waiting(self):
         def wpr(n, branch, author, draft=False, heads=None, review=''):
             return pr(n, branch, author, draft) | {'title': 'T' + str(n), 'reviewDecision': review,
@@ -1556,11 +1746,14 @@ class Synthetic(Base):
         self.prs([wpr(8, 'P250-SUP19-alice', 'alice', True, ['P250: SUP17 a — verified', 'P250: SUP18 b — verified', 'P250: SUP19 c — verified']),
                   wpr(9, 'P031-DS02-alice', 'alice', True, []), wpr(12, 'P031-DS02-alice', 'alice', True, ['P031: label — verified']),
                   wpr(10, 'P050-MA01-Alice', 'Alice', review='CHANGES_REQUESTED'), wpr(11, 'P021-C08-alice', 'alice'), wpr(5, 'P030-DS01-bob', 'bob'),
-                  wpr(13, 'feature/y', 'alice', True)])
+                  wpr(13, 'feature/y', 'alice', True), wpr(14, 'P900-FU261126-alice', 'alice', True, ['P900: claim FU261126']),
+                  wpr(15, 'P040-fu1-alice', 'alice', True, ['P040: LP040 — verified'])])
         self.assertEqual(waiting('contributor'), [
             'Role: contributor', 'Waiting on you:', '- push: P250-SUP19-alice has no upstream yet', '- `gh pr ready 8`: #8 P250 (SUP19), every batch verified',
             '- `/package DS02`: #9 P031 (DS02), 0 of 1 batches verified, next DS02', '- #10 P050 (MA01): changes requested; address the review',
-            '- `gh pr ready 12`: #12 P031 (DS02), every batch verified', '- #13 "T13": draft', 'Waiting on others:',
+            '- `gh pr ready 12`: #12 P031 (DS02), every batch verified', '- #13 "T13": draft',
+            '- `/package P900`: #14 P900 (FU261126), 0 of 1 follow-up runs verified, next P900', '- `gh pr ready 15`: #15 P040 (FU1), every batch verified',
+            'Waiting on others:',
             "- #11 P021 (C08): waiting for the maintainer's /merge-pr"])
         self.assertEqual(self.calls(), [['pr', 'list', '--repo', REPO, '--state', 'open', '--limit', '30', '--json',
                                          'number,title,headRefName,isDraft,author,reviewDecision,commits'], ['api', 'user', '--jq', '.login']])
@@ -1630,8 +1823,20 @@ class Synthetic(Base):
         (self.root / '96-Local Testing/07-Strings/01-s_tester.py').unlink()
         (self.root / '96-Local Testing/07-Strings/01-s_extra.cpp').write_text('e\n')
         r, _ = self.gaps('ST01', role='maintainer')
-        self.assertEqual(section(r.stdout), ['changed since the review; the step 2 audit covers these files:', '07-Strings/01-s.hpp',
-                                             '96-Local Testing/07-Strings/01-s_extra.cpp', '96-Local Testing/07-Strings/01-s_tester.py'])
+        self.assertEqual(section(r.stdout), ['changed since the review: step 2 reviews only these changes, in .claude/finish/ST01.since-review.diff:',
+                                             '07-Strings/01-s.hpp', '96-Local Testing/07-Strings/01-s_extra.cpp', '96-Local Testing/07-Strings/01-s_tester.py'])
+        self.assertEqual((self.root / '.claude/finish/ST01.since-review.diff').read_text(),
+                         '=== 07-Strings/01-s.hpp\n@@ -1 +1 @@\n-h\n+h2\n=== 96-Local Testing/07-Strings/01-s_extra.cpp: new since the review\n'
+                         '=== 96-Local Testing/07-Strings/01-s_tester.py: deleted since the review\n', 'the diff since the review (user decision 2026-11-26)')
+        blob = git(self.root, 'hash-object', '-w', '07-Strings/01-s.hpp').strip()
+        self.assertEqual(GAPS.since(self.root, 'x.hpp', 'f' * 40, blob), '=== x.hpp: its reviewed blob is gone, so the whole file\n')
+        w = REAL_SUBPROCESS_RUN([sys.executable, str(GAPS_PY), '--reviewed', 'ST01', '--wrong'], cwd=self.root, capture_output=True, text=True,
+                                input='1. wrong answer\n', env=self.env('maintainer', True, None), timeout=300)
+        self.assertEqual(w.returncode, 0, w.stderr)
+        self.assertTrue(json.loads((self.root / '.claude/finish/ST01.review.json').read_text())['wrong'])
+        r, _ = self.gaps('ST01', role='maintainer')
+        self.assertEqual(section(r.stdout), ['the review found a wrong answer or undefined behavior: step 2 runs the full audit'],
+                         'a review that found a wrong answer leaves the full audit to /finish, even over unchanged files')
         bad = REAL_SUBPROCESS_RUN([sys.executable, str(GAPS_PY), '--reviewed', 'nothing'], cwd=self.root, capture_output=True, text=True,
                                   input='', env=self.env('maintainer', True, None), timeout=300)
         self.assertNotEqual(bad.returncode, 0)
@@ -1671,7 +1876,40 @@ class Synthetic(Base):
         (self.root / 'tools/b.py').write_text('b2\n')
         (self.root / 'tools/c.py').write_text('c\n')
         r, _ = self.gaps('SUP17', role='maintainer')
-        self.assertEqual(section(r.stdout), ['changed since the review; the step 2 audit covers these files:', 'tools/b.py', 'tools/c.py'])
+        self.assertEqual(section(r.stdout), ['changed since the review: step 2 reviews only these changes, in .claude/finish/SUP17.since-review.diff:', 'tools/b.py', 'tools/c.py'])
+
+    def test_gaps_undecided_and_follow_ups(self):
+        """gaps.py's Undecided limits (plan.undecided over the package's evidence) and Follow-ups sections (user decision
+        2026-11-26), printed right after the review record."""
+        part = lambda out, head: out.split(f'### {head}', 1)[1].split('\n', 1)[1].split('\n\n### ', 1)[0].split('\n')
+        (self.root / 'notes/p250.md').write_text('# P250\n\n## Limits and Handoffs\n\n- open item\n- kept, user decision 2026-11-20\n')
+        r, _ = self.gaps('SUP17', role='maintainer')
+        self.assertEqual((part(r.stdout, 'Undecided limits'), part(r.stdout, 'Follow-ups of P250')), (['notes/p250.md:5: - open item'], ['(none)']), r.stderr)
+        self.assertEqual(self.run_py(self.cli, 'follow-up', 'P250', 'recheck', cwd=self.root, role='maintainer').returncode, 0)
+        r, _ = self.gaps('SUP17', role='maintainer')
+        self.assertEqual(part(r.stdout, 'Follow-ups of P250'), ['1. recheck'])
+        heads = [l.split(' (')[0] for l in r.stdout.splitlines() if l.startswith('### ')]
+        self.assertEqual(heads[heads.index('### Review record'):][:3], ['### Review record', '### Undecided limits', '### Follow-ups of P250'])
+
+    def test_gaps_sources(self):
+        """gaps.py's Sources section (95-Resources/00-index.md, Filing; user decision 2026-11-27): 00-sources.py check of
+        the checkout, counting files placed for the key or its package; after the follow-ups; absent without the script."""
+        part = lambda out, head: out.split(f'### {head}', 1)[1].split('\n', 1)[1].split('\n\n### ', 1)[0].split('\n')
+        r, _ = self.gaps('SUP17', role='maintainer')
+        self.assertNotIn('### Sources', r.stdout, r.stderr)
+        res = self.root / '95-Resources'
+        (res / '00-Inbox').mkdir(parents=True)
+        shutil.copy(ROOT / '95-Resources/00-sources.py', res / '00-sources.py')
+        (res / '99-sources.json').write_text(json.dumps({'description': 'd', 'resources': []}))
+        (res / '00-Inbox/00-requests.md').write_text('- 2026-11-27 | P250 | T | u | mine.pdf\n- 2026-11-27 | P900 | T | u | theirs.pdf\n')
+        for name in ('mine.pdf', 'theirs.pdf', 'stray.pdf'):
+            (res / '00-Inbox' / name).write_text(name)
+        r, _ = self.gaps('SUP17', role='maintainer')
+        self.assertEqual(part(r.stdout, 'Sources'), ['00-Inbox/mine.pdf: placed for P250; file it (00-sources.py file)',
+                                                     '00-Inbox/stray.pdf: no request line; file it if this work used it (00-sources.py file), else ask the user'],
+                         r.stderr)
+        heads = [l.split(' (')[0] for l in r.stdout.splitlines() if l.startswith('### ')]
+        self.assertEqual(heads[heads.index('### Follow-ups of P250') + 1], '### Sources')
 
     def test_gaps_review_start(self):
         """gaps.py --start (SUP34): once per key it records the files uncommitted when /package starts, and a batch without
@@ -1704,7 +1942,7 @@ class Synthetic(Base):
         self.assertEqual(section(r.stdout)[0], 'covers the current files: step 2 reuses this report and starts no audit')
         (self.root / 'tools/other.py').write_text('other, edited later\n')
         r, _ = self.gaps('SUP17', role='maintainer')
-        self.assertEqual(section(r.stdout), ['changed since the review; the step 2 audit covers these files:', 'tools/other.py'],
+        self.assertEqual(section(r.stdout), ['changed since the review: step 2 reviews only these changes, in .claude/finish/SUP17.since-review.diff:', 'tools/other.py'],
                          'other work changed after the start is covered (a recorded limit)')
         start.write_text('{"files": 3}')
         w = run('--reviewed', 'SUP17', stdin='')
@@ -1756,7 +1994,11 @@ class Synthetic(Base):
         doc.write_text(doc.read_text().replace('fakecxx 15.3.0, ', 'fakecxx 15.2.0, no-such-cxx 9.1, '))
         r, _ = self.gaps('C07', role='maintainer')
         self.assertEqual(part(r.stdout, record), ['01-Core/Docs/10-matrix.md: comparison of 2026-11-17 is STALE, rerun it: the rig changed, 01-template.hpp changed, '
-                                                  'fakecxx 15.2.0 is now 15.3.0, no-such-cxx 9.1 is now not installed'])
+                                                  'fakecxx 15.2.0 is now 15.3.0'], 'only the deciding compiler, the first listed, counts (user decision 2026-11-26)')
+        doc.write_text(doc.read_text().replace('fakecxx 15.2.0, no-such-cxx 9.1, ', 'no-such-cxx 9.1, fakecxx 15.2.0, '))
+        r, _ = self.gaps('C07', role='maintainer')
+        self.assertIn('no-such-cxx 9.1 is now not installed', part(r.stdout, record)[0])
+        self.assertNotIn('fakecxx', part(r.stdout, record)[0])
         (core / '10-matrix.hpp').unlink()
         r, _ = self.gaps('C07', role='maintainer')
         self.assertIn('10-matrix.hpp changed', part(r.stdout, record)[0])
@@ -1939,14 +2181,16 @@ class Real(Base):
         mine = f'{o["id"]}-{b}-alice'
         self.assertEqual(out[2], f'Claimed by you: pull request #9 on {mine}' + ('.' if git(ROOT, 'branch', '--show-current').strip() == mine
                                  else f'; work on it after `git fetch origin {mine} && git switch {mine}`.'))
-        v = next((p for p in self.pl if p['status'] == 'verified' and p['model'] == 'opus'), None)
-        if v:
-            self.prs([])
-            with self.environ('contributor'):
-                out = PLAN.show(ROOT, v['batches'][0]).split('\n')
-            want = o_claim_branch(v['id'], v['batches'], v['batches'][0], git(ROOT, 'branch', '--show-current').strip(), {}, 'alice')
-            self.assertEqual(out[2], o_claim_line(False, v['id'], v['batches'][0], want, REPO,
-                                                  here=git(ROOT, 'branch', '--show-current').strip() == want), 'a verified package')
+        here = git(ROOT, 'branch', '--show-current').strip()
+        for open_fu in (False, True):  # a verified package's claim names its follow-ups while any is open (user decision 2026-11-26)
+            v = next((p for p in self.pl if p['status'] == 'verified' and p['model'] == 'opus' and bool(p.get('followups')) == open_fu), None)
+            if v:
+                self.prs([])
+                with self.environ('contributor'):
+                    out = PLAN.show(ROOT, v['batches'][0]).split('\n')
+                batch = f'FU{datetime.date.today():%y%m%d}' if open_fu else v['batches'][0]
+                want = o_claim_branch(v['id'], v['batches'], batch, here, {}, 'alice')
+                self.assertEqual(out[2], o_claim_line(False, v['id'], batch, want, REPO, here=here == want), f'a verified package, follow-ups {open_fu}')
 
     def test_real_show_unclaimed(self):
         bmap = {b['id']: b for b in self.batches['batches']}
@@ -2004,7 +2248,9 @@ class Real(Base):
                 self.check_cli(role, [pr(3, f'{want}-{b}-alice', 'Alice')], f'{role}: {want} claimed by you')
 
     def test_real_all_claimed(self):
-        prs = [pr(i + 1, f'{p["id"]}-{p["batches"][0]}-bob', 'bob') for i, p in enumerate(self.pl) if p['status'] != 'verified']
+        fu = f'FU{datetime.date.today():%y%m%d}'  # a verified package with open follow-ups is ready work, claimed on their branch
+        prs = [pr(i + 1, f'{p["id"]}-{fu if p["status"] == "verified" else p["batches"][0]}-bob', 'bob') for i, p in enumerate(self.pl)
+               if p['status'] != 'verified' or p.get('followups')]
         self.assertIsNone(self.check_cli('maintainer', prs))
 
     def test_real_next_random(self):

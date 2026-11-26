@@ -8,7 +8,7 @@
                             tolerated) with the name to grab, header, tier and status, best first (-n K of them)
 
 The index (libclang, both ISA configurations) is cached per header and include-closure hash in .grab-cache beside this
-script. Without libclang, whole headers are inlined instead (SKIP); --find reads only the inventories (_11_search.py).
+script in the main checkout, which every linked worktree shares (user decision 2026-11-26); records are replaced atomically. Without libclang, whole headers are inlined instead (SKIP); --find reads only the inventories (_11_search.py).
 Rules: 00-Guidelines/08-contest-tools.md.
 """
 from __future__ import annotations
@@ -30,7 +30,20 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CACHE = Path(__file__).resolve().parent / '.grab-cache'
+
+
+def main_checkout(root: Path) -> Path:
+    """The main checkout of the repository whose top level is root: a linked worktree's `.git` file names its git
+    directory, whose `commondir` leads to the shared one (git-worktree(1)); root itself otherwise."""
+    try:
+        gitdir = root / (root / '.git').read_text().removeprefix('gitdir:').strip()
+        common = (gitdir / (gitdir / 'commondir').read_text().strip()).resolve()
+    except (OSError, ValueError):
+        return root
+    return common.parent if common.name == '.git' else root
+
+
+CACHE = main_checkout(ROOT) / Path(__file__).resolve().parent.name / '.grab-cache'
 VERSION = 8  # bump when the cached record format changes (the analysis code and libclang's version are hashed in)
 EXCLUDED = ('01-Core/01-template.hpp', '01-Core/02-debug.hpp')  # the contest template already holds both
 CONFIGS = {'scalar': [], 'isa': ['-mavx2', '-mfma', '-mbmi', '-mbmi2', '-mpclmul', '-mpopcnt', '-mlzcnt']}

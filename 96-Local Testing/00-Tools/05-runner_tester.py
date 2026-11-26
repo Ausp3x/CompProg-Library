@@ -36,6 +36,13 @@ stopped process (warning, no second wait), the CP_MEMORY_GATE_STATE file, monoto
 a passing run's peak as one of its record's last three runs (none when failing, keyless or under CP_RUN_STATS_OWNER, which still reserves
 with its recorded seconds; report()'s peak file; end to end in a real
 scope, SKIP without one), and 01-run.py merging its records beside another writer's and marking its suites.
+Exclusive runs (full and quick; user decision 2026-11-26): decide() for an exclusive entry (it waits for running runs
+other than its ancestors and those idle below a waiting exclusive run, passes older ordinary waiters, never older
+exclusive ones; a stale one holds no place; its WARNING when memory is short) and for others beside it (a running one
+blocks all but its descendants, a waiting one every younger top-level run, backfill included, never a run inside a
+running reservation or an older run); held(0, exclusive) entering the gate with `excl`, its WAIT texts and the entry
+kept whole; supervise(alone), ensure() running a *_benchmark.py alone, the CLI's --alone; main_checkout() and the
+default .run-stats.json of a linked worktree (the main checkout's) unless CP_RUN_STATS names one.
 stress: full with --rounds seeded random runs (default 6) of random suite counts, sleeps, failures, jobs and budgets.
 Oracles: the expected log rebuilt from the suite parameters (RUN lines in rounds x sorted-path order, each suite's known
 text, NOTE before a task whose failed run beside others was rerun, nothing after the first always-failing task, the PASS line); overlaps from a
@@ -75,7 +82,7 @@ LT = Path(__file__).resolve().parents[1]
 MODE, SEED, ROUNDS = 'full', 42, 6
 QUICK = {'test_order_identity', 'test_first_failure_status', 'test_retry_alone', 'test_jobs_bound',
          'test_parallel_budget', 'test_parallel_rerun_alone', 'test_forwarding_restores_handlers', 'test_gate_decide',
-         'test_gate_need_and_recorded', 'test_gate_held', 'test_gate_nested_decide', 'test_gate_backfill', 'test_gate_stats_keys'}
+         'test_gate_need_and_recorded', 'test_gate_held', 'test_gate_nested_decide', 'test_gate_backfill', 'test_gate_stats_keys', 'test_gate_exclusive'}
 SUITE = r'''import json, os, signal, sys, time
 d, env = os.environ['RT_DIR'], os.environ
 if P.get('deaf'): signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1767,9 +1774,10 @@ class Gate(Base):
             return 5
         with patch.object(_00_memory_cap, 'capped_run', capped_run), patch.object(_00_memory_cap, 'MAIN_MB', 300):
             codes = [_00_memory_cap.supervise(['x', 'y'], None, 'env', 'a', need=77), _00_memory_cap.supervise(['x', 'y'], None, 'env', 'b'),
-                     _00_memory_cap.supervise(['x', 'y'], None, 'env', 'c', need=0)]
-        self.assertEqual((codes, seen), ([5, 5, 5], [('a', [(77, 'run', 'a')]), ('b', [(300, 'run', 'b')]), ('c', [])]),
-                         'need passed through, the main cap by default, 0 ungated')
+                     _00_memory_cap.supervise(['x', 'y'], None, 'env', 'c', need=0), _00_memory_cap.supervise(['x', 'y'], None, 'env', 'd', need=0, alone=True)]
+        self.assertEqual((codes, seen), ([5, 5, 5, 5], [('a', [(77, 'run', 'a')]), ('b', [(300, 'run', 'b')]), ('c', []), ('d', [(0, 'run', 'd')])]),
+                         'need passed through, the main cap by default, 0 ungated unless alone')
+        self.assertEqual(GATE.load(self.path), [])
         lt = self.root.resolve() / 'lt'
         main = lt / '00-Tools/x_tester.py'
         main.parent.mkdir(parents=True)
@@ -1784,6 +1792,16 @@ class Gate(Base):
                 with patch.object(sys, 'argv', [str(main), *argv]), self.assertRaises(SystemExit) as stop:
                     _00_memory_cap.ensure(need=need)
                 self.assertEqual(stop.exception.code, 3)
+        bench = lt / '00-Tools/x_benchmark.py'  # a benchmark driver runs alone (user decision 2026-11-26)
+        bench.write_text("os.environ.get('CP_TEST_MODE')\n")
+        with patch.dict(os.environ), patch.object(sys.modules['__main__'], '__file__', str(bench)), \
+                patch.object(GATE, 'STATS', lt / '.run-stats.json'), patch.object(GATE, 'HERE', lt), patch.object(_00_memory_cap, 'MAIN_MB', 3000), \
+                patch.object(_00_memory_cap, 'supervise', lambda *a: calls.append(a) or 3):
+            os.environ.pop('CP_MEMORY_CAPPED', None)
+            with patch.object(sys, 'argv', [str(bench), '--mode', 'full']), self.assertRaises(SystemExit):
+                _00_memory_cap.ensure()
+        self.assertEqual(calls.pop(), ([sys.executable, str(bench), '--mode', 'full'], 'full', 'argv', 'x_benchmark.py', 3000,
+                                       'full 00-Tools/x_benchmark.py', True), 'a benchmark: its key, alone')
         integration = lt / '02-integration.py'  # an entry point that is no tester or benchmark, without a variant: its cap, no key
         integration.write_text("os.environ.get('CP_TEST_MODE')\n")
         (lt / '.run-stats.json').write_text(json.dumps({'full 00-Tools/x_tester.py': [1000, 2.0], 'full 02-integration.py': [100, 1.0]}))
@@ -1793,16 +1811,16 @@ class Gate(Base):
             os.environ.pop('CP_MEMORY_CAPPED', None)
             with patch.object(sys, 'argv', [str(integration), '--mode', 'full']), self.assertRaises(SystemExit):
                 _00_memory_cap.ensure()
-        self.assertEqual(calls.pop(), ([sys.executable, str(integration), '--mode', 'full'], 'full', 'argv', '02-integration.py', 3000, None),
+        self.assertEqual(calls.pop(), ([sys.executable, str(integration), '--mode', 'full'], 'full', 'argv', '02-integration.py', 3000, None, False),
                          'a record under no key it writes is never read')
-        self.assertEqual(calls, [([sys.executable, str(main), '--mode', m], m, 'argv', 'x_tester.py', n, k)
+        self.assertEqual(calls, [([sys.executable, str(main), '--mode', m], m, 'argv', 'x_tester.py', n, k, False)
                                  for m, n, k in (('full', 1164, 'full 00-Tools/x_tester.py'), ('quick', 3000, 'quick 00-Tools/x_tester.py'),
                                                  ('full', 0, None), ('full', 55, None))],
                          'the recorded need (11/10 of 1000 plus 64), the cap when unrecorded, or the given one; the key to record '
                          'under only with a recorded need')
 
     def test_gate_cli_need(self):
-        usage = 'usage: _00_memory_cap.py [--mb N] [--need N] -- <command> [args...]'
+        usage = 'usage: _00_memory_cap.py [--mb N] [--need N] [--alone] -- <command> [args...]'
         bad = usage + '\n--mb needs an integer of at least 16, --need a nonnegative integer'
         env = {k: v for k, v in os.environ.items() if k not in ('CP_MEMORY_CAPPED', 'CP_TEST_MEMORY_MB')}
         cli = lambda *args, **extra: subprocess.run([sys.executable, LT / '_00_memory_cap.py', *args], capture_output=True, text=True,
@@ -1813,12 +1831,15 @@ class Gate(Base):
             self.assertEqual((r.returncode, r.stderr.strip(), r.stdout), (1, bad, ''), args)
         r = cli('--need', '5', '--mb', '64')
         self.assertEqual((r.returncode, r.stderr.strip()), (1, usage), 'no command')
+        r = cli('--alone')
+        self.assertEqual((r.returncode, r.stderr.strip()), (1, usage), 'no command after --alone')
         probe = [sys.executable, '-c', 'import json, os; p = os.environ["CP_MEMORY_GATE"]; '
-                 'print(json.dumps([[e["need"], e["state"], e["label"]] for e in json.load(open(p))]) if os.path.exists(p) else "absent")']
+                 'print(json.dumps([[e["need"], e["state"], e["label"], e.get("excl", False)] for e in json.load(open(p))]) if os.path.exists(p) else "absent")']
         me = Path(sys.executable).name
-        for k, (args, want) in enumerate(((['--need', '7', '--mb', '64', '--'], [[7, 'run', me]]), (['--mb=64', '--need=12', '--'], [[12, 'run', me]]),
-                                          (['--mb', '64', '--'], [[64, 'run', me]]), (['--need=9'], [[9, 'run', me]]),
-                                          (['--mb', '64', '--need', '0', '--'], 'absent'))):
+        for k, (args, want) in enumerate(((['--need', '7', '--mb', '64', '--'], [[7, 'run', me, False]]), (['--mb=64', '--need=12', '--'], [[12, 'run', me, False]]),
+                                          (['--mb', '64', '--'], [[64, 'run', me, False]]), (['--need=9'], [[9, 'run', me, False]]),
+                                          (['--mb', '64', '--need', '0', '--'], 'absent'), (['--alone', '--need', '7', '--'], [[7, 'run', me, True]]),
+                                          (['--mb', '64', '--alone', '--'], [[64, 'run', me, True]]), (['--need=0', '--alone', '--'], [[0, 'run', me, True]]))):
             gate = self.root / f'cli{k}.json'
             r = cli(*args, *probe, CP_MEMORY_GATE=str(gate))
             self.assertEqual((r.returncode, r.stdout.splitlines()[:1]), (0, [json.dumps(want) if want != 'absent' else want]), f'{args}: {r.stderr}')
@@ -1849,6 +1870,95 @@ class Gate(Base):
         self.assertEqual(d(100, dict(me, beat=5.0), [*run, stale], {30}), (False, ''), 'a stale waiter blocks nothing')
         self.assertEqual(d(100, e(10, 5.0, need=500), [*run, e(20, 6.0, above={31}), e(21, 7.0, above={30})]), (False, ''),
                          'a top-level run never breaks the nests')
+
+    def test_gate_exclusive(self):
+        """An exclusive (timed) run, user decision 2026-11-26: it starts once only its ancestors and runs idle below a waiting
+        exclusive run are running and no older exclusive run waits, passing older ordinary waiters; while it waits no younger
+        top-level run starts, while it runs only its descendants do."""
+        e = lambda pid, since, state='wait', need=0, grow=0, excl=False, above=(), **kw: dict(
+            pid=pid, since=since, state=state, need=need, grow=grow, above=set(above), **({'excl': True} if excl else {}), **kw)
+        d = lambda free, me, others, mine=(): GATE.decide(free, me, [*others, me], lambda x: x['grow'], set(mine), lambda x: x['above'])
+        holds, ahead = (False, 'an exclusive (timed) run holds the machine'), (False, 'an exclusive (timed) run waits ahead of it')
+        x_run, me = e(30, 1.0, 'run', excl=True), e(10, 5.0, need=100)
+        self.assertEqual(d(10 ** 6, me, [x_run]), holds, 'a running exclusive run blocks any other run')
+        self.assertEqual(d(10 ** 6, dict(me, excl=True), [x_run]), holds, 'another exclusive one too')
+        self.assertEqual(d(10 ** 6, me, [x_run, e(31, 0.5, 'run')], {31}), holds, 'a run inside another reservation too')
+        self.assertEqual(d(10 ** 6, me, [x_run], {30}), (True, ''), 'its own descendants run')
+        xme = e(10, 5.0, excl=True)
+        self.assertEqual(d(10 ** 6, xme, [e(30, 1.0, 'run', 100)]), (False, ''), 'it waits for a running ordinary run')
+        self.assertEqual(d(10 ** 6, xme, [e(30, 1.0, 'run', 100)], {30}), (True, ''), 'beside its own ancestor only, it starts')
+        self.assertEqual(d(10 ** 6, xme, [e(20, 4.0, need=10 ** 6)]), (True, ''), 'it passes an older ordinary waiter')
+        self.assertEqual(d(10 ** 6, xme, [e(20, 4.0, excl=True)]), (False, ''), 'never an older exclusive one')
+        self.assertEqual(d(10 ** 6, xme, [e(20, 6.0, excl=True)]), (True, ''), 'a younger exclusive waiter is no queue')
+        stale = dict(e(20, 4.0, excl=True), beat=5.0 - 31)
+        self.assertEqual(d(10 ** 6, dict(xme, beat=5.0), [stale]), (True, ''), 'a stale exclusive waiter holds no place')
+        self.assertEqual(d(10 ** 6, dict(me, beat=5.0), [stale]), (True, ''), 'nor holds an ordinary run back')
+        p1, p2 = e(30, 1.0, 'run', 4000, 100), e(31, 2.0, 'run', 4000, 100)  # two sessions' parents, each with an exclusive run below
+        older, younger = e(10, 5.0, excl=True, above={30}), e(20, 6.0, excl=True, above={31})
+        self.assertEqual(d(10 ** 6, older, [p1, p2, younger], {30}), (True, ''), "the other's parent idles below its waiting exclusive run")
+        self.assertEqual(d(10 ** 6, younger, [p1, p2, older], {31}), (False, ''), 'the younger one waits for the older')
+        self.assertEqual(d(10 ** 6, younger, [p1, p2, dict(older, state='run')], {31}), holds, 'then for its run')
+        self.assertEqual(d(10 ** 6, older, [p1, p2, e(21, 7.0, above={31})], {30}), (False, ''), 'below an ordinary waiter it is busy')
+        r_a, r_b = e(30, 1.0, 'run', 14000, 13800), e(31, 2.0, 'run', 4096, 3096)  # the reviewer's cycle: A's exclusive pass waits for B,
+        x_a, c_b = e(40, 3.0, excl=True, above={30}), e(41, 4.0, need=3000, above={31})  # B's younger nested build for memory
+        self.assertEqual(d(16000, x_a, [r_a, r_b, c_b], {30}), (False, ''), 'B is busy below its ordinary waiter')
+        self.assertEqual(d(16000, c_b, [r_a, r_b, x_a], {31}), (True, '16000 MB available, 3000 MB needed and 1000 MB kept free; every running '
+                         'gated run waits for a queued run below it, so the oldest of those runs now'), 'the nested build breaks the cycle')
+        self.assertEqual(d(10 ** 6, dict(me, secs=1), [e(20, 4.0, excl=True), e(30, 1.0, 'run', 100, 0)]), ahead,
+                         'an ordinary run waits behind an older exclusive waiter even when backfill fits')
+        self.assertEqual(d(10 ** 6, me, [e(20, 4.0, excl=True)]), ahead, 'with nothing running too')
+        self.assertEqual(d(10 ** 6, me, [e(20, 4.0, excl=True, above={31}), e(31, 1.0, 'run')], {31}), (True, ''),
+                         'inside a running reservation it starts: that reservation must end before the exclusive run anyway')
+        self.assertEqual(d(10 ** 6, me, [e(20, 6.0, excl=True)]), (True, ''), 'a younger exclusive waiter does not hold an older run back')
+        self.assertEqual(d(1500, xme, []), (True, ''), 'need 0 fits whenever MemAvailable covers the reserve')
+        self.assertEqual(d(500, xme, []), (True, '500 MB available, 0 MB needed and 1000 MB kept free; it runs alone now'))
+        self.assertEqual(d(500, dict(xme, need=100), [e(30, 1.0, 'run', 100)], {30}),
+                         (True, '500 MB available, 100 MB needed and 1000 MB kept free; it runs alone now'), 'inside an ancestor too')
+        out = io.StringIO()
+        with GATE.held(0, 'timed', out=out, exclusive=True):
+            inside = json.loads(self.path.read_text())
+        self.assertEqual([(x['need'], x['state'], x.get('excl')) for x in inside], [(0, 'run', True)], 'need 0 still enters the gate, marked excl')
+        with GATE.held(-5, 'timed', out=out, exclusive=True):
+            self.assertEqual(json.loads(self.path.read_text())[0]['need'], 0, 'a negative need counts as 0')
+        with GATE.held(0, 'plain', out=out):
+            self.assertEqual(json.loads(self.path.read_text()), [], 'an ordinary need 0 stays ungated')
+        self.assertEqual((json.loads(self.path.read_text()), out.getvalue()), ([], ''))
+        other = self.foreign(100)
+        self.path.write_text(json.dumps([other]))
+        with GATE.held(0, 'timed', out=out, until=time.monotonic() + 0.2, exclusive=True) as ok:
+            self.assertFalse(ok)
+        self.assertIn('WAIT timed: waits until no other gated run runs, to be timed alone (_00_memory_gate.py); queued', out.getvalue())
+        self.path.write_text(json.dumps([dict(other, excl=True)]))
+        out = io.StringIO()
+        with GATE.held(100, 'plain', out=out, until=time.monotonic() + 0.2) as ok:
+            self.assertFalse(ok)
+        self.assertIn('WAIT plain: an exclusive (timed) run holds the machine (_00_memory_gate.py); queued', out.getvalue())
+        self.assertEqual(GATE.load(self.path), [dict(other, excl=True)], 'the entry kept whole, its excl key included')
+
+    def test_gate_main_checkout(self):
+        """.run-stats.json is the main checkout's in every linked worktree (user decision 2026-11-26)."""
+        main, other = self.root.resolve() / 'repo', self.root.resolve() / 'plain'
+        other.mkdir()
+        run = lambda *a, cwd=main: subprocess.run(['git', *a], cwd=cwd, check=True, capture_output=True)
+        main.mkdir()
+        run('init', '-q', '-b', 'master')
+        run('-c', 'user.name=u', '-c', 'user.email=u@example.invalid', 'commit', '-q', '--allow-empty', '-m', 'init')
+        run('worktree', 'add', '-q', '-b', 'w', str(main / '.claude/worktrees/W'))
+        wt = main / '.claude/worktrees/W'
+        self.assertEqual([GATE.main_checkout(p) for p in (main, wt, other)], [main, main, other])
+        link = (wt / '.git').read_text()
+        (wt / '.git').write_text('gitdir: /nonexistent\n')
+        self.assertEqual(GATE.main_checkout(wt), wt, 'an unreadable git directory: the checkout itself')
+        (wt / '.git').write_text(link)
+        here = wt / '96-Local Testing'
+        here.mkdir()
+        shutil.copy(LT / '_00_memory_gate.py', here)
+        code = 'import sys; sys.path.insert(0, sys.argv[1]); import _00_memory_gate as g; print(g.STATS)'
+        env = {k: v for k, v in os.environ.items() if k != 'CP_RUN_STATS'}
+        got = subprocess.run([sys.executable, '-c', code, str(here)], capture_output=True, text=True, env=env, timeout=60)
+        self.assertEqual(got.stdout.strip(), str(main / '96-Local Testing/.run-stats.json'), got.stderr)
+        got = subprocess.run([sys.executable, '-c', code, str(here)], capture_output=True, text=True, env=dict(env, CP_RUN_STATS='/x/s.json'), timeout=60)
+        self.assertEqual(got.stdout.strip(), '/x/s.json', 'CP_RUN_STATS wins')
 
     def test_gate_backfill(self):
         """SUP34: behind an older waiter (the head), a run starts at once when it fits now and its recorded seconds end before

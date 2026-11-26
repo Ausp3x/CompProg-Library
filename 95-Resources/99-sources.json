@@ -1725,7 +1725,7 @@
       "bytes": 76629,
       "pages": 2,
       "sha256": "abe9788543ddda626d7d4befbb55816d62053bd85ea68565415212c5414dba77",
-      "cited_in": "06-Miscellaneous/Docs/00-sources.md:333",
+      "cited_in": "06-Miscellaneous/Docs/00-sources.md:354",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1738,8 +1738,34 @@
       "bytes": 69244,
       "pages": 2,
       "sha256": "366546cc331552d2408bfe6b2eec3ad1dfe5b92b3bf0f528c21fabcd575242c9",
-      "cited_in": "06-Miscellaneous/Docs/00-sources.md:334",
+      "cited_in": "06-Miscellaneous/Docs/00-sources.md:355",
       "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/50-binary_reflected_gray_code-bitner_1976.pdf",
+      "title": "J. R. Bitner, G. Ehrlich, E. M. Reingold, *Efficient generation of the binary reflected Gray code and its applications*, CACM 19(9) (1976) 517–521",
+      "source_page": "https://doi.org/10.1145/360336.360343",
+      "downloaded": "2026-11-27",
+      "bytes": 481322,
+      "pages": 5,
+      "sha256": "09ea74ed06935ba3c4d6f97ce8b381a365aa79a6457e078c69009a55de560e3e",
+      "cited_in": "06-Miscellaneous/Docs/00-sources.md:336",
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/51-coolest_way_to_generate_combinations-ruskey_2009.pdf",
+      "title": "F. Ruskey, A. Williams, *The coolest way to generate combinations*, Discrete Math. 309(17) (2009) 5305–5320 (the authors' preprint)",
+      "source_page": "https://webhome.cs.uvic.ca/~ruskey/Publications/Coollex/coolestDMvanilla.pdf",
+      "downloaded": "2026-11-27",
+      "bytes": 252903,
+      "pages": 15,
+      "sha256": "c661caa27936d6fd2d1dd25b880fca9dbb612bda02c9d1624b8e3abeaa3df6a3",
+      "cited_in": "06-Miscellaneous/Docs/00-sources.md:337",
+      "provided_by": "session",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
     }

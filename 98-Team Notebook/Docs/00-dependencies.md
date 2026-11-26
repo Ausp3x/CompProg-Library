@@ -42,11 +42,11 @@ Oracles:
 
 ```bash
 python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode quick                    # 2026-11-05: PASS, 30 tests, 32 s, peak 1331 MB
-python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full                     # 2026-11-05: PASS, 32 tests, 104 s, peak 1174 MB
-CXX=g++-14 python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full          # 2026-11-05: PASS, 32 tests, 127 s, peak 1313 MB
-python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode stress --seed 4 --rounds 200   # 2026-11-05: PASS, 32 tests, 100 s, peak 1182 MB
+python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full --seed 1            # 2026-11-27: PASS, 32 tests, 65 s, peak 1408 MB
+CXX=g++-14 CP_TEST_PREFLIGHT_MB=4096 python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full --seed 1   # 2026-11-27: PASS, 32 tests, 54 s, peak 1232 MB (History)
+python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode stress --seed 1          # 2026-11-27: PASS, 32 tests, 67 s, peak 1434 MB
 python3 '96-Local Testing/00-Tools/03-notebook_tester.py'                                     # 2026-11-05: PASS, 12 tests, 0 SKIP (node present), peak 34 MB
-python3 '00-Guidelines/13-Plan/plan.py' check                                                 # 2026-11-05: plan check: ok
+python3 '00-Guidelines/13-Plan/plan.py' check                                                 # 2026-11-27: plan check: ok
 ```
 
 Graph on 2026-10-24: 177 headers (14 aggregates) and 580 include edges (162 into the template; 357 and 160 outside the aggregates); the largest closures were `05-Mathematics/12-combinatorics_advanced.hpp` (13 files, 5403 lines), `03-Geometry/19-lattice_geometry.hpp` (3268 lines) and `03-Geometry/14-minimumenclosingcircle.hpp` (3039 lines). The repository oracles covered 188 headers, 174 of them non-aggregate, on 2026-11-05. The tool testers' later counts (`04-dependencies` 30 quick and 32 full, `03-notebook` 12, 2026-11-10) are in [00-parallel.md](<../../96-Local Testing/Docs/00-parallel.md>).
@@ -65,3 +65,4 @@ Graph on 2026-10-24: 177 headers (14 aggregates) and 580 include edges (162 into
 - 2026-10-25: P247 `/finish` (user decision 2026-10-25): `plan.py set` now re-ranks before saving. A package set to in-progress out of rank order had made `test_plan_rank_keeps_schedule_and_waived_inversions` fail until `plan.py rank` ran.
 - 2026-11-05: P253 retired the substitutes (TESTED_MINIS, Compact-skippable includes, mini notes); extraction by 10-grab.py replaces them; testers passed on g++ and g++-14.
 - 2026-11-24: `/finish SUP34` (P289, user decision 2026-11-24): the plan-rule fixture copied the whole working tree to `/tmp`, git-ignored caches included, and its 2 GB cap killed the full run's pre-flight once `96-Local Testing/.judge-cache` had grown to 19 GB, its copy filling the cap with tmpfs pages; it now copies only the files git lists (tracked and untracked, not ignored) outside `OLD` and `95-Resources`. The full run passed: 32 tests, peak 1,201 MB.
+- 2026-11-27: final process change (user decisions 2026-11-26 and 2026-11-27; `plan.py` follow-ups and the limits check): full and stress passed on g++. On `g++-14` the quick pre-flight was killed at its 2,048 MB cap, because C03's uncommitted `01-Core/05-modint.hpp` raises one `-fsyntax-only` unit of the `05-Mathematics` closure from 480 MB to 1,189 MB and two such compiles overlapped; with `CP_TEST_PREFLIGHT_MB=4096` the full run passed. Filed as a follow-up on P005, to settle before C03 lands.

@@ -7,8 +7,9 @@ HEAD), `work` the working tree, and each --side NAME=DIR[,MACRO...] a directory 
 The builds are the scalar, ISA and layout flag sets on the deciding compiler, the first of --compilers, and with --gate
 an -O2 -march=native build on it and the scalar set on each further compiler. A rig includes the header under test and `00-perf.hpp`, prints one line
 `type|row|cycles|instructions|misses|checksum` per row and takes a comma-separated row filter. Each pass runs every
-binary once; a row's value is its minimum cycles over the passes. A checksum that differs between passes or sides fails
-the run. The log goes to <rig stem>.json beside the rig (git-ignored).
+binary once; a row's value is its minimum cycles over the passes. The passes hold the memory gate's exclusive
+reservation (_00_memory_gate.py; user decision 2026-11-26): they wait until no other gated run runs, and other runs wait for
+them, while the builds before them share the machine. A checksum that differs between passes or sides fails the run. The log goes to <rig stem>.json beside the rig (git-ignored).
 show <log.json> prints the summary of a recorded run again.
 
 The summary gives, per side against --against and per build, the geometric mean of the ratios and the rows more than
@@ -31,6 +32,7 @@ import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _00_memory_cap
+import _00_memory_gate
 from _00_cpp_test_runner import Builder, ready
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -188,7 +190,8 @@ def run(a):
             for job in jobs:
                 ready(job[4])
             print(f'built {len(jobs)} binaries with {compiler} {versions[compiler]}', flush=True)
-        best = measure(binaries, a.passes, a.core, a.filter, a.timeout)
+        with _00_memory_gate.held(0, f'{rig.name} counters', sys.stdout, exclusive=True):  # timed alone (05-testing.md, Benchmarks)
+            best = measure(binaries, a.passes, a.core, a.filter, a.timeout)
     rows = {}
     for (side, build), found in best.items():
         rows.setdefault(side, {})[build] = found

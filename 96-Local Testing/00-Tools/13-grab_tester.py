@@ -61,7 +61,8 @@ test_fallback_*;
 cache (first build writes one file per header and builds each once, reuse builds nothing, an edit rebuilds exactly the
 headers whose closure holds it, a corrupt file rebuilds that header, build=False reports stale and builds nothing,
 serial jobs from an unregistered module and forked workers once registered in sys.modules, a key changed by every
-analysis constant and helper, system-header stamps stored and checked) -> test_cache_*;
+analysis constant and helper, system-header stamps stored and checked; main_checkout() and the default cache, the main
+checkout's in a linked worktree) -> test_cache_*;
 input types (a template default, inference from the members a template uses: own header first, base members counted,
 a type lacking one skipped; sequences, monoids, detail templates and non-templates none; kept whole by a whole template
 and pruned by a pruned one; undefaulted in the harness) -> test_input_types; file mode keeping members called on structs
@@ -1586,6 +1587,25 @@ class Cache(Base):
                     what='forked workers only when the module is registered in sys.modules, as the expander and harness do')
 
 
+class Shared(Base):
+    def test_cache_main_checkout(self):
+        """main_checkout() and the default .grab-cache: the main checkout's in a linked worktree (user decision 2026-11-26)."""
+        main, plain = self.tmp / 'repo', self.tmp / 'plain'
+        plain.mkdir()
+        run = lambda *a: subprocess.run(['git', *a], cwd=main, check=True, capture_output=True)
+        main.mkdir()
+        run('init', '-q', '-b', 'master')
+        run('-c', 'user.name=u', '-c', 'user.email=u@example.invalid', 'commit', '-q', '--allow-empty', '-m', 'init')
+        wt = main / '.claude/worktrees/W'
+        run('worktree', 'add', '-q', '-b', 'w', str(wt))
+        self.eq([G.main_checkout(p) for p in (main, wt, plain)], [main, main, plain])
+        for root in (main, wt):  # copies of grab and the two modules it loads at import
+            for rel in ('09-Contest Testing/10-grab.py', '09-Contest Testing/_11_search.py', '98-Team Notebook/05-dependencies.py'):
+                (root / rel).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(ROOT / rel, root / rel)
+            self.eq(load(root / '09-Contest Testing/10-grab.py', f'grab_copy_{root.name}').CACHE, main / '09-Contest Testing/.grab-cache', root=root)
+
+
 class Harness(Base):
     def test_harness_run_tester_queue(self):
         """run_tester leaves out a tester's time in the memory queue (its gate writes `wait` to CP_MEMORY_GATE_STATE, then
@@ -2289,7 +2309,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     MODE, SEED, ROUNDS = args.mode, args.seed, args.rounds
     suite = unittest.TestSuite()
-    for case in (Units, Selection, Render, Resolve, Cli, Tokens, Into, Bundle, Extras, Fallback, Cache, Harness, HarnessIndex, Repo, Stress):
+    for case in (Units, Selection, Render, Resolve, Cli, Tokens, Into, Bundle, Extras, Fallback, Cache, Shared, Harness, HarnessIndex, Repo, Stress):
         suite.addTests(case(n) for n in unittest.defaultTestLoader.getTestCaseNames(case) if MODE != 'quick' or n not in FULL)
     print(f"grab checks: mode={MODE} seed={SEED} rounds={ROUNDS if MODE == 'stress' else 3 if MODE == 'full' else 1} "
           f"CXX={CXX} libclang={'yes' if HAVE_CLANG else 'SKIP'} tests={suite.countTestCases()}", flush=True)
