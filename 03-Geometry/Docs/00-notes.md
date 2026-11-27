@@ -74,7 +74,7 @@ The 2026-09-27 audit kept industrial CAD, molecular surfaces, remeshing and visu
 
 ## P009 Completeness Decisions (2026-10-07)
 
-- Not adopted for `09-triangle.hpp`: an approximate angle kind (a right angle is not decidable from rounded coordinates; use the exact type); altitude and median lengths and feet (one projection, or `area2 / side`); the Fermat point (row 25 `fermatPoint`).
+- Not adopted for `09-triangle.hpp` (confirmed by user decision 2026-11-27): an approximate angle kind (a right angle is not decidable from rounded coordinates; use the exact type); the Fermat point (row 25 `fermatPoint`). Altitude and median lengths and feet, first left out here, joined row 09 by the same decision. Two of them keep their own arithmetic instead of composing: `TriangleApprox::altitudes` and `altitudeFeet` divide by `hypot` where row 02's `signedLineDistanceApprox` and `projectLineApprox` divide by `norm2`, which loses precision on subnormal squares (user decision 2026-11-27); `Triangle2::altitudeFeet` projects in `lll` with one gcd into a `RationalPoint2`, where row 08's `Affine2<>::projection(b, c).applyPoint(a)` gives the same values as `Rational<lll>` pairs through a dozen normalized rational operations.
 
 The P009 re-audit (2026-11-15, user decisions 2026-11-15) added `Triangle2::circumcenter` and `circumradius2` (CGAL; exact, while row 14's `EnclosingCircle` is exact only for its own support) and `orthocenter` (exact `A + B + C - 2O`) to row 09. It did not adopt:
 

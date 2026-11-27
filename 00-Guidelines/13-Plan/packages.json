@@ -139,7 +139,10 @@
         "03-Geometry/Docs/03-polygon.md",
         "03-Geometry/Docs/04-convexhull.md"
       ],
-      "note": "Drop the keep_collinear policy of convexHullMelkman (user decision 2026-11-22): the code, row 04's Operations cell and 04-convexhull.md Limits change together, and the 2026-11-12 exception in 00-Guidelines/23-Sweep Ledgers/omissions.md closes. The next mutation campaign rechecks canonicalDirection's INT_MIN assert survivors CR 212 and COS 811 in 01-point.hpp, recorded as masked by libstdc++'s debug gcd assertion in the checked build (user decision 2026-11-12) when the runner still accepted any assertion; since the runner fix of 2026-11-12 (68e30c1) only glibc assertions count, so a probe can now require the header's own. The next run also rechecks the probe passes of rows 03 and 04 that predate that fix. Follow-ups outside GE01 are in 03-Geometry/Docs/00-notes.md (P007 Re-Audit Decisions)."
+      "note": "Drop the keep_collinear policy of convexHullMelkman (user decision 2026-11-22): the code, row 04's Operations cell and 04-convexhull.md Limits change together, and the 2026-11-12 exception in 00-Guidelines/23-Sweep Ledgers/omissions.md closes. The next mutation campaign rechecks canonicalDirection's INT_MIN assert survivors CR 212 and COS 811 in 01-point.hpp, recorded as masked by libstdc++'s debug gcd assertion in the checked build (user decision 2026-11-12) when the runner still accepted any assertion; since the runner fix of 2026-11-12 (68e30c1) only glibc assertions count, so a probe can now require the header's own. The next run also rechecks the probe passes of rows 03 and 04 that predate that fix. Follow-ups outside GE01 are in 03-Geometry/Docs/00-notes.md (P007 Re-Audit Decisions).",
+      "followups": [
+        "Row 02 projectLineApprox, reflectLineApprox, reflectDirectionApprox and signedLineDistanceApprox divide by norm2(b - a), which loses precision when that square is subnormal (|b - a| near 1e-2470: TriangleApprox-like case p=(0,1), a=(0,0), b=(3e-2474,4e-2474) gives distance 0.6000147, not 0.6) and asserts when it overflows; hypot normalization keeps both exact to rounding. P009 adopted it for TriangleApprox::altitudes/altitudeFeet (user decision 2026-11-27); filed by P009 2026-11-27"
+      ]
     },
     {
       "id": "P010",
@@ -271,10 +274,7 @@
       "evidence": [
         "03-Geometry/Docs/09-triangle.md"
       ],
-      "note": "Follow-ups outside P009: P037 duplicates.md item (EnclosingCircle three-point center/radius2 should call Triangle2::circumcenter/circumradius2); P019 Rational<InfIntMini>::toLongDouble does not compile.",
-      "followups": [
-        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
-      ]
+      "note": "Follow-ups outside P009: P037 (EnclosingCircle three-point formulas should call Triangle2::circumcenter/circumradius2), P019 (Rational<InfIntMini>::toLongDouble does not compile), P007 (row 02 norm2 division on subnormal squares)."
     },
     {
       "id": "P015",
@@ -564,7 +564,8 @@
       ],
       "note": "Re-pass owed for `09-rational.hpp`: its optimization check (the Core full re-pass) writes the Optimization Candidates table, decides every candidate on recorded evidence (`01-principles.md`, Profiles) and runs the mutation campaign the header lacks (`05-testing.md`, Mutation Testing; user decision 2026-11-22).",
       "followups": [
-        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27",
+        "Rational<InfIntMini>::toLongDouble does not compile (01-Core/09-rational.hpp:183, InfIntMini has no operator<<); blocks Triangle2::circumradius2<InfIntMini>().toLongDouble() (03-Geometry/Docs/09-triangle.md) and linearDistanceApprox<Rational<InfIntMini>> (03-Geometry/Docs/00-notes.md, GE01); filed by P009 limits recheck 2026-11-27"
       ]
     },
     {
@@ -1168,7 +1169,10 @@
         "03-Geometry/Docs/54-fixed_radius_queries.md",
         "05-Mathematics/Docs/18-floorsum.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement maxAreaInscribedTriangleQuadratic in `15-convex_polygon_query.hpp`; latticePolynomialSumInHalfplanePolygon in `19-lattice_geometry.hpp`. P275 re-review 2026-11-10: implement IncrementalRectangleUnion in `13-segment_union.hpp`. At /finish, add mewt records for verified rows 14 and 54; partial rows 13 (IncrementalRectangleUnion missing), 15 and 19 get their campaigns when completed. The next run rechecks the probe passes of rows 13, 14, 15, 19, 54 that predate the 2026-11-12 runner fix."
+      "note": "Omission sweep 2026-11-08: implement maxAreaInscribedTriangleQuadratic in `15-convex_polygon_query.hpp`; latticePolynomialSumInHalfplanePolygon in `19-lattice_geometry.hpp`. P275 re-review 2026-11-10: implement IncrementalRectangleUnion in `13-segment_union.hpp`. At /finish, add mewt records for verified rows 14 and 54; partial rows 13 (IncrementalRectangleUnion missing), 15 and 19 get their campaigns when completed. The next run rechecks the probe passes of rows 13, 14, 15, 19, 54 that predate the 2026-11-12 runner fix.",
+      "followups": [
+        "Row 14 EnclosingCircle::center and radius2 repeat the three-point formulas of 09-triangle.hpp Triangle2::circumcenter and circumradius2 and could call them (duplicates.md item named in the P009 note); filed by P009 limits recheck 2026-11-27"
+      ]
     },
     {
       "id": "P034",

@@ -297,4 +297,5 @@ if __name__ == '__main__':
             'weights-infinite', 'excircle-index', 'excircle-negative-index',
             'excircle-unrepresentable', 'negative-side', 'nan-side', 'infinite-side',
             'heron-factor-overflow', 'heron-area-overflow', 'heron-area-underflow', 'transform-overflow',
-            'circumcenter-degenerate', 'circumradius2-degenerate', 'orthocenter-degenerate']))
+            'circumcenter-degenerate', 'circumradius2-degenerate', 'orthocenter-degenerate',
+            'altitudes-repeated-vertex', 'altitudes-side-overflow', 'altitude-feet-side-overflow', 'altitude-feet-repeated-vertex', 'altitudes2-repeated-vertex', 'exact-altitude-feet-repeated-vertex']))

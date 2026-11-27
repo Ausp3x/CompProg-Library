@@ -17,7 +17,7 @@ struct Barycentric2 {
 };
 
 // T: O(1), M: O(1). Finite vertices, computed signs, no epsilon; bool queries return false on computed-zero area (fromBarycentric: zero weight sum) and leave out unchanged.
-// angles: vertex angles at (a, b, c) in [0, pi], distinct vertices asserted.
+// angles, altitudes, altitudeFeet: at or from (a, b, c), distinct vertices asserted; medians, medianFeet from (a, b, c).
 struct TriangleApprox {
     dpoint a{}, b{}, c{};
     TriangleApprox(dpoint a = {}, dpoint b = {}, dpoint c = {}) : a(a), b(b), c(c) {
@@ -30,6 +30,21 @@ struct TriangleApprox {
     long double perimeter() const { auto s = sides(); return s[0] + s[1] + s[2]; }
     dpoint centroid() const { return a + ((b - a) + (c - a)) / 3.L; }
     array<long double, 3> angles() const { return {angleApprox(b - a, c - a), angleApprox(c - b, a - b), angleApprox(a - c, b - c)}; }
+    // hypot instead of norm2 keeps a side whose square is subnormal or overflows exact.
+    array<long double, 3> altitudes() const {
+        auto h = [](dpoint p, dpoint u, dpoint v) {
+            dpoint e = v - u; long double s = cross(e, p - u), l = circle_detail::length(e);
+            assert(l > 0 && std::isfinite(l) && std::isfinite(s)); return abs(s) / l;};
+        return {h(a, b, c), h(b, c, a), h(c, a, b)};}
+    array<dpoint, 3> altitudeFeet() const {
+        auto f = [](dpoint p, dpoint u, dpoint v) {
+            dpoint e = v - u; long double l = circle_detail::length(e);
+            assert(l > 0 && std::isfinite(l)); dpoint d = e / l; long double t = dot(p - u, d);
+            assert(std::isfinite(t)); return u + d * t;};
+        return {f(a, b, c), f(b, c, a), f(c, a, b)};}
+    array<long double, 3> medians() const {
+        return {circle_detail::length((b - a) + (c - a)) / 2, circle_detail::length((c - b) + (a - b)) / 2, circle_detail::length((a - c) + (b - c)) / 2};}
+    array<dpoint, 3> medianFeet() const { return {(b + c) / 2.L, (c + a) / 2.L, (a + b) / 2.L}; }
     TriangleApprox transform(const Affine2Approx &f) const { return {f.applyPoint(a), f.applyPoint(b), f.applyPoint(c)}; }
 
     bool barycentric(dpoint p, array<long double, 3> &out) const {
@@ -65,8 +80,8 @@ struct TriangleApprox {
         out = CircleApprox(a + ((b - a) + (c - a) - v) / 2.L, q.r / 2); return true;}
 };
 
-// T: O(1), M: O(1); centroid, circumcenter, orthocenter gcd O(log(C)), C <= 1.5 * 10^29; circumradius2 O(1) big-integer words, allocates.
-// |coordinate| <= 10^9; zero area makes barycentric return false (out unchanged) and angleKind, circumcenter, circumradius2, orthocenter assert; locate: -1/0/1 interior/boundary/outside (zero area: its edges).
+// T: O(1), M: O(1); rational results gcd O(log(C)), C <= 6.4 * 10^37; circumradius2 and a big-integer Q O(1) big-integer words, allocate.
+// |coordinate| <= 10^9; zero area: barycentric false (out unchanged), angleKind, circumcenter, circumradius2, orthocenter assert; altitudes2, altitudeFeet assert distinct vertices; locate -1/0/1 interior/boundary/outside.
 struct Triangle2 {
     point a{}, b{}, c{};
     Triangle2(point a = {}, point b = {}, point c = {}) : a(a), b(b), c(c) {
@@ -91,6 +106,24 @@ struct Triangle2 {
     RationalPoint2 orthocenter() const {
         RationalPoint2 o = circumcenter();
         return {(lll(a.x) + b.x + c.x) * o.d - 2 * o.x, (lll(a.y) + b.y + c.y) * o.d - 2 * o.y, o.d};}
+    template<typename Q = Rational<lll>> array<Q, 3> altitudes2() const {
+        static_assert(!std::same_as<Q, Rational<lng>>, "altitudes2 needs Rational<lll> or a big-integer Rational");
+        assert(a != b && b != c && c != a);
+        auto h = [](point p, point u, point v) { return linearDistance2<Q>(Linear2::segment(p, p), Linear2::line(u, v)); };
+        return {h(a, b, c), h(b, c, a), h(c, a, b)};}
+    array<RationalPoint2, 3> altitudeFeet() const {
+        assert(a != b && b != c && c != a);
+        auto f = [](point p, point u, point v) {
+            point e = v - u; lll t = dot(p - u, e), d = norm2(e);
+            return RationalPoint2(u.x * d + e.x * t, u.y * d + e.y * t, d);};
+        return {f(a, b, c), f(b, c, a), f(c, a, b)};}
+    template<typename Q = Rational<lll>> array<Q, 3> medians2() const {
+        static_assert(!std::same_as<Q, Rational<lng>>, "medians2 needs Rational<lll> or a big-integer Rational");
+        auto m = [](point p, point u, point v) { return Q(norm2((u - p) + (v - p)), 4); };
+        return {m(a, b, c), m(b, c, a), m(c, a, b)};}
+    array<RationalPoint2, 3> medianFeet() const {
+        auto m = [](point u, point v) { return RationalPoint2(lll(u.x) + v.x, lll(u.y) + v.y, 2); };
+        return {m(b, c), m(c, a), m(a, b)};}
     bool barycentric(point p, Barycentric2 &out) const {
         linear_detail::check(p); lll d = area2();
         if (d == 0) { return false; }

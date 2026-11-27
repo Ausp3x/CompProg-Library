@@ -122,6 +122,40 @@ void exactCenters(Triangle2 t) {
         dpoint approx; require(t.approx().orthocenter(approx), "approximate orthocenter exists");
         dpoint want = h.approx(); long double scale = max({1.L, length(want), length(t.a.cast<long double>()), length(t.b.cast<long double>()), length(t.c.cast<long double>())});
         closePoint(approx, want, "approximate orthocenter against exact", scale);}}
+// Altitude feet on their side lines and perpendicular to them; h^2 * |side|^2 == area2^2; Apollonius 4 m^2 == 2 b^2 + 2 c^2 - a^2; InfInt equals lll.
+void exactLengths(Triangle2 t) {
+    using W = InfIntMini;
+    array<point, 3> v{t.a, t.b, t.c}; bool distinct = v[0] != v[1] && v[1] != v[2] && v[2] != v[0];
+    context = "exact altitudes and medians triangle=" + show(t.a) + show(t.b) + show(t.c);
+    auto medians = t.medians2(); auto wideMedians = t.medians2<Rational<InfInt>>(); auto middles = t.medianFeet();
+    auto approx = t.approx(); auto mediansApprox = approx.medians(); auto middlesApprox = approx.medianFeet();
+    long double scale = max({1.L, length(t.a.cast<long double>()), length(t.b.cast<long double>()), length(t.c.cast<long double>())});
+    W z = W(t.area2()); array<Rational<lll>, 3> heights{}; array<Rational<InfInt>, 3> wide{}; array<RationalPoint2, 3> feet{};
+    array<long double, 3> heightsApprox{}; array<dpoint, 3> feetApprox{};
+    if (distinct) { heights = t.altitudes2(); wide = t.altitudes2<Rational<InfInt>>(); feet = t.altitudeFeet(); heightsApprox = approx.altitudes(); feetApprox = approx.altitudeFeet(); }
+    for (int i = 0; i < 3; ++i) {
+        point p = v[i], q = v[(i + 1) % 3], r = v[(i + 2) % 3];
+        W ex = W(lll(r.x) - q.x), ey = W(lll(r.y) - q.y), side = ex * ex + ey * ey, ab = W(dist2(p, q)), ac = W(dist2(p, r));
+        RationalPoint2 m = middles[i];
+        require(m.d > 0 && gcd(gcd(m.x, m.y), m.d) == 1, "canonical median foot", "d > 0, gcd 1", show(m.x) + "," + show(m.y) + "/" + show(m.d));
+        require(2 * m.x == (lll(q.x) + r.x) * m.d && 2 * m.y == (lll(q.y) + r.y) * m.d, "median foot is the opposite side midpoint");
+        require(medians[i].den > 0 && W(4) * W(medians[i].num) == (W(2) * ab + W(2) * ac - side) * W(medians[i].den), "Apollonius median2",
+            (W(2) * ab + W(2) * ac - side).toString() + "/4", show(medians[i].num) + "/" + show(medians[i].den));
+        require(wideMedians[i].num.toString() == show(medians[i].num) && wideMedians[i].den.toString() == show(medians[i].den), "medians2 InfInt equals lll");
+        close(mediansApprox[i], std::sqrt(medians[i].toLongDouble()), "approximate median against exact", scale);
+        closePoint(middlesApprox[i], m.approx(), "approximate median foot against exact", scale);
+        if (!distinct) { continue; }
+        RationalPoint2 f = feet[i];
+        require(f.d > 0 && gcd(gcd(f.x, f.y), f.d) == 1, "canonical altitude foot", "d > 0, gcd 1", show(f.x) + "," + show(f.y) + "/" + show(f.d));
+        W fx = W(f.x) - W(lll(q.x) * f.d), fy = W(f.y) - W(lll(q.y) * f.d), hx = W(lll(p.x) * f.d) - W(f.x), hy = W(lll(p.y) * f.d) - W(f.y);
+        require(fx * ey - fy * ex == W(0), "altitude foot on the opposite side line " + std::to_string(i));
+        require(hx * ex + hy * ey == W(0), "altitude perpendicular to the opposite side " + std::to_string(i));
+        require(heights[i].den > 0 && W(heights[i].num) * side == z * z * W(heights[i].den), "altitude2 times side^2 equals area2^2",
+            (z * z).toString() + "/" + side.toString(), show(heights[i].num) + "/" + show(heights[i].den));
+        require(W(heights[i].num) * W(f.d) * W(f.d) == (hx * hx + hy * hy) * W(heights[i].den), "altitude2 equals the squared vertex-to-foot distance");
+        require(wide[i].num.toString() == show(heights[i].num) && wide[i].den.toString() == show(heights[i].den), "altitudes2 InfInt equals lll");
+        close(heightsApprox[i], std::sqrt(heights[i].toLongDouble()), "approximate altitude against exact", scale);
+        closePoint(feetApprox[i], f.approx(), "approximate altitude foot against exact", scale);}}
 void exact(Triangle2 t, point p, lll d, array<lll, 3> w, int kind, int where) {
     context = "triangle=" + show(t.a) + show(t.b) + show(t.c) + " p=" + show(p);
     require(t.area2() == d, "exact signed area2", show(d), show(t.area2()));
@@ -156,6 +190,7 @@ void exhaustive(const string &mode) {
     for (int x = -query; x <= query; ++x) { for (int y = -query; y <= query; ++y) { queries.push_back({x, y}); }}
     for (point a : vertices) { for (point b : vertices) { for (point c : vertices) {
         if (det(a, b, c)) { exactCenters({a, b, c}); }
+        exactLengths({a, b, c});
         for (point p : queries) { exact({a, b, c}, p, det(a, b, c), {det(p, b, c), det(a, p, c), det(a, b, p)}, kindOracle(a, b, c), locateOracle(a, b, c, p)); ++cases; }}}}
     std::cout << "PASS exact grid area/orient/locate/angles/kind/centroid/barycentric/centers cases=" << cases << '\n';}
 void excircleFixture(istream &in) {
@@ -207,7 +242,7 @@ void centerFixture(istream &in) {
             show(want[3]) + "," + show(want[4]) + "/" + show(want[5]), show(h.x) + "," + show(h.y) + "/" + show(h.d));
         require(mini.num.toString() == num && mini.den.toString() == den, "circumradius2 InfIntMini against Python Fraction", num + "/" + den, mini.num.toString() + "/" + mini.den.toString());
         require(full.num.toString() == num && full.den.toString() == den, "circumradius2 InfInt against Python Fraction", num + "/" + den, full.num.toString() + "/" + full.den.toString());}
-    exactCenters({a, b, c});}
+    exactCenters({a, b, c}); exactLengths({a, b, c});}
 // Orient and locate against Python bigint oracles at the coordinate bound, with set and orientation symmetry under vertex order.
 void locateFixture(istream &in) {
     point a, b, c, p; int orient, where; in >> a.x >> a.y >> b.x >> b.y >> c.x >> c.y >> p.x >> p.y >> orient >> where;
@@ -230,6 +265,7 @@ void fixtures() {
             lll cx = readWide(in), cxd = readWide(in), cy = readWide(in), cyd = readWide(in); int where; in >> where;
             exact({a, b, c}, p, d, w, kind, where);
             if (d) { exactCenters({a, b, c}); }
+            exactLengths({a, b, c});
             require(center.x * cxd == cx * center.d && center.y * cyd == cy * center.d, "Python Fraction centroid"); ++n;}
         else if (tag == "H") {
             long double a, b, c, want, got = -91; int valid; in >> a >> b >> c >> valid >> want;
@@ -398,6 +434,17 @@ void constructions(TriangleApprox t) {
         close(length(midpoint - nine.c), nine.r, "nine-point side midpoint", big);
         dpoint foot = b + edge * (dot(a - b, edge) / dot(edge, edge));
         close(length(foot - nine.c), nine.r, "nine-point altitude foot", big);
+        closePoint(t.altitudeFeet()[i], foot, "altitude foot against the projection formula", scale);
+        close(dot(t.altitudeFeet()[i] - a, edge), 0, "altitude foot perpendicular to the side", scale * length(edge));
+        dpoint unit = edge / length(edge);
+        require(same(t.altitudes()[i], std::abs(cross(edge, a - b)) / length(edge)), "altitude rounds as the contract's formula from the next vertex");
+        require(same(t.altitudeFeet()[i], b + unit * dot(a - b, unit)), "altitude foot rounds as the contract's formula from the next vertex");
+        close(t.altitudes()[i] * sides[i], 2 * area, "altitude times side is twice the area", scale * scale);
+        require(same(t.medianFeet()[i], midpoint), "median foot is the side midpoint", show(midpoint), show(t.medianFeet()[i]));
+        close(t.medians()[i], length(midpoint - a), "median length vertex to midpoint", scale);
+        long double sb = sides[(i + 1) % 3], sc = sides[(i + 2) % 3];
+        close(4 * t.medians()[i] * t.medians()[i], 2 * sb * sb + 2 * sc * sc - sides[i] * sides[i], "Apollonius median length", scale * scale);
+        closePoint(a + (midpoint - a) * (2.L / 3), t.centroid(), "centroid two thirds along the median", scale);
         close(length((a + orthocenter) / 2.L - nine.c), nine.r, "nine-point vertex-orthocenter midpoint", big);}
     // r_a * r_b * r_c = r * s^2 and r_a + r_b + r_c = 4 * R + r: cancellation-free sums and products.
     long double semi = t.perimeter() / 2;
@@ -483,9 +530,37 @@ void randomChecks(int count) {
         require(t.excircle(0, c), "scaled excircle"); close(c.r / scale, 6, "scaled exradius");
         require(t.orthocenter(p), "scaled orthocenter"); closePoint(p / scale, {}, "scaled orthocenter value");
         require(t.ninePointCircle(c), "scaled nine-point circle"); close(c.r / scale, 1.25L, "scaled nine-point radius");
+        auto heights = t.altitudes(), medians = t.medians(); auto feet = t.altitudeFeet();
+        array<long double, 3> wantHeights{2.4L, 4, 3}, wantMedians{2.5L, std::sqrt(18.25L), std::sqrt(13.L)};
+        for (int i = 0; i < 3; ++i) { close(heights[i] / scale, wantHeights[i], "scaled altitude"); close(medians[i] / scale, wantMedians[i], "scaled median"); }
+        closePoint(feet[0] / scale, {1.44L, 1.92L}, "scaled altitude foot onto the hypotenuse"); closePoint(feet[1] / scale, {}, "scaled altitude foot at the right angle");
         auto angles = t.angles(), unscaled = TriangleApprox({}, {4, 0}, {0, 3}).angles();
         require(angles[0] == HALF_PI, "scaled right angle exactly pi/2", show(HALF_PI), show(angles[0]));
         for (int i = 1; i < 3; ++i) { relative(angles[i], unscaled[i], 16 * EPS, "scale-invariant angles"); }}
+    // Non-dyadic coordinates round every difference, so the origin of each altitude formula shows in its last bits.
+    for (int i = 0; i < count; ++i) {
+        auto real = [&]() { return static_cast<long double>(rng() % 2000001) / 7919 - 126; };
+        array<dpoint, 3> v{dpoint{real(), real()}, dpoint{real(), real()}, dpoint{real(), real()}};
+        if (v[0] == v[1] || v[1] == v[2] || v[2] == v[0]) { continue; }
+        TriangleApprox t(v[0], v[1], v[2]); auto heights = t.altitudes(); auto feet = t.altitudeFeet();
+        context = "non-dyadic altitude triangle=" + show(t.a) + show(t.b) + show(t.c);
+        for (int j = 0; j < 3; ++j) {
+            dpoint a = v[j], b = v[(j + 1) % 3], edge = v[(j + 2) % 3] - b, unit = edge / length(edge);
+            require(same(heights[j], std::abs(cross(edge, a - b)) / length(edge)), "non-dyadic altitude rounds as the contract's formula");
+            require(same(feet[j], b + unit * dot(a - b, unit)), "non-dyadic altitude foot rounds as the contract's formula");}}
+    // Sides whose squares are subnormal or overflow: altitudes and feet stay accurate.
+    {
+        long double s = 1e-2474L, big = 1e2470L;
+        context = "altitudes with a subnormal squared side";
+        TriangleApprox t({}, {3 * s, 4 * s}, {0, 1});
+        relative(t.altitudes()[2], .6L, 8 * EPS, "altitude onto a side with subnormal square");
+        dpoint f = t.altitudeFeet()[2]; relative(f.x, .48L, 8 * EPS, "foot x on a side with subnormal square"); relative(f.y, .64L, 8 * EPS, "foot y on a side with subnormal square");
+        context = "altitudes with an overflowing squared side";
+        TriangleApprox u({}, {4 * big, 0}, {0, 3});
+        auto heights = u.altitudes(); auto feet = u.altitudeFeet();
+        relative(heights[0], 3, 8 * EPS, "altitude onto the long hypotenuse"); relative(heights[1], 4 * big, 8 * EPS, "altitude from the far vertex"); relative(heights[2], 3, 8 * EPS, "altitude onto the long leg");
+        require(same(feet[2], dpoint{}), "foot onto the long leg is the right-angle vertex", show(dpoint{}), show(feet[2]));
+        relative(feet[0].y, 3, 8 * EPS, "foot onto the long hypotenuse y");}
     for (long double h : {1e-4L, 1e-8L, 1e-12L}) {
         TriangleApprox t({}, {2, 0}, {1, h}); CircleApprox c; dpoint p;
         context = "thin isosceles triangle height=" + show(h);
@@ -521,6 +596,12 @@ void invalid(const string &name) {
     if (name == "circumradius2-degenerate") { (void)Triangle2({3, 3}, {3, 3}, {5, 0}).circumradius2(); }
     if (name == "orthocenter-degenerate") { (void)Triangle2({-1000000000, 0}, {0, 0}, {1000000000, 0}).orthocenter(); }
     if (name == "locate-query") { (void)exact.locate({1000000001, 0}); }
+    if (name == "altitudes-side-overflow") { (void)TriangleApprox({}, {1e2470L, 1e2470L}, {-1e2470L, 1e2470L}).altitudes(); }
+    if (name == "altitude-feet-side-overflow") { (void)TriangleApprox({-1e4932L, 0}, {1e4932L, 0}, {0, 1}).altitudeFeet(); }
+    if (name == "altitudes-repeated-vertex") { (void)TriangleApprox({1, 2}, {1, 2}, {5, 0}).altitudes(); }
+    if (name == "altitude-feet-repeated-vertex") { (void)TriangleApprox({1, 2}, {5, 0}, {5, 0}).altitudeFeet(); }
+    if (name == "altitudes2-repeated-vertex") { (void)Triangle2({3, 3}, {5, 0}, {3, 3}).altitudes2(); }
+    if (name == "exact-altitude-feet-repeated-vertex") { (void)Triangle2({3, 3}, {3, 3}, {5, 0}).altitudeFeet(); }
     if (name == "angles-repeated-vertex") { (void)TriangleApprox({1, 2}, {5, 0}, {1, 2}).angles(); }
     if (name == "transform-overflow") { (void)approximate.transform(Affine2Approx::scaling(std::numeric_limits<long double>::max(), 1)); }
     if (name == "angle-kind-degenerate") { (void)Triangle2({}, {1, 1}, {2, 2}).angleKind(); }
