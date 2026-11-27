@@ -40,7 +40,7 @@ Legend: `[ ]` planned, `[-]` in progress, `[x]` verified, `[!]` verified with op
 
 ### Foundations Re-audit
 
-- [!] **P001 — SUP01** (opus, S): Contest testing pipeline and reusable generators/checkers. Follow-ups: (1) Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27.
+- [x] **P001 — SUP01** (opus, S): Contest testing pipeline and reusable generators/checkers.
 - [!] **P002 — C01, C15** (fable, M+L): 01-Core — template, debug, bitset. Follow-ups: (1) Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27.
 - [x] **P003 — SUP05** (opus, S): Refresh and check the standalone contest template.
 - [!] **P004 — C02** (fable, L): 01-Core — barrett, montgomery. Follow-ups: (1) Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27.

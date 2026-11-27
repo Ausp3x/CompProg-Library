@@ -8,11 +8,16 @@ import runpy
 import shlex
 import sys
 import tempfile
+import time
 import uuid
 
 
 # Loading the sibling defines its helpers without invoking its CLI.
 invoke = runpy.run_path(str(Path(__file__).resolve().with_name("01-stress.py")))["invoke"]
+
+
+class Expired(Exception):
+    """The --total-timeout budget ran out."""
 
 
 def cmd(path):
@@ -33,11 +38,14 @@ def main():
     p.add_argument("--valid", required=True, help="hook input -> exit 0 valid, 1 invalid")
     p.add_argument("--probe", required=True, help="hook input -> exact failure signature on stdout; exit 0")
     p.add_argument("--max-steps", type=int, default=100)
-    p.add_argument("--timeout", type=float, default=2)
+    p.add_argument("--timeout", type=float, default=2, help="seconds per hook run")
+    p.add_argument("--total-timeout", type=float, help="seconds for the whole run; on expiry the best case is saved")
     p.add_argument("--output", type=Path, help="new reduced-input file; also saved after a hook error or interrupt")
     args = p.parse_args()
-    if args.max_steps <= 0 or not math.isfinite(args.timeout) or args.timeout <= 0:
-        p.error("max-steps and timeout must be positive; timeout must be finite")
+    total = math.inf if args.total_timeout is None else args.total_timeout
+    if args.max_steps <= 0 or not math.isfinite(args.timeout) or args.timeout <= 0 or math.isnan(total) or total <= 0:
+        p.error("max-steps and timeouts must be positive; timeout must be finite")
+    deadline = time.monotonic() + total
     try:
         hooks = {k: cmd(getattr(args, k)) for k in ("propose", "valid", "probe")}
         original = args.input.resolve().read_bytes()
@@ -47,7 +55,12 @@ def main():
 
         def run(role, label, *extra, allowed=("ok",)):
             command = hooks[role] + [str(path), *extra]
-            status, out, err = invoke(command, b"", args.timeout)
+            left = deadline - time.monotonic()
+            if left <= 0:
+                raise Expired(label)
+            status, out, err = invoke(command, b"", min(args.timeout, left))
+            if status == "timeout" and left < args.timeout:
+                raise Expired(label)  # the run's budget, not the hook's own timeout, ended it
             if status not in allowed:
                 raise ValueError(f"{label}: {status}; command={shlex.join(command)}; stderr={err!r}")
             return status, out
@@ -61,7 +74,7 @@ def main():
             _, signature = run("probe", "initial probe")
             if not signature.strip():
                 raise ValueError("initial input must have a nonempty failure signature")
-            current, accepted, error = original, 0, None
+            current, accepted, error, expired = original, 0, None, False
             try:
                 for step in range(args.max_steps):
                     path.write_bytes(current)
@@ -76,13 +89,16 @@ def main():
                     _, tested = run("probe", f"probe at step {step}")
                     if tested == signature:
                         current, accepted = candidate, accepted + 1
+            except Expired:
+                expired = True
             except (OSError, ValueError, KeyboardInterrupt) as e:
                 error = e
         # The original remains untouched; even an interrupted search retains its best case.
         with output.open("xb") as f:
             f.write(current)
         print(f"{args.input} -> {output}: {len(original)} -> {len(current)} bytes; "
-              f"{accepted} accepted; signature={signature!r}", flush=True)
+              f"{accepted} accepted; signature={signature!r}" + ("; total timeout reached" if expired else ""),
+              flush=True)
         if error is not None:
             print(f"saved: {output}", file=sys.stderr)
             if isinstance(error, KeyboardInterrupt):
@@ -90,6 +106,8 @@ def main():
                 return 130
             p.exit(2, f"shrink error: {error}\n")
         return 0
+    except Expired as e:
+        p.exit(2, f"shrink error: total timeout reached before the baseline was established ({e})\n")
     except (OSError, ValueError) as e:
         p.exit(2, f"shrink error: {e}\n")
     except KeyboardInterrupt:

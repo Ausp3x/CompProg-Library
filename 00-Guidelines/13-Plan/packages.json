@@ -23,10 +23,7 @@
       "evidence": [
         "09-Contest Testing/Docs/00-verification.md"
       ],
-      "note": "",
-      "followups": [
-        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
-      ]
+      "note": ""
     },
     {
       "id": "P002",

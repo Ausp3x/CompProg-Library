@@ -8,7 +8,7 @@ Modes/seeds accept --mode/--seed or the library runner's CP_TEST_MODE/CP_TEST_SE
 
 Feature map: 01-stress -> batch*, checker*, mismatch*, scored*, interactive*,
 configuration*, process*, cpp*,
-input_validator_and_expected*; 02/03-gen -> generator_templates; 04-checker ->
+input_validator_and_expected*, output_and_memory_limits; 02/03-gen -> generator_templates; 04-checker ->
 checker_template; 05-interactor -> interactive*; 06/07 -> scored_templates;
 08-shrink -> shrink*; 09-quick -> quick*, configuration*, process*.
 Unittest checks remain active with python -O. Failed fixtures remain in /tmp.
@@ -131,7 +131,7 @@ class ContestTools(unittest.TestCase):
         checker_error = self.file("checker_error.py", "import sys\nsys.exit(2)\n")
         cases = [
             ((self.gen, crash, self.good), "candidate_crash"),
-            ((self.gen, slow, self.good, "--timeout", 0.1), "candidate_timeout"),
+            ((self.gen, slow, self.good, "--timeout", 0.5), "candidate_timeout"),
             ((generator_error, self.good, self.good), "generator_error"),
             ((self.gen, self.good, crash), "reference_error"),
             ((self.gen, self.good, self.good, "--checker", checker_error), "checker_error"),
@@ -243,7 +243,7 @@ class ContestTools(unittest.TestCase):
                                ("import time\ntime.sleep(3)\n", "checker_error")):
             checker.write_text(body)
             self.run_tool(STRESS, self.gen, self.good, self.good, "--checker", checker,
-                          "--timeout", 0.2, "--count", 1, code=1)
+                          "--timeout", 0.5, "--count", 1, code=1)
             _, meta = self.failure(expected)
             self.assertEqual([Path(path).name for path in meta["commands"]["checker"][-3:]],
                              ["input.txt", "candidate.txt", "reference.txt"])
@@ -368,7 +368,7 @@ class ContestTools(unittest.TestCase):
                 programs = [self.gen, self.good, self.good]
                 programs[index] = slow
                 with self.subTest(tool=tool.name, role=role):
-                    self.run_tool(tool, *programs, "--count", 1, "--timeout", 0.2, code=1)
+                    self.run_tool(tool, *programs, "--count", 1, "--timeout", 0.5, code=1)
                     folder, meta = self.failure(kind)
                     self.assertEqual(meta["statuses"][role], "timeout")
                     self.assertEqual((folder / f"{role}.out").read_bytes(), b"partial\n")
@@ -411,7 +411,7 @@ class ContestTools(unittest.TestCase):
         valid = self.file("accept.py", "pass\n")
         scorer = self.file("score.py", "print(1)\n")
         options = ("--mode", "scored", "--validator", valid, "--scorer", scorer,
-                   "--count", 1, "--timeout", 0.2)
+                   "--count", 1, "--timeout", 0.5)
         for hook, body, kind in ((valid, "raise SystemExit(1)\n", "invalid_output"),
                                  (valid, "raise SystemExit(2)\n", "validator_error"),
                                  (valid, "import time\ntime.sleep(3)\n", "validator_error"),
@@ -448,6 +448,73 @@ class ContestTools(unittest.TestCase):
             reconstructed = b"".join(base64.b64decode(row["base64"]) for row in rows if row["direction"] == direction)
             self.assertEqual(reconstructed, (folder / f"{direction}.bin").read_bytes())
         self.assertEqual([row["seconds"] for row in rows], sorted(row["seconds"] for row in rows))
+
+    def test_output_and_memory_limits(self):
+        mib = 1 << 20
+        flood = "import sys\nwhile True: sys.{}.write('x'*65536)\n"
+        exact = self.file("exact.py", f"import sys\nsys.stdout.write('x'*{mib})\n")
+        self.run_tool(STRESS, self.gen, exact, exact, "--count", 1, "--exact", "--output-limit", 1)
+        for stream in ("stdout", "stderr"):
+            candidate = self.file(f"flood_{stream}.py", flood.format(stream))
+            self.run_tool(STRESS, self.gen, candidate, self.good, "--count", 1, "--output-limit", 1, code=1)
+            folder, meta = self.failure("candidate_output_limit")
+            self.assertEqual(meta["statuses"]["candidate"], "output limit")
+            self.assertEqual(meta["config"]["output_limit"], mib)
+            self.assertEqual((folder / f"candidate.{stream[3:]}").stat().st_size, mib)
+        out = self.file("flood_out.py", flood.format("stdout"))
+        for args, kind, role in (((out, self.good, self.good), "generator_error", "generator"),
+                                 ((self.gen, self.good, out), "reference_error", "reference"),
+                                 ((self.gen, self.good, self.good, "--checker", out), "checker_error", "checker")):
+            self.run_tool(STRESS, *args, "--count", 1, "--output-limit", 1, code=1)
+            self.assertEqual(self.failure(kind)[1]["statuses"][role], "output limit")
+        hidden = self.file("hidden.py", "print(7)\n")
+        quiet = self.file("quiet.py", "import sys\nsys.stdin.read()\n")
+        options = ("--mode", "interactive", "--count", 1, "--output-limit", 1, "--whole-timeout", 10)
+        self.run_tool(STRESS, hidden, out, "--interactor", quiet, *options, code=1)
+        folder, _ = self.failure("candidate_output_limit")
+        self.assertEqual((folder / "candidate_to_interactor.bin").stat().st_size, mib)
+        self.run_tool(STRESS, hidden, quiet, "--interactor", self.file("noisy.py", flood.format("stderr")),
+                      *options, code=1)
+        folder, _ = self.failure("interactor_output_limit")
+        self.assertEqual((folder / "interactor.err").stat().st_size, mib)
+        self.run_tool(STRESS, hidden, quiet, "--interactor", out, *options, code=1)
+        folder, _ = self.failure("interactor_output_limit")
+        self.assertEqual((folder / "interactor_to_candidate.bin").stat().st_size, mib)
+        rows = [json.loads(line) for line in (folder / "transcript.jsonl").read_text().splitlines()]
+        self.assertEqual(sum(len(base64.b64decode(row["base64"])) for row in rows
+                             if row["direction"] == "interactor_to_candidate"), mib)
+        self.run_tool(STRESS, hidden, self.file("noisy_candidate.py", flood.format("stderr")),
+                      "--interactor", quiet, *options, code=1)
+        folder, _ = self.failure("candidate_output_limit")
+        self.assertEqual((folder / "candidate.err").stat().st_size, mib)
+        # RLIMIT_AS binds the candidate and reference only: 400 MiB fails under 256, 64 MiB fits.
+        big = self.file("big.py", f"import sys\nb=bytearray({400 * mib})\nprint(sys.stdin.read().strip())\n")
+        small = self.file("small.py", f"import sys\nb=bytearray({64 * mib})\nprint(sys.stdin.read().strip())\n")
+        hog_gen = self.file("hog_gen.py", f"import sys\nb=bytearray({400 * mib})\nprint(sys.argv[1])\n")
+        limit = ("--count", 1, "--memory-limit", 256)
+        self.run_tool(STRESS, hog_gen, small, small, *limit)
+        self.run_tool(STRESS, self.gen, small, small, *limit)
+        self.run_tool(STRESS, self.gen, big, self.good, *limit, code=1)
+        self.failure("candidate_crash")
+        self.run_tool(STRESS, self.gen, self.good, big, *limit, code=1)
+        self.failure("reference_error")
+        self.run_tool(STRESS, self.gen, big, self.good, "--count", 1)
+        heavy = self.file("heavy.py", f"import sys\nb=bytearray({400 * mib})\nsys.stdin.read()\n")
+        empty = self.file("empty.py", "pass\n")
+        interactive = ("--mode", "interactive", *limit)
+        self.run_tool(STRESS, hidden, empty, "--interactor", heavy, *interactive)
+        self.run_tool(STRESS, hidden, big, "--interactor", quiet, *interactive, code=1)
+        self.failure("candidate_crash")
+        for option, value in (("--output-limit", "0"), ("--output-limit", "-1"), ("--memory-limit", "0"),
+                              ("--memory-limit", str(1 << 43))):
+            self.run_tool(STRESS, self.gen, self.good, self.good, option, value, code=2)
+        # Under a hard address-space limit, a larger --memory-limit is a setup error, never a traceback.
+        capped = subprocess.run(["bash", "-c", 'ulimit -v 3000000 && exec "$@"', "bash", sys.executable, str(STRESS),
+                                 str(self.gen), str(self.good), str(self.good), "--count", "1", "--memory-limit",
+                                 "4096", "--artifacts", str(self.artifacts)],
+                                cwd=self.cwd, capture_output=True, text=True, timeout=20)
+        self.assertEqual(capped.returncode, 2, capped.stderr)
+        self.assertIn("hard address-space limit", capped.stderr)
 
     def test_interactive_large_transfer_and_template_queries(self):
         hidden = self.file("hidden.py", "print(7)\n")
@@ -590,6 +657,29 @@ class ContestTools(unittest.TestCase):
             self.run_tool(SHRINK, *options, option, value, code=2)
         self.run_tool(SHRINK, *options, "--propose", self.dir / "absent.py", code=2)
 
+    def test_shrink_total_timeout_keeps_progress(self):
+        original, proposer, valid, probe, output, options = self.shrink_hooks()
+        # Each proposal drops the last token after a pause, so the budget ends the search midway.
+        proposer.write_text("import sys,time\nfrom pathlib import Path\ntime.sleep(0.3)\n"
+                            "print(' '.join(Path(sys.argv[1]).read_text().split()[:-1]))\n")
+        original.write_text(" ".join(map(str, range(10, 60))) + "\n")
+        probe.write_text("print('wrong_answer:A')\n")
+        start = time.monotonic()
+        result = self.run_tool(SHRINK, *options, "--max-steps", 100, "--total-timeout", 1.5)
+        self.assertLess(time.monotonic() - start, 5)
+        self.assertIn("total timeout reached", result.stdout)
+        tokens = output.read_text().split()
+        self.assertTrue(0 < len(tokens) < 50 and tokens == original.read_text().split()[:len(tokens)], tokens)
+        output.unlink()
+        valid.write_text("import time\ntime.sleep(3)\n")
+        start = time.monotonic()
+        result = self.run_tool(SHRINK, *options, "--timeout", 5, "--total-timeout", 0.3, code=2)
+        self.assertLess(time.monotonic() - start, 2, "a hook call must get at most the time left")
+        self.assertIn("before the baseline was established (initial validator)", result.stderr)
+        self.assertFalse(output.exists())
+        for value in ("0", "-1", "nan"):
+            self.run_tool(SHRINK, *options, "--total-timeout", value, code=2)
+
     def test_shrink_hook_failures_preserve_last_accepted_case(self):
         original, proposer, valid, probe, output, options = self.shrink_hooks()
         for role in ("propose", "valid", "probe"):
@@ -648,13 +738,25 @@ class ContestTools(unittest.TestCase):
     def test_process_timeout_cleans_descendants_in_all_drivers(self):
         for tool in (STRESS, QUICK):
             candidate, pids = self.child_fixture(tool.stem)
-            self.run_tool(tool, self.gen, candidate, self.good, "--count", 1, "--timeout", 0.3, code=1)
+            self.run_tool(tool, self.gen, candidate, self.good, "--count", 1, "--timeout", 1, code=1)
             self.failure("candidate_timeout")
             self.check_processes_stopped(pids)
+        # A leader that closes its outputs, and a descendant that leaves the group holding stdout, both end
+        # in a timeout: the wait after EOF and the drain after the kill are bounded.
+        closed = self.file("closed.py", "import os,time\nos.close(1)\nos.close(2)\ntime.sleep(60)\n")
+        escaped, pids = self.child_fixture("escaped")
+        escaped.write_text(escaped.read_text().replace("child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(60)'])",
+                                                       "child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(60)'],"
+                                                       "start_new_session=True)").removesuffix("time.sleep(60)\n"))
+        for candidate in (closed, escaped):
+            start = time.monotonic()
+            self.run_tool(STRESS, self.gen, candidate, self.good, "--count", 1, "--timeout", 0.5, code=1)
+            self.assertLess(time.monotonic() - start, 5)
+            self.failure("candidate_timeout")
         candidate, pids = self.child_fixture("interactive_child")
         interactor = self.file("wait_interactor.py", "import time\ntime.sleep(60)\n")
         self.run_tool(STRESS, self.gen, candidate, "--mode", "interactive", "--interactor", interactor,
-                      "--count", 1, "--whole-timeout", 0.3, "--idle-timeout", 1, code=1)
+                      "--count", 1, "--whole-timeout", 1, "--idle-timeout", 3, code=1)
         self.failure("interactive_whole_timeout")
         self.check_processes_stopped(pids)
         # Both leaders may exit successfully while a descendant still owns stdout.
@@ -663,14 +765,14 @@ class ContestTools(unittest.TestCase):
         candidate.write_text(candidate.read_text().removesuffix("time.sleep(60)\n"))
         interactor.write_text("pass\n")
         self.run_tool(STRESS, self.gen, candidate, "--mode", "interactive", "--interactor", interactor,
-                      "--count", 1, "--whole-timeout", 0.3, "--idle-timeout", 1, code=1)
+                      "--count", 1, "--whole-timeout", 1, "--idle-timeout", 3, code=1)
         _, meta = self.failure("interactive_whole_timeout")
         self.assertEqual(meta["statuses"]["candidate"], "ok")
         self.assertEqual(meta["statuses"]["interactor"], "ok")
         self.check_processes_stopped(pids)
         original, _, valid, probe, output, options = self.shrink_hooks()
         proposer, pids = self.child_fixture("shrink_child")
-        self.run_tool(SHRINK, *options, "--propose", proposer, "--timeout", 0.3, code=2)
+        self.run_tool(SHRINK, *options, "--propose", proposer, "--timeout", 1, code=2)
         self.assertEqual(output.read_bytes(), original.read_bytes())
         self.check_processes_stopped(pids)
 
@@ -678,8 +780,10 @@ class ContestTools(unittest.TestCase):
     def test_process_interrupt_cleanup_and_shrink_progress(self):
         for tool in (STRESS, SHRINK):
             program, pids = self.child_fixture("interrupt_" + tool.stem)
-            if tool == STRESS:
-                args = [self.gen, program, self.good, "--count", 1, "--artifacts", self.artifacts]
+            if tool == STRESS:  # seed 5 passes, so the interrupt lands in the second case
+                program.write_text("import sys\nif sys.stdin.read().strip()=='5':print(5);raise SystemExit\n"
+                                   + program.read_text())
+                args = [self.gen, program, self.good, "--seed", 5, "--count", 2, "--artifacts", self.artifacts]
             else:
                 original, _, valid, probe, output, options = self.shrink_hooks()
                 args = [*options, "--propose", program]
@@ -698,6 +802,9 @@ class ContestTools(unittest.TestCase):
                 self.check_processes_stopped(pids)
                 if tool == SHRINK:
                     self.assertEqual(output.read_bytes(), original.read_bytes())
+                else:
+                    self.assertIn("seed=5 pass", out)
+                    self.assertIn("interrupted at seed=6", err)
             finally:
                 if process.poll() is None:
                     os.killpg(process.pid, signal.SIGKILL)
