@@ -268,3 +268,18 @@ User decisions at `/finish` (2026-11-14), on omissions the package session had m
 `FieldCombinatorics` repeats `PrimeCombinatorics`' selection guards and products instead of sharing them: `PrimeCombinatorics` checks its dynamic modulus before every early return and needs `n < mod`, so sharing the bodies would put a check hook into every operation of both structs.
 
 Left out: wheel-30 bit storage (cp-algorithms, Nyaan). It has `OddBitSieve`'s operations and its domain below `2^32` with a smaller constant, so it would be a second implementation (`03-cpp.md`, One API per Operation).
+
+## Omission Sweep 2026-11-27
+
+Left out from the candidates of the 2026-11-27 catalog survey (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`; user decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded Decisions): second implementations and slower algorithms that Priority does not admit.
+
+- Solovay–Strassen test (HAC): a Monte Carlo Euler-pseudoprime test, neither lighter, wider, faster nor more capable than the deterministic row 07 `isPrime` and row 36 `bpsw`, the ground of the recorded `fermatProbablePrime` omission (`01-principles.md`, Priority).
+- Sieve of Sundaram (WIKI): O(n log n), slower than row 04 `SieveOfErath` and `OddBitSieve` on the same domain with the same results, and not half their lines (`01-principles.md`, Priority).
+
+## Omission Sweep 2026-11-28
+
+Left out from the candidates of the 2026-11-28 sample of the sources the user placed (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28).
+
+- Gauss-sum and finite-field primality tests (CRANDALL): Under 03-cpp.md One API per Operation and 01-principles.md Priority they are slower forms of the cyclotomy proof that row 36 aprcl (Jacobi sums) and ecpp already give, with the same results and no wider domain.
+- The Goldwasser–Kilian primality test (CRANDALL): Under 01-principles.md Priority it is a slower elliptic-curve primality proof with the same certificate output as row 36 ecpp (Atkin–Morain), and it is not lighter once row 71 schoofPointCount is counted, nor wider, faster or more capable.
+- Willans's and Wormell's prime formulas (HACKERS): Under 01-principles.md Priority they are exponential-time forms of row 31 nthPrime with the same results, and they are not lighter, wider, faster or more capable.

@@ -44,8 +44,8 @@ Run from `/tmp`; the tester caps itself (`_00_memory_cap.ensure()`), and the pea
 
 | Command | Result |
 |---|---|
-| `python3 '96-Local Testing/00-Tools/08-plan_tester.py' --mode full` (2026-11-26) | PASS, 71 tests, 104.5 s after the quick pre-flight, peak 250 MB |
-| `... --mode stress --seed 1` (2026-11-26) | PASS, 71 tests, 155.7 s, peak 252 MB |
+| `python3 '96-Local Testing/00-Tools/08-plan_tester.py' --mode full` (2026-11-27) | PASS, 73 tests, 98.5 s after the quick pre-flight, peak 253 MB |
+| `... --mode stress --seed 1` (2026-11-27) | PASS, 73 tests, 138.7 s, peak 253 MB |
 | `python3 '00-Guidelines/13-Plan/plan.py' check`; `doctor` | ok; no inconsistencies |
 | `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
@@ -207,3 +207,4 @@ Kept by user decision 2026-11-01:
 - 2026-11-12: cache warning (user decision 2026-11-12): the ccache probe warns at 90% of the limit without an install line (`CONFIGURED`); the contract lists ccache as optional, as `TOOLS` has since P274; `test_probe_ccache` added, the fake-PATH, labels, real-machine and random CLI tests cover it; `@reviewer` findings here fixed (the optional ccache, the configuration probes of Output, stale wording); 6 hand mutants of the probe killed; `09-setup_tester.py` full mode on python3 and with `CXX=g++-14` and stress seeds 1 and 2 passed (74 tests).
 - 2026-11-23: `/finish SUP32` (P289) updated Commands and `land N` to the push lines `plan.py` and `merge_pr.py` now print with the session override prefix of the push guard (user decision 2026-11-23).
 - 2026-11-27: final process change (user decision 2026-11-27): `03-consistency.py` loads `95-Resources/00-sources.py` for its check of citations of inbox files, so `HOST_RUN` names it and a pull request changing it is tagged `runs on the host at checkout`; `test_host_run_coverage` found the gap.
+- 2026-11-27: hand-offs (user decision 2026-11-27, the last open `process.md` idea): a limit citing `follow-up on Pxxx` counts as decided only while Pxxx has an open follow-up, `check`, `set` and `gaps.py` marking it `[no open follow-up on Pxxx]` otherwise, and `follow-up Pxxx --done` lists every limit citing Pxxx and keeps its last follow-up open while one names no `user decision <date>`; `test_syn_hand_off` added, `test_undecided` and `test_gaps_undecided_and_follow_ups` extended; full mode and stress seed 1 passed (73 tests).

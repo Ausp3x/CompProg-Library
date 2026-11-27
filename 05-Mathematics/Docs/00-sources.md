@@ -448,3 +448,33 @@ The user supplied these copies on 2026-11-22. They are personal study copies, ke
 | J. N. Lyness, "Notes on the Adaptive Simpson Quadrature Routine", JACM 16(3), 1969, https://doi.org/10.1145/321526.321537; `13-Papers/40-adaptive_simpson_quadrature-lyness_1969.pdf` | `475289b6ad3de64f9998a072b6e118487f71e3b23582e92b7e65027bf226d5b5` | pp. 1–10 (483–492): §1–§5, Modifications 1–4 | Confirms `simpsonAdaptive`: bisection with level tolerance `15 eps 2^-r` (3.3), and the result corrected by `(S2 - S) / 15` (4.2). §1–§4 disregard round-off (p. 489). §5 (pp. 491–492) treats it: Modification 4 raises the tolerance to the current difference when that difference stops shrinking under bisection. Lyness does not guarantee the tolerance ([17-numerical_methods.md](17-numerical_methods.md#simpsonadaptive)). |
 | H. Takahasi, M. Mori, "Double Exponential Formulas for Numerical Integration", Publ. RIMS 9(3), 1974, https://doi.org/10.2977/prims/1195192451; `13-Papers/41-double_exponential_formulas-takahasi_1974.pdf` | `5876a7242af62599651547a05df42b03af6afce678be4361afec356815ee9168` | p. 1 (721): abstract; pp. 13–14 (733–734): §3, (3.1)–(3.3) | Confirms the substitution `x = tanh(pi / 2 sinh u)` on `(-1, 1)` with the trapezoidal rule ([17-numerical_methods.md](17-numerical_methods.md#doubleexponentialintegrate)). |
 | J. Berthomieu, G. Lecerf, G. Quintin, "Polynomial root finding over local rings and application to error correcting codes", AAECC 24, 2013, https://doi.org/10.1007/s00200-013-0200-5; `13-Papers/42-root_finding_over_local_rings-berthomieu_2013.pdf` | `98516cd7c5b505baf0aafb6f7c6cd8a100dd10796009306c1213230d68939489` | pp. 1–11: abstract, §1, §2.1–2.6 (Lemmas 3, 4, 6, 8, Proposition 1, Algorithm 1) | Confirms `liftRoots`: Algorithm 1 recurses on shifted polynomials; Proposition 1 bounds the classes by the degree; Lemma 3 bounds a child's degree by the root's multiplicity ([33-modular_square_roots.md](33-modular_square_roots.md#polynomialcongruenceroots)). |
+
+## Fetched 2026-11-27 (Omission Sweep)
+
+Candidates of the 2026-11-27 catalog survey, applied the same day; the catalog pages they came from are listed in `00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md` (Sources), and the decisions are in the rows, the folder notes (Omission Sweep 2026-11-27) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
+
+| URL | Used for |
+|---|---|
+| https://en.wikipedia.org/wiki/Chakravala_method | checked, speed note for `34-quadratic_congruence.hpp` |
+
+## Fetched 2026-11-28 (Omission Sweep)
+
+The sources the user placed for the catalog survey, sampled on 2026-11-28 (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28); the decisions are in the rows, the package notes and follow-ups, and the folder notes (Omission Sweep 2026-11-28). Items counts the candidate decisions of this folder citing the key.
+
+| Key | Source | URL | Filed Copy | Items |
+|---|---|---|---|---|
+| ALGOWIKI | MIT Algorithm Wiki, problem families index, saved page | https://algorithm-wiki.org/families | `95-Resources/14-Web Pages/50-algorithm_wiki-index.pdf` | 13 |
+| AMO | Ahuja, Magnanti, Orlin, Network Flows: Theory, Algorithms, and Applications (1993) | https://www.pearson.com/en-us/subject-catalog/p/network-flows-theory-algorithms-and-applications/P200000003466 | `95-Resources/13-Papers/60-network_flows-ahuja_1993.pdf` | 1 |
+| BOJ | solved.ac tag list, 8 saved pages | https://solved.ac/problems/tags | `95-Resources/14-Web Pages/43-solved_ac-tags1.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags2.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags3.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags4.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags5.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags6.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags7.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags8.pdf` | 2 |
+| CLRS | Cormen, Leiserson, Rivest, Stein, Introduction to Algorithms, 4th ed. (2022) | https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/ | `95-Resources/13-Papers/72-introduction_to_algorithms-cormen_2022.pdf` | 2 |
+| CMU750 | CMU 15-750 Graduate Algorithms, lecture list, saved page | https://www.cs.cmu.edu/~15750/ | `95-Resources/14-Web Pages/49-cmu_15750-lectures.pdf` | 4 |
+| CRANDALL | Crandall, Pomerance, Prime Numbers: A Computational Perspective, 2nd ed. (2005) | https://link.springer.com/book/10.1007/0-387-28979-8 | `95-Resources/13-Papers/69-prime_numbers-crandall_2005.pdf` | 38 |
+| EOA | Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016) | https://link.springer.com/referencework/10.1007/978-1-4939-2864-4 | `95-Resources/13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf` | 19 |
+| HACKERS | Warren, Hacker's Delight, 2nd ed. (2012) | https://www.informit.com/store/hackers-delight-9780321842688 | `95-Resources/13-Papers/59-hackers_delight-warren_2012.pdf` | 3 |
+| JEWELS | Crochemore, Rytter, Jewels of Stringology (2002) | https://doi.org/10.1142/4838 | `95-Resources/13-Papers/63-jewels_of_stringology-crochemore_2002.pdf` | 1 |
+| MEHTASAHNI | Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018) | https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006 | `95-Resources/13-Papers/64-handbook_of_data_structures-mehta_2018.pdf` | 3 |
+| SCHRIJVER | Schrijver, Combinatorial Optimization: Polyhedra and Efficiency (2003) | https://link.springer.com/book/9783540443896 | `95-Resources/13-Papers/71-combinatorial_optimization-schrijver_2003.pdf` | 2 |
+| SPOJ | SPOJ problem tags, saved page | https://www.spoj.com/problems/tags/ | `95-Resources/14-Web Pages/45-spoj-tags.pdf` | 2 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/65-taocp_4a-knuth_2011.pdf` | 2 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/66-taocp_4b-knuth_2022.pdf` | 2 |
+| YUKI | yukicoder tag statistics, saved page (logged in) | https://yukicoder.me/statistics/tags | `95-Resources/14-Web Pages/47-yukicoder-tags.pdf` | 5 |

@@ -285,3 +285,12 @@ The ACL convolution document returned HTTP 503 on 2026-10-10 and maspypy was not
 - FLINT `fmpq` continued fractions and rational enumeration (Farey, simplest_between): Mathematics `20-continued_fraction.hpp` owns them; its row also holds Calkin–Wilf (`calkinWilfParent`, `calkinWilfChildren`).
 - FLINT/NTL finite-field extension polynomials (`ZZ_pE`, `GF2E`, `fq`): Mathematics `42-finite_fields.hpp` owns them.
 - maspy `ds/bitset` (`bit_array`, `bit_vector`, `binary_trie`), hitonanode `dynamic_bitset` beyond the verified Bitset API: Data Structures own succinct/dynamic rank-select and binary tries; no new Bitset operation was found.
+
+## Fetched 2026-11-28 (Omission Sweep)
+
+The sources the user placed for the catalog survey, sampled on 2026-11-28 (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28); the decisions are in the rows, the package notes and follow-ups, and the folder notes (Omission Sweep 2026-11-28). Items counts the candidate decisions of this folder citing the key.
+
+| Key | Source | URL | Filed Copy | Items |
+|---|---|---|---|---|
+| CRANDALL | Crandall, Pomerance, Prime Numbers: A Computational Perspective, 2nd ed. (2005) | https://link.springer.com/book/10.1007/0-387-28979-8 | `95-Resources/13-Papers/69-prime_numbers-crandall_2005.pdf` | 1 |
+| HACKERS | Warren, Hacker's Delight, 2nd ed. (2012) | https://www.informit.com/store/hackers-delight-9780321842688 | `95-Resources/13-Papers/59-hackers_delight-warren_2012.pdf` | 3 |

@@ -356,3 +356,47 @@ The user supplied these copies on 2026-11-22. They are personal study copies, ke
 | OAMB86 | J. O'Rourke, A. Aggarwal, S. Maddila, M. Baldwin, "An optimal algorithm for finding minimal enclosing triangles", J. Algorithms 7(2) (1986) 258–269, https://doi.org/10.1016/0196-6774(86)90007-6; `13-minimal_enclosing_triangles-orourke_1986.pdf` | `5ef2a20a38944e3dee93e7b5992ee4246181db2b720c244700d0b89ae87b4594` | pp. 258–260 (abstract, §1, §2 Theorems 1–3), p. 266 (Theorem 4), p. 268 (Theorem 5), p. 269 (§7) | Confirms row 57 `minimumEnclosingTriangle (O(n))` when the input is a convex polygon: Theorem 4 finds all locally minimal area triangles enclosing a convex `n`-gon in `O(n)`, and Theorem 5 shows `Ω(n)` even for one global minimum. A point set needs its hull first. The algorithm walks Klee–Laskowski's characterization (each side's midpoint touches the polygon, one side is flush with an edge) with rotating calipers; Dori and Ben-Bassat's earlier linear algorithm does not always find a minimum (p. 259, footnote). |
 | STVWE95 | C. Schwarz, J. Teich, A. Vainshtein, E. Welzl, B. L. Evans, "Minimal enclosing parallelogram with application", SoCG 1995, https://doi.org/10.1145/220279.220338; `14-minimal_enclosing_parallelogram-schwarz_1995.pdf` | `43cf97a2ccc64acb4ca89f3d5e767e73ab1d6593bec826c8bc037096eb39510d` | pp. 1–2 (C34–C35), the whole two-page abstract | Confirms the `O(n)` bound of row 07 `minimumAreaParallelogramApprox`: the smallest-area parallelogram enclosing a convex `n`-gon takes linear time, first shown by Vainshtein (1990, in Russian). The abstract states two facts without proof. Some optimal parallelogram has one side of each opposite pair flush with a polygon edge, which alone gives `O(n^2)`. A stronger condition (a line parallel to one pair of sides meets the polygon in the two points touched by the other pair) leaves linearly many candidates, scanned with rotating calipers. The proofs are in technical report TR-94-036, which was not supplied. Row 07 uses a different method, the polar reduction ([07-rotatingcalipers.md](07-rotatingcalipers.md#sources)). |
 | — | A. A. Melkman, "On-line construction of the convex hull of a simple polyline", Inf. Process. Lett. 25(1) (1987) 11–12, https://doi.org/10.1016/0020-0190(87)90086-X; `15-convex_hull_of_a_simple_polyline-melkman_1987.pdf` | `75d3f073a79df048c68d7d4efb1d42f4fba926c1823c2e04456241c2d1da289a` | pp. 11–12 (all) | Row 04 `convexHullMelkman`; the comparison with the contract is in [04-convexhull.md](04-convexhull.md#convexhullmelkman). |
+
+## Fetched 2026-11-27 (Omission Sweep)
+
+Candidates of the 2026-11-27 catalog survey, applied the same day; the catalog pages they came from are listed in `00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md` (Sources), and the decisions are in the rows, the folder notes (Omission Sweep 2026-11-27) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
+
+| URL | Used for |
+|---|---|
+| https://raw.githubusercontent.com/GMKirkon/ITMO_Shuffle_Duffle_Muzzle_Muff_teambook/main/kactl/content/geometry/SphereCircleIntersection.h | checked, already in `27-spherical_geometry.hpp` |
+| https://raw.githubusercontent.com/spaghetti-source/algorithm/master/geometry/coordinate_domination.cc | `maximalPoints` |
+| https://raw.githubusercontent.com/bqi343/cp-notebook/master/Implementations/content/geometry%20(13)/Polygons/HalfPlaneSet.h | `HalfplaneSet` |
+| https://raw.githubusercontent.com/brunomaletta/Biblioteca/master/Codigo/Problemas/angleRange.cpp | `AngleRange` |
+| https://igraph.org/c/doc/igraph-Spatial.html | candidate check |
+| https://www.boost.org/doc/libs/latest/libs/geometry/doc/html/geometry/reference/algorithms.html | `relation`, `relate`, `within`, `coveredBy`, `crosses`, `touches`, `overlaps`, `equals`, `intersects` (Boost.Geometry names) |
+| https://api.github.com/repos/brunomaletta/Biblioteca/git/trees/master?recursive=1 | repository file list for the candidate check |
+| https://raw.githubusercontent.com/brunomaletta/Biblioteca/master/Codigo/Problemas/dominatorPoints.cpp | `ParetoFront` |
+| https://beet-aizu.github.io/library/ | repository file list for the candidate check |
+| https://beet-aizu.github.io/library/geometry/projectilemotion.cpp | `projectileMotionApprox` |
+| https://beet-aizu.github.io/library/math/tetrahedra.cpp | `cayleyMenger`, `cayleyMengerVolumeApprox` |
+| https://api.github.com/repos/ngthanhtrung23/ACM_Notebook_new/git/trees/master?recursive=1 | repository file list for the candidate check |
+| https://raw.githubusercontent.com/ngthanhtrung23/ACM_Notebook_new/master/Geometry/RectInRect.h | `rectangleInRectangle` |
+| https://api.github.com/repos/GMKirkon/ITMO_Shuffle_Duffle_Muzzle_Muff_teambook/git/trees/main?recursive=1 | repository file list for the candidate check |
+| https://api.github.com/repos/bqi343/cp-notebook/git/trees/master?recursive=1 | repository file list for the candidate check |
+| https://api.github.com/repos/spaghetti-source/algorithm/git/trees/master?recursive=1 | repository file list for the candidate check |
+| https://raw.githubusercontent.com/spaghetti-source/algorithm/master/geometry/random_ball_cover.cc | `RandomBallCover` |
+| https://raw.githubusercontent.com/spaghetti-source/algorithm/master/geometry/bk_tree.cc | `BkTree` |
+| https://raw.githubusercontent.com/spaghetti-source/algorithm/master/geometry/vantage_point_tree.cc | `VpTree` |
+| https://en.wikipedia.org/wiki/Metric_tree | `CoverTree`, `VpTree` |
+
+## Fetched 2026-11-28 (Omission Sweep)
+
+The sources the user placed for the catalog survey, sampled on 2026-11-28 (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28); the decisions are in the rows, the package notes and follow-ups, and the folder notes (Omission Sweep 2026-11-28). Items counts the candidate decisions of this folder citing the key.
+
+| Key | Source | URL | Filed Copy | Items |
+|---|---|---|---|---|
+| ALGOWIKI | MIT Algorithm Wiki, problem families index, saved page | https://algorithm-wiki.org/families | `95-Resources/14-Web Pages/50-algorithm_wiki-index.pdf` | 13 |
+| CMU750 | CMU 15-750 Graduate Algorithms, lecture list, saved page | https://www.cs.cmu.edu/~15750/ | `95-Resources/14-Web Pages/49-cmu_15750-lectures.pdf` | 1 |
+| DEBERG | de Berg, Cheong, van Kreveld, Overmars, Computational Geometry: Algorithms and Applications, 3rd ed. (2008) | https://link.springer.com/book/10.1007/978-3-540-77974-2 | `95-Resources/13-Papers/61-computational_geometry-de_berg_2008.pdf` | 17 |
+| EOA | Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016) | https://link.springer.com/referencework/10.1007/978-1-4939-2864-4 | `95-Resources/13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf` | 29 |
+| HDCG | Goodman, O'Rourke, Tóth (eds.), Handbook of Discrete and Computational Geometry, 3rd ed. (2017) | https://www.csun.edu/~ctoth/Handbook/HDCG3.html | `95-Resources/13-Papers/70-handbook_of_discrete_computational_geometry-goodman_2017.pdf` | 113 |
+| MEHTASAHNI | Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018) | https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006 | `95-Resources/13-Papers/64-handbook_of_data_structures-mehta_2018.pdf` | 17 |
+| OROURKE | O'Rourke, Computational Geometry in C, 2nd ed. (1998) | https://doi.org/10.1017/CBO9780511804120 | `95-Resources/13-Papers/68-computational_geometry_in_c-orourke_1998.pdf` | 16 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/65-taocp_4a-knuth_2011.pdf` | 1 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/66-taocp_4b-knuth_2022.pdf` | 1 |
+| YUKI | yukicoder tag statistics, saved page (logged in) | https://yukicoder.me/statistics/tags | `95-Resources/14-Web Pages/47-yukicoder-tags.pdf` | 1 |

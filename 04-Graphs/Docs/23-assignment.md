@@ -112,7 +112,7 @@ Legacy: `OLD/algorithms.cpp:4797-4862` and `OLD/Team Notebook/src/algsbetter.cpp
 
 - The row is `partial`: `bottleneckAssignment` (threshold search over `hopcroftKarp`) is missing.
 - Min-cost flow is row 20 and general weighted matching row 64.
-- Incremental row addition, dynamic cost updates and the auction algorithm stay out, with reasons in [00-notes.md](00-notes.md#p043-omissions).
+- Incremental row addition and dynamic cost updates stay out, with reasons in [00-notes.md](00-notes.md#p043-omissions). The auction algorithm joined the row as `auctionAssignment` in the 2026-11-27 omission sweep, kept only on a measured crossover against `hungarian` (user decision 2026-11-27).
 - There is no mutation record yet; the planted mutants are the only mutation evidence.
 - Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 

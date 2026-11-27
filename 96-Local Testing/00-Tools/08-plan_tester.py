@@ -128,10 +128,14 @@ work first in ready/next, its show block with the follow-up claim batch, waiting
 test_syn_follow_up_ready_and_show, test_syn_waiting; check's format rule, doctor's partial row and check's undecided
 limits in a verified package, both allowed while follow-ups are open -> test_syn_follow_up_check_and_doctor;
 undecided limits: plan.undecided (items under level-2 and level-3 Limits or Handoff headings without `user decision
-<date>` or `follow-up on Pxxx`; paragraphs, list items with continuations and nested items, table body rows; none skipped) ->
-test_undecided; `plan.py set Pxxx verified` refusing a package whose evidence (with the new --evidence paths) holds one,
-unless open follow-ups of a verified package cover it, and `--done` keeping its last follow-up meanwhile -> test_syn_set_verified_gate;
-gaps.py's Undecided limits and Follow-ups sections after the review record -> test_gaps_undecided_and_follow_ups;
+<date>` or a `follow-up on Pxxx` whose packages all have open follow-ups; paragraphs, list items with continuations and
+nested items, table body rows; none skipped), limit_line's `[no open follow-up on Pxxx]` marks, open_ids -> test_undecided;
+`plan.py set Pxxx verified` refusing a package whose evidence (with the new --evidence paths) holds one, unless open
+follow-ups of a verified package cover it, and `--done` keeping its last follow-up meanwhile -> test_syn_set_verified_gate;
+a hand-off whose package has no open follow-up (user decision 2026-11-27) in check's message and set's refusal,
+`--done` listing the limits citing the package it closes and keeping its last follow-up while one lacks a user decision
+-> test_syn_hand_off; gaps.py's Undecided limits (a closed hand-off marked) and Follow-ups sections after the review
+record -> test_gaps_undecided_and_follow_ups;
 gaps.py's Sources section, the checkout's 00-sources.py check for the key and package, after the follow-ups and absent
 without the script (user decision 2026-11-27) -> test_gaps_sources.
 """
@@ -1032,7 +1036,8 @@ class Units(Base):
         Handoff, each a list item or a paragraph with its continuation lines, or a table body row, that name no
         `user decision <date>`; `none` items and table headers are skipped; a section ends at the next heading of its level
         or above, while a deeper heading only ends the item before it; an indented item continues its parent, and an item naming
-        the follow-up it filed (`follow-up on Pxxx`) is decided too (review of 2026-11-26); a missing file gives none."""
+        the follow-ups it filed (`follow-up on Pxxx`) is decided too (review of 2026-11-26) while each of those packages has an
+        open follow-up (user decision 2026-11-27), limit_line marking each that has none; a missing file gives none."""
         doc = self.tmp / 'Docs/01-x.md'
         doc.parent.mkdir()
         text = ('# Doc\n## Contracts\n- c\n## Limits and Handoffs\n- open one\n  continued here\n- decided (user decision 2026-11-26)\n'
@@ -1040,16 +1045,27 @@ class Units(Base):
                 '### Sub detail\n- nested\n| A | B |\n|---|---|\n| row | x |\n| row2 user decision 2026-01-02 | y |\n- None.\n'
                 '- user decision (no date)\n## History\n- h\n### Dependent-Owner Handoff\n- handoff item\n#### deep\n- deep item\n'
                 '## Limits\n- none\n2) n\n- handed on (follow-up on P031)\n- parent (user decision 2026-11-26):\n  - child a;\n  - child b.\n'
-                '- open two\n    - its child\n## Open questions\n- not a limits heading\n# Top Limits\n- level 1 is not\n')
+                '- open two\n    - its child\n- two hands (follow-up on P031, follow-up on P040)\n'
+                '- decided anyway (follow-up on P040; user decision 2026-11-27)\n- a follow-up on P1234 is no hand-off\n'
+                '## Open questions\n- not a limits heading\n# Top Limits\n- level 1 is not\n')
         doc.write_text(text)
         lines = text.split('\n')
         at = lambda t: lines.index(t) + 1
-        self.assertEqual(PLAN.undecided(doc), [
-            (at('- open one'), '- open one continued here'), (at('* star item'), '* star item'), (at('1. numbered'), '1. numbered more'),
-            (at('A paragraph'), 'A paragraph second line of it'), (at('- nested'), '- nested'), (at('| row | x |'), '| row | x |'),
-            (at('- user decision (no date)'), '- user decision (no date)'), (at('- handoff item'), '- handoff item'),
-            (at('- deep item'), '- deep item'), (at('2) n'), '2) n'), (at('- open two'), '- open two - its child')])
-        self.assertEqual(PLAN.undecided(self.tmp / 'none.md'), [])
+        base = [(at('- open one'), '- open one continued here'), (at('* star item'), '* star item'), (at('1. numbered'), '1. numbered more'),
+                (at('A paragraph'), 'A paragraph second line of it'), (at('- nested'), '- nested'), (at('| row | x |'), '| row | x |'),
+                (at('- user decision (no date)'), '- user decision (no date)'), (at('- handoff item'), '- handoff item'),
+                (at('- deep item'), '- deep item'), (at('2) n'), '2) n'), (at('- open two'), '- open two - its child')]
+        nohand = (at('- a follow-up on P1234 is no hand-off'), '- a follow-up on P1234 is no hand-off')
+        one, two = [(at(t), t) for t in ('- handed on (follow-up on P031)', '- two hands (follow-up on P031, follow-up on P040)')]
+        key = lambda item: item[0]
+        for handed, want in (({'P031', 'P040'}, base + [nohand]), ({'P031'}, base + [two, nohand]), ({'P040', 'P900'}, base + [one, two, nohand]),
+                             (set(), base + [one, two, nohand])):
+            self.assertEqual(PLAN.undecided(doc, handed), sorted(want, key=key), handed)
+        self.assertEqual(PLAN.undecided(self.tmp / 'none.md', set()), [])
+        self.assertEqual(PLAN.limit_line('d.md', 7, two[1], {'P040'}), f'd.md:7: [no open follow-up on P031] {two[1]}')
+        self.assertEqual(PLAN.limit_line('d.md', 7, two[1], set()), f'd.md:7: [no open follow-up on P031] [no open follow-up on P040] {two[1]}')
+        self.assertEqual(PLAN.limit_line('d.md', 7, 'x' * 200, set()), 'd.md:7: ' + 'x' * 140)
+        self.assertEqual(PLAN.open_ids([{'id': 'P1'}, {'id': 'P2', 'followups': ['a']}, {'id': 'P3', 'followups': []}]), {'P2'})
 
 
 class Facts(Base):
@@ -1710,6 +1726,54 @@ class Synthetic(Base):
         doc.write_text('# DSU\n## Limits and Handoffs\n- open again (user decision 2026-11-26)\n')
         self.assertEqual(cli('follow-up', 'P030', '--done', '1').returncode, 0, 'closed once its limits are decided')
 
+    def test_syn_hand_off(self):
+        """A limit handed to another package (`follow-up on Pxxx`, user decision 2026-11-27) counts only while that package
+        has an open follow-up: check names the first such item with `[no open follow-up on Pxxx]` and set verified refuses
+        it; `follow-up --done` lists every limit citing the package it closes, and keeps its last follow-up open, changing
+        nothing, while one of them lacks a `user decision <date>`."""
+        for rel in ('98-Team Notebook/05-dependencies.py', '96-Local Testing/01-run.py'):  # check reads them
+            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / rel, self.root / rel)
+        cli = lambda *a: self.run_py(self.cli, *a, cwd=self.root, role='maintainer')
+        plan = self.root / '00-Guidelines/13-Plan/packages.json'
+        (self.root / '07-Strings/Docs').mkdir(parents=True)
+        (self.root / '07-Strings/01-s.hpp').write_text('#pragma once\n')
+        (self.root / '07-Strings/00-index.md').write_text('# 07 Strings — Inventory\n\n## Basic\n\n| Header | Operations | Status |\n|---|---|---|\n'
+                                                          '| `01-s.hpp` | s | verified; [evidence](Docs/01-s.md) |\n')
+        s = self.root / '07-Strings/Docs/01-s.md'
+        s.write_text('# s\n\n## Limits and Handoffs\n\n- t belongs to P031 (follow-up on P031).\n')
+        dsu = self.root / '02-Data Structures/Docs/01-dsu.md'
+        dsu.parent.mkdir(parents=True)
+        dsu.write_text('# DSU\n## Limits and Handoffs\n- u handed on (follow-up on P031)\n')
+        (self.root / '02-Data Structures/00-index.md').write_text('# 02 Data Structures — Inventory\n\n## Basic\n\n| Header | Operations | Status |\n'
+                                                                  '|---|---|---|\n| `01-dsu.hpp` | DSU | partial; [evidence](Docs/01-dsu.md) |\n')
+        limits = lambda: [l for l in cli('check').stdout.splitlines() if 'Undecided limits' in l]
+        self.assertEqual(limits(), ['Undecided limits in verified P900: 1, the first at 07-Strings/Docs/01-s.md:5 [no open follow-up on P031]; '
+                                    'file a follow-up (plan.py follow-up P900 ...) or decide them (02-structure.md, Names)'])
+        r = cli('set', 'P030', 'verified')
+        self.assertEqual((r.returncode, r.stderr.split('\n')[1:]),
+                         (1, ['  02-Data Structures/Docs/01-dsu.md:3: [no open follow-up on P031] - u handed on (follow-up on P031)', '']), r.stderr)
+        self.assertEqual((cli('follow-up', 'P031', 'do t and u').returncode, cli('follow-up', 'P031', 'second').returncode), (0, 0))
+        self.assertEqual(limits(), [], 'covered while P031 has an open follow-up')
+        self.assertEqual(cli('set', 'P030', 'verified').returncode, 0)
+        named = ['Limits citing `follow-up on P031`: delete or update each the closed follow-up(s) settled:',
+                 '  02-Data Structures/Docs/01-dsu.md:3: - u handed on (follow-up on P031)',
+                 '  07-Strings/Docs/01-s.md:5: - t belongs to P031 (follow-up on P031).']
+        r = cli('follow-up', 'P031', '--done', '1')
+        self.assertEqual((r.returncode, r.stdout.split('\n')[:5]), (0, ['P031: 1 open follow-up(s)', '1. second', *named]), r.stderr)
+        before = plan.read_text()
+        r = cli('follow-up', 'P031', '--done', '1')
+        self.assertEqual((r.returncode, r.stderr.split('\n')[1:]), (1, named[1:] + ['']), r.stderr)
+        self.assertIn('P031 keeps its last follow-up while 2 limit(s) hand work to it (`follow-up on P031`) without a `user decision <date>`', r.stderr)
+        self.assertEqual(plan.read_text(), before, 'a refusal changes nothing')
+        dsu.write_text('# DSU\n## Limits and Handoffs\n- u handed on (follow-up on P031; user decision 2026-11-27)\n')
+        s.write_text('# s\n\n## Limits and Handoffs\n\n- none\n')
+        r = cli('follow-up', 'P031', '--done', '1')
+        self.assertEqual((r.returncode, r.stdout.split('\n')[:3]),
+                         (0, ['P031: 0 open follow-up(s)', named[0], '  02-Data Structures/Docs/01-dsu.md:3: - u handed on (follow-up on P031; user decision 2026-11-27)']),
+                         r.stderr)
+        self.assertEqual(limits(), [], 'decided by the user once P031 has none open')
+
     def test_syn_waiting(self):
         def wpr(n, branch, author, draft=False, heads=None, review=''):
             return pr(n, branch, author, draft) | {'title': 'T' + str(n), 'reviewDecision': review,
@@ -1879,15 +1943,20 @@ class Synthetic(Base):
         self.assertEqual(section(r.stdout), ['changed since the review: step 2 reviews only these changes, in .claude/finish/SUP17.since-review.diff:', 'tools/b.py', 'tools/c.py'])
 
     def test_gaps_undecided_and_follow_ups(self):
-        """gaps.py's Undecided limits (plan.undecided over the package's evidence) and Follow-ups sections (user decision
-        2026-11-26), printed right after the review record."""
+        """gaps.py's Undecided limits (plan.undecided over the package's evidence, a hand-off counting while its package has an
+        open follow-up, user decision 2026-11-27) and Follow-ups sections (user decision 2026-11-26), printed right after the
+        review record."""
         part = lambda out, head: out.split(f'### {head}', 1)[1].split('\n', 1)[1].split('\n\n### ', 1)[0].split('\n')
-        (self.root / 'notes/p250.md').write_text('# P250\n\n## Limits and Handoffs\n\n- open item\n- kept, user decision 2026-11-20\n')
+        (self.root / 'notes/p250.md').write_text('# P250\n\n## Limits and Handoffs\n\n- open item\n- kept, user decision 2026-11-20\n'
+                                                 '- handed (follow-up on P900)\n')
         r, _ = self.gaps('SUP17', role='maintainer')
-        self.assertEqual((part(r.stdout, 'Undecided limits'), part(r.stdout, 'Follow-ups of P250')), (['notes/p250.md:5: - open item'], ['(none)']), r.stderr)
-        self.assertEqual(self.run_py(self.cli, 'follow-up', 'P250', 'recheck', cwd=self.root, role='maintainer').returncode, 0)
+        self.assertEqual((part(r.stdout, 'Undecided limits'), part(r.stdout, 'Follow-ups of P250')),
+                         (['notes/p250.md:5: - open item', 'notes/p250.md:7: [no open follow-up on P900] - handed (follow-up on P900)'], ['(none)']),
+                         r.stderr)
+        for pid, text in (('P250', 'recheck'), ('P900', 'do the handed work')):
+            self.assertEqual(self.run_py(self.cli, 'follow-up', pid, text, cwd=self.root, role='maintainer').returncode, 0)
         r, _ = self.gaps('SUP17', role='maintainer')
-        self.assertEqual(part(r.stdout, 'Follow-ups of P250'), ['1. recheck'])
+        self.assertEqual((part(r.stdout, 'Undecided limits'), part(r.stdout, 'Follow-ups of P250')), (['notes/p250.md:5: - open item'], ['1. recheck']))
         heads = [l.split(' (')[0] for l in r.stdout.splitlines() if l.startswith('### ')]
         self.assertEqual(heads[heads.index('### Review record'):][:3], ['### Review record', '### Undecided limits', '### Follow-ups of P250'])
 

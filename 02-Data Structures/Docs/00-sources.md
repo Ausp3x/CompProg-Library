@@ -404,13 +404,13 @@ The dated sections above record what each sweep adopted or rejected on that day;
 - Manhattan MST (TKO): Geometry `21-manhattan_geometry.hpp`; static top tree DP clients, HLD: Graphs.
 - parallel binary search, Hilbert order, CDQ, rollback array/undo log, persistent allocator (MAS): Miscellaneous rows 20, 16, 21, 42, 43.
 - Huffman tree (OI): Miscellaneous `40-optimal_merge.hpp`.
-- ZDD (SUI): set-family decision diagrams; no contest family here, candidate for Miscellaneous or Mathematics.
+- ZDD (SUI): set-family decision diagrams; no contest family here. Adopted on 2026-11-27 in Miscellaneous `63-decision_diagrams.hpp` with BDDs and frontier-based search.
 - string trie, Patricia binary trie (SUI, EI): Strings `04-trie.hpp` / `25-radixtrie.hpp`; the binary-trie Patricia compression is a memory variant, not a new operation.
 - dividing tree (划分树), persistent block array, cat tree (OI): dominated by wavelet matrix, persistent array (row 35) and disjoint sparse table respectively.
 - tree block decomposition (树分块) (OI): graph-facing, Graphs tree algorithms.
 - slide split sum, power query, doubling (MAS): problem-specific wrappers over rows 03, 04, 12, 14, 25 and 28; doubling is the Graphs functional graph.
 - dual 2D dense segment tree variants beyond row 15, mo_3d naming (MAS): covered by the operations of rows 15 and 23. Offline set intersection (MAS): Miscellaneous row 22.
-- xor linked list, light forward list, linked list, stream (NOSHI, HIT, TKO): no operation beyond the standard library.
+- light forward list, linked list, stream (NOSHI, HIT, TKO): no operation beyond the standard library. The xor linked list, whose O(1) whole-list reverse `std::list` lacks, joined row 76 `XorLinkedList` on 2026-11-27.
 - randomized queue, ternary treap (NOSHI): no contest family; ternary search tries were adopted on 2026-11-08 into a new Strings Esoteric row as `TernarySearchTree`.
 - dynamic/static bitset utilities (NYA, SUI, HIT, MAS bit_array): Core `18-bitset.hpp`.
 - fenwick-tree-on-wavelet-matrix as a separate header (NYA): folded into row 17 as WaveletMatrixMonoid.
@@ -474,3 +474,27 @@ Pages the P275 re-review agents read to confirm the returns ([00-notes.md](00-no
 | OI Wiki 悬线法 (UVa 1619 Feel Good, Luogu P1169) | https://oi-wiki.org/misc/hoverline/ | 2026-11-12 | Max of min times sum over subarrays, the checkerboard parity xor: row 08 `maxMinTimesSum`, `largestCheckerboardSquare`, `largestCheckerboardRectangle`. |
 | OI Wiki 单调栈 (POJ 3250 Bad Hair Day) | https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/ds/monotonic-stack.md | 2026-11-12 | Sum of next-greater distances: row 08 `nextGreaterDistanceSum`. |
 | AtCoder ABC420 F, ABC311 G; CSES 3227 (statements fetched in the DS02 `/finish`, 2026-11-12: ABC420 F counts all-`.` rectangles of area at most K, N * M <= 5 * 10^6; ABC311 G maximizes sum times minimum over subgrids, N, M, A <= 300; CSES 3227 asks the largest histogram rectangle of every k-window, n <= 2 * 10^5) | https://atcoder.jp/contests/abc420/tasks/abc420_f | 2026-11-12 | Rectangle count with area at most K: row 08 `countBinaryRectanglesAreaAtMost`; 2D min times sum (https://atcoder.jp/contests/abc311/tasks/abc311_g): row 08 `maxMinTimesSum2D`; sliding largest histogram rectangle (https://cses.fi/problemset/task/3227): planned row 73. |
+
+## Fetched 2026-11-27 (Omission Sweep)
+
+Candidates of the 2026-11-27 catalog survey, applied the same day; the catalog pages they came from are listed in `00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md` (Sources), and the decisions are in the rows, the folder notes (Omission Sweep 2026-11-27) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
+
+| URL | Used for |
+|---|---|
+| https://loj.ac/p/176 | candidate check |
+| https://raw.githubusercontent.com/to-omer/competitive-library/master/crates/competitive/src/data_structure/range_minimum_subset_size.rs | `RangeMinimumSubsetSize` |
+| https://raw.githubusercontent.com/ShahjalalShohag/code-library/main/Data%20Structures/MOs%20Online.cpp | `MoOnline` |
+| https://raw.githubusercontent.com/titan-23/Library_py/main/titan_pylib/data_structures/union_find/fully_retroactive_union_find.py | `FullyRetroactiveDSU` |
+| https://raw.githubusercontent.com/kopricky/My-Algorithm/master/Academic/fully_retroactive_union_find.hpp | `FullyRetroactiveDSU` |
+| https://raw.githubusercontent.com/old-yan/CP-template/main/DS/RollbackSqrtTree.md | `SqrtTree::pushBack`, `SqrtTree::popBack` |
+
+## Fetched 2026-11-28 (Omission Sweep)
+
+The sources the user placed for the catalog survey, sampled on 2026-11-28 (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28); the decisions are in the rows, the package notes and follow-ups, and the folder notes (Omission Sweep 2026-11-28). Items counts the candidate decisions of this folder citing the key.
+
+| Key | Source | URL | Filed Copy | Items |
+|---|---|---|---|---|
+| ALGOWIKI | MIT Algorithm Wiki, problem families index, saved page | https://algorithm-wiki.org/families | `95-Resources/14-Web Pages/50-algorithm_wiki-index.pdf` | 1 |
+| EOA | Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016) | https://link.springer.com/referencework/10.1007/978-1-4939-2864-4 | `95-Resources/13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf` | 1 |
+| MEHTASAHNI | Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018) | https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006 | `95-Resources/13-Papers/64-handbook_of_data_structures-mehta_2018.pdf` | 30 |
+| NAVARRO | Navarro, Compact Data Structures: A Practical Approach (2016) | https://doi.org/10.1017/CBO9781316588284 | `95-Resources/13-Papers/67-compact_data_structures-navarro_2016.pdf` | 19 |

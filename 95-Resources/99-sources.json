@@ -2010,6 +2010,787 @@
       "provided_by": "session",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
+    },
+    {
+      "file": "13-Papers/52-handbook_of_applied_cryptography_ch3-menezes_1996.pdf",
+      "title": "Menezes, van Oorschot, Vanstone, Handbook of Applied Cryptography (1996), chapter 3",
+      "source_page": "https://cacr.uwaterloo.ca/hac/about/chap3.pdf",
+      "downloaded": "2026-11-27",
+      "bytes": 397013,
+      "sha256": "1ea867655cdac2285ac7d2fe0aaf8b1f726fa181777553344de83b72fefb210c",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/53-handbook_of_applied_cryptography_ch4-menezes_1996.pdf",
+      "title": "Menezes, van Oorschot, Vanstone, Handbook of Applied Cryptography (1996), chapter 4",
+      "source_page": "https://cacr.uwaterloo.ca/hac/about/chap4.pdf",
+      "downloaded": "2026-11-27",
+      "bytes": 331301,
+      "sha256": "22324838df846601bd46ea112507dcb72904789e95a73798de9140c1ec2e1850",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/54-handbook_of_applied_cryptography_ch14-menezes_1996.pdf",
+      "title": "Menezes, van Oorschot, Vanstone, Handbook of Applied Cryptography (1996), chapter 14",
+      "source_page": "https://cacr.uwaterloo.ca/hac/about/chap14.pdf",
+      "downloaded": "2026-11-27",
+      "bytes": 371115,
+      "sha256": "0f64049b53e41e8399b526bb9d8b6d169e6c36bcc0090833a7e467fcedbf8cf2",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/55-analytic_combinatorics-flajolet_2009.pdf",
+      "title": "Flajolet, Sedgewick, Analytic Combinatorics (2009)",
+      "source_page": "https://algo.inria.fr/flajolet/Publications/book.pdf",
+      "downloaded": "2026-11-27",
+      "bytes": 12141468,
+      "sha256": "f7bc98dfbfbc99716e19a0a0aa6f1750fb62acbf50b58d65731aabf161dccace",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/56-compact_data_structures_contents-navarro_2016.pdf",
+      "title": "Navarro, Compact Data Structures (2016), contents and list of algorithms",
+      "source_page": "https://users.dcc.uchile.cl/~gnavarro/CDSbook/toc.pdf",
+      "downloaded": "2026-11-27",
+      "bytes": 104008,
+      "sha256": "7f1e97d2f8016b1472af846fb5440a97a5230a459c5f77f000fb560e49f0680f",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/57-matters_computational_contents-arndt_2010.txt",
+      "title": "Arndt, Matters Computational (2010), contents",
+      "source_page": "https://www.jjj.de/fxt/fxtbook-toc.txt",
+      "downloaded": "2026-11-27",
+      "bytes": 14549,
+      "sha256": "5375ef70ab151ecc8c075ecefc7f4221bc31df30d2fafd74e54005d38cf8da99",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/32-libreoj-template_problems.zip",
+      "title": "LibreOJ template problems (tag 模板), list and statements",
+      "source_page": "https://loj.ac/",
+      "downloaded": "2026-11-27",
+      "bytes": 24399,
+      "sha256": "083252ed52066960af92781caf63e9e86e93c67953d0d86eee254a3113a12026",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/33-luogu-template_problems.zip",
+      "title": "Luogu template problem list and tag map",
+      "source_page": "https://www.luogu.com.cn/problem/list?keyword=%E6%A8%A1%E6%9D%BF&type=P",
+      "downloaded": "2026-11-27",
+      "bytes": 61798,
+      "sha256": "88ef869fed4730a80753486391ac1c08815c03c837d609ec9b7fb3e2d4702cc5",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/34-aizu-courses.zip",
+      "title": "Aizu Online Judge course problem lists",
+      "source_page": "https://onlinejudge.u-aizu.ac.jp/api/courses",
+      "downloaded": "2026-11-27",
+      "bytes": 63088,
+      "sha256": "c69e1a6ec0f893a52a4a623e5ecaa4fb97f572613e2ce8656114fabdea5ad06c",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/35-cpbook-methods_to_solve.zip",
+      "title": "Competitive Programming 4, Methods to Solve",
+      "source_page": "https://cpbook.net/methodstosolve",
+      "downloaded": "2026-11-27",
+      "bytes": 538633,
+      "sha256": "ecd9fe08441917c6ecede46381fceca2ed61a0cb3853efb22473c714575f52dc",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/36-codechef-problem_tags.zip",
+      "title": "CodeChef problem tags and Learn catalog",
+      "source_page": "https://www.codechef.com/get/tags/problems",
+      "downloaded": "2026-11-27",
+      "bytes": 134087,
+      "sha256": "463eaf17423ee1a1f84f6aecd59fb43d58d5424ea86c3d1e4b29862801888065",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/37-rosetta_code-programming_tasks.zip",
+      "title": "Rosetta Code, Category:Programming Tasks",
+      "source_page": "https://rosettacode.org/wiki/Category:Programming_Tasks",
+      "downloaded": "2026-11-27",
+      "bytes": 20279,
+      "sha256": "22fea9b09cd1b90f8b4009b93c56333fce48e1db8308c2f00b6336c259219d5a",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/38-uoj-template_problems.zip",
+      "title": "UOJ template problems",
+      "source_page": "https://uoj.ac/problems/template",
+      "downloaded": "2026-11-27",
+      "bytes": 13721,
+      "sha256": "d3e93d326d1b8713d1187f552b58c9e51ec94c933ce6f44a26619bb59d2f55be",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/39-igraph-c_reference_chapters.zip",
+      "title": "igraph C reference, 14 chapters",
+      "source_page": "https://igraph.org/c/doc/",
+      "downloaded": "2026-11-27",
+      "bytes": 327390,
+      "sha256": "d44a9bc819caf36014c5edafe3232592249bf231f6eb53ad37290e91df77c731",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/40-pari_gp-reference_chapters.zip",
+      "title": "PARI/GP reference, contents and chapter indexes",
+      "source_page": "https://pari.math.u-bordeaux.fr/dochtml/html/toc.html",
+      "downloaded": "2026-11-27",
+      "bytes": 9163,
+      "sha256": "ba9ba01e9da176b22bcc9174d39d9f44b89572f8e58cc8d1ce6c6db2fbecb768",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/41-emaxx-article_index.html",
+      "title": "e-maxx article index",
+      "source_page": "http://e-maxx.ru/algo/",
+      "downloaded": "2026-11-27",
+      "bytes": 18809,
+      "sha256": "2d9a1cb8c077c99fe3f80ce6d0843093b29e973344a626b595b2c8e08973a921",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/42-codeforces_blog_57282-tutorial_catalog.json",
+      "title": "Codeforces blog 57282, catalog of tutorials",
+      "source_page": "https://codeforces.com/blog/entry/57282",
+      "downloaded": "2026-11-27",
+      "bytes": 38647,
+      "sha256": "9e1277faa63d1474510073b0e3c07fb491410d471f4f1015f154136d77fed949",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "Claude (fetched 2026-11-27)",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/43-solved_ac-tags1.pdf",
+      "title": "solved.ac tag list (BOJ taxonomy), saved page 1 of 8",
+      "source_page": "https://solved.ac/problems/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 352401,
+      "pages": 3,
+      "sha256": "17cd3a8b233d173ab333f5b01f365d47f07359ab2b833e04df787130a19bfeb1",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/43-solved_ac-tags2.pdf",
+      "title": "solved.ac tag list (BOJ taxonomy), saved page 2 of 8",
+      "source_page": "https://solved.ac/problems/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 336622,
+      "pages": 3,
+      "sha256": "3c17773b651cff78b72d026c67701a4cddc650e8e9f48ed2c1aa8dc10d8a8ec3",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/43-solved_ac-tags3.pdf",
+      "title": "solved.ac tag list (BOJ taxonomy), saved page 3 of 8",
+      "source_page": "https://solved.ac/problems/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 338965,
+      "pages": 3,
+      "sha256": "aa34583704f083c5b4657804fc8277c231144ce5a2ae50d99eb7d8382c4401b1",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/43-solved_ac-tags4.pdf",
+      "title": "solved.ac tag list (BOJ taxonomy), saved page 4 of 8",
+      "source_page": "https://solved.ac/problems/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 327762,
+      "pages": 3,
+      "sha256": "f5654630b7aa29a26e1b6d464c93dd78baa921bcce4cfa3030301f8b4cf86a15",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/43-solved_ac-tags5.pdf",
+      "title": "solved.ac tag list (BOJ taxonomy), saved page 5 of 8",
+      "source_page": "https://solved.ac/problems/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 329486,
+      "pages": 3,
+      "sha256": "9ca2e87f6a58ae7dc4fa43f27a19373a1e6ff4c6b4aed1281957d53b1e17b603",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/43-solved_ac-tags6.pdf",
+      "title": "solved.ac tag list (BOJ taxonomy), saved page 6 of 8",
+      "source_page": "https://solved.ac/problems/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 335493,
+      "pages": 3,
+      "sha256": "bb27609da85c0e06702989d358bfafb5fc035f0ecb849dddada5ad401c96d276",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/43-solved_ac-tags7.pdf",
+      "title": "solved.ac tag list (BOJ taxonomy), saved page 7 of 8",
+      "source_page": "https://solved.ac/problems/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 326317,
+      "pages": 3,
+      "sha256": "3baec8f2d7d87a45946be72cd7660959ea53fd827aefab50f7169be7b2290847",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/43-solved_ac-tags8.pdf",
+      "title": "solved.ac tag list (BOJ taxonomy), saved page 8 of 8",
+      "source_page": "https://solved.ac/problems/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 292924,
+      "pages": 2,
+      "sha256": "2c6eb48d4f67693069b97b978430573d7f2253f9d4f96cb1bc4f1cedeed32301",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/44-qoj-template_problems.pdf",
+      "title": "QOJ template problems (tag 模板题), saved page",
+      "source_page": "https://qoj.ac/problems?tag=%E6%A8%A1%E6%9D%BF%E9%A2%98",
+      "downloaded": "2026-11-28",
+      "bytes": 503707,
+      "pages": 2,
+      "sha256": "8f6c22b8936b11f186616072473e04685a1381cf122552708280b9dafbc48007",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/45-spoj-tags.pdf",
+      "title": "SPOJ problem tags, saved page",
+      "source_page": "https://www.spoj.com/problems/tags/",
+      "downloaded": "2026-11-28",
+      "bytes": 493217,
+      "pages": 5,
+      "sha256": "e5b0559505e4e525d9f579608b49b0ad0b08e33a153df7fa8af0cae2f443ac4b",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/46-leetcode-topic_tags.csv",
+      "title": "LeetCode problem list with topic tags (4,124 problems, 175 topics), exported",
+      "source_page": "https://leetcode.com/problemset/",
+      "downloaded": "2026-11-28",
+      "bytes": 640265,
+      "sha256": "217f814be80bdfbdbfce78979124067c5dc1c5653584208b34497cfe4a66da9e",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/47-yukicoder-tags.pdf",
+      "title": "yukicoder tag statistics, saved page (logged in)",
+      "source_page": "https://yukicoder.me/statistics/tags",
+      "downloaded": "2026-11-28",
+      "bytes": 2420756,
+      "pages": 18,
+      "sha256": "4f741591b247c9ca68f64c37038a59c7f6631cbd3d28cbe9cb217f62d86b3d11",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "03-Geometry/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/48-cmu_15451-lectures.pdf",
+      "title": "CMU 15-451 Algorithm Design and Analysis, lecture list, saved page",
+      "source_page": "https://www.cs.cmu.edu/~15451/",
+      "downloaded": "2026-11-28",
+      "bytes": 67952,
+      "pages": 2,
+      "sha256": "aee9b4de62949c2a0859f4d690bff4d3ff70fb23c2874fdc15478b60c7e34cb1",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/49-cmu_15750-lectures.pdf",
+      "title": "CMU 15-750 Graduate Algorithms, lecture list, saved page",
+      "source_page": "https://www.cs.cmu.edu/~15750/",
+      "downloaded": "2026-11-28",
+      "bytes": 233046,
+      "pages": 5,
+      "sha256": "09921be346139ba02469fe601f3025094e5a973adf734a07d0e0ca15e58d4316",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "03-Geometry/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "14-Web Pages/50-algorithm_wiki-index.pdf",
+      "title": "MIT Algorithm Wiki, problem families index, saved page",
+      "source_page": "https://algorithm-wiki.org/families",
+      "downloaded": "2026-11-28",
+      "bytes": 2289066,
+      "pages": 9,
+      "sha256": "41526e1e05e7fab5ddec0a5465dd469ec72da719b7c9d2d5531d252ea8bd07fb",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "02-Data Structures/Docs/00-sources.md",
+        "03-Geometry/Docs/00-sources.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md",
+        "07-Strings/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf",
+      "title": "Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016)",
+      "source_page": "https://link.springer.com/referencework/10.1007/978-1-4939-2864-4",
+      "downloaded": "2026-11-28",
+      "bytes": 51094283,
+      "pages": 2428,
+      "sha256": "bfb3188a65eb9a9acef7a08aeb7d0db7fc2d192a691b5084daec98db44d3a6bc",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "02-Data Structures/Docs/00-sources.md",
+        "03-Geometry/Docs/00-sources.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md",
+        "07-Strings/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/59-hackers_delight-warren_2012.pdf",
+      "title": "Warren, Hacker's Delight, 2nd ed. (2012)",
+      "source_page": "https://www.informit.com/store/hackers-delight-9780321842688",
+      "downloaded": "2026-11-28",
+      "bytes": 12815440,
+      "pages": 470,
+      "sha256": "f89446c3655975af750b964c70bb8fbeb0567a970a62032f9f9139d00f0523c0",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "01-Core/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/60-network_flows-ahuja_1993.pdf",
+      "title": "Ahuja, Magnanti, Orlin, Network Flows: Theory, Algorithms, and Applications (1993)",
+      "source_page": "https://www.pearson.com/en-us/subject-catalog/p/network-flows-theory-algorithms-and-applications/P200000003466",
+      "downloaded": "2026-11-28",
+      "bytes": 15958266,
+      "pages": 863,
+      "sha256": "c30b7e513ac21fcce27bd8515aa4382fb462e65126d3383255654f5e40e71dac",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/61-computational_geometry-de_berg_2008.pdf",
+      "title": "de Berg, Cheong, van Kreveld, Overmars, Computational Geometry: Algorithms and Applications, 3rd ed. (2008)",
+      "source_page": "https://link.springer.com/book/10.1007/978-3-540-77974-2",
+      "downloaded": "2026-11-28",
+      "bytes": 4604447,
+      "pages": 388,
+      "sha256": "dd684baf954099204f61774c78414c10f6cde5e5dc4675fe7cc4ed3a25d3fc35",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "03-Geometry/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/62-algorithms_on_strings_trees_sequences-gusfield_1997.pdf",
+      "title": "Gusfield, Algorithms on Strings, Trees, and Sequences (1997)",
+      "source_page": "https://doi.org/10.1017/CBO9780511574931",
+      "downloaded": "2026-11-28",
+      "bytes": 4838590,
+      "pages": 326,
+      "sha256": "733c1f7f17870311fec2e2dc5110c350cb8be723a86e4a44f5f5a3d5221883d7",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "04-Graphs/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md",
+        "07-Strings/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/63-jewels_of_stringology-crochemore_2002.pdf",
+      "title": "Crochemore, Rytter, Jewels of Stringology (2002)",
+      "source_page": "https://doi.org/10.1142/4838",
+      "downloaded": "2026-11-28",
+      "bytes": 12955847,
+      "pages": 322,
+      "sha256": "6689fa0f7b5f7df8313a4ac278c53dc8ff2c851f60445080a580b324983ba4ee",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "07-Strings/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/64-handbook_of_data_structures-mehta_2018.pdf",
+      "title": "Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018)",
+      "source_page": "https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006",
+      "downloaded": "2026-11-28",
+      "bytes": 14859738,
+      "pages": 1121,
+      "sha256": "09cf76124754672ebd5c4915601cbf874ea65b070f04570b1578c9241044b8ab",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "02-Data Structures/Docs/00-sources.md",
+        "03-Geometry/Docs/00-sources.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md",
+        "07-Strings/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/65-taocp_4a-knuth_2011.pdf",
+      "title": "Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011)",
+      "source_page": "https://www-cs-faculty.stanford.edu/~knuth/taocp.html",
+      "downloaded": "2026-11-28",
+      "bytes": 7526331,
+      "pages": 901,
+      "sha256": "71d214a013e75cba9f7cb0d423a03fa8e78c8da86534ff428e93c1d10c332b2d",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "03-Geometry/Docs/00-sources.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md",
+        "07-Strings/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/66-taocp_4b-knuth_2022.pdf",
+      "title": "Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022)",
+      "source_page": "https://www-cs-faculty.stanford.edu/~knuth/taocp.html",
+      "downloaded": "2026-11-28",
+      "bytes": 8005843,
+      "pages": 734,
+      "sha256": "b6182fff846cb19ad49f9cc4a781902a356fec5338aa1b1a38e25cb46e2c08f9",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "03-Geometry/Docs/00-sources.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md",
+        "07-Strings/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/67-compact_data_structures-navarro_2016.pdf",
+      "title": "Navarro, Compact Data Structures: A Practical Approach (2016)",
+      "source_page": "https://doi.org/10.1017/CBO9781316588284",
+      "downloaded": "2026-11-28",
+      "bytes": 9721707,
+      "pages": 576,
+      "sha256": "3c53650a9508ed40957eb005694149c28c73ab1441a6110210076b9402fed0d8",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "02-Data Structures/Docs/00-sources.md",
+        "04-Graphs/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md",
+        "07-Strings/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/68-computational_geometry_in_c-orourke_1998.pdf",
+      "title": "O'Rourke, Computational Geometry in C, 2nd ed. (1998)",
+      "source_page": "https://doi.org/10.1017/CBO9780511804120",
+      "downloaded": "2026-11-28",
+      "bytes": 16261820,
+      "pages": 359,
+      "sha256": "07003efb5b738d1333f5a4f28adb74a5ebfca35a7384a26bd28ddab981eef545",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "03-Geometry/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/69-prime_numbers-crandall_2005.pdf",
+      "title": "Crandall, Pomerance, Prime Numbers: A Computational Perspective, 2nd ed. (2005)",
+      "source_page": "https://link.springer.com/book/10.1007/0-387-28979-8",
+      "downloaded": "2026-11-28",
+      "bytes": 58147371,
+      "pages": 604,
+      "sha256": "26d7e47497304958236f104e5098679161039d2171e498fee472ccc3a8e9625c",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "01-Core/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/70-handbook_of_discrete_computational_geometry-goodman_2017.pdf",
+      "title": "Goodman, O'Rourke, Tóth (eds.), Handbook of Discrete and Computational Geometry, 3rd ed. (2017)",
+      "source_page": "https://www.csun.edu/~ctoth/Handbook/HDCG3.html",
+      "downloaded": "2026-11-28",
+      "bytes": 31841046,
+      "pages": 1951,
+      "sha256": "be5404858ea197dc66892c1790a3a32e73102d2d66936577cbb092d18d9627da",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "03-Geometry/Docs/00-sources.md",
+        "04-Graphs/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/71-combinatorial_optimization-schrijver_2003.pdf",
+      "title": "Schrijver, Combinatorial Optimization: Polyhedra and Efficiency (2003)",
+      "source_page": "https://link.springer.com/book/9783540443896",
+      "downloaded": "2026-11-28",
+      "bytes": 9723189,
+      "pages": 1951,
+      "sha256": "4f25e8ff85876b3f66b68d0b70b7e796a58e0fcc3d548fa58ed5e8751f317bb5",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/72-introduction_to_algorithms-cormen_2022.pdf",
+      "title": "Cormen, Leiserson, Rivest, Stein, Introduction to Algorithms, 4th ed. (2022)",
+      "source_page": "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/",
+      "downloaded": "2026-11-28",
+      "bytes": 20592798,
+      "pages": 1676,
+      "sha256": "521e1859f5d88ee920270e35e6efd5e4233a8daa047a13a7d1c31978e4ddb52b",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md",
+        "04-Graphs/Docs/00-sources.md",
+        "05-Mathematics/Docs/00-sources.md",
+        "06-Miscellaneous/Docs/00-sources.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/73-guide_to_competitive_programming-laaksonen_2024.pdf",
+      "title": "Laaksonen, Guide to Competitive Programming: Learning and Improving Algorithms through Contests, 3rd ed. (2024)",
+      "source_page": "https://doi.org/10.1007/978-3-031-61794-2",
+      "downloaded": "2026-11-28",
+      "bytes": 28134414,
+      "pages": 356,
+      "sha256": "373df107ab50d807f760fcc435746d1e2cf491bad7fd47f37a994adfd6f1c52e",
+      "cited_in": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md"
+      ],
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
     }
   ]
 }

@@ -27,7 +27,8 @@ REPO = 'Ausp3x/CompProg-Library'  # canonical repository; `git config compprog.r
 CLAIM = re.compile(r'(P\d{3})-([A-Za-z]+\d+)-(.+)')  # claim branch Pxxx-<batch>-<user>, or Pxxx-FU<yymmdd>-<user> for follow-ups
 FOLLOW = re.compile(r'FU\d+')  # the batch part of a follow-up claim (user decision 2026-11-26)
 LIMITS = re.compile(r'(#{2,3}) .*\b(Limits|Handoffs?)\b')  # an evidence document's limits sections (02-structure.md, Names)
-DECIDED = re.compile(r'\buser decisions? \d{4}-\d\d-\d\d|\bfollow-up on P\d{3}\b')  # or work a rule handed to another package
+DECIDED = re.compile(r'\buser decisions? \d{4}-\d\d-\d\d')  # a limit the user decided (02-structure.md, Names)
+HANDED = re.compile(r'\bfollow-up on (P\d{3})\b')  # work a rule handed to another package: decided while its follow-up is open
 PR_PAGE = 30  # open pull requests `waiting` lists: their commits must stay under GitHub's GraphQL node limit
 TARGET = re.compile(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`')
 # Re-attachment room (SUP33, SUP34; 00-harness-review.md): after a compaction Claude Code re-attaches each invoked skill's
@@ -308,8 +309,9 @@ def check(root=ROOT):
         for e in p['evidence']:
             require((root / e).exists(), f'Missing evidence: {p["id"]} -> {e}')
         if p['status'] == 'verified' and not fu and all(b in bmap for b in p['batches']):
-            left = open_limits(root, p, bmap)
-            require(not left, f'Undecided limits in verified {p["id"]}: {len(left)}, the first at {left[0].split(": ")[0] if left else ""}; '
+            left = open_limits(root, p, bmap, open_ids(pl))
+            first = re.match(r'(.*?:\d+): (\[[^]]*\])?', left[0]) if left else None
+            require(not left, f'Undecided limits in verified {p["id"]}: {len(left)}, the first at {" ".join(filter(None, first.groups())) if first else ""}; '
                               f'file a follow-up (plan.py follow-up {p["id"]} ...) or decide them (02-structure.md, Names)')
     found = dependencies(root).scan(root)
     for b, d, h, inc in include_edges(root, batches, found):
@@ -368,10 +370,26 @@ def row_status(parts):
     return parts[-1].split(';')[0].split(' ')[0].strip('*').lower()
 
 
-def undecided(doc):
-    """(line number, text) of each item under a limits heading (LIMITS) of an evidence document that names no
-    `user decision <date>` (02-structure.md, Names): a list item with its indented continuation lines, a table body row or
-    a paragraph; `none` items are skipped."""
+def open_ids(packages):
+    """The ids of the packages with open follow-ups: the ones a limit may hand work to (`follow-up on Pxxx`)."""
+    return {p['id'] for p in packages if followups(p)}
+
+
+def stale(text, handed):
+    """The packages a limit item hands work to (HANDED) that are not in `handed`, the ids with open follow-ups."""
+    return sorted(set(HANDED.findall(text)) - handed)
+
+
+def undecided(doc, handed):
+    """(line number, text) of each item under a limits heading (LIMITS) of an evidence document that names neither a
+    `user decision <date>` nor only hand-offs (`follow-up on Pxxx`) to packages in `handed`, the ids with open follow-ups
+    (02-structure.md, Names; user decision 2026-11-27): a list item with its indented continuation lines, a table body
+    row or a paragraph; `none` items are skipped."""
+    return [(i, t) for i, t in limit_items(doc) if not DECIDED.search(t) and (not HANDED.search(t) or stale(t, handed))]
+
+
+def limit_items(doc):
+    """(line number, text) of each item under a limits heading (LIMITS) of an evidence document, `none` items skipped."""
     out, level, item = [], 0, None
     lines = doc.read_text(errors='replace').splitlines() if doc.is_file() else []
     for i, line in enumerate(lines, 1):
@@ -390,7 +408,7 @@ def undecided(doc):
         else:
             item = [i, text]
             out.append(item)
-    return [(i, t) for i, t in out if not DECIDED.search(t) and not re.fullmatch(r'(([-*+]|\d+[.)]) )?none\.?', t, re.I)]
+    return [(i, t) for i, t in out if not re.fullmatch(r'(([-*+]|\d+[.)]) )?none\.?', t, re.I)]
 
 
 def package_docs(root, p, bmap):
@@ -399,9 +417,21 @@ def package_docs(root, p, bmap):
                   | set(p['evidence']))
 
 
-def open_limits(root, p, bmap):
-    """`path:line: text` of each undecided limit (undecided()) in the evidence documents of package p."""
-    return [f'{d}:{i}: {t[:140]}' for d in package_docs(root, p, bmap) for i, t in undecided(root / d)]
+def limit_line(d, i, t, handed):
+    """`path:line: text` of a limit item, a hand-off without an open follow-up marked `[no open follow-up on Pxxx]`."""
+    return f'{d}:{i}: ' + ''.join(f'[no open follow-up on {q}] ' for q in stale(t, handed)) + t[:140]
+
+
+def open_limits(root, p, bmap, handed):
+    """limit_line() of each undecided limit (undecided()) in the evidence documents of package p."""
+    return [limit_line(d, i, t, handed) for d in package_docs(root, p, bmap) for i, t in undecided(root / d, handed)]
+
+
+def citing(root, pid, packages, bmap):
+    """limit_line() of each limit item in any package's evidence documents that hands work to pid (`follow-up on pid`),
+    with whether it also names a `user decision <date>`, which keeps it decided once pid's follow-ups close."""
+    docs = sorted({d for p in packages if all(b in bmap for b in p['batches']) for d in package_docs(root, p, bmap)})
+    return [(f'{d}:{i}: {t[:140]}', bool(DECIDED.search(t))) for d in docs for i, t in limit_items(root / d) if pid in HANDED.findall(t)]
 
 
 CANDIDATES, VERDICTS = '### Optimization Candidates', ('adopted', 'rejected', 'other owner', 'none found')
@@ -933,7 +963,7 @@ def main():
             p = next((p for p in packages['packages'] if p['id'] == a.id), None)
             if p is None or (a.text is None) == (a.done is None):
                 raise SystemExit(f'Unknown package {a.id}' if p is None else 'Give the follow-up text or --done N..., not both')
-            fu = followups(p)
+            fu, cites = followups(p), []
             if a.text is not None:
                 text = ' '.join(a.text.split())
                 if not text or text in fu:
@@ -943,14 +973,22 @@ def main():
                 if not set(a.done) <= set(range(1, len(fu) + 1)):
                     raise SystemExit(f'{a.id} has follow-ups 1 to {len(fu)}' if fu else f'{a.id} has no open follow-up')
                 fu = [x for i, x in enumerate(fu, 1) if i not in a.done]
-                if not fu and p['status'] == 'verified' and (left := open_limits(ROOT, p, {b['id']: b for b in batches['batches']})):
+                bmap, handed = {b['id']: b for b in batches['batches']}, open_ids(packages['packages']) - ({a.id} if not fu else set())
+                if not fu and p['status'] == 'verified' and (left := open_limits(ROOT, p, bmap, handed)):
                     raise SystemExit(f'{a.id} keeps its last follow-up while {len(left)} limit(s) lack a `user decision <date>` '
                                      '(02-structure.md, Names):\n  ' + '\n  '.join(left))
+                cites = citing(ROOT, a.id, packages['packages'], bmap)
+                if not fu and (left := [c for c, decided in cites if not decided]):
+                    raise SystemExit(f'{a.id} keeps its last follow-up while {len(left)} limit(s) hand work to it (`follow-up on {a.id}`) '
+                                     'without a `user decision <date>`: delete each item the closed follow-ups settled, decide the rest '
+                                     'or hand it on anew (02-structure.md, Names):\n  ' + '\n  '.join(left))
             p.pop('followups', None)
             if fu:
                 p['followups'] = fu
             save(ROOT, packages)
-            print('\n'.join([f'{a.id}: {len(fu)} open follow-up(s)', *(f'{i}. {x}' for i, x in enumerate(fu, 1))]))
+            print('\n'.join([f'{a.id}: {len(fu)} open follow-up(s)', *(f'{i}. {x}' for i, x in enumerate(fu, 1))]
+                            + ([f'Limits citing `follow-up on {a.id}`: delete or update each the closed follow-up(s) settled:',
+                                *(f'  {c}' for c, _ in cites)] if cites else [])))
         if a.cmd == 'set':
             p = next((p for p in packages['packages'] if p['id'] == a.id), None)
             if p is None or a.status not in packages['statuses']:
@@ -960,7 +998,8 @@ def main():
                 raise SystemExit(f'Missing evidence paths: {missing}')
             bmap = {b['id']: b for b in batches['batches']}
             covered = p['status'] == 'verified' and followups(p)  # open follow-ups cover its limits, as in check()
-            if a.status == 'verified' and not covered and (left := open_limits(ROOT, {**p, 'evidence': p['evidence'] + a.evidence}, bmap)):
+            if a.status == 'verified' and not covered and (left := open_limits(ROOT, {**p, 'evidence': p['evidence'] + a.evidence}, bmap,
+                                                                                open_ids(packages['packages']))):
                 raise SystemExit(f'{a.id} not set verified: {len(left)} limit(s) without a `user decision <date>` (02-structure.md, Names). '
                                  'Fix each that the package can do, move what the algorithm or contract implies to Contracts, and '
                                  'ask the user about the rest:\n  ' + '\n  '.join(left))

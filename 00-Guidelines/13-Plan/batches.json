@@ -8050,6 +8050,725 @@
       "focus": "Harness measurements and `/reflect` (user decisions 2026-11-19, same review as SUP32). Each measurement is recorded in `00-Guidelines/13-Plan/Docs/00-harness-audit.md`, and each change it suggests waits for the user's yes. (1) Compaction window: replay the transcripts with `00-Guidelines/13-Plan/context_usage.py` at 250k, 300k and 400k and decide `autoCompactWindow` on the numbers, closing the re-check that `00-Guidelines/10-decisions.md` (2026-10-24 Session Tuning) set for after about five packages; about fifteen have run since. The C03 session made about 4,460 calls at about 214k average context, with 27 compactions and 956M cache-read tokens. (2) @reviewer cache lifetime: price @reviewer's recorded gaps of more than 5 minutes at both lifetimes from the transcripts, and set `experimental: {cacheTtl: 1h}` in `.claude/agents/reviewer.md` (Claude Code v2.1.248 or later) only if one hour wins; the test of 2026-10-31 covered all subagents at once. (3) Each harness part: `.claude/hooks/harness.py`'s model guard, context-integrity scanner and request-setting warnings, the weekly scan and its canary, `.claude/launch.py` and every hook. Count each part's catches over the last month from its state files and transcripts, and propose removing each part with no catch and no protective role, one yes per part; launch.py first, since its strip test could not show whether stripping changes anything (`00-harness-audit.md`, Strip Test). (4) `/reflect`: a new read-only skill whose subagents read the transcripts since its last run and list the user's corrections, each with whether it reached its owning file (`00-Guidelines/01-principles.md`, Scope Discipline); it proposes an edit for each, the user approves row by row, and it never edits on its own. It runs before `/tidy`. (5) SUP33 follow-ups (user decisions 2026-11-23, after `/finish SUP33`; `00-Guidelines/13-Plan/Docs/00-harness-review.md`, Limits). (a) Decisions: ask the user about each point the evidence marks `decided without the user` (15, among them the KWin route, the text refusal's width, the facts order, `LINES`, the 1,500-character floor, the plain-text facts file, 2.5 characters per token, `BOOKKEEPING`, the validator's two thresholds, the stage reservation, arrival order, the 2,048 MB headroom, `STALE`, `POLL` and `post` after failed commands) and record each answer. (b) Click to focus: a `/setup-check` probe in which a KWin script counts the windows `activate()` would match and reports through the journal (`journalctl`, `kwin_wayland`), failing on none, so a Plasma or VS Code change shows before a dead click; correct the evidence's claim that VS Code had become a native Wayland window (its main process ran from 2026-11-21, so why SUP32's click raised it and SUP33's did not is not established); the KWin match also by the editor's process id; a project `window.title` with the folder's full path so the match is exact (it changes the title bar); the editor found from the terminal's ancestor process (its executable and `--user-data-dir`), so lookup works with `git.enabled` off, in VS Code's forks and with `--user-data-dir`; untitled workspaces' folders read from the user data folder's `Workspaces`; folders compared resolved, so a symlinked checkout matches; the helper closes its notification when `/reap` or SessionEnd ends it; a small local VS Code extension focusing the terminal that runs the session (the Claude Code extension 2.1.330 handles only the URIs `/install-plugin` and `/open`, which opens the session in its own panel, checked 2026-11-23); live checks with the user of VS Code in the WinApps virtual machine opening the toast's `vscode://` link, and of a portable VS Code tarball (its lookup, and whether `VSCODE_PORTABLE` reaches its terminal). (c) Memory gate: a reservation's usage without reclaimable file cache (`memory.stat` `file`); PSS (`smaps_rollup`) instead of RSS without systemd scopes; every tester and benchmark records its peak in `96-Local Testing/.run-stats.json`, not only `01-run.py`; a timeout on the gate's `flock`; heartbeats on the monotonic clock, so a suspend leaves the arrival order; nested gated runs of two sessions no longer wait on each other; an extraction scratch tester's queue time not counted against `--timeout`; a small run that fits beside the queue's head starts at once; `.claude/hooks/shell.py` warns on a compile or binary run outside `_00_memory_cap.py`. (d) Facts and skills: `plan.py show`, `items.py`, `reap.py`, `pause.py` and `setup_check.py` fit their printed output to the re-attachment room and the validator checks them; the validator checks `gaps.py`'s printed facts against the room for every open package, not only fixtures; the characters per token measured again on skills, facts and guidelines; `/harness-audit` flags a bundled skill missing from `skillOverrides`; a batch's review record in the main checkout covers only the files this batch changed, not other packages' uncommitted files; `/finish` step 7 tells the user to `/exit` before removing a worktree from a terminal when ExitWorktree finds none, since SessionEnd does not run in a removed directory. (e) Checks: tests for `pause.py`'s `last_command()` and the real `gaps.target()` (stubbed in `test_precompact`); a live check that `@researcher` starts without CLAUDE.md; `00-Tools/02-online`, `00-Tools/03-notebook` and `01-Core/02-debug_compile` honour `CP_TEST_MODE` (P231's `96-Local Testing/Docs/00-memory-safety.md`, fixed here with the user's yes 2026-11-23).",
       "prerequisites": [],
       "tiers": []
+    },
+    {
+      "id": "DS63",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/76-classic_structures.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Classic textbook structures no contest row owns: Bentley initializable array, Morris inorder traversal, xor linked list, Merkle tree.",
+      "prerequisites": [
+        "C01",
+        "DS01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "DS64",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/77-problem_structures.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem structures: Trygub signed-digit numbers, offline hash-free lexicographic ranking of point-updated versions.",
+      "prerequisites": [
+        "C01",
+        "DS01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE69",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/78-ellipsoidal_geodesics.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Geodesics on a spheroid (WGS84 default): Vincenty, Karney and Andoyer inverse and direct problems, floating point.",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE70",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/79-geometric_coresets.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Epsilon-nets, epsilon-approximations, epsilon-kernels and the Badoiu-Clarkson enclosing-ball coreset.",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE71",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/80-geometry_problems.hpp"
+      ],
+      "support_targets": [],
+      "size": "S",
+      "focus": "One-problem geometry: projectile launch velocities through a target, rectangle in rectangle with rotation.",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE72",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/81-polyomino_enumeration.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Redelmeier enumeration of fixed, free and one-sided polyominoes: counts and canonical cell lists.",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA63",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/76-addition_chains.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Shortest addition chains, the Knuth power tree, Shamir-Straus multi-exponentiation and powering along a given chain or vector chain.",
+      "prerequisites": [
+        "C01",
+        "MA01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA64",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/77-combinatorial_designs.hpp"
+      ],
+      "support_targets": [],
+      "size": "S",
+      "focus": "Hadamard matrices by the Sylvester and Paley I and II constructions.",
+      "prerequisites": [
+        "C01",
+        "MA01",
+        "MA21"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA65",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/78-symbolic_summation.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Gosper's indefinite hypergeometric summation and greatest factorial factorization.",
+      "prerequisites": [
+        "C01",
+        "MA01",
+        "MA07"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA66",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/79-thueequation.hpp"
+      ],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "All integer solutions of a Thue equation F(x, y) = m: Baker bound, LLL reduction and enumeration.",
+      "prerequisites": [
+        "C01",
+        "MA01",
+        "MA24",
+        "MA29",
+        "MA30"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI39",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/61-connected_component_dp.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Connected-component DP over elements in sorted order, with the JOI 2016 skyscraper count as its composition.",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Advanced"
+      ]
+    },
+    {
+      "id": "MI40",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/62-cryptography.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Cryptographic hashes (MD5, SHA-1, SHA-256) and classical ciphers and codes (Caesar, Vigenere, Hill, Atbash, A1Z26, xor, Morse) in algorithmic form (user decision 2026-11-27).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI41",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/63-decision_diagrams.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Reduced ordered BDDs and ZDDs on a shared node table, with frontier-based search for counting and building path, cycle, forest and matching families.",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST47",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/57-anti_hash.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Anti-hash test generation: tree and multi-tree attacks, birthday attack, chained attack on several (modulus, base) pairs.",
+      "prerequisites": [
+        "C01",
+        "ST02"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST48",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/58-string_similarity.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Jaro and Jaro-Winkler similarity and the Soundex, Metaphone and NYSIIS phonetic codes (user decision 2026-11-27).",
+      "prerequisites": [
+        "C01",
+        "ST01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "DS65",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/78-set_families.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Set families: SetEquality, extremalSets, subsetGraph, DynamicSetIntersection, PartitionMaintenance, SetTrie (MEHTASAHNI, ALGOWIKI).",
+      "prerequisites": [
+        "C01",
+        "DS01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "DS66",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/79-succinct_graphs.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Succinct graphs: SequenceGraph, PageGraph, SuccinctPlanarGraph (NAVARRO).",
+      "prerequisites": [
+        "C01",
+        "DS01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE73",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/82-collision_detection.hpp"
+      ],
+      "support_targets": [],
+      "size": "S",
+      "focus": "Collision detection: gjkDistance, epaPenetrationDepth (HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE74",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/83-crossing_free_structures.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Crossing free structures: countTriangulations, forEachTriangulation, countCrossingFreeMatchings, countCrossingFreeSpanningTrees, countPolygonizations, randomPolygonization, randomTriangulation (EOA, HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE75",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/84-geometric_network_design.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Geometric network design: euclideanSteinerTree, rectilinearSteinerTree, rectilinearSteinerTreeOneSteiner, euclideanTspPtas, tspFewInnerPoints (HDCG, EOA).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE76",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/85-geometric_reconstruction.hpp"
+      ],
+      "support_targets": [],
+      "size": "S",
+      "focus": "Geometric reconstruction: turnpikeReconstruction, probeConvexPolygon (HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE77",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/86-gis_algorithms.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "GIS algorithms: viewshed, terrainContours, flowAccumulation, pointLabelPlacement (HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE78",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/87-high_dimensional_search.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "High dimensional search: bourgainEmbedding, johnsonLindenstraussProject, lshNearestNeighbour, maximumInnerProductSearch (HDCG, CMU750, ALGOWIKI).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE79",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/88-lattice_polytopes.hpp"
+      ],
+      "support_targets": [],
+      "size": "S",
+      "focus": "Lattice polytopes: latticePointCountBarvinok, integerPointLenstra (HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE80",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/89-motion_planning.hpp"
+      ],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Motion planning: freeSpace, translationalMotionPlan, diskMotionPlan, ladderMotionPlan, armReachable, carpenterRuleConvexify, probabilisticRoadmap, rrt, partOrientingPlan, forceClosure, translationalShortestPath (DEBERG, OROURKE, HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE81",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/90-optimal_triangulation.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Optimal triangulation: minMaxAngleTriangulation, minMaxEdgeTriangulation, greedyTriangulation (EOA, HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE82",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/91-packing_covering.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Packing covering: unitDiskCoverPtas, unitDiskPackingPtas, circleStripPackingApprox, minimumSquareCover (HDCG, EOA).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE83",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/92-persistent_homology.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Persistent homology: persistenceBarcode, vietorisRipsComplex, bottleneckDistance, zigzagPersistence, mapper (HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE84",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/93-polygon_placement.hpp"
+      ],
+      "support_targets": [],
+      "size": "S",
+      "focus": "Polygon placement: polygonContainmentTranslation, maxOverlapTranslationApprox (HDCG).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA67",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/80-multiplicative_weights.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Multiplicative weights: multiplicativeWeights, fractionalPackingCovering, packingCoveringFeasibility (CMU750, CLRS, EOA).",
+      "prerequisites": [
+        "C01",
+        "MA01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA68",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/81-sparse_elimination.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Sparse elimination: eliminationTree, symbolicCholesky, columnEliminationTree (MEHTASAHNI).",
+      "prerequisites": [
+        "C01",
+        "MA01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA69",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/82-strategic_games.hpp"
+      ],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Strategic games: lemkeHowson, nashSupportEnumeration, shapleyValue, nucleolus, isInCore, parityGame, meanPayoffGame, vcgPayments, positionAuction, wardropEquilibrium, bestResponseDynamics, fisherMarketEquilibrium (EOA).",
+      "prerequisites": [
+        "C01",
+        "MA01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI42",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/64-approximation_algorithms.hpp"
+      ],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Approximation algorithms: greedySetCover, minSumSetCover, setCoverAlmostConsecutiveOnes, binPackingHeuristic, harmonicBinPacking, binPackingAptas, robustBinPacking, selfishBinPacking, vectorBinPacking, listScheduling, lptSchedule, makespanPtas, uniformMakespanPtas, vectorScheduling, santaClausAllocation (ALGOWIKI, CLRS, EOA).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI43",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/65-boolean_functions.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Boolean functions: booleanChainCosts, isThresholdFunction, learnMonotoneBoolean, booleanDecomposition (TAOCP).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI44",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/66-floorplanning.hpp"
+      ],
+      "support_targets": [],
+      "size": "S",
+      "focus": "Floorplanning: sequencePairPacking, slicingFloorplan (MEHTASAHNI).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI45",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/67-functional_dependencies.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Functional dependencies: attributeClosure, bcnfDecomposition, fourthNormalFormDecomposition, functionalDependencyDiscovery (ALGOWIKI).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI46",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/68-machine_learning.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Machine learning: svmTrain, collaborativeFiltering, frequentItemsets, frequentItemsetsApriori, weightedMajority, winnow, perceptron (ALGOWIKI, EOA, CLRS).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI47",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/69-model_checking.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Model checking: modelCheckCtl, modelCheckCtlSymbolic, buchiEmptiness (ALGOWIKI).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI48",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/70-online_algorithms.hpp"
+      ],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Online algorithms: skiRental, secretaryRule, prophetThreshold, nonClairvoyantSchedule, weightedFlowTimeSchedule, gittinsIndex, stochasticKnapsackPolicy, cowPathSearch, kServer, metricalTaskSystem, onlineIntervalColoring, onlineLoadBalancing, reorderingBuffer (CLRS, EOA).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI49",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/71-operating_systems.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Operating systems: bankersAlgorithm, diskScheduling, rateMonotonicTest, responseTimeAnalysis (ALGOWIKI, EOA).",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST49",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/59-bioinformatics.hpp"
+      ],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Bioinformatics: blastSearch, fastaSearch, pamMatrix, blosumMatrix, medianString, greedyMotifSearch, randomizedMotifSearch, gibbsMotifSearch, frequentWordsWithMismatches, dNeighborhood, maximalNonBranchingPaths, closestString, closestSubstring, plantedMotifSearch, spacedSeedSensitivity, peptideSequencing (GUSFIELD, ALGOWIKI, EOA).",
+      "prerequisites": [
+        "C01",
+        "ST01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST50",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/60-rna_secondary_structure.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "RNA secondary structure: nussinov, zuker, mccaskill, rivasEddy, twoIntervalPattern (ALGOWIKI, EOA).",
+      "prerequisites": [
+        "C01",
+        "ST01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
     }
   ]
 }

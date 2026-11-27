@@ -75,7 +75,6 @@ The 2026-10-09 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-09-p043)
 - Automatic bipartition overloads (hitonanode, maspypy): run `bipartiteCheck` (row 02) and map the sides.
 - Maximum antichain, DAG path and chain covers: row 31. Bipartite edge colouring: row 34.
 - Incremental row addition and dynamic Hungarian cost updates (hitonanode `augment`, OI Wiki): the internal single-row `search` exists, but a public stateful solver with update semantics is not part of any contest catalog interface fetched; rerun `hungarian` or use `kBestAssignments`.
-- The auction algorithm: in no fetched catalog.
 - Multiple roots and edge dominators: a super-source and edge subdivision. Exposed semidominators (internal in Koosaga) and iterated dominance frontiers (SSA construction) are outside contest use.
 
 ## P044 Max Flow Omissions
@@ -119,7 +118,7 @@ The 2026-10-18 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-18-p047)
 - Component counts per time and XOR-path presets of offline dynamic connectivity: `run` callbacks over `count()` or a weighted DSU (Data Structures 29).
 - Offline 2-edge-connectivity over time: in no catalog.
 - OGDF `insertNode`, `repVertex` and an incremental `blockOf`: SPQR maintenance internals; incremental block ids change under merges, so `sameBlock` is the stable query.
-- Vertex-biconnectivity augmentation: no catalog has it (NetworkX has only `k_edge_augmentation`); set-of-terminals block queries (SDOI2018) are a row 14 virtual tree over `BlockCutTree::tree`.
+- Vertex-biconnectivity augmentation: joined row 45 as `vertexConnectivityAugmentation` (any k) once SCHRIJVER named it (omission sweep 2026-11-28); set-of-terminals block queries (SDOI2018) are a row 14 virtual tree over `BlockCutTree::tree`.
 - Flow-based chain cover without closure (maspypy `dag_path_cover`): the same result as `dagMinimumChainCover`; the closure-free antichain is `maximumWeightedAntichain` with unit weights.
 - Vertex-disjoint path cover of a digraph with cycles: NP-hard. Greene–Kleitman k-antichains of posets: in no catalog.
 
@@ -133,7 +132,7 @@ The 2026-10-28 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-28-p048-
 - Embedding validity (NetworkX `check_structure`): the constructor builds twins from the graph; planarity of the embedding is `genus[c] == 0` for every component.
 - Half-edge insertion and connecting components inside a face (NetworkX, Boost): permute `g.adj` and rebuild.
 - OGDF embedding edits (split/join faces, subdivide, contract): no contest use in any fetched catalog.
-- Itai–Shiloach planar flow: no better bound than the dual shortest path; planar global min cut: `dualGraph` with row 68 `weightedGirth`; all-pairs planar min cut: research level.
+- Itai–Shiloach planar flow: no better bound than the dual shortest path; planar global min cut: `dualGraph` with row 68 `weightedGirth`. All-pairs planar min cut joined row 46 as `gomoryHuTreePlanar` (user decision 2026-11-27).
 
 ## P048 GR27 Omissions
 
@@ -258,3 +257,19 @@ The GR02 sweeps ([sources](00-sources.md#fetched-2026-11-14-p010-gr02)) added `s
 - Hop-limited Bellman–Ford (at most k arcs): no catalog names it; row 12 owns at-most-k-arc paths.
 
 Copied code (`03-cpp.md`, One API per Operation): `voronoiCells` runs its own Dijkstra over (distance, center) keys, since `dijkstra` breaks distance ties by settle order and cannot give the smallest nearest center. `dijkstra` and `egoGraphWeighted` share `shortest_path_detail::dijkstra`, whose bounded form stops at the radius, so the ball costs O(n + d * log(d + 1)) rather than a whole Dijkstra. `criticalPath` repeats the forward relaxation of `dagLongestPathsFrom` because its backward pass needs the same topological order: composing would sort twice and build parent arrays and a `PathWitness`-ready result it never reads.
+
+## Omission Sweep 2026-11-27
+
+Left out from the candidates of the 2026-11-27 catalog survey (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`; user decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded Decisions): second implementations and slower algorithms that Priority does not admit.
+
+- Karger's repeated contraction (ITMO, ERICKSON, THEALGO, WIKI): O(n^4 log n), slower than row 47 `kargerStein` on the same domain and heavier than `stoerWagnerDense`, which needs no DSU (`01-principles.md`, Priority).
+- Karzanov's preflow blocking flow (ITMO, DADS): O(n^3), no better bound than row 19 `pushRelabel` on the same domain and not lighter than `flow` (Dinic), the ground of the recorded MPM omission (`01-principles.md`, Priority).
+
+## Omission Sweep 2026-11-28
+
+Left out from the candidates of the 2026-11-28 sample of the sources the user placed (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28).
+
+- FIFO preflow-push (AMO): FIFO selection gives O(n³), no better bound than the kept pushRelabel (highest label, O(n²√m)) on the same domain and not lighter than flow (Dinic), so 01-principles.md Priority and 03-cpp.md One API per Operation exclude it, as the recorded MPM and Karzanov omissions do.
+- Repeated capacity scaling (AMO): Orlin's enhanced capacity scaling (GR2-005) solves the same strongly polynomial domain with a better bound, so the repeated form is a slower second implementation that Priority does not admit (01-principles.md, Priority; 03-cpp.md, One API per Operation).
+- Tardos's strongly polynomial minimum-cost circulation (SCHRIJVER): Orlin's enhanced capacity scaling (GR2-005) has a better strongly polynomial bound on the same domain, so Tardos's method is a slower second implementation (01-principles.md, Priority; 03-cpp.md, One API per Operation).
+- Eades's spring embedder (EOA): Eades's spring embedder is the force model that Fruchterman–Reingold (GR2-151) refines on the same domain, and it is neither lighter by half, wider, measured faster nor more capable (01-principles.md, Priority; 03-cpp.md, One API per Operation).

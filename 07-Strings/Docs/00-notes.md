@@ -134,3 +134,19 @@ The 2026-11-08 sweep left out exact duplicates, second implementations and items
 ## P275 Re-Review 2026-11-10
 
 P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per Operation) with its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items it returned are now operations of rows `08`, `09`, `11`, `20`, `22`, `39`, `50`, `55` and `56` and of Miscellaneous rows `08` and `28`, and their omission bullets were removed; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
+
+## Omission Sweep 2026-11-27
+
+Left out from the candidates of the 2026-11-27 catalog survey (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`; user decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded Decisions): second implementations and slower algorithms that Priority does not admit.
+
+- McCreight's suffix-tree construction (ITMO, GUSFIELD): the same tree as row 11 `SuffixTree`, neither lighter nor more capable than row 33's dependency-free online `UkkonenSuffixTree` (`03-cpp.md`, One API per Operation).
+- Weiner's suffix-tree construction (ITMO, GUSFIELD): the same tree offline as row 11; its online prepend is row 10 `BasicSuffixAutomaton::extend` on the reversed text and row 35 `SuffixBalancedTree::pushFront` (One API per Operation).
+- Farach's suffix-tree construction (ITMO, GUSFIELD): linear for integer alphabets, the domain, bound and result of row 11 `SuffixTree` built through row 12's integer-alphabet `sais` (One API per Operation).
+
+## Omission Sweep 2026-11-28
+
+Left out from the candidates of the 2026-11-28 sample of the sources the user placed (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28).
+
+- Fingerprint, triangle-inequality and inverted-index similarity search (MEHTASAHNI): Other indexes for the threshold search bitboundSearch (DS2-087) answers, with no better worst-case bound (One API per Operation); the XOR filter is Misc 45 XorFilter.
+- The position heap (MEHTASAHNI): A second implementation of Strings 11 SuffixTree locate and occurrences (and the suffix array search) with no better bound (03-cpp.md, One API per Operation).
+- Parallel text algorithms (JEWELS): Single-threaded contest execution is the baseline (01-principles.md, Profiles); run sequentially each PRAM algorithm is a second implementation of a kept operation (DictionaryOfBasicFactors, prefixFunction, huffmanCodes, levenshtein; One API per Operation).

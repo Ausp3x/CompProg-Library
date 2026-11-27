@@ -363,3 +363,45 @@ The user supplied these copies on 2026-11-22. They are personal study copies, ke
 | D. E. Knuth, *The Art of Computer Programming*, vol. 4A pre-fascicles (2005), https://www-cs-faculty.stanford.edu/~knuth/taocp.html; `13-Papers/24-art_of_computer_programming_vol4_prefascicles-knuth_2005.pdf`. The file holds the pre-fascicles 2B, 3A and 3B (3A's copyright page: "Zeroth printing (revision 11), 31 March 2005"), not the 2011 book, and its text layer is unreadable, so the pages were rendered as images. | `1846455c61cd6af4ded38e3657b7bcda2e841715e83f1d8c71f71fef12624e0e` | p. 596 (2B p. 4): §7.2.1.2 Algorithm P; pp. 662–664 (3A pp. 4–6): §7.2.1.3 Algorithms L and T, Theorem L, eqs. (19)–(20); pp. 750–751 (3B pp. 26–27): §7.2.1.5 eq. (4) and Algorithm H; pp. 666–667 (3A pp. 8–9), read 2026-11-26: §7.2.1.3 eqs. (25)–(30) and Algorithm R; pp. 726–727 (3B pp. 2–3), read 2026-11-27: §7.2.1.4 Algorithm H and its cost statement | Confirms row 59 `forEachTrotterJohnson` (Algorithm P), row 12 `forEachSetPartition` (Algorithm H) and row 12 `forEachGrayCombination` (Algorithm R). Theorem L ranks combinations in another order than `combinationRank`. Details in [12-enumeration.md](12-enumeration.md#sources) and [59-permutation_orders.md](59-permutation_orders.md#sources). |
 | M. Mirzayanov, "Interactive Problems: Guide for Participants", Codeforces blog 45307, https://codeforces.com/blog/entry/45307; `14-Web Pages/26-codeforces_blog_45307-interactive_problems_guide.pdf` | `9a9a625824409e8cd515339e49ec7ae2df45b7b939cf5b22cc66eae649d0c048` | pp. 1–3 (the post); the comments only by search | Row 50: output may sit in a buffer, and the judge's reply can be read only after a flush, so flush after every output; `endl` flushes. |
 | Codeforces 1999G1, "Ruler (easy version)", https://codeforces.com/problemset/problem/1999/G1; `14-Web Pages/26-codeforces_1999g1-ruler_easy_version.pdf` | `0bac9577218775b74df7c9a1d8b92e18496e38a67b00cab7e1557e8299538236` | pp. 1–2 (statement, interaction) | Row 50: at most 10 queries per test case; an extra or invalid query, or a wrong answer, is answered `-1`, after which the program must terminate at once; flush after each query. |
+
+## Fetched 2026-11-27 (Omission Sweep)
+
+Candidates of the 2026-11-27 catalog survey, applied the same day; the catalog pages they came from are listed in `00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md` (Sources), and the decisions are in the rows, the folder notes (Omission Sweep 2026-11-27) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
+
+| URL | Used for |
+|---|---|
+| https://raw.githubusercontent.com/kopricky/My-Algorithm/master/DataStructure_Advanced/LIS2D.hpp | `LongestChain3DOnline` |
+| https://raw.githubusercontent.com/kopricky/My-Algorithm/master/Competitive_Programming/DataStructure_Advanced/LIS2D.hpp | `LongestChain3DOnline` |
+| https://raw.githubusercontent.com/cp-algorithms/cp-algorithms-aux/main/cp-algo/structures/stack_union.hpp | `StackUnion` |
+| https://github.com/TheAlgorithms/C-Plus-Plus/tree/master/ciphers | repository file list for the candidate check |
+| https://github.com/TheAlgorithms/C-Plus-Plus/tree/master/hashing | repository file list for the candidate check |
+| https://github.com/ngthanhtrung23/ACM_Notebook_new/tree/master/Misc | repository file list for the candidate check |
+| https://raw.githubusercontent.com/ngthanhtrung23/ACM_Notebook_new/master/Misc/Rubik.h | `RubiksCube` |
+| https://github.com/ShahjalalShohag/code-library/tree/main/Dynamic%20Programming%20Optimizations | repository file list for the candidate check |
+| https://raw.githubusercontent.com/ShahjalalShohag/code-library/main/Dynamic%20Programming%20Optimizations/Connected%20Component%20DP.cpp | `ComponentDP`, `skyscraperCount` |
+| https://anqooqie.github.io/library/ | repository file list for the candidate check |
+| https://anqooqie.github.io/proconlib/ | repository file list for the candidate check |
+| https://anqooqie.github.io/proconlib/tools/kth_smallest_by_oracle.hpp | candidate check |
+| https://anqooqie.github.io/proconlib/tools/digit_product_frequency.hpp | candidate check |
+| https://github.com/justiceHui/icpc-teamnote | `diversifiedLateAcceptanceSearch` |
+
+## Fetched 2026-11-28 (Omission Sweep)
+
+The sources the user placed for the catalog survey, sampled on 2026-11-28 (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28); the decisions are in the rows, the package notes and follow-ups, and the folder notes (Omission Sweep 2026-11-28). Items counts the candidate decisions of this folder citing the key.
+
+| Key | Source | URL | Filed Copy | Items |
+|---|---|---|---|---|
+| ALGOWIKI | MIT Algorithm Wiki, problem families index, saved page | https://algorithm-wiki.org/families | `95-Resources/14-Web Pages/50-algorithm_wiki-index.pdf` | 25 |
+| BOJ | solved.ac tag list, 8 saved pages | https://solved.ac/problems/tags | `95-Resources/14-Web Pages/43-solved_ac-tags1.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags2.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags3.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags4.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags5.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags6.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags7.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags8.pdf` | 1 |
+| CLRS | Cormen, Leiserson, Rivest, Stein, Introduction to Algorithms, 4th ed. (2022) | https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/ | `95-Resources/13-Papers/72-introduction_to_algorithms-cormen_2022.pdf` | 7 |
+| CRANDALL | Crandall, Pomerance, Prime Numbers: A Computational Perspective, 2nd ed. (2005) | https://link.springer.com/book/10.1007/0-387-28979-8 | `95-Resources/13-Papers/69-prime_numbers-crandall_2005.pdf` | 7 |
+| EOA | Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016) | https://link.springer.com/referencework/10.1007/978-1-4939-2864-4 | `95-Resources/13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf` | 65 |
+| GUSFIELD | Gusfield, Algorithms on Strings, Trees, and Sequences (1997) | https://doi.org/10.1017/CBO9780511574931 | `95-Resources/13-Papers/62-algorithms_on_strings_trees_sequences-gusfield_1997.pdf` | 2 |
+| HACKERS | Warren, Hacker's Delight, 2nd ed. (2012) | https://www.informit.com/store/hackers-delight-9780321842688 | `95-Resources/13-Papers/59-hackers_delight-warren_2012.pdf` | 19 |
+| LEETCODE | LeetCode problem list with topic tags (4,124 problems, 175 topics), exported | https://leetcode.com/problemset/ | `95-Resources/14-Web Pages/46-leetcode-topic_tags.csv` | 1 |
+| MEHTASAHNI | Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018) | https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006 | `95-Resources/13-Papers/64-handbook_of_data_structures-mehta_2018.pdf` | 16 |
+| NAVARRO | Navarro, Compact Data Structures: A Practical Approach (2016) | https://doi.org/10.1017/CBO9781316588284 | `95-Resources/13-Papers/67-compact_data_structures-navarro_2016.pdf` | 4 |
+| QOJ | QOJ template problems (tag 模板题), saved page | https://qoj.ac/problems?tag=%E6%A8%A1%E6%9D%BF%E9%A2%98 | `95-Resources/14-Web Pages/44-qoj-template_problems.pdf` | 1 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/65-taocp_4a-knuth_2011.pdf` | 46 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/66-taocp_4b-knuth_2022.pdf` | 46 |
+| YUKI | yukicoder tag statistics, saved page (logged in) | https://yukicoder.me/statistics/tags | `95-Resources/14-Web Pages/47-yukicoder-tags.pdf` | 3 |

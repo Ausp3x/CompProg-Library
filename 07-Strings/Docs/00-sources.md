@@ -280,3 +280,35 @@ The user supplied these copies on 2026-11-22. They are personal study copies, ke
 | Luogu P4036, "[JSOI2008] 火星人" (BZOJ 1014), https://www.luogu.com.cn/problem/P4036; `14-Web Pages/28-luogu_p4036-jsoi2008_martian.pdf`, rendered as images (broken CJK text layer) | `00b318d834bc00028f429ab12b5334913a38e047da482b6be13d90980197fdbe` | pp. 2–3 | Row 23: `Q x y` (LCQ, the longest common prefix of two suffixes), `R x d` (replace), `I x d` (insert after `x`); `M ≤ 150000`, length at most `10^5`, at most `10^4` queries. |
 | SPOJ BWHEELER, "Burrows Wheeler Precompression", https://www.spoj.com/problems/BWHEELER/; `14-Web Pages/28-spoj_bwheeler-burrows_wheeler_precompression.pdf` | `df5720d910e3a9708aa4c64afe90dc0a116f7b05f31d93dccfa0220f7a749308` | pp. 1–3 | Row 29: invert the last column of the sorted rotations given the 1-based row `R` of the input; see [29-bwt.md](29-bwt.md#sources). |
 | adamant, "Palindromic tree: behind the scenes", Codeforces blog 13959, https://codeforces.com/blog/entry/13959; `14-Web Pages/28-codeforces_blog_13959-palindromic_tree.pdf` | `b2653f3998a4429666616d03cca29a602f57af4e1dbd6d66e28cb2c2f1ae113d` | pp. 1–3 (the post) | Row 13: two roots of lengths `-1` and `0` with a suffix link from the second to the first, at most `n + 2` nodes, amortized linear appends. Row 45 and [00-notes.md](00-notes.md): rollback breaks the amortization (`aa…ab` with `b` removed and re-added), so the post keeps per-symbol or "smart" links for non-amortized appends. |
+
+## Fetched 2026-11-27 (Omission Sweep)
+
+Candidates of the 2026-11-27 catalog survey, applied the same day; the catalog pages they came from are listed in `00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md` (Sources), and the decisions are in the rows, the folder notes (Omission Sweep 2026-11-27) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
+
+| URL | Used for |
+|---|---|
+| https://api.github.com/repos/dacin21/dacin21_codebook/git/trees/master?recursive=1 | repository file list for the candidate check |
+| https://raw.githubusercontent.com/dacin21/dacin21_codebook/master/strings/palindrome_dsu.cpp | `palindromeConstraintClasses` |
+| https://raw.githubusercontent.com/dacin21/dacin21_codebook/master/strings/anti_hash.cpp | `antiHashTree`, `antiHashBirthday`, `antiHash` |
+| https://api.github.com/repos/spaghetti-source/algorithm/git/trees/master?recursive=1 | repository file list for the candidate check |
+| https://raw.githubusercontent.com/spaghetti-source/algorithm/master/data_structure/segment_recognizer.cc | candidate check |
+| https://api.github.com/repos/ShahjalalShohag/code-library/git/trees/main?recursive=1 | repository file list for the candidate check |
+| https://raw.githubusercontent.com/ShahjalalShohag/code-library/main/Strings/Palindromic%20Tree%20Persistent.cpp | `RollbackPalindromicTree::longestPalindrome` |
+| https://raw.githubusercontent.com/ShahjalalShohag/code-library/main/Strings/Suffix%20Automaton%20Distinct%20Substring%20Queries%20in%20Range.cpp | candidate check |
+| https://raw.githubusercontent.com/old-yan/CP-template/main/STR/RollbackKMP.md | `KmpMatcher::popBack` |
+| https://raw.githubusercontent.com/ShahjalalShohag/code-library/main/Strings/Aho%20Corasick%20All%20Pair%20Occurrence%20Relation.cpp | candidate check |
+
+## Fetched 2026-11-28 (Omission Sweep)
+
+The sources the user placed for the catalog survey, sampled on 2026-11-28 (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28); the decisions are in the rows, the package notes and follow-ups, and the folder notes (Omission Sweep 2026-11-28). Items counts the candidate decisions of this folder citing the key.
+
+| Key | Source | URL | Filed Copy | Items |
+|---|---|---|---|---|
+| ALGOWIKI | MIT Algorithm Wiki, problem families index, saved page | https://algorithm-wiki.org/families | `95-Resources/14-Web Pages/50-algorithm_wiki-index.pdf` | 13 |
+| EOA | Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016) | https://link.springer.com/referencework/10.1007/978-1-4939-2864-4 | `95-Resources/13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf` | 28 |
+| GUSFIELD | Gusfield, Algorithms on Strings, Trees, and Sequences (1997) | https://doi.org/10.1017/CBO9780511574931 | `95-Resources/13-Papers/62-algorithms_on_strings_trees_sequences-gusfield_1997.pdf` | 24 |
+| JEWELS | Crochemore, Rytter, Jewels of Stringology (2002) | https://doi.org/10.1142/4838 | `95-Resources/13-Papers/63-jewels_of_stringology-crochemore_2002.pdf` | 11 |
+| MEHTASAHNI | Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018) | https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006 | `95-Resources/13-Papers/64-handbook_of_data_structures-mehta_2018.pdf` | 8 |
+| NAVARRO | Navarro, Compact Data Structures: A Practical Approach (2016) | https://doi.org/10.1017/CBO9781316588284 | `95-Resources/13-Papers/67-compact_data_structures-navarro_2016.pdf` | 15 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/65-taocp_4a-knuth_2011.pdf` | 1 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/66-taocp_4b-knuth_2022.pdf` | 1 |

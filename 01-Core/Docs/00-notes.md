@@ -94,3 +94,9 @@ Folder-wide contracts, numeric policies and cross-folder ownership. Operation li
 
 - Core owns stream I/O: `FastInput`/`FastOutput` in [19-fastio.md](19-fastio.md), moved from `06-Miscellaneous/03-fastio.hpp` on 2026-11-01, absorbing planned row 17. `06-Miscellaneous/50-interactive.hpp` keeps its own judge protocol type.
 - Not adopted in the 2026-11-01 sweep ([00-sources.md](00-sources.md)): a whole-line integer reader such as hitonanode's `read_ints` (`peek`/`get` up to the newline, then `readInt`); count-returning and compile-time-separator forms (yosupo `read_unsafe`, `write<sep>`; use `read` with `status`, `put`/`writeValue`); KACTL's lenient `readInt` that skips any non-digit byte (garbage separators are a problem-specific trick); `bool` reading (read an integer); fixed-length string reads (`readToken`); `long double` I/O (its fixed text reaches 4,933 integer digits, past `writeDouble`'s 512-byte buffer, and reading alone would be one-sided); declare-and-read macros and Yes/No printers (forms of `read`/`print`); `close()` (the reader borrows the caller's `FILE*`); stream setup (`sync_with_stdio`, the template's concern). User decision 2026-11-01: the list stands, together with the ModInt `rd`/`wt` omission ([19-fastio.md](19-fastio.md), Limits and Handoffs) and the adopted pair and tuple forms, `bool` written as 0/1 and `float` reading.
+
+## Omission Sweep 2026-11-28
+
+Left out from the candidates of the 2026-11-28 sample of the sources the user placed (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28).
+
+- Remainder by digit sums for small divisors (HACKERS): Under 03-cpp.md One API per Operation they are constant-specific forms of `%`, which the compiler and Core Barrett reciprocals already reduce with the same results.

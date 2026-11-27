@@ -335,8 +335,9 @@ def main():
         notes = sorted({root / t.split('/', 1)[0] / 'Docs/00-notes.md' for t in targets})
         found = [line for d in docs for line in limits(d, root)]
         section('Recorded limits (evidence headings)', found, max(len(found), 1))
-        section('Undecided limits (no `user decision <date>`: fix, move to Contracts or ask; plan.py set verified refuses them)',
-                [f'{d.relative_to(root)}:{i}: {t[:140]}' for d in docs for i, t in plan.undecided(d)])
+        handed = plan.open_ids(packages)
+        section('Undecided limits (no `user decision <date>` or open `follow-up on Pxxx`: fix, move to Contracts or ask; plan.py set verified refuses them)',
+                [plan.limit_line(d.relative_to(root), i, t, handed) for d in docs for i, t in plan.undecided(d, handed)])
         fu = plan.followups(pkg)
         section(f'Follow-ups of {pkg["id"]} (close each one done: plan.py follow-up {pkg["id"]} --done <n>)',
                 [f'{i}. {x}' for i, x in enumerate(fu, 1)])

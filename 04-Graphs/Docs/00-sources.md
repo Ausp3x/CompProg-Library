@@ -632,3 +632,39 @@ The user supplied these copies on 2026-11-22. They are personal study copies, ke
 | SPOJ COT, Count on a tree, https://www.spoj.com/problems/COT/; `14-Web Pages/21-spoj_cot-count_on_a_tree.pdf` | `35c78605f922bdc9d045884408c16a3e0eba4e130685d4428e4cd72cc95aaeac` | pp. 1–2 | k-th smallest vertex weight on a tree path, `N, M ≤ 10^5`: planned package P248. |
 | LibreOJ #2788, CEOI2015 Day 1 管道 (Pipes), https://loj.ac/p/2788; `14-Web Pages/22-loj_2788-ceoi2015_pipes.pdf` | `432f7b3c0894f27af0954bed3df9ab8137d13935f8fdb3633db7379edbebc3a6` | pp. 1–2, rendered | Bridges of an undirected multigraph without loops, not necessarily connected, `N ≤ 100,000`, `M ≤ 6,000,000`, 16 MiB: `BridgesStreaming`. |
 | CSES 2179, Even Outdegree Edges, https://cses.fi/problemset/task/2179; `14-Web Pages/23-cses_2179-even_outdegree_edges.pdf` | `c0be2ac833cab837487df20e0617d4f99be2664779b08ad72fe8ccdf48ea1f1e` | pp. 1–2 | Orient every edge so that every out-degree is even, or print IMPOSSIBLE; simple graphs. `evenOutdegreeOrientation` also allows loops and parallel edges. |
+
+## Fetched 2026-11-27 (Omission Sweep)
+
+Candidates of the 2026-11-27 catalog survey, applied the same day; the catalog pages they came from are listed in `00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md` (Sources), and the decisions are in the rows, the folder notes (Omission Sweep 2026-11-27) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded Decisions).
+
+| URL | Used for |
+|---|---|
+| https://raw.githubusercontent.com/hos-lyric/libra/master/graph/enumerate_unlabeled_graph.cpp | `forEachUnlabeledGraph` |
+| https://raw.githubusercontent.com/ShahjalalShohag/code-library/main/Graph%20Theory/Persistent%20Centroid%20Decomposition.cpp | candidate check |
+| https://raw.githubusercontent.com/ShahjalalShohag/code-library/main/Data%20Structures/Centroid%20Decomposition%20Persistent.cpp | `PersistentCentroidDecomposition` |
+| https://raw.githubusercontent.com/old-yan/CP-template/main/TREE/MenghaniMatani.md | checked, already in `85-levelancestor.hpp` |
+| https://raw.githubusercontent.com/EndlessCheng/codeforces-go/master/copypasta/graph_tree.go | `treeBlockPartition` |
+| https://raw.githubusercontent.com/hos-lyric/libra/master/graph/bisimulation.cpp | `colorRefinement (directed)` |
+| https://raw.githubusercontent.com/maspypy/library/main/graph/all_cycle_common_vertices.hpp | checked, already in `95-graph_problems.hpp` |
+| https://api.github.com/repos/to-omer/competitive-library/git/trees/master?recursive=1 | repository file list for the candidate check |
+| https://raw.githubusercontent.com/to-omer/competitive-library/master/crates/competitive/src/graph/path_weighted_matching.rs | `pathWeightedMatching (exactly k)`, `pathWeightedMatching (every k)`, `pathWeightedMatchingInRange` |
+| https://raw.githubusercontent.com/drken1215/algorithm/master/Flow/min_cost_tension.cpp | checked, already in `44-differenceconstraints.hpp` |
+
+## Fetched 2026-11-28 (Omission Sweep)
+
+The sources the user placed for the catalog survey, sampled on 2026-11-28 (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28); the decisions are in the rows, the package notes and follow-ups, and the folder notes (Omission Sweep 2026-11-28). Items counts the candidate decisions of this folder citing the key.
+
+| Key | Source | URL | Filed Copy | Items |
+|---|---|---|---|---|
+| ALGOWIKI | MIT Algorithm Wiki, problem families index, saved page | https://algorithm-wiki.org/families | `95-Resources/14-Web Pages/50-algorithm_wiki-index.pdf` | 6 |
+| AMO | Ahuja, Magnanti, Orlin, Network Flows: Theory, Algorithms, and Applications (1993) | https://www.pearson.com/en-us/subject-catalog/p/network-flows-theory-algorithms-and-applications/P200000003466 | `95-Resources/13-Papers/60-network_flows-ahuja_1993.pdf` | 12 |
+| CLRS | Cormen, Leiserson, Rivest, Stein, Introduction to Algorithms, 4th ed. (2022) | https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/ | `95-Resources/13-Papers/72-introduction_to_algorithms-cormen_2022.pdf` | 2 |
+| EOA | Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016) | https://link.springer.com/referencework/10.1007/978-1-4939-2864-4 | `95-Resources/13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf` | 107 |
+| GUSFIELD | Gusfield, Algorithms on Strings, Trees, and Sequences (1997) | https://doi.org/10.1017/CBO9780511574931 | `95-Resources/13-Papers/62-algorithms_on_strings_trees_sequences-gusfield_1997.pdf` | 1 |
+| HDCG | Goodman, O'Rourke, Tóth (eds.), Handbook of Discrete and Computational Geometry, 3rd ed. (2017) | https://www.csun.edu/~ctoth/Handbook/HDCG3.html | `95-Resources/13-Papers/70-handbook_of_discrete_computational_geometry-goodman_2017.pdf` | 4 |
+| MEHTASAHNI | Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018) | https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006 | `95-Resources/13-Papers/64-handbook_of_data_structures-mehta_2018.pdf` | 16 |
+| NAVARRO | Navarro, Compact Data Structures: A Practical Approach (2016) | https://doi.org/10.1017/CBO9781316588284 | `95-Resources/13-Papers/67-compact_data_structures-navarro_2016.pdf` | 4 |
+| SCHRIJVER | Schrijver, Combinatorial Optimization: Polyhedra and Efficiency (2003) | https://link.springer.com/book/9783540443896 | `95-Resources/13-Papers/71-combinatorial_optimization-schrijver_2003.pdf` | 61 |
+| SPOJ | SPOJ problem tags, saved page | https://www.spoj.com/problems/tags/ | `95-Resources/14-Web Pages/45-spoj-tags.pdf` | 3 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/65-taocp_4a-knuth_2011.pdf` | 2 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/66-taocp_4b-knuth_2022.pdf` | 2 |

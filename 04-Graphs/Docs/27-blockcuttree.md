@@ -142,7 +142,7 @@ Read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-chec
 - The row is `partial`: `BlockCutTree::mandatoryVertexCount` for a vertex set is missing.
 - The incremental structure answers only `sameBlock`; its block IDs change under merges.
 - Other set-of-terminals queries are row 14 virtual trees over `tree`; three-edge-connectivity is row 74; cactus structure is row 41.
-- Vertex-biconnectivity augmentation stays out ([00-notes.md](00-notes.md#p047-omissions)).
+- Vertex-biconnectivity augmentation belongs to row 45 `vertexConnectivityAugmentation` ([00-notes.md](00-notes.md#p047-omissions); omission sweep 2026-11-28).
 - There is no mutation record yet; the planted mutants are the only mutation evidence.
 - Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
 

@@ -181,3 +181,21 @@ Four `@researcher` passes, one per GE02 row; sources are in [00-sources.md](00-s
 - **Not adopted:** CGAL's rational rotation that approximates a direction to a given error (no contest use).
 - **Added, all-pairs scans (a Priority exception, user decision 2026-11-14, recorded in `omissions.md`):** `closestPairNaive`, `closestPair3Naive` and `minimumPerimeterTriangleApproxNaive` in row 05 and `farthestPairNaive` in row 07. Each is a short scan beside the divide and conquer or the hull and calipers it shadows, with the same domain, result and tie rule (row 12's `reportIntersectionsNaive` is the precedent).
 - **Follow-ups outside GE02 (user decisions):** `fromPolarApprox` (OI Wiki 坐标系; row 01 would own it beside `argApprox` and `normApprox`); the onion and spiral triangulations, quadrangulation, art gallery guarding and wedge placement of the Wikipedia calipers list (no row owns them). The thinnest-strip and shortest transversals are already listed under Limits in `00-Guidelines/23-Sweep Ledgers/Docs/00-duplicate-rereview.md`.
+
+## Omission Sweep 2026-11-27
+
+Left out from the candidates of the 2026-11-27 catalog survey (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`; user decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded Decisions): second implementations and slower algorithms that Priority does not admit.
+
+- M-tree (WIKI): a paged dynamic metric index with no bound beyond row 28 `CoverTree`, and neither lighter, wider nor more capable (`01-principles.md`, Priority).
+
+## Omission Sweep 2026-11-28
+
+Left out from the candidates of the 2026-11-28 sample of the sources the user placed (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28).
+
+- BAR trees (MEHTASAHNI): A second implementation of BbdTree (DS2-030) approximate queries with the same bounds (One API per Operation).
+- Lin–Canny closest features and the Voronoi-based marching algorithm (MEHTASAHNI): Second implementations of Geometry 42 polytopeDistance and Geometry 17 convexSeparated with no better bound (03-cpp.md, One API per Operation).
+- Virtual quadtrees and the translation-invariant data structure (MEHTASAHNI): Other encodings of the binary images RegionQuadtree (DS2-025) handles, with the same operations (One API per Operation).
+- Separating chains and fractional cascading for point location (MEHTASAHNI): A second implementation of row 34's O(log n) point location (SlabLocator, TrapezoidalMap, KirkpatrickLocator) with no better bound (One API per Operation).
+- Triangulation by monotone mountains (OROURKE): One API per Operation: it has the same O(n log n) bound and result as row 18's monotonePartition plus triangulateMonotone, and no Priority criterion applies.
+- Preparata–Hong divide-and-conquer convex hull (OROURKE): One API per Operation and Priority: it has the same O(n log n) bound and output as convexHull, like Quickhull, Akl–Toussaint and Bykat, which 03-Geometry/Docs/00-notes.md (P007) already rejects.
+- Local-search k-median and metric facility location (EOA): Priority (01-principles.md): a slower, worse-ratio algorithm for the same task as the kept facilityLocationGreedy, and not lighter once its kMedianLocalSearch dependency is counted. It needs a recorded line in 03-Geometry/Docs/00-notes.md.

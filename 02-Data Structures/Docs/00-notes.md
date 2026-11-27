@@ -234,3 +234,39 @@ Left out:
 
 - Prefix-sum constructors from `(n, f(i))` and clamped `sum<true>` (MAS), and `add` then `build` (EI, NYA): argument forms of the vector constructors and `sum`.
 - `BlockList` set, range reverse, split and merge (OI): `at` returns a mutable reference; sequence split, merge and reverse are rows 19 and 20.
+
+## Omission Sweep 2026-11-27
+
+Left out from the candidates of the 2026-11-27 catalog survey (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`; user decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded Decisions): second implementations and slower algorithms that Priority does not admit.
+
+- Zip tree (WIKI): a second implementation of row 19 `Treap` and row 20 `SkipList`, with the same operations and expected O(log n) bounds (`03-cpp.md`, One API per Operation).
+- Conc-tree (WIKI): a second implementation of row 57 `FingerTree` push and concat and of row 58 `PersistentImplicitTreap` concat and split, at equal or better bounds (One API per Operation).
+- Pagoda (WIKI): a second implementation of row 25's meldable heaps (push, pop, top, meld) at equal or worse bounds (One API per Operation).
+- T-tree (WIKI): a second implementation of row 20 `AVLTree` and of `BTree`'s array nodes, with the same operations and O(log n) bounds (One API per Operation).
+- Threaded tree (WIKI): no new operation; its successor and predecessor walks are row 20 `lowerBound` and `upperBound`, and its stackless traversal is row 76 `morrisInorder` (One API per Operation).
+- WAVL tree (WIKI): a second implementation of row 20 `AVLTree` and `RedBlackTree` with the same bounds; its O(1) amortized rotations give no operation they lack (One API per Operation).
+- Queap (WIKI): a second implementation of row 25 `DAryHeap` and `PairingHeap` push, pop and top, no better in the worst case (One API per Operation).
+- Weak heap (WIKI): a second implementation of row 25 `DAryHeap` with the same bounds; its saving in comparisons serves weak-heap sort, which no catalog names here (One API per Operation).
+- Beap (WIKI): its O(sqrt n) insert, erase and search lose to row 25 `DAryHeap` for priority operations and to row 20's trees for search (`01-principles.md`, Priority).
+- Judy array (WIKI): an engineered 256-ary radix trie whose operations row 61 `HashMap`, row 36 `FastSet`, row 26 `BinaryTrie` and Strings row 25 `RadixTrie` already provide (One API per Operation).
+- Hash array mapped trie (WIKI): a second persistent map; row 58 `PersistentTreap` provides its operations, and row 35 `PersistentArray` uses the same 2^B-ary path copying (One API per Operation).
+- LSM-tree (WIKI): the logarithmic method over sorted runs, which row 69 `BinaryGrouping` provides; row 20 `BTree` is the in-memory index (One API per Operation).
+- Piece table (WIKI): a second editable sequence; row 19 `ImplicitTreap`, row 20 `ImplicitSplay` and `Rope`, and row 06 `BlockList` give its insert, erase and at at equal or better bounds (One API per Operation).
+
+Kept although their only gain is space (user decision 2026-11-27, a Priority exception recorded in `omissions.md`): `RRRBitVector`, `HybridBitVector` and `EliasFano` in row 40, `DirectlyAddressableCodes`, `CodedVector`, `SuccinctPermutation` and `SortedIntStack` in row 60, and `K2Tree` in row 43. A memory gain counts as more capable when a judge memory limit binds; each package keeps the structure's own query bounds as its contract and measures its space against the plain form it compresses.
+
+## Omission Sweep 2026-11-28
+
+Left out from the candidates of the 2026-11-28 sample of the sources the user placed (`00-Guidelines/23-Sweep Ledgers/Docs/00-catalog-survey.md`, Sampled and Applied 2026-11-28).
+
+- Weight-biased leftist trees (MEHTASAHNI): A second implementation of row 25 LeftistHeap with the same O(log n) push, pop and meld (03-cpp.md, One API per Operation); row 20's leafy WBLT is a different structure.
+- Symmetric min-max heaps, min-max heaps, deaps and dual priority queues (MEHTASAHNI): Second implementations of row 25 DoubleEndedPriorityQueue (interval heap) with the same O(log n) push, popMin and popMax and O(1) min and max (One API per Operation).
+- Dynamic perfect hashing (MEHTASAHNI): Same worst-case O(1) lookup and expected amortized O(1) updates as row 61 CuckooHashMap (One API per Operation); static FKS is Miscellaneous row 19 FksHash.
+- Chaining, quadratic probing, double hashing and Brent's method (MEHTASAHNI): Second implementations of row 61 HashTable (linear probing) with the same expected O(1) bounds and no faster form in practice (One API per Operation).
+- Low-height schemes and relaxed balance (MEHTASAHNI): Relaxed balance decouples rebalancing for concurrency and low-height schemes only tighten constants of the height; sequentially they are second implementations of row 20's trees with the same O(log n) bounds (One API per Operation).
+- Randomized finger search trees (MEHTASAHNI): Second implementations of FingerSearchTree (DS2-012) with the same expected O(log d) bounds (One API per Operation).
+- Topology trees (MEHTASAHNI): A second implementation of row 39 TopTree link, cut and path or subtree aggregates with the same O(log n) bounds (One API per Operation).
+- Concurrent data structures (MEHTASAHNI): 01-principles.md (Profiles) fixes single-threaded execution as the baseline, and sequentially these are second implementations of rows 25, 30, 61 and 20 with the same bounds (One API per Operation).
+- Most-specific-range matching (MEHTASAHNI): For nonintersecting and conflict-free ranges the most specific match is the shortest containing range, an argument form of IntervalTree::stabMax (DS2-069) with priority minus length (03-cpp.md, One API per Operation).
+- LOUDS lowest common ancestor (NAVARRO): Slower (O(depth)) than row 41 BalancedParenthesesTree::lca and DFUDS lca in the same domain; Priority admits no slower second form here (01-principles.md, Priority).
+- Secondary-memory succinct structures (NAVARRO): Disk layouts of the in-memory rows 40, 60, 41, 43 and Strings 36 with the same operations and no better RAM-model bound (One API per Operation).
