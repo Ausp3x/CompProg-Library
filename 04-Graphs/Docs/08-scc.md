@@ -4,6 +4,10 @@ Owned by package P011 / GR03 (with `07-lca.hpp`, `09-bridges_articulation.hpp` a
 
 ## Contracts
 
+### Scope
+
+The row covers static strong connectivity on one snapshot. Incremental SCC belongs to `70-incrementalscc.hpp`, and SCC-based transitive closure and reduction to `40-reachability.hpp`.
+
 ### SccResult, tarjanScc and kosarajuScc
 
 `tarjanScc(g)` and `kosarajuScc(g)` require directed input and return an owning `SccResult` that does not borrow the graph. `component[u]` indexes the nonempty `groups` partition. IDs run from zero in source-to-sink order: each arc between different components goes from a smaller ID to a larger one. The relative order of components that cannot reach each other is unspecified for each algorithm and may differ between them (user decision 2026-11-16), and group member order is unspecified. An empty graph has no components.
@@ -25,6 +29,8 @@ Both take a directed graph and a valid SCC result for it (from `tarjanScc` or `k
 `strongConnectivityAugmentation(g, scc)` returns a minimum set of arcs whose addition makes `g` strongly connected (Eswaran and Tarjan 1976, CSES 1685). Each arc joins two component representatives `scc.groups[c][0]`. The set is empty for at most one component and otherwise has exactly `max(s, t)` arcs for `s` source and `t` sink components (an isolated component counts as both), never a loop. That count is a lower bound because every source needs a new incoming arc and every sink a new outgoing one.
 
 Construction on the condensation: a DFS from each source in increasing ID order, over vertices no earlier search entered, stops at the first sink it enters and pairs it with that source. Every entered vertex then reaches a paired sink: it either lay on the path when a search stopped, or was finished, so all its successors were entered. Every unpaired sink is reached from a paired source, through the vertex where that source's search was blocked. Arcs `tail_i → head_(i+1)` join the `p` pairs into one cycle `C`, where `p >= 2` or the single pair has distinct ends whenever there are at least two components. Then `min(s, t) − p` arcs run from unpaired sinks to unpaired sources, and the rest run from the first tail to the remaining unpaired sources, or from the remaining unpaired sinks to the first head. Every sink reaches `C` and `C` reaches every source, so the result is strongly connected, with `p + max(s − p, t − p)` arcs. O(n + m) time, O(k + d) memory. The first arc also answers CSES 1682 Flight Routes Check: it runs from a sink component to a different source component, so its tail cannot reach its head.
+
+Eswaran and Tarjan (1976, §2), read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)), prove the same bound: Theorem 2 needs `max(s, t) + q` arcs, where their sources and sinks exclude the `q` isolated components; that equals `max(s, t)` as counted here, with an isolated component counted as both. Their construction differs. Their search explores everything reachable from a source and records the first sink it meets, and the surplus sinks and isolated components join the cycle as one chain. The header stops each search at its first sink and routes the surplus through the first pair. So the construction proof above is this package's own, and the closure oracle checks it.
 
 ### maximumWeightWalk
 
@@ -125,9 +131,7 @@ Legacy: `OLD/Team Notebook/src/graph/old_kosaraju.cpp` was inspected; its two DF
 
 ## Limits and Handoffs
 
-Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure and reduction belong to `40-reachability.hpp`; fully dynamic SCC has no row. None is claimed here.
-
-Eswaran and Tarjan (1976, §2), read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)), prove the same bound: Theorem 2 needs `max(s, t) + q` arcs, where their sources and sinks exclude the `q` isolated components; that equals `max(s, t)` as counted here, with an isolated component counted as both. Their construction differs. Their search explores everything reachable from a source and records the first sink it meets, and the surplus sinks and isolated components join the cycle as one chain. The header stops each search at its first sink and routes the surplus through the first pair. So the construction proof under `strongConnectivityAugmentation` is this package's own, and the closure oracle checks it.
+- Fully dynamic SCC (online arc insertions and deletions) has no row yet: it gets a planned row once `04-Graphs` has a free prefix (user decision 2026-11-27, follow-up on P011).
 
 ## Aliases
 
@@ -146,3 +150,4 @@ Search aliases (P011 GR03, grab --find): strong connectivity augmentation, fewes
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run passed.
 - 2026-11-15: P011 GR03, added `attractingComponents`, `isSemiconnected`, `strongConnectivityAugmentation`, `maximumWeightWalk` (user decision) and `reachabilityRealization`; completeness sweeps (three passes and a gap recheck); full (seed 20261115) on g++ and g++-14, stress, extraction, integration and the benchmark passed; independent review: a backwards sentence in the augmentation proof and the merge wording fixed, the weight assertion moved to entry; whole-file mutation campaign: four size-assertion probes added, and two survivors (`COS 449`, a tie changing the walk's witness; `AS 219`, DSU representatives ordering the closing arcs) led to the fixed walk witness and closing-arc order with exact tests; then a campaign on the changed lines (1 survivor, equivalent).
 - 2026-11-16: P011 /finish GR03: `reachabilityRealization` calls `graphComponents`; tests added for the CSES 1682 witness (the first augmentation arc's head is unreachable from its tail), weights up to `INT64_MAX` in `maximumWeightWalk` and the exact witness and realization order; the order of mutually unreachable components stays unspecified (user decision, `BL 227`); probe count corrected to 17; full (seed 20261116) on g++ and g++-14, stress (seed 20261117), extraction and integration passed; changed-line mutation campaign: 4 mutants, all caught.
+- 2026-11-27: P011 limits recheck: the ownership boundaries moved to Contracts (Scope) and the Eswaran and Tarjan comparison under `strongConnectivityAugmentation`; fully dynamic SCC handed to a planned row (user decision, follow-up on P011); independent review; documents only, no run.

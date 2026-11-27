@@ -102,10 +102,28 @@ struct BridgesStreaming {
         if (first.uniteSets(u, v) || second.uniteSets(u, v)) { kept.push_back({u, v, count}); }
         return count++;}
     vector<int> bridges() const {
-        Graph g(n, false);
-        for (auto [u, v, i] : kept) { g.addEdge(u, v); }
-        auto low = lowlink(g); vector<int> res;
-        for (int e = 0; e < int(kept.size()); ++e) { if (low.is_bridge[e]) { res.push_back(kept[e][2]); }}
+        int k = int(kept.size()), timer = 0;
+        vector<int> start(n + 1), adj(2 * k), tin(n, -1), low(n), up(n), res;
+        vector<uint8_t> bridge(k);
+        for (auto [u, v, i] : kept) { ++start[u]; ++start[v]; }
+        for (int u = 0; u < n; ++u) { start[u + 1] += start[u]; }
+        for (int e = k; e--;) { adj[--start[kept[e][0]]] = e; adj[--start[kept[e][1]]] = e; }
+        vector<int> pos(start.begin(), start.end() - 1);
+        // Iterative DFS without a stack: up[u] is the tree edge to u's parent, -1 at a root.
+        for (int r = 0; r < n; ++r) {
+            if (tin[r] != -1) { continue; }
+            tin[r] = low[r] = timer++; up[r] = -1;
+            for (int u = r; u != -1;) {
+                if (pos[u] < start[u + 1]) {
+                    int e = adj[pos[u]++], v = kept[e][0] ^ kept[e][1] ^ u;
+                    if (e == up[u]) { continue; }
+                    if (tin[v] == -1) { tin[v] = low[v] = timer++; up[v] = e; u = v; }
+                    else { low[u] = min(low[u], tin[v]); }}
+                else if (int e = up[u]; e == -1) { u = -1; }
+                else {
+                    int p = kept[e][0] ^ kept[e][1] ^ u;
+                    low[p] = min(low[p], low[u]); bridge[e] = low[u] > tin[p]; u = p;}}}
+        for (int e = 0; e < k; ++e) { if (bridge[e]) { res.push_back(kept[e][2]); }}
         return res;}
 };
 

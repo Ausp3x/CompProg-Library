@@ -4,6 +4,10 @@ Owned by package P011 / GR03 (static forest LCA); omissions are in [00-notes.md]
 
 ## Contracts
 
+### Scope
+
+The row covers static forest LCA, ancestor jumps and path folds. Ancestor and path binary search by predicate is row 15's `maxPath` (HLD), O(1) level ancestor is row 85's ([00-notes.md](00-notes.md#tree-ownership)), and tree and HLD aggregates and dynamic-tree APIs keep their own owners ([00-notes.md](00-notes.md#placement-decisions-recorded)).
+
 ### lca_detail::Forest, LCA and EulerLCA
 
 `LCA(g, root=-1)`, `EulerLCA(g, root=-1)` and `lcaOffline(g, queries, root=-1)` accept the canonical `Graph` or `CsrGraph`. Input must be an undirected forest: loops, parallel edges and cycles violate preconditions. Every vertex participates, isolated ones included. An explicit root orients its own component first; the other components, and every component by default, are rooted at their smallest vertex. An empty forest is valid with `root=-1` and no queries.
@@ -188,9 +192,7 @@ Sources for `LCAFold` and `pathIntersection` (fetched 2026-10-07) are in [00-sou
 
 ## Limits and Handoffs
 
-Ancestor and path binary search by predicate belongs to row 15 (HLD); tree and HLD aggregates and dynamic-tree APIs keep their own owners (see [00-notes.md](00-notes.md#placement-decisions-recorded)).
-
-The runtime-only measurements of the block-size mutants (Mutation Testing) used a scratch driver that is not kept; its workload and build are described there.
+None.
 
 ## Aliases
 
@@ -213,3 +215,4 @@ Search aliases (P011 GR03, grab --find): DFS-order LCA, RMQ LCA, maspypy `Fast_L
 - 2026-11-10: P276 rename (`getLCA` → `lca`, `offlineLCA` → `lcaOffline`, `weightedDistance` → `distanceWeighted`, `getKthAncestor` merged into `kthAncestor` (user decision)); full on g++ and g++-14, stress and extraction passed.
 - 2026-11-15: P011 GR03, added `SparseTableLCA`, `meet` (user decision: kept beside `rerootedLCA`) and `lcaSet`, and the shared `lca_detail::Paths` base; completeness sweeps (three passes and a gap recheck); full (seed 20261115) on g++ and g++-14, stress, extraction, integration and the benchmark with `SparseTableLCA` passed; independent review: no finding on this header, its question on keeping `SparseTableLCA` answered by the measured crossover; whole-file mutation campaign, four probes added for its survivors, 51 equivalent or runtime only.
 - 2026-11-16: P011 /finish GR03: review fixes, no header change: the `EulerLCA` crossover stated per n and per workload, the `lcaSet` proof reworded, probe count corrected to 28, the GR03 sources and omissions linked, the benchmark driver recorded as scratch; the mutation record stays current (header unchanged).
+- 2026-11-27: P011 limits recheck: the row's ownership boundaries moved from Limits and Handoffs to Contracts (Scope); the scratch-driver note dropped, since Mutation Testing records it; documents only, no run.

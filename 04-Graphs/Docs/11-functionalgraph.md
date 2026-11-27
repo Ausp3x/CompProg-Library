@@ -4,6 +4,10 @@ Owned by package P011 / GR26 (functional graphs); omissions are in [00-notes.md]
 
 ## Contracts
 
+### Scope
+
+The row covers static all-vertex queries, ordered cycle and walk aggregates and one-orbit constant-memory analysis. Successor updates and fully dynamic functional-graph maintenance need a dynamic-tree design and are outside this static row. Generic Floyd and Brent cycle finding on an arbitrary step function is Miscellaneous `14-cyclefinding.hpp` ([00-notes.md](00-notes.md#ownership-boundaries)).
+
 ### FunctionalGraph
 
 The header owns static partial successor functions. The canonical input is a `vector<int>` of size at most `INT_MAX` whose entries are vertices in `[0,n)` or `-1`. The `Graph`/`CsrGraph` adapter requires directed input with at most one outgoing arc per vertex; two parallel arcs are invalid even when their targets agree. Edge weights are ignored; aggregates use a separate vertex-indexed label vector. The structure owns its data, so later input edits do not invalidate queries. Public preprocessing arrays are read-only; reassignment rebuilds the snapshot.
@@ -42,7 +46,7 @@ Walkers of different depths cannot meet while either is in a tail, since a commo
 
 Each aggregate table entry joins two consecutive blocks in order, so induction gives the fold of every power-of-two segment, and selecting blocks while advancing the start preserves order for any length. A long cyclic fold is the tail, whole laps of one fixed rotated cycle, and a final prefix; repeated squaring computes powers of that lap aggregate, which needs only associativity, since it is always the same ordered product, and neither commutativity nor inverses. Missing successors truncate before a nonexistent label is read. Construction uses O(n log(n+1)) monoid operations and storage; a walk fold O(log(n+1)+log(k+1)) operations, a preprocessed cycle fold O(log(n+1)), a direct one-cycle aggregate O(cycle length), and direct all-cycle aggregation O(n). These bounds count constant-size monoid values; variable-sized labels add their own costs.
 
-Floyd's two-speed pointers either reach termination or meet on a cycle. Resetting one pointer to the start finds the entry after exactly the tail length, then one lap measures the cycle length; a terminating orbit is retraced to find its last real vertex. O(tail+cycle_length+1) time, O(1) auxiliary memory.
+`functionalOrbit` runs Floyd's two-speed pointers, which Laaksonen (16.4, Sources) describes for the cyclic case; the argument here is self-contained and covers termination too. Write `x_0 = start`, `x_(i+1) = next[x_i]`, and `x_(i+1) = -1` once `x_i = -1`, as the code's `step(-1) = -1` does. After `t` rounds the pointers hold `x_t` and `x_(2t)`. A terminating orbit repeats no real vertex, since a repeat would cycle forever, so the pointers cannot meet at a real vertex and one of them reaches `-1` within `μ + 1` rounds, `μ` here the depth of the last real vertex; retracing from `start` finds that vertex. A cyclic orbit with tail length `μ` and cycle length `λ` never reaches `-1`, and `x_i = x_j` with `i < j` holds exactly when `i >= μ` and `λ` divides `j − i` (each vertex has one successor, so the walk repeats only from its first repeated vertex on). So `x_t = x_(2t)` with `t >= 1` holds exactly when `t >= μ` and `λ` divides `t`, and the first meeting comes at the least such `t`, at most `μ + λ`. Then one pointer restarts at `x_0` while the other continues from `x_t`, both one step per round: after `i` rounds they hold `x_i` and `x_(t+i)`, which are equal for `i = μ`, since `λ` divides `t`, and differ for `i < μ`, since `x_i` lies on the tail and `x_(t+i)` on the cycle. So they meet at the entry after exactly `μ` rounds, and one lap from it measures `λ`. O(μ + λ + 1) time, O(1) auxiliary memory.
 
 ## Feature-to-Test Map
 
@@ -63,6 +67,16 @@ Floyd's two-speed pointers either reach termination or meet on a cycle. Resettin
 | `maxStep` | Every enumerated map through n=4 and every random map: step-by-step walk oracle for every vertex, limits {0, 1, 2, n, 2n+3, `UINT64_MAX`}, nonnegative-sum thresholds {0, 1, 2, 5, n, 3n} and ordered string-prefix predicates (targets are walk folds of length 0, 1, n, 2n+3), so order errors are visible. The oracle stops after a step cap past which a still-true predicate means every further lap adds nothing, and then answers the limit. Large chain and full-range cycle fixtures. A mutation dropping the terminal-availability test was caught. |
 | Preconditions | 29 checked subprocess probes: invalid successors and vertices, empty queries, directed, outdegree and parallel-arc adapter requirements, label count, Floyd start and size, segment length and availability, and `maxStep` vertex and identity-predicate requirements. |
 
+## Mutation Testing
+
+Record: mewt 4.0.0 on blob `0e662bd046f612398e20fd4feee3f11a271b1986` (2026-11-27, seed 1, whole file, sample of 983: 10 high, 25 medium, 15 low): 50 mutants, 48 caught (0 by timeout), 2 survived, 0 untested.
+
+Stage times: quick 97 s, full optimized 11 s, full checked and ASan/UBSan 158 s. This is the header's first campaign, owed since P274 (user decision 2026-11-10).
+
+| Mutant | Line | Why it is equivalent |
+|---|---|---|
+| `CR 125`, the `functionalOrbit` size assertion removed; `COS 563`, its `<=` → `!=` | 11 | Unreachable: it binds only for a successor vector of more than `INT_MAX` entries (8 GiB), which no test can allocate, and the assertion vanishes under `NDEBUG`. |
+
 ## Commands and Results
 
 Intel Core i9-11900H, Linux x86-64, GNU++20. The 2026-11-10 rows are library-wide runs (P274, seed 42, beside the other suites, build cache emptied before each cold run) with this tester's stage times; their command limit is 1500 s instead of 720 s, since the ASan-UBSan stress run took 685 s beside the other suites.
@@ -75,7 +89,7 @@ Intel Core i9-11900H, Linux x86-64, GNU++20. The 2026-11-10 rows are library-wid
 | 2026-11-10 | `01-run.py --mode stress --rounds 1` | PASS, counts not recorded: 0.1 s + 27.8 s, 11.3 s + 58.3 s, 14.3 s + 685.2 s; peak 1281 MB |
 | 2026-10-17 | `11-functionalgraph_tester.py --mode full --seed 20261017` (GCC 16.2.1, CPython 3.14.7) | PASS, 3 configurations, 12,806,455 checks per configuration, 29 assertion probes; peak 805 MB |
 | 2026-10-17 | `CXX=g++-14 11-functionalgraph_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 12,806,455 checks per configuration; peak 835 MB |
-| 2026-10-17 | `11-functionalgraph_tester.py --mode stress --seed 7 --configuration optimized` | PASS, 222,137,296 checks (optimized build; the checked build then exceeded the former 180 s limit at stress size); peak 407 MB |
+| 2026-10-17 | `11-functionalgraph_tester.py --mode stress --seed 7 --configuration optimized` | PASS, 222,137,296 checks (optimized build); peak 407 MB |
 | 2026-10-17 | `02-integration.py --sanitizers` | PASS: 156 standalone and aggregate headers, scalar and available AVX2 multi-TU, workspace, sanitizer self-tests; peak 1834 MB |
 | 2026-10-07 | Ten hand mutations, quick suites | Every non-equivalent mutant fails |
 
@@ -94,7 +108,7 @@ Inspected on 2026-09-27. The header was implemented independently; no implementa
 
 | Source | Inspected scope and use |
 |---|---|
-| Antti Laaksonen, [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf), saved repository edition, sections 16.3–16.4 (printed pages 154–156) | Successor components, doubling recurrence, Floyd entry and cycle recovery, and the constant-memory single-orbit trade-off. This jump also reduces post-tail counts modulo the cycle length and handles missing successors. |
+| Antti Laaksonen, [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf), saved repository edition, filed as `95-Resources/01-competitive_programmers_handbook-laaksonen.pdf` (SHA-256 `3a04509c7cc2bde6717907d52821c7dd159f92c3a73199f5f6664bf0218a947e`), sections 16.3–16.4 (printed pages 154–156) | Successor components, doubling recurrence, Floyd entry and cycle recovery, and the constant-memory single-orbit trade-off. This jump also reduces post-tail counts modulo the cycle length and handles missing successors. |
 | [USACO Guide, Functional Graphs](https://usaco.guide/silver/func-graphs), retrieved 2026-09-27 | Rooted-tree and cycle component model, single-orbit Floyd and all-vertex decomposition examples. Its single-orbit and whole-graph workloads are kept distinct. |
 | [maspypy, graph/functional_graph.hpp](https://maspypy.github.io/library/graph/functional_graph.hpp), retrieved 2026-09-27 | `dist`, `jump`, `collect_cycle`, `meet_time` and aggregate APIs. It uses a cut-cycle tree and group inverses for some folds; this header uses explicit cycles, reverse-tree intervals and monoid blocks, supports noncommutative operations without inverses, and adds termination semantics. |
 
@@ -102,7 +116,7 @@ Sources for `jumpAll` and `maxStep` (fetched 2026-10-07) are in [00-sources.md](
 
 ## Limits and Handoffs
 
-Static all-vertex queries, ordered cycle and walk aggregates and one-orbit constant-memory analysis are in scope. Successor updates and fully dynamic functional-graph maintenance need a separate dynamic-tree design and are outside this static row. Constant-time level-ancestor constructions and arbitrary-speed collision schedules are specialized extensions these APIs do not claim. No original Floyd paper was reviewed.
+- `jump` takes O(log(n + 1)) by binary lifting. An O(1) form through row 85's ladder `LevelAncestor` on the reverse forest, plus the existing cycle branch, is benchmarked against it once row 85 is verified (user decision 2026-11-27, follow-up on P011).
 
 ## Aliases
 
@@ -117,3 +131,4 @@ Search aliases (P263, grab --find): 倍增, 基环树, 内向基环树, 函数�
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases: OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound and a raised command limit of 1500 s; full and stress inputs and checks unchanged; library-wide quick, full (g++ and g++-14) and stress runs passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.
+- 2026-11-27: P011 limits recheck: the ownership boundaries moved to Contracts (Scope); the `functionalOrbit` correctness argument completed (termination, meeting time, entry after exactly the tail length), so it rests on no unread Floyd source; the O(1) `jump` handed to a follow-up on P011 (user decision); first mutation campaign, 2 unreachable-assertion survivors.

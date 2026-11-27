@@ -4,6 +4,10 @@ Owned by package P011 / GR03 (with `07-lca.hpp`, `08-scc.hpp` and `09-bridges_ar
 
 ## Contracts
 
+### Scope
+
+The row covers static Euler trails on one graph. Euler-tour counting belongs to Mathematics `23-matrixtree.hpp` (`eulerianCircuitCountBest`), Chinese postman and route augmentation to `69-tjoin.hpp`, and mixed directed and undirected Euler circuits, which need max flow, to row 30 (`mixedEulerCircuit`, planned).
+
 ### EulerTrailResult and eulerianTrail
 
 `eulerianTrail(g,start=-1)` accepts directed or undirected input. `start=-1` chooses a valid start; any other start must be a valid vertex. A valid vertex that cannot start an Euler trail is an ordinary no-answer case, and the `exists` flag distinguishes it from an empty successful trail. On success, `vertices[i]` to `vertices[i+1]` follows the original oriented `arcs[i]`, whose logical ID is `edges[i]`, and every logical edge appears once. On failure all three vectors are empty.
@@ -14,7 +18,7 @@ Necessary conditions: undirected, zero or two odd vertices, and with two the sta
 
 ### eulerianTrail Lexicographic Option
 
-`eulerianTrail(g, start, true)` returns the lexicographically smallest vertex sequence among all Euler trails from the chosen start. With `start=-1` the automatic start is already the smallest valid one (the smallest odd vertex, the unique outdegree-surplus vertex, or the smallest edge-bearing vertex), so the result is the smallest sequence overall. Each adjacency list is copied and stably sorted by target: O(n + m * log(m + 1)) time and O(n + m) memory. Arc and edge witnesses follow the same contract; among parallel arcs the first in input order is used first. Correctness rests on the standard result that stack Hierholzer, always taking the smallest unused arc, outputs the lexicographically smallest Euler trail from its start (OI Wiki 欧拉图; USACO "Riding the Fences"); this record cites it rather than proving it. Only the scan order changes, so existence, witnesses and cost follow from the argument above. The tester's exhaustive search confirms the output on every case with at most 8 edges.
+`eulerianTrail(g, start, true)` returns the lexicographically smallest vertex sequence among all Euler trails from the chosen start. With `start=-1` the automatic start is already the smallest valid one (the smallest odd vertex, the unique outdegree-surplus vertex, or the smallest edge-bearing vertex), so the result is the smallest sequence overall. Each adjacency list is copied and stably sorted by target: O(n + m * log(m + 1)) time and O(n + m) memory. Arc and edge witnesses follow the same contract; among parallel arcs the first in input order is used first. Stack Hierholzer that always takes the smallest unused arc outputs the lexicographically smallest Euler trail from its start (OI Wiki 欧拉图; USACO "Riding the Fences"), by this argument. The trail `T` is the reversed pop order. When the algorithm takes arc `a` out of the top occurrence `o` of `v`, the part of `T` before `o` is exactly the current stack path, since everything on it is popped later than what lies above it. The arcs `P` popped so far form the suffix of `T`, and every head occurrence in `P` had no unused arc (no unused incident edge, undirected) when it was popped, while `a` was still unused; so `v` is no head in `P`, and no vertex that is one has an arc outside `P` and the stack path. Now let `b` be an arc out of `v` that sorts before `a` and is not on the stack path. The cursor took it before `a`, so `b` lies in `P`, and since `v` is no head there, `b` is the first arc of `P`. A trail that took `b` at `o` would then stay among the heads of `P` and never return to `v`, so it could not use `a`: `b` is infeasible. So at every step `T` takes the smallest arc that still completes an Euler trail of the remaining arcs, and parallel arcs are interchangeable for the vertex sequence, so induction on the first differing position gives the lexicographic minimum. Only the scan order changes, so existence, witnesses and cost follow from the argument above. The tester's exhaustive search also confirms the output on every case with at most 8 edges.
 
 ## Feature-to-Test Map
 
@@ -68,7 +72,7 @@ Legacy: the `EulerPath` sections of `OLD/Team Notebook/src/algsbetter.cpp` (line
 
 ## Limits and Handoffs
 
-Euler-tour counting belongs to Mathematics `23-matrixtree.hpp` (`eulerianCircuitCountBest`), and Chinese postman and route augmentation to `69-tjoin.hpp`; mixed directed and undirected Euler circuits need max flow and belong to row 30 (`mixedEulerCircuit`, planned). None is claimed here.
+None.
 
 ## Aliases
 
@@ -84,3 +88,4 @@ Search aliases (P263, grab --find): Euler path, 欧拉图, 欧拉回路, 欧拉�
 - 2026-11-08: P263 user request added `Euler path` to the search aliases for a held-out corpus query the search missed (00-search.md, Evaluation); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; library-wide quick, full (g++ and g++-14) and stress runs passed.
 - 2026-11-15: P011 GR03 completeness re-check (two `@researcher` passes, [sources](00-sources.md#fetched-2026-11-15-p011-gr03)): nothing missing from the row; aliases and dominated algorithms only. No code or test change.
+- 2026-11-27: P011 limits recheck: the ownership boundaries moved to Contracts (Scope); the lexicographic option's correctness argument written (it was cited only); independent review; documents only, no run.

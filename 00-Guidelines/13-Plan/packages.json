@@ -185,7 +185,8 @@
       ],
       "note": "User decisions 2026-11-15: meet kept as a free function calling rerootedLCA (duplicates.md Keeps); lcaSet, maximumWeightWalk, evenOutdegreeOrientation and localBridges adopted; DAG LCA left out. User decisions 2026-11-16: the order of mutually unreachable SCCs stays unspecified; COS 464 (evenOutdegreeOrientation rev guard under NDEBUG) accepted. maximumWeightWalk witness and reachabilityRealization arc order are fixed by contract (08-scc.md). Mutation runtime-only survivors of localBridges recorded with measurements (09-bridges_articulation.md).",
       "followups": [
-        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
+        "Fully dynamic SCC (online arc insertions and deletions): add a planned 04-Graphs row once the folder has a free prefix (02-structure.md, Names: group a topic into a subfolder first; process.md 2026-11-27); filed by the P011 limits recheck, user decision 2026-11-27",
+        "O(1) FunctionalGraph::jump: once row 85 (85-levelancestor.hpp) is verified, benchmark ladder level ancestor on the reverse forest plus the cycle branch against binary lifting and adopt it if faster on real workloads (05-testing.md, Benchmarks); filed by the P011 limits recheck, user decision 2026-11-27"
       ]
     },
     {
