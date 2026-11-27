@@ -381,17 +381,17 @@ ROWS_FX = {
                            + '\n## Basic\n\n' + table([('`07-infint.hpp`', 'no', 'InfInt, iint (alias): ctor, +=, abs',
                                                           'partial; missing: sqrtRem')], 4),
     f'{DS}/00-index.md': '# DS\n\n## Basic\n\n' + table([
-        ('`01-dsu.hpp`', 'DSU: ctor, unite, same', 'verified; [evidence](Docs/01-dsu.md)'),
-        ('`24-interval_set.hpp`', 'IntervalSet<T>: insert, erase; required: covered, gaps', 'existing-unverified; note'),
+        ('`001-dsu.hpp`', 'DSU: ctor, unite, same', 'verified; [evidence](Docs/001-dsu.md)'),
+        ('`024-interval_set.hpp`', 'IntervalSet<T>: insert, erase; required: covered, gaps', 'existing-unverified; note'),
         ('`notes.txt`', 'x', 'verified')]) + 'Some text | `x.hpp` | not a row |\n\n## Advanced\n\n'
         + table([('`30-heavy_light.hpp`', 'cartesianTree (cmp): parent, root', 'legacy-reference')])
         + '\n## Esoteric\n\n' + table([('`40-odd_one.hpp`', 'A as B and C: x', 'planned; later'),
                                        ('`41-skipped.hpp`', 'foo', 'verified')]),
-    f'{DS}/Docs/01-dsu.md': '# DSU\n\nAliases: union find, disjoint set\n',
-    f'{DS}/Docs/24-interval_set.md': '# Interval set\n\nPlain text mentions nothing.\n',
+    f'{DS}/Docs/001-dsu.md': '# DSU\n\nAliases: union find, disjoint set\n',
+    f'{DS}/Docs/024-interval_set.md': '# Interval set\n\nPlain text mentions nothing.\n',
     f'{DS}/Docs/30-other.md': 'Aliases: hld\n',
     '03-Geometry/Docs/30-heavy_light.md': 'Aliases: hld\n',
-    '08-Python/00-index.md': '## Basic\n\n| Module | Operations | Status |\n|---|---|---|\n| `_06_dsu.py` | DSU: find, unite | planned; pyrival |\n'
+    '08-Python/00-index.md': '## Basic\n\n| Module | Operations | Status |\n|---|---|---|\n| `_006_dsu.py` | DSU: find, unite | planned; pyrival |\n'
                              '| `_03_mod.py` | modPow | planned |\n',
     '08-Python/Docs/_03_mod.md': '# mod\n\nAliases: modular exponent\n',
     '09-Contest Testing/00-index.md': table([('`01-x.hpp`', 'foo', 'verified')]),
@@ -479,7 +479,7 @@ FUZZY_FX = {f'{GR}/00-index.md': '## Basic\n\n' + table([
     ('`05-dijkstra.hpp`', 'dijkstra (heap); path', 'verified'),
     ('`06-comb.hpp`', 'binomialTable; choose', 'verified'),
     ('`07-blockcuttree.hpp`', 'build (biconnected)', 'verified'),
-    ('`08-segmenttree.hpp`', 'build; query (point update)', 'verified'),
+    ('`008-segmenttree.hpp`', 'build; query (point update)', 'verified'),
     ('`09-lines.hpp`', 'segment (tree)', 'verified'),
     ('`10-dsu.hpp`', 'DSU: unite', 'verified'),
     ('`11-lowbit.hpp`', 'build', 'verified'),
@@ -499,14 +499,14 @@ STRIP_FX = {'06-Miscellaneous/00-index.md': '## Basic\n\n' + table([('`02-b.hpp`
 NAME_FX = {'06-Miscellaneous/00-index.md': table([
     ('`01-seg_tree.hpp`', 'queryAll (x); segtreeBuild (x)', 'verified'),
     ('`05-prime.hpp`', 'isPrime (deterministic Miller-Rabin); factor (pollard)', 'verified'),
-    ('`08-sequence_algorithms.hpp`', 'maxSubarray; lis', 'verified'),
+    ('`008-sequence_algorithms.hpp`', 'maxSubarray; lis', 'verified'),
     ('`09-mst.hpp`', 'kruskal; prim', 'verified')]),
-    '06-Miscellaneous/Docs/08-sequence_algorithms.md': 'Aliases: kadane\n'}
+    '06-Miscellaneous/Docs/008-sequence_algorithms.md': 'Aliases: kadane\n'}
 
 MANY_FX = {'06-Miscellaneous/00-index.md': table([(f'`{k:02}-z{k}.hpp`', 'zork', 'verified') for k in range(1, 13)])}
 
 CLI_FX = {f'{GR}/00-index.md': '## Basic\n\n' + table([
-    ('`05-shortest_path.hpp`', 'dijkstra; bellmanFord', 'verified'),
+    ('`005-shortest_path.hpp`', 'dijkstra; bellmanFord', 'verified'),
     ('`06-dial.hpp`', 'dialDijkstra', 'verified'),
     ('`07-astar.hpp`', 'aStar (dijkstra variant)', 'verified'),
     ('`08-kpaths.hpp`', 'kShortest (dijkstra based)', 'partial; missing: y'),
@@ -521,12 +521,12 @@ SHORT_FX = {f'{DS}/00-index.md': '## Basic\n\n' + table([
 DESERET = '\U00010428'  # a lower-case letter past the BMP
 ZH_FX = {f'{DS}/00-index.md': '## Basic\n\n' + table([
     ('`01-segment_tree.hpp`', 'SegmentTree: query', 'verified'),
-    ('`02-fenwick.hpp`', 'Fenwick: add', 'verified'),
+    ('`002-fenwick.hpp`', 'Fenwick: add', 'verified'),
     ('`03-dsu.hpp`', 'DSU: unite', 'verified'),
     ('`04-rooted.hpp`', 'Rooted: root', 'verified'),
     ('`05-deseret.hpp`', 'build', 'verified'),
     ('`06-seq.hpp`', 'run', 'verified')]),
-    f'{DS}/Docs/01-segment_tree.md': 'Aliases: 线段树\n', f'{DS}/Docs/02-fenwick.md': 'Aliases: 树状数组, BIT\n',
+    f'{DS}/Docs/01-segment_tree.md': 'Aliases: 线段树\n', f'{DS}/Docs/002-fenwick.md': 'Aliases: 树状数组, BIT\n',
     f'{DS}/Docs/03-dsu.md': 'Aliases: 並查集\n', f'{DS}/Docs/04-rooted.md': 'Aliases: 树\n',
     f'{DS}/Docs/05-deseret.md': f'Aliases: qux{DESERET}\n', f'{DS}/Docs/06-seq.md': 'Aliases: 序列\n'}
 ZH_ALIASES = [['线段', '段树'], ['树状', '状数', '数组', 'bit'], ['并查', '查集'], ['树'], ['qux' + DESERET], ['序列']]
@@ -617,24 +617,24 @@ class Units(Fixtures):
             ('01-Core/05-modint.hpp', '01-Core', 'Basic', 'verified', ['ModInt', 'mint', 'ModInt::pow'], ['modint']),
             ('01-Core/09-polyfull.hpp', '01-Core', 'Basic', 'verified', ['Poly', 'Poly::mul'], ['polyfull']),  # `yes until ...`
             ('01-Core/07-infint.hpp', '01-Core', 'Advanced', 'partial', ['InfInt', 'iint', 'InfInt::operator+=', 'InfInt::abs'], ['infint']),
-            (f'{DS}/01-dsu.hpp', DS, 'Basic', 'verified', ['DSU', 'DSU::unite', 'DSU::same'], ['dsu']),
-            (f'{DS}/24-interval_set.hpp', DS, 'Basic', 'existing-unverified',
+            (f'{DS}/001-dsu.hpp', DS, 'Basic', 'verified', ['DSU', 'DSU::unite', 'DSU::same'], ['dsu']),
+            (f'{DS}/024-interval_set.hpp', DS, 'Basic', 'existing-unverified',
              ['IntervalSet', 'IntervalSet::insert', 'IntervalSet::erase', 'covered', 'gaps'], ['interval', 'set']),
             (f'{DS}/30-heavy_light.hpp', DS, 'Advanced', 'legacy-reference', ['cartesianTree'], ['heavy', 'light']),
             (f'{DS}/40-odd_one.hpp', DS, 'Esoteric', 'planned', ['A', 'B', 'C', 'A::x'], ['odd', 'one']),
             (f'{DS}/41-skipped.hpp', DS, 'Esoteric', 'verified', ['foo'], ['skipped']),
-            ('08-Python/_06_dsu.py', '08-Python', 'Basic', 'planned', ['DSU', 'DSU::find', 'DSU::unite'], ['dsu']),
+            ('08-Python/_006_dsu.py', '08-Python', 'Basic', 'planned', ['DSU', 'DSU::find', 'DSU::unite'], ['dsu']),
             ('08-Python/_03_mod.py', '08-Python', 'Basic', 'planned', ['modPow'], ['mod'])]
         self.assertEqual(got, want)
         f = {r.header: r.fields for r in M.rows(root)}
-        self.assertEqual(f[f'{DS}/01-dsu.hpp']['aliases'], ['union', 'find', 'disjoint', 'set'])  # the label is dropped
+        self.assertEqual(f[f'{DS}/001-dsu.hpp']['aliases'], ['union', 'find', 'disjoint', 'set'])  # the label is dropped
         self.assertEqual({r.header: r.items for r in M.rows(root) if r.items},
-                         {f'{DS}/01-dsu.hpp': {('union', 'find'), ('disjoint', 'set')}, '08-Python/_03_mod.py': {('modular', 'exponent')}})
-        self.assertEqual([f[h]['aliases'] for h in (f'{DS}/24-interval_set.hpp', f'{DS}/30-heavy_light.hpp')], [[], []])
-        self.assertEqual(f[f'{DS}/24-interval_set.hpp']['stem'], ['interval', 'set'])
-        self.assertEqual(f[f'{DS}/24-interval_set.hpp']['folder'], ['data', 'structur'])  # Porter2 step 5: e in R2
-        self.assertEqual((f['08-Python/_06_dsu.py']['stem'], f['08-Python/_06_dsu.py']['folder']), (['dsu'], ['python']))
-        self.assertEqual((f['08-Python/_03_mod.py']['aliases'], f['08-Python/_06_dsu.py']['aliases']), (['modular', 'exponent'], []))
+                         {f'{DS}/001-dsu.hpp': {('union', 'find'), ('disjoint', 'set')}, '08-Python/_03_mod.py': {('modular', 'exponent')}})
+        self.assertEqual([f[h]['aliases'] for h in (f'{DS}/024-interval_set.hpp', f'{DS}/30-heavy_light.hpp')], [[], []])
+        self.assertEqual(f[f'{DS}/024-interval_set.hpp']['stem'], ['interval', 'set'])
+        self.assertEqual(f[f'{DS}/024-interval_set.hpp']['folder'], ['data', 'structur'])  # Porter2 step 5: e in R2
+        self.assertEqual((f['08-Python/_006_dsu.py']['stem'], f['08-Python/_006_dsu.py']['folder']), (['dsu'], ['python']))
+        self.assertEqual((f['08-Python/_03_mod.py']['aliases'], f['08-Python/_006_dsu.py']['aliases']), (['modular', 'exponent'], []))
         self.assertEqual(M.rows(self.tree({})), [])
 
     def test_aliases(self):
@@ -921,7 +921,7 @@ class Units(Fixtures):
 
     def test_show(self):
         hits = [M.Hit('Fenwick::sum', f'{DS}/01-fenwick.hpp', 'Basic', 'verified', 1.5),
-                M.Hit('x' * 40, '08-Python/_06_dsu.py', 'Esoteric', 'planned', 0.1)]
+                M.Hit('x' * 40, '08-Python/_006_dsu.py', 'Esoteric', 'planned', 0.1)]
         w = (40, len(hits[0].header), 8, 8)
         self.assertEqual(M.show(hits), [o_show(*h[:4], w=w) for h in hits])
         self.assertTrue(M.show(hits)[1].endswith('planned   Python'))
@@ -934,7 +934,7 @@ class Units(Fixtures):
         path = M.Hit(wide.header, wide.header, 'Advanced', 'verified', 0.5)
         self.assertEqual(M.show([path]), [o_show(*path[:4], w=(1, len(path.header), 8, 8))])
         self.assertTrue(M.show([path])[0].startswith('- ' + wide.header))
-        held = ('01-Core/01-template.hpp', '08-Python/_06_dsu.py')
+        held = ('01-Core/01-template.hpp', '08-Python/_006_dsu.py')
         hits.append(M.Hit('chmin', '01-Core/01-template.hpp', 'Basic', 'verified', 2.0))
         self.assertEqual(M.show(hits, held), [o_show(*h[:4], held, w) for h in hits])
         self.assertEqual([l.endswith('planned   Python  in template') for l in M.show(hits, held)], [False, True, False])
@@ -1104,7 +1104,7 @@ class Ranking(Fixtures):
 
     def test_segmentation(self):
         s = flat(self.tree(FUZZY_FX))
-        seg = f'{GR}/08-segmenttree.hpp'
+        seg = f'{GR}/008-segmenttree.hpp'
         self.assertEqual(next(r for r in s.rows if r.header == seg).fields['stem'], ['segmenttre', 'segment', 'tree'])
         # the stem token stemmed, and the known words it joins
         self.assertIsNotNone(self.hit(s.find('segment', 10), seg))
@@ -1184,7 +1184,7 @@ class Ranking(Fixtures):
         name = lambda q, n: self.hit(s.find(q, 20), f'06-Miscellaneous/{n}').name
         self.assertEqual(name('x', '01-seg_tree.hpp'), 'segtreeBuild')  # equal weight: the joined stem `segtree` decides
         self.assertEqual(name('miller rabin', '05-prime.hpp'), 'isPrime')  # only its qualifier matches
-        self.assertEqual(name('kadane', '08-sequence_algorithms.hpp'), '06-Miscellaneous/08-sequence_algorithms.hpp')  # alias
+        self.assertEqual(name('kadane', '008-sequence_algorithms.hpp'), '06-Miscellaneous/008-sequence_algorithms.hpp')  # alias
         self.assertEqual(name('mst', '09-mst.hpp'), 'kruskal')  # own stem: a name although none shares a query word
 
     def test_shortened_class(self):
@@ -1307,12 +1307,12 @@ class Cli(Fixtures):
         root = self.tree(CLI_FX)
         want = M.show(M.Search(root).find('dijkstra', 10), G.EXCLUDED)
         self.assertEqual(len(want), 4)
-        self.assertEqual(want[0].split()[:4], o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified').split())
+        self.assertEqual(want[0].split()[:4], o_show('dijkstra', f'{GR}/005-shortest_path.hpp', 'Basic', 'verified').split())
         self.assertEqual(self.run_main(['--find', 'dijkstra'], root), (0, '\n'.join(want) + '\n', ''))
         self.assertEqual(self.run_main(['--find', 'dijkstra', '-n', '2'], root), (0, '\n'.join(want[:2]) + '\n', ''))
         self.assertEqual(self.run_main(['--find', 'zzzzqq'], root), (0, 'no match\n', ''))
         two = M.show(M.Search(root).find('shortest path', 10), G.EXCLUDED)
-        self.assertTrue(two and two[0].split()[:4] == o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified').split(), two)
+        self.assertTrue(two and two[0].split()[:4] == o_show('dijkstra', f'{GR}/005-shortest_path.hpp', 'Basic', 'verified').split(), two)
         self.assertEqual(self.run_main(['--find', 'shortest', 'path'], root), (0, '\n'.join(two) + '\n', ''))
         tpl = self.tree(TPL_FX)
         marked = M.show(M.Search(tpl).find('chmin', 10), G.EXCLUDED)
@@ -1336,7 +1336,7 @@ class Cli(Fixtures):
         rows = M.show(M.Search(root).find('dijkstar', 3), G.EXCLUDED)
         block = '\n  closest rows (name, header, tier, status):' + ''.join('\n  ' + l for l in rows)
         self.assertEqual(len(rows), 3)
-        self.assertEqual(rows[0].split()[:4], o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified').split())
+        self.assertEqual(rows[0].split()[:4], o_show('dijkstra', f'{GR}/005-shortest_path.hpp', 'Basic', 'verified').split())
         for ix, head in ((stub, "unknown name 'dijkstar'"), (types.SimpleNamespace(ci=None, graph={}), 'no header defines dijkstar')):
             with self.assertRaises(G.GrabError) as cm:
                 G.grab(['dijkstar'], root, ix)
@@ -1432,7 +1432,7 @@ class Real(unittest.TestCase):
             if not re.match(r'0[1-7]-', r.header) or r.status == 'planned' or not (ROOT / r.header).is_file():
                 continue
             n += 1
-            q = re.sub(r'^\d{2}-', '', Path(r.header).stem)
+            q = re.sub(r'^\d{2,3}-', '', Path(r.header).stem)
             top = [h.header for h in self.s.find(q, 3)]
             if r.header not in top or (top[0] != r.header and sum(not h.endswith('.py') for h in same[tuple(r.key)]) == 1):
                 bad.append(f'{q!r}: want {r.header}, top 3 {top}')
@@ -1441,8 +1441,8 @@ class Real(unittest.TestCase):
 
     def test_repo_examples(self):
         first = lambda q, k=1: [(x.header, x.tier, x.status) for x in self.s.find(q, k)]
-        self.assertEqual(first('bipartite')[0][0], '04-Graphs/02-traversal.hpp')
-        self.assertEqual(first('binary search')[0][0], '05-Mathematics/02-search_algorithms.hpp')
+        self.assertEqual(first('bipartite')[0][0], '04-Graphs/002-traversal.hpp')
+        self.assertEqual(first('binary search')[0][0], '05-Mathematics/002-search_algorithms.hpp')
         top = first('hash', 3)  # the user's example: Basic rows, the most finished first (whatever their statuses now)
         self.assertEqual([(x[1], M.STATUSES.index(x[2])) for x in top],
                          sorted([('Basic', M.STATUSES.index(x[2])) for x in top], key=lambda y: y[1]), top)
@@ -1466,11 +1466,11 @@ class Real(unittest.TestCase):
         self.assertEqual(held, {M.simplified(k) for k in set(M.tables()[0]['rp'][0]) - set(self.s.regional[0])})
         self.assertEqual(held, {'外接', '序列', '文件', '行程', '宏', '向量'})  # reviewed: a new one
         # is a Taiwan word to write as its regional reading, or a mainland word the Taiwan tables also map (00-search.md)
-        for q, want in (('线段树', '02-Data Structures/03-segmenttree.hpp'), ('線段樹', '02-Data Structures/03-segmenttree.hpp'),
-                        ('并查集', '02-Data Structures/01-dsu.hpp'), ('树状数组', '02-Data Structures/02-fenwick.hpp'),
-                        ('樹狀陣列', '02-Data Structures/02-fenwick.hpp'), ('稀疏表', '02-Data Structures/04-sparsetable.hpp'),
-                        ('KMP 演算法', '07-Strings/01-prefixfunction.hpp'), ('Dijkstra 演算法', '04-Graphs/05-shortest_path.hpp'),
-                        ('最长公共子序列', '07-Strings/19-lcs.hpp')):  # canonical rows by their alias; Taiwan words in no alias
+        for q, want in (('线段树', '02-Data Structures/003-segmenttree.hpp'), ('線段樹', '02-Data Structures/003-segmenttree.hpp'),
+                        ('并查集', '02-Data Structures/001-dsu.hpp'), ('树状数组', '02-Data Structures/002-fenwick.hpp'),
+                        ('樹狀陣列', '02-Data Structures/002-fenwick.hpp'), ('稀疏表', '02-Data Structures/004-sparsetable.hpp'),
+                        ('KMP 演算法', '07-Strings/001-prefixfunction.hpp'), ('Dijkstra 演算法', '04-Graphs/005-shortest_path.hpp'),
+                        ('最长公共子序列', '07-Strings/019-lcs.hpp')):  # canonical rows by their alias; Taiwan words in no alias
             self.assertEqual(self.s.find(q, 1)[0].header, want, q)
         self.assertEqual(M.words('最长公共子序列', regional=self.s.regional), M.words('最长公共子序列'))  # no 子串 from 子串行
 

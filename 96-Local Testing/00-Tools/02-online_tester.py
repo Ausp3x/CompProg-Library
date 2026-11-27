@@ -134,14 +134,14 @@ def test_expander_grab(temp: Path) -> None:
     library = temp / "grab library"
     online = library / "97-Online Testing"
     for rel in ("97-Online Testing/01-expander.py", "09-Contest Testing/10-grab.py", "09-Contest Testing/_11_search.py", "98-Team Notebook/05-dependencies.py",
-                "01-Core/01-template.hpp", "01-Core/02-debug.hpp", "02-Data Structures/01-dsu.hpp"):
+                "01-Core/01-template.hpp", "01-Core/02-debug.hpp", "02-Data Structures/001-dsu.hpp"):
         (library / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / rel, library / rel)
     if (cache := _00_memory_gate.main_checkout(ROOT) / GRAB_CACHE).is_dir():  # grab's cache: the main checkout's, shared by worktrees
         shutil.copytree(cache, library / GRAB_CACHE)
     source = online / "src" / "judge" / "dsu.cpp"
     source.parent.mkdir(parents=True)
-    text = ('#include "../../../02-Data Structures/01-dsu.hpp"\n\nint main() {\n    int n, q;\n    cin >> n >> q;\n    DSU d(n);\n'
+    text = ('#include "../../../02-Data Structures/001-dsu.hpp"\n\nint main() {\n    int n, q;\n    cin >> n >> q;\n    DSU d(n);\n'
             '    while (q--) { int a, b; cin >> a >> b; d.uniteSets(a, b); }\n    cout << d.count() << " " << d.isSameSet(0, 2) << "\\n";\n}\n')
     source.write_text(text, encoding="utf-8")
     script = online / "01-expander.py"
@@ -164,7 +164,7 @@ def test_expander_grab(temp: Path) -> None:
     previous = (manifest.read_bytes(), output.read_bytes())
     (source.parent / "local.hpp").write_text("#pragma once\n", encoding="utf-8")
     bad = source.with_name("bad.cpp")
-    bad.write_text('#include "../../../02-Data Structures/01-dsu.hpp"\n#include "local.hpp"\nint main() {}\n', encoding="utf-8")
+    bad.write_text('#include "../../../02-Data Structures/001-dsu.hpp"\n#include "local.hpp"\nint main() {}\n', encoding="utf-8")
     result = subprocess.run([sys.executable, str(script)], cwd=temp, capture_output=True, text=True, timeout=600)
     require(result.returncode != 0 and "97-Online Testing/src/judge/bad.cpp:2: local.hpp is not a library header" in result.stderr
             and not (output.parent / "bad.expanded.cpp").exists(), f"non-library include not refused: {result.stderr}")

@@ -167,12 +167,12 @@ Evidence of the scoped renames that brought existing names in line with `02-stru
   - Misc 10.
 - Full on g++-14 (2026-11-10): the same 23 passed with `CXX=g++-14`.
 - Stress (2026-11-10): the same 23 passed, `--mode stress --seed 7`.
-- Math 14 after the review's `fpsSparse…` renames: `14-polynomial_algorithms_tester.py` full (g++ and g++-14) and stress; `07-lca_tester.py` quick after the brace fix. All passed (2026-11-10).
+- Math 14 after the review's `fpsSparse…` renames: `014-polynomial_algorithms_tester.py` full (g++ and g++-14) and stress; `007-lca_tester.py` quick after the brace fix. All passed (2026-11-10).
 - Extraction (2026-11-10): `python3 '96-Local Testing/05-extraction.py' ops --filter <header>` passed for each of the 21 changed headers and Math 14; `testers --filter <tester>` passed for each of the 19 changed C++ testers and Math 14's.
 - Mutation (2026-11-10): changed-line campaigns for the three changed headers that hold a record, `python3 '96-Local Testing/04-mutation.py' run <header>`, recorded in their documents:
-  - `01-dsu.hpp`: 3 of 3 caught;
-  - `14-tree_algorithms.hpp`: 23 of 25 caught, 2 equivalent (`lca` symmetry);
-  - `15-hld.hpp`: 21 of 23 caught, 2 equivalent.
+  - `001-dsu.hpp`: 3 of 3 caught;
+  - `014-tree_algorithms.hpp`: 23 of 25 caught, 2 equivalent (`lca` symmetry);
+  - `015-hld.hpp`: 21 of 23 caught, 2 equivalent.
 
   `check` passes for all three. As with `/prune` (`05-testing.md`, Mutation Testing), the changed headers without a record need no campaign for a rename.
 - `python3 '96-Local Testing/03-consistency.py'` (2026-11-10): no errors. The `primitiveRoot` entry left `name_collisions`, and the four others remain.

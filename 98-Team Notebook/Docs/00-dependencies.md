@@ -49,7 +49,7 @@ python3 '96-Local Testing/00-Tools/03-notebook_tester.py'                       
 python3 '00-Guidelines/13-Plan/plan.py' check                                                 # 2026-11-27: plan check: ok
 ```
 
-Graph on 2026-10-24: 177 headers (14 aggregates) and 580 include edges (162 into the template; 357 and 160 outside the aggregates); the largest closures were `05-Mathematics/12-combinatorics_advanced.hpp` (13 files, 5403 lines), `03-Geometry/19-lattice_geometry.hpp` (3268 lines) and `03-Geometry/14-minimumenclosingcircle.hpp` (3039 lines). The repository oracles covered 188 headers, 174 of them non-aggregate, on 2026-11-05. The tool testers' later counts (`04-dependencies` 30 quick and 32 full, `03-notebook` 12, 2026-11-10) are in [00-parallel.md](<../../96-Local Testing/Docs/00-parallel.md>).
+Graph on 2026-10-24: 177 headers (14 aggregates) and 580 include edges (162 into the template; 357 and 160 outside the aggregates); the largest closures were `05-Mathematics/012-combinatorics_advanced.hpp` (13 files, 5403 lines), `03-Geometry/019-lattice_geometry.hpp` (3268 lines) and `03-Geometry/014-minimumenclosingcircle.hpp` (3039 lines). The repository oracles covered 188 headers, 174 of them non-aggregate, on 2026-11-05. The tool testers' later counts (`04-dependencies` 30 quick and 32 full, `03-notebook` 12, 2026-11-10) are in [00-parallel.md](<../../96-Local Testing/Docs/00-parallel.md>).
 
 ## Limits
 

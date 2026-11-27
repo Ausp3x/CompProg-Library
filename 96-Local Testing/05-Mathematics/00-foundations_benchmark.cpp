@@ -1,5 +1,5 @@
-#include "../../05-Mathematics/04-sieve_algorithms.hpp"
-#include "../../05-Mathematics/06-segmentedsieve.hpp"
+#include "../../05-Mathematics/004-sieve_algorithms.hpp"
+#include "../../05-Mathematics/006-segmentedsieve.hpp"
 #include <chrono>
 
 struct PackedSieve {

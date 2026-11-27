@@ -57,7 +57,7 @@ Fetched by `@researcher` for rows `01`–`07`; per-header use is recorded in the
 
 ## P014 Re-Audit Sweep (2026-10-08)
 
-Fetched by `@researcher` for rows `08`–`11`. Adoption decisions are in the Limits and Handoffs sections of [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md) and [11-sorting_selection.md](11-sorting_selection.md), with reasons in [00-notes.md](00-notes.md).
+Fetched by `@researcher` for rows `08`–`11`. Adoption decisions are in the Limits and Handoffs sections of [008-sequence_algorithms.md](008-sequence_algorithms.md), [009-interval_algorithms.md](009-interval_algorithms.md), [010-offline_queries.md](010-offline_queries.md) and [011-sorting_selection.md](011-sorting_selection.md), with reasons in [00-notes.md](00-notes.md).
 
 | Source | URL | Used for |
 |---|---|---|
@@ -70,7 +70,7 @@ Fetched by `@researcher` for rows `08`–`11`. Adoption decisions are in the Lim
 
 ## P015 Re-Audit Sweep (2026-10-08)
 
-Fetched by `@researcher` for rows `12`–`14`. Adoption decisions are in [00-notes.md](00-notes.md) and the Limits and Handoffs sections of [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md). OI Wiki combinatorics and cycle-detection pages failed (403/404).
+Fetched by `@researcher` for rows `12`–`14`. Adoption decisions are in [00-notes.md](00-notes.md) and the Limits and Handoffs sections of [012-enumeration.md](012-enumeration.md), [013-knapsack.md](013-knapsack.md) and [014-cyclefinding.md](014-cyclefinding.md). OI Wiki combinatorics and cycle-detection pages failed (403/404).
 
 | Source | URL | Used for |
 |---|---|---|
@@ -99,7 +99,7 @@ Fetched by `@researcher` for rows `49`–`51`; per-header use is recorded in the
 
 ## P075 Sweep (2026-10-13)
 
-Fetched by `@researcher` for row `34`. Adoption decisions are in [34-slope_trick.md](34-slope_trick.md) and the omissions in [00-notes.md](00-notes.md).
+Fetched by `@researcher` for row `34`. Adoption decisions are in [034-slope_trick.md](034-slope_trick.md) and the omissions in [00-notes.md](00-notes.md).
 
 | Source | URL | Used for |
 |---|---|---|
@@ -116,7 +116,7 @@ KACTL and cp-algorithms have no slope-trick article. maspy's article (2), zscode
 
 ## P072 Sweep (2026-10-23)
 
-Fetched by `@researcher` for rows `29`, `54` and `55`. Adoption decisions are in [00-notes.md](00-notes.md) and the evidence documents [29-knapsack_advanced.md](29-knapsack_advanced.md), [54-kbest_enumeration.md](54-kbest_enumeration.md) and [55-fractional_programming.md](55-fractional_programming.md).
+Fetched by `@researcher` for rows `29`, `54` and `55`. Adoption decisions are in [00-notes.md](00-notes.md) and the evidence documents [029-knapsack_advanced.md](029-knapsack_advanced.md), [054-kbest_enumeration.md](054-kbest_enumeration.md) and [055-fractional_programming.md](055-fractional_programming.md).
 
 | Source | URL | Used for |
 |---|---|---|
@@ -232,26 +232,26 @@ Scope `02`–`07` (P254). Decisions are in the rows, the folder notes (Omission 
 
 ## 2026-09 Audit
 
-The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (the `48` contract in [00-notes.md](00-notes.md)). Per-package source inspections, with dates, page revisions and read scopes, are in the evidence documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [19-fastio.md](../../01-Core/Docs/19-fastio.md) (row `03` until 2026-11-01), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
+The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (the `48` contract in [00-notes.md](00-notes.md)). Per-package source inspections, with dates, page revisions and read scopes, are in the evidence documents [001-random.md](001-random.md), [002-customhash.md](002-customhash.md), [19-fastio.md](../../01-Core/Docs/19-fastio.md) (row `03` until 2026-11-01), [004-compression.md](004-compression.md), [006-bit_operations.md](006-bit_operations.md), [007-permutation.md](007-permutation.md), [008-sequence_algorithms.md](008-sequence_algorithms.md), [009-interval_algorithms.md](009-interval_algorithms.md), [010-offline_queries.md](010-offline_queries.md), [011-sorting_selection.md](011-sorting_selection.md), [012-enumeration.md](012-enumeration.md), [013-knapsack.md](013-knapsack.md) and [014-cyclefinding.md](014-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
 
 ## Not Adopted
 
 - Library Checker `number_of_subsequences` (distinct subsequence count): Strings rows `19`/`20` provide `countDistinctSubsequences`.
-- Library Checker `find_linear_recurrence`, `kth_term_of_linearly_recurrent_sequence`, `sum_of_exponential_times_polynomial`: Mathematics `15-linear_recurrence.hpp` and generating functions.
-- Library Checker `two_sat`: Graphs `18-twosat.hpp`.
+- Library Checker `find_linear_recurrence`, `kth_term_of_linearly_recurrent_sequence`, `sum_of_exponential_times_polynomial`: Mathematics `015-linear_recurrence.hpp` and generating functions.
+- Library Checker `two_sat`: Graphs `018-twosat.hpp`.
 - cp-algorithms RMQ, Josephus, Stern–Brocot, games on graphs, Sprague–Grundy: Data Structures and Mathematics owners.
-- cp-algorithms largest zero submatrix; Nyaan/ei1333/suisen/tko919 maximal rectangle and maximum square: Data Structures `08-monotone_stack.hpp` (`maximalHistogramRectangles`, `maximalBinaryRectangles` and `largestBinarySquare`, adopted there on 2026-11-08).
+- cp-algorithms largest zero submatrix; Nyaan/ei1333/suisen/tko919 maximal rectangle and maximum square: Data Structures `008-monotone_stack.hpp` (`maximalHistogramRectangles`, `maximalBinaryRectangles` and `largestBinarySquare`, adopted there on 2026-11-08).
 - KACTL DivideAndConquerDP, KnuthDP, TernarySearch: Mathematics `27`/`02`. KACTL SIMD, Unrolling, FastMod: Core profile.
 - OI Wiki Mo variants, 珂朵莉树, 悬线法: Data Structures. 有限状态自动机, 计算理论基础, 字节顺序, 空间优化简介: expository, no API. Kahan summation: Mathematics numerics.
-- OI Wiki 倍增 (doubling) and Nyaan/hitonanode doubling/binary_lifting: Graphs `11-functionalgraph.hpp`.
+- OI Wiki 倍增 (doubling) and Nyaan/hitonanode doubling/binary_lifting: Graphs `011-functionalgraph.hpp`.
 - maspypy anulus_scheduling: problem-specific, no reusable family.
-- maspypy exp_search, fibonacci_search, golden_search, binary_search_real_abs_rel: Mathematics `02-search_algorithms.hpp`.
+- maspypy exp_search, fibonacci_search, golden_search, binary_search_real_abs_rel: Mathematics `002-search_algorithms.hpp`.
 - maspypy/ei1333/suisen/hitonanode monotone minima, SMAWK, LARSCH, Monge shortest path, min/max-plus convolutions: Mathematics `27`/`53`.
 - maspypy random_graph/random_polygon/random_matrix/random_monge: test generators for `09-Contest Testing`.
 - suisen project_selection_problem, k_project_selection_problem; hitonanode combinatorial_opt (matroids, simplex, assignment); tko919 projectselection: Graphs and Mathematics.
-- hitonanode tsp (Held–Karp, LKH): Graphs `73-hamiltonian.hpp`. hitonanode run_length_encoding, suisen run_length_encoder: Strings `09`.
+- hitonanode tsp (Held–Karp, LKH): Graphs `073-hamiltonian.hpp`. hitonanode run_length_encoding, suisen run_length_encoder: Strings `09`.
 - Nyaan bitset-find-prev, noshi91 popcount/bit_width: Core `18-bitset` and `06` already cover scalar scans; noshi91 select64 was adopted on 2026-11-08 into row `06` as `BitOps::select`.
-- Nyaan/ei1333 cumulative sums, 2D cumulative sums, suisen cumulative_sum: Data Structures `05-prefix_sum.hpp`.
+- Nyaan/ei1333 cumulative sums, 2D cumulative sums, suisen cumulative_sum: Data Structures `005-prefix_sum.hpp`.
 - noshi91 monoid/action adapters: Data Structures segment-tree policies.
 - Algorithmica SIMD argmin, prefix sum, matrix multiplication, Montgomery: Core full profile.
 
@@ -302,7 +302,7 @@ Pages the three `@researcher` sweeps of the MI02 `/finish` fetched for rows `04`
 | https://suisen-cp.github.io/cp-library-cpp/library/util/coordinate_compressor.hpp | 04 and `SortedVector`: `minGeq`, `maxLeq`, `minGt`, `maxLt` |
 | https://raw.githubusercontent.com/maspypy/library/main/my_template.hpp | 04 `argsort`; 07 `permute` (`rearrange`) |
 | https://nyaannyaan.github.io/library/misc/compress.hpp, https://ei1333.github.io/library/other/compress.hpp, https://oi-wiki.org/misc/discrete/, https://raw.githubusercontent.com/verngutz/cp-library/master/Data%20Structs%20-%20Coordinate%20Compression.cpp | 04: no 2D compression in any catalog (added by user decision as `compressPoints`); aliases |
-| https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/misc/ordersort.py | 04: radix argsort, covered by `11-sorting_selection.hpp` `radixSort` with a projection |
+| https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/misc/ordersort.py | 04: radix argsort, covered by `011-sorting_selection.hpp` `radixSort` with a projection |
 | https://en.wikipedia.org/wiki/Ranking | 04: dense, ordinal and competition rankings map to `ranks`, `stableRanks` and `rank` (source key, not a sweep catalog) |
 | https://cp-algorithms.com/algebra/bit-manipulation.html, https://cses.fi/problemset/task/1146 | 06: `countOnesUpTo` |
 | https://oi-wiki.org/math/bit/ | 06: `countLeadingSignBits` (`__builtin_clrsb`); signed tricks dominated by `std::` |
@@ -317,7 +317,7 @@ Pages the three `@researcher` sweeps of the MI02 `/finish` fetched for rows `04`
 
 ## P015 MI15 Sweep (2026-11-26)
 
-Pages the batch's `@researcher` sweep read for row `12`; it found no missing operation. The interfaces it reports shaped the six new traversals, as [12-enumeration.md](12-enumeration.md#sources) records. The truncated indexes of hitonanode, ei1333 and suisen were read in part, OI Wiki's Gray code page returned no content, and ACL has no enumeration module.
+Pages the batch's `@researcher` sweep read for row `12`; it found no missing operation. The interfaces it reports shaped the six new traversals, as [012-enumeration.md](012-enumeration.md#sources) records. The truncated indexes of hitonanode, ei1333 and suisen were read in part, OI Wiki's Gray code page returned no content, and ACL has no enumeration module.
 
 | URL | Used for |
 |---|---|
@@ -333,8 +333,8 @@ Papers filed in `95-Resources/13-Papers` (local-only, backed up in the private r
 
 | Title | URL | File and SHA-256 | Read |
 |---|---|---|---|
-| J. R. Bitner, G. Ehrlich, E. M. Reingold, *Efficient generation of the binary reflected Gray code and its applications*, CACM 19(9) (1976) 517–521 | https://doi.org/10.1145/360336.360343 (from the citation; not confirmed against the publisher) | `95-Resources/13-Papers/50-binary_reflected_gray_code-bitner_1976.pdf`, `09ea74ed06935ba3c4d6f97ce8b381a365aa79a6457e078c69009a55de560e3e` | p. 520 Algorithm 2 and Fig. 2, text of pp. 519–521: `12` `forEachGrayCombination` above the dispatch threshold |
-| F. Ruskey, A. Williams, *The coolest way to generate combinations*, Discrete Math. 309(17) (2009) 5305–5320 (fetched 2026-11-27 by Claude, not user-placed) | https://webhome.cs.uvic.ca/~ruskey/Publications/Coollex/coolestDMvanilla.pdf | `95-Resources/13-Papers/51-coolest_way_to_generate_combinations-ruskey_2009.pdf`, `c661caa27936d6fd2d1dd25b880fca9dbb612bda02c9d1624b8e3abeaa3df6a3` | §2.1–2.2 pp. 2–3 (the successor `σ` and the iterative definition), §3.2 pp. 8–9 (`Loopless(s,t)`), §3.3 pp. 10–11 (Lemmas 6–7, `Word(s,t)`), §4 pp. 11–12 (Theorem 2): `12` `forEachCombinationCoolLex`, `forEachCombinationMaskCoolLex`, `combinationRankCoolLex` |
+| J. R. Bitner, G. Ehrlich, E. M. Reingold, *Efficient generation of the binary reflected Gray code and its applications*, CACM 19(9) (1976) 517–521 | https://doi.org/10.1145/360336.360343 (from the citation; not confirmed against the publisher) | `95-Resources/13-Papers/050-binary_reflected_gray_code-bitner_1976.pdf`, `09ea74ed06935ba3c4d6f97ce8b381a365aa79a6457e078c69009a55de560e3e` | p. 520 Algorithm 2 and Fig. 2, text of pp. 519–521: `12` `forEachGrayCombination` above the dispatch threshold |
+| F. Ruskey, A. Williams, *The coolest way to generate combinations*, Discrete Math. 309(17) (2009) 5305–5320 (fetched 2026-11-27 by Claude, not user-placed) | https://webhome.cs.uvic.ca/~ruskey/Publications/Coollex/coolestDMvanilla.pdf | `95-Resources/13-Papers/051-coolest_way_to_generate_combinations-ruskey_2009.pdf`, `c661caa27936d6fd2d1dd25b880fca9dbb612bda02c9d1624b8e3abeaa3df6a3` | §2.1–2.2 pp. 2–3 (the successor `σ` and the iterative definition), §3.2 pp. 8–9 (`Loopless(s,t)`), §3.3 pp. 10–11 (Lemmas 6–7, `Word(s,t)`), §4 pp. 11–12 (Theorem 2): `12` `forEachCombinationCoolLex`, `forEachCombinationMaskCoolLex`, `combinationRankCoolLex` |
 
 ## P015 MI16 Sweep (2026-11-26)
 
@@ -351,8 +351,8 @@ Pages the MI16 `@researcher` sweep of row `13` fetched. Decisions are in `00-Gui
 
 | Source and local copy | SHA-256 | Read | Finding |
 |---|---|---|---|
-| DMOJ, "Knapsack 3", https://dmoj.ca/problem/knapsack; `95-Resources/14-Web Pages/29-dmoj_knapsack-knapsack_3.pdf` | `abe9788543ddda626d7d4befbb55816d62053bd85ea68565415212c5414dba77` | pp. 1–2 (statement, constraints, sample) | Bounded knapsack, one of M capacities at most 5000 with a fixed cost each: a bounded `KnapsackDP` and `atMost(c_i) - f_i`, an alias of row `13`; row `29` `boundedKnapsackMonotoneQueue` is the O(N * W) form. |
-| DMOJ, "Knapsack 4" (2020 Multi-University Training Contest 4, Problem C, Rope Pulling), https://dmoj.ca/problem/knapsack4; `95-Resources/14-Web Pages/29-dmoj_knapsack4-knapsack_4.pdf` | `366546cc331552d2408bfe6b2eec3ad1dfe5b92b3bf0f528c21fabcd575242c9` | pp. 1–2 (statement, constraints, sample) | Maximum signed value of two teams with equal total strength (weights at most 1000, sum of n + m at most 10^4): two exact `KnapsackDP` tables cost O((n + m) * S) with S up to 10^6; the random-order windowed DP goes to row `29` as planned `zeroSumKnapsack` (user decision 2026-11-26). |
+| DMOJ, "Knapsack 3", https://dmoj.ca/problem/knapsack; `95-Resources/14-Web Pages/029-dmoj_knapsack-knapsack_3.pdf` | `abe9788543ddda626d7d4befbb55816d62053bd85ea68565415212c5414dba77` | pp. 1–2 (statement, constraints, sample) | Bounded knapsack, one of M capacities at most 5000 with a fixed cost each: a bounded `KnapsackDP` and `atMost(c_i) - f_i`, an alias of row `13`; row `29` `boundedKnapsackMonotoneQueue` is the O(N * W) form. |
+| DMOJ, "Knapsack 4" (2020 Multi-University Training Contest 4, Problem C, Rope Pulling), https://dmoj.ca/problem/knapsack4; `95-Resources/14-Web Pages/029-dmoj_knapsack4-knapsack_4.pdf` | `366546cc331552d2408bfe6b2eec3ad1dfe5b92b3bf0f528c21fabcd575242c9` | pp. 1–2 (statement, constraints, sample) | Maximum signed value of two teams with equal total strength (weights at most 1000, sum of n + m at most 10^4): two exact `KnapsackDP` tables cost O((n + m) * S) with S up to 10^6; the random-order windowed DP goes to row `29` as planned `zeroSumKnapsack` (user decision 2026-11-26). |
 
 ## Fetched 2026-11-22 (Source Check)
 
@@ -360,9 +360,9 @@ The user supplied these copies on 2026-11-22. They are personal study copies, ke
 
 | Source and local copy | SHA-256 | Read | Finding |
 |---|---|---|---|
-| D. E. Knuth, *The Art of Computer Programming*, vol. 4A pre-fascicles (2005), https://www-cs-faculty.stanford.edu/~knuth/taocp.html; `13-Papers/24-art_of_computer_programming_vol4_prefascicles-knuth_2005.pdf`. The file holds the pre-fascicles 2B, 3A and 3B (3A's copyright page: "Zeroth printing (revision 11), 31 March 2005"), not the 2011 book, and its text layer is unreadable, so the pages were rendered as images. | `1846455c61cd6af4ded38e3657b7bcda2e841715e83f1d8c71f71fef12624e0e` | p. 596 (2B p. 4): §7.2.1.2 Algorithm P; pp. 662–664 (3A pp. 4–6): §7.2.1.3 Algorithms L and T, Theorem L, eqs. (19)–(20); pp. 750–751 (3B pp. 26–27): §7.2.1.5 eq. (4) and Algorithm H; pp. 666–667 (3A pp. 8–9), read 2026-11-26: §7.2.1.3 eqs. (25)–(30) and Algorithm R; pp. 726–727 (3B pp. 2–3), read 2026-11-27: §7.2.1.4 Algorithm H and its cost statement | Confirms row 59 `forEachTrotterJohnson` (Algorithm P), row 12 `forEachSetPartition` (Algorithm H) and row 12 `forEachGrayCombination` (Algorithm R). Theorem L ranks combinations in another order than `combinationRank`. Details in [12-enumeration.md](12-enumeration.md#sources) and [59-permutation_orders.md](59-permutation_orders.md#sources). |
-| M. Mirzayanov, "Interactive Problems: Guide for Participants", Codeforces blog 45307, https://codeforces.com/blog/entry/45307; `14-Web Pages/26-codeforces_blog_45307-interactive_problems_guide.pdf` | `9a9a625824409e8cd515339e49ec7ae2df45b7b939cf5b22cc66eae649d0c048` | pp. 1–3 (the post); the comments only by search | Row 50: output may sit in a buffer, and the judge's reply can be read only after a flush, so flush after every output; `endl` flushes. |
-| Codeforces 1999G1, "Ruler (easy version)", https://codeforces.com/problemset/problem/1999/G1; `14-Web Pages/26-codeforces_1999g1-ruler_easy_version.pdf` | `0bac9577218775b74df7c9a1d8b92e18496e38a67b00cab7e1557e8299538236` | pp. 1–2 (statement, interaction) | Row 50: at most 10 queries per test case; an extra or invalid query, or a wrong answer, is answered `-1`, after which the program must terminate at once; flush after each query. |
+| D. E. Knuth, *The Art of Computer Programming*, vol. 4A pre-fascicles (2005), https://www-cs-faculty.stanford.edu/~knuth/taocp.html; `13-Papers/024-art_of_computer_programming_vol4_prefascicles-knuth_2005.pdf`. The file holds the pre-fascicles 2B, 3A and 3B (3A's copyright page: "Zeroth printing (revision 11), 31 March 2005"), not the 2011 book, and its text layer is unreadable, so the pages were rendered as images. | `1846455c61cd6af4ded38e3657b7bcda2e841715e83f1d8c71f71fef12624e0e` | p. 596 (2B p. 4): §7.2.1.2 Algorithm P; pp. 662–664 (3A pp. 4–6): §7.2.1.3 Algorithms L and T, Theorem L, eqs. (19)–(20); pp. 750–751 (3B pp. 26–27): §7.2.1.5 eq. (4) and Algorithm H; pp. 666–667 (3A pp. 8–9), read 2026-11-26: §7.2.1.3 eqs. (25)–(30) and Algorithm R; pp. 726–727 (3B pp. 2–3), read 2026-11-27: §7.2.1.4 Algorithm H and its cost statement | Confirms row 59 `forEachTrotterJohnson` (Algorithm P), row 12 `forEachSetPartition` (Algorithm H) and row 12 `forEachGrayCombination` (Algorithm R). Theorem L ranks combinations in another order than `combinationRank`. Details in [012-enumeration.md](012-enumeration.md#sources) and [059-permutation_orders.md](059-permutation_orders.md#sources). |
+| M. Mirzayanov, "Interactive Problems: Guide for Participants", Codeforces blog 45307, https://codeforces.com/blog/entry/45307; `14-Web Pages/026-codeforces_blog_45307-interactive_problems_guide.pdf` | `9a9a625824409e8cd515339e49ec7ae2df45b7b939cf5b22cc66eae649d0c048` | pp. 1–3 (the post); the comments only by search | Row 50: output may sit in a buffer, and the judge's reply can be read only after a flush, so flush after every output; `endl` flushes. |
+| Codeforces 1999G1, "Ruler (easy version)", https://codeforces.com/problemset/problem/1999/G1; `14-Web Pages/026-codeforces_1999g1-ruler_easy_version.pdf` | `0bac9577218775b74df7c9a1d8b92e18496e38a67b00cab7e1557e8299538236` | pp. 1–2 (statement, interaction) | Row 50: at most 10 queries per test case; an extra or invalid query, or a wrong answer, is answered `-1`, after which the program must terminate at once; flush after each query. |
 
 ## Fetched 2026-11-27 (Omission Sweep)
 
@@ -391,17 +391,17 @@ The sources the user placed for the catalog survey, sampled on 2026-11-28 (`00-G
 
 | Key | Source | URL | Filed Copy | Items |
 |---|---|---|---|---|
-| ALGOWIKI | MIT Algorithm Wiki, problem families index, saved page | https://algorithm-wiki.org/families | `95-Resources/14-Web Pages/50-algorithm_wiki-index.pdf` | 25 |
-| BOJ | solved.ac tag list, 8 saved pages | https://solved.ac/problems/tags | `95-Resources/14-Web Pages/43-solved_ac-tags1.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags2.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags3.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags4.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags5.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags6.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags7.pdf`, `95-Resources/14-Web Pages/43-solved_ac-tags8.pdf` | 1 |
-| CLRS | Cormen, Leiserson, Rivest, Stein, Introduction to Algorithms, 4th ed. (2022) | https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/ | `95-Resources/13-Papers/72-introduction_to_algorithms-cormen_2022.pdf` | 7 |
-| CRANDALL | Crandall, Pomerance, Prime Numbers: A Computational Perspective, 2nd ed. (2005) | https://link.springer.com/book/10.1007/0-387-28979-8 | `95-Resources/13-Papers/69-prime_numbers-crandall_2005.pdf` | 7 |
-| EOA | Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016) | https://link.springer.com/referencework/10.1007/978-1-4939-2864-4 | `95-Resources/13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf` | 65 |
-| GUSFIELD | Gusfield, Algorithms on Strings, Trees, and Sequences (1997) | https://doi.org/10.1017/CBO9780511574931 | `95-Resources/13-Papers/62-algorithms_on_strings_trees_sequences-gusfield_1997.pdf` | 2 |
-| HACKERS | Warren, Hacker's Delight, 2nd ed. (2012) | https://www.informit.com/store/hackers-delight-9780321842688 | `95-Resources/13-Papers/59-hackers_delight-warren_2012.pdf` | 19 |
-| LEETCODE | LeetCode problem list with topic tags (4,124 problems, 175 topics), exported | https://leetcode.com/problemset/ | `95-Resources/14-Web Pages/46-leetcode-topic_tags.csv` | 1 |
-| MEHTASAHNI | Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018) | https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006 | `95-Resources/13-Papers/64-handbook_of_data_structures-mehta_2018.pdf` | 16 |
-| NAVARRO | Navarro, Compact Data Structures: A Practical Approach (2016) | https://doi.org/10.1017/CBO9781316588284 | `95-Resources/13-Papers/67-compact_data_structures-navarro_2016.pdf` | 4 |
-| QOJ | QOJ template problems (tag 模板题), saved page | https://qoj.ac/problems?tag=%E6%A8%A1%E6%9D%BF%E9%A2%98 | `95-Resources/14-Web Pages/44-qoj-template_problems.pdf` | 1 |
-| TAOCP | Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/65-taocp_4a-knuth_2011.pdf` | 46 |
-| TAOCP | Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/66-taocp_4b-knuth_2022.pdf` | 46 |
-| YUKI | yukicoder tag statistics, saved page (logged in) | https://yukicoder.me/statistics/tags | `95-Resources/14-Web Pages/47-yukicoder-tags.pdf` | 3 |
+| ALGOWIKI | MIT Algorithm Wiki, problem families index, saved page | https://algorithm-wiki.org/families | `95-Resources/14-Web Pages/050-algorithm_wiki-index.pdf` | 25 |
+| BOJ | solved.ac tag list, 8 saved pages | https://solved.ac/problems/tags | `95-Resources/14-Web Pages/043-solved_ac-tags1.pdf`, `95-Resources/14-Web Pages/043-solved_ac-tags2.pdf`, `95-Resources/14-Web Pages/043-solved_ac-tags3.pdf`, `95-Resources/14-Web Pages/043-solved_ac-tags4.pdf`, `95-Resources/14-Web Pages/043-solved_ac-tags5.pdf`, `95-Resources/14-Web Pages/043-solved_ac-tags6.pdf`, `95-Resources/14-Web Pages/043-solved_ac-tags7.pdf`, `95-Resources/14-Web Pages/043-solved_ac-tags8.pdf` | 1 |
+| CLRS | Cormen, Leiserson, Rivest, Stein, Introduction to Algorithms, 4th ed. (2022) | https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/ | `95-Resources/13-Papers/072-introduction_to_algorithms-cormen_2022.pdf` | 7 |
+| CRANDALL | Crandall, Pomerance, Prime Numbers: A Computational Perspective, 2nd ed. (2005) | https://link.springer.com/book/10.1007/0-387-28979-8 | `95-Resources/13-Papers/069-prime_numbers-crandall_2005.pdf` | 7 |
+| EOA | Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016) | https://link.springer.com/referencework/10.1007/978-1-4939-2864-4 | `95-Resources/13-Papers/058-encyclopedia_of_algorithms-kao_2016.pdf` | 65 |
+| GUSFIELD | Gusfield, Algorithms on Strings, Trees, and Sequences (1997) | https://doi.org/10.1017/CBO9780511574931 | `95-Resources/13-Papers/062-algorithms_on_strings_trees_sequences-gusfield_1997.pdf` | 2 |
+| HACKERS | Warren, Hacker's Delight, 2nd ed. (2012) | https://www.informit.com/store/hackers-delight-9780321842688 | `95-Resources/13-Papers/059-hackers_delight-warren_2012.pdf` | 19 |
+| LEETCODE | LeetCode problem list with topic tags (4,124 problems, 175 topics), exported | https://leetcode.com/problemset/ | `95-Resources/14-Web Pages/046-leetcode-topic_tags.csv` | 1 |
+| MEHTASAHNI | Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018) | https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006 | `95-Resources/13-Papers/064-handbook_of_data_structures-mehta_2018.pdf` | 16 |
+| NAVARRO | Navarro, Compact Data Structures: A Practical Approach (2016) | https://doi.org/10.1017/CBO9781316588284 | `95-Resources/13-Papers/067-compact_data_structures-navarro_2016.pdf` | 4 |
+| QOJ | QOJ template problems (tag 模板题), saved page | https://qoj.ac/problems?tag=%E6%A8%A1%E6%9D%BF%E9%A2%98 | `95-Resources/14-Web Pages/044-qoj-template_problems.pdf` | 1 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/065-taocp_4a-knuth_2011.pdf` | 46 |
+| TAOCP | Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022) | https://www-cs-faculty.stanford.edu/~knuth/taocp.html | `95-Resources/13-Papers/066-taocp_4b-knuth_2022.pdf` | 46 |
+| YUKI | yukicoder tag statistics, saved page (logged in) | https://yukicoder.me/statistics/tags | `95-Resources/14-Web Pages/047-yukicoder-tags.pdf` | 3 |

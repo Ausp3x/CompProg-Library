@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""Polygon cells, winding, signed moments, orientation, lattice and holes; quick/full/stress."""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+
+if __name__ == '__main__':
+    raise SystemExit(main('003-polygon', ['pick-empty', 'pick-collinear', 'holes-empty', 'holes-orientation', 'lattice-bound',
+                                          'cut-singleton', 'holes-flat', 'holes-zero-total', 'holes-negative-total']))

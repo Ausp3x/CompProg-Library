@@ -53,11 +53,11 @@ PLAN = ROOT / "00-Guidelines" / "13-Plan" / "plan.py"
 CXX = os.environ.get("CXX", "g++")
 COMPILE_MB = 1300  # one -fsyntax-only TU: the 05-Mathematics closure peaked at 1189 MB on g++-14 with C03's 05-modint.hpp (2026-11-27)
 MODE, SEED, ROUNDS = "full", 42, 1000
-SAMPLE = ["05-Mathematics/12-combinatorics_advanced.hpp", "03-Geometry/14-minimumenclosingcircle.hpp",
-          "05-Mathematics/07-primality_factorization.hpp", "01-Core/16-poly.hpp", "05-Mathematics/99-all.hpp",
+SAMPLE = ["05-Mathematics/012-combinatorics_advanced.hpp", "03-Geometry/014-minimumenclosingcircle.hpp",
+          "05-Mathematics/007-primality_factorization.hpp", "01-Core/16-poly.hpp", "05-Mathematics/99-all.hpp",
           "01-Core/01-template.hpp", "01-Core/05-modint.hpp", "01-Core/09-rational.hpp", "01-Core/99-all.hpp",
-          "02-Data Structures/01-dsu.hpp", "02-Data Structures/99-all.hpp", "04-Graphs/99-all.hpp",
-          "06-Miscellaneous/02-customhash.hpp", "07-Strings/99-all.hpp", "03-Geometry/98-basic.hpp"]
+          "02-Data Structures/001-dsu.hpp", "02-Data Structures/99-all.hpp", "04-Graphs/99-all.hpp",
+          "06-Miscellaneous/002-customhash.hpp", "07-Strings/99-all.hpp", "03-Geometry/98-basic.hpp"]
 QUICK_SKIP = {"test_repo_mm_closure_all", "test_repo_compile_closure_all"}
 
 
@@ -369,14 +369,14 @@ class Fixtures(Base):
         write(self.root, {
             **CORE,
             "06-Miscellaneous/02-hash.hpp": inc("../01-Core/01-template.hpp"),
-            "03-Geometry/01-point.hpp": inc("../01-Core/01-template.hpp", "../01-Core/05-modint.hpp"),
-            "03-Geometry/02-line.hpp": inc("../01-Core/01-template.hpp", "01-point.hpp", "../06-Miscellaneous/02-hash.hpp"),
+            "03-Geometry/001-point.hpp": inc("../01-Core/01-template.hpp", "../01-Core/05-modint.hpp"),
+            "03-Geometry/02-line.hpp": inc("../01-Core/01-template.hpp", "001-point.hpp", "../06-Miscellaneous/02-hash.hpp"),
             "03-Geometry/03-alone.hpp": inc("../01-Core/01-template.hpp"),
             "03-Geometry/04-alone.hpp": "",
             "03-Geometry/05-leaf.hpp": inc("../01-Core/01-template.hpp"),
             "03-Geometry/06-uses.hpp": inc("05-leaf.hpp"),
-            "03-Geometry/sub/07-nested.hpp": inc("../01-point.hpp"),
-            "03-Geometry/98-basic.hpp": inc("01-point.hpp", "02-line.hpp"),
+            "03-Geometry/sub/07-nested.hpp": inc("../001-point.hpp"),
+            "03-Geometry/98-basic.hpp": inc("001-point.hpp", "02-line.hpp"),
             "03-Geometry/99-all.hpp": inc("98-basic.hpp", "03-alone.hpp"),
         })
         return DEPS.headers(self.root)
@@ -457,7 +457,7 @@ class Fixtures(Base):
 
     def test_cli_repository(self):
         g = DEPS.headers(ROOT)
-        h = "05-Mathematics/07-primality_factorization.hpp"
+        h = "05-Mathematics/007-primality_factorization.hpp"
         r = self.run_cli("closure", h)
         self.assertEqual((r.returncode, r.stdout), (0, DEPS.describe(ROOT, g, h) + "\n"), r.stderr)
         r = self.run_cli("chart")

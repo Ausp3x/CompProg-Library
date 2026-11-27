@@ -384,8 +384,8 @@ def aliases(text):
 
 
 def bare(file):
-    """A header's or module's file stem without its NN- or _NN_ prefix."""
-    return re.sub(r'^(?:\d{2}-|_\d{2}_)', '', Path(file).stem)
+    """A header's or module's file stem without its numeric prefix (`001-`, `_001_`, Core `05-`)."""
+    return re.sub(r'^(?:\d{2,3}-|_\d{2,3}_)', '', Path(file).stem)
 
 
 def rows(root=ROOT):

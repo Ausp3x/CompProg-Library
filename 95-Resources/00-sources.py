@@ -45,7 +45,7 @@ WORK, GITDIR = COMMON.parent / '95-Resources', COMMON / 'sources'
 INBOX = WORK / '00-Inbox'
 REQUESTS = INBOX / '00-requests.md'  # one line per open request: - YYYY-MM-DD | package or batch | title | URL | file name
 FOLDERS = ('13-Papers', '14-Web Pages')  # where every source the work uses is filed (00-index.md, Storage)
-NAME = re.compile(r'\d\d-[a-z0-9_]+(-[a-z0-9_]+)*\.[a-z0-9]+')  # NN-short_title-author_year, NN-site_id-short_title
+NAME = re.compile(r'\d{3}-[a-z0-9_]+(-[a-z0-9_]+)*\.[a-z0-9]+')  # NNN-short_title-author_year, NNN-site_id-short_title
 CITE = re.compile(r'00-Inbox/(?!00-requests\.md)[^\s`|)<>]')  # a path into the inbox, where the filed path belongs
 LOCAL = 'Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).'
 

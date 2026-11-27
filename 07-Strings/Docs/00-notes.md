@@ -21,7 +21,7 @@ The inventory lists operations; this file holds the rules every row follows. Eac
 
 - Hashes are Monte Carlo fingerprints, never proof of equality. A hash-based API says so in its name or documentation (`maybePalindrome`, `StringHash::lcp`). Exact equality or LCE uses deterministic verification or an exact index.
 - High-probability bounds (`47`, Optimal Dynamic Strings) are named separately from the Monte Carlo and Las Vegas classification (`03-cpp.md`, API Contracts).
-- A static fingerprint context owns its bases; digests from different contexts compare only under identical base and encoding. Double prime is the default; unsigned-word wrap has demonstrated structured collisions; the Mersenne `2^61 - 1` field is a speed option with one large modulus. Collision bounds are in [03-stringhash.md](03-stringhash.md).
+- A static fingerprint context owns its bases; digests from different contexts compare only under identical base and encoding. Double prime is the default; unsigned-word wrap has demonstrated structured collisions; the Mersenne `2^61 - 1` field is a speed option with one large modulus. Collision bounds are in [003-stringhash.md](003-stringhash.md).
 - Dynamic hashes (`23`) inherit the static collision model, and each structure documents the lifecycle of its random base.
 
 ## Ownership inside the Folder
@@ -30,16 +30,16 @@ The inventory lists operations; this file holds the rules every row follows. Eac
 - Substring shortest-border and shortest-period queries belong to `27`, which states preprocessing, query and output costs separately. Shortest absent subsequence belongs to `20`; minimal absent words and minimal unique substrings belong to `22`.
 - Palindromes: static radii `05`, static queries `08`, eertree `13`, range and characteristic queries and palindrome pairs `39`, double-ended and rollback structures `45`. Longest palindromic subsequence and palindromic-subsequence counting are subsequence DPs in `19`.
 - Dynamic pattern sets (`34`) and dynamic text indexes (`35`, `44`, `45`, `47`) state their exact edit model (append, prepend, pop, insert, erase, split, join, rollback, persistence) before promising bounds; append-only analyses do not survive deletions.
-- Generalized indexes over several strings (`28`) need separators that cannot collide with the input alphabet. `07` `longestCommonSubstring` codes the union alphabet to positive values (shift or ranks, [07-suffixarray.md](07-suffixarray.md)) and uses zero as a fresh separator.
+- Generalized indexes over several strings (`28`) need separators that cannot collide with the input alphabet. `07` `longestCommonSubstring` codes the union alphabet to positive values (shift or ranks, [007-suffixarray.md](007-suffixarray.md)) and uses zero as a fresh separator.
 - Each callable implementation has one owner: offline suffix tree `11`, Ukkonen `33`, two-way `16`, rare linear variants `43`, LZ `42`, grammars `37`, BWT `29`, FM-index and XBW `36`, run-length BWT and r-index `46`.
 
 ## Ownership across Folders
 
 - Data Structures engines (DSU, Fenwick tree, sparse table, treap and splay tree, wavelet matrix, succinct rank/select) serve `07`, `11`, `22`, `23`, `35`, `36`, `46` and `48`.
-- Mathematics `13-convolution.hpp` (batch MA06) owns convolution, which `21` and `38` require. Mathematics generating functions own necklace and Lyndon counting (Pólya–Burnside).
-- Miscellaneous owns Huffman and optimal prefix coding (`40-optimal_merge.hpp`), digit DP (`31-digitdp.hpp`; `24` only supplies automata to it) and expression parsing (`37-expression_parser.hpp`).
-- Graphs `07-lca.hpp` and `10-euleriantrail.hpp` serve `27` `BorderTree` and `41` as engines or oracles.
-- [08-Python](../../08-Python/00-index.md) owns the Python subsets of this folder (`_10_strings.py`, `_12_dp.py`, `_23_trie.py`, `_24_aho.py`, `_25_suffix.py`, `_53_eertree.py`, `_54_lyndon.py`).
+- Mathematics `013-convolution.hpp` (batch MA06) owns convolution, which `21` and `38` require. Mathematics generating functions own necklace and Lyndon counting (Pólya–Burnside).
+- Miscellaneous owns Huffman and optimal prefix coding (`040-optimal_merge.hpp`), digit DP (`031-digitdp.hpp`; `24` only supplies automata to it) and expression parsing (`037-expression_parser.hpp`).
+- Graphs `007-lca.hpp` and `010-euleriantrail.hpp` serve `27` `BorderTree` and `41` as engines or oracles.
+- [08-Python](../../08-Python/00-index.md) owns the Python subsets of this folder (`_010_strings.py`, `_012_dp.py`, `_023_trie.py`, `_024_aho.py`, `_025_suffix.py`, `_053_eertree.py`, `_054_lyndon.py`).
 
 ## Verification Policy
 
@@ -48,7 +48,7 @@ The inventory lists operations; this file holds the rules every row follows. Eac
 
 ## Legacy Obligations
 
-- `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain a legacy trie, accounted for in `04` ([04-trie.md](04-trie.md)). `OLD/Team Notebook/src/misc/old_zalgo.cpp` is accounted for in `02` ([02-z.md](02-z.md)) and `old_lcssubstr.py` in `07` ([07-suffixarray.md](07-suffixarray.md)).
+- `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain a legacy trie, accounted for in `04` ([004-trie.md](004-trie.md)). `OLD/Team Notebook/src/misc/old_zalgo.cpp` is accounted for in `02` ([002-z.md](002-z.md)) and `old_lcssubstr.py` in `07` ([007-suffixarray.md](007-suffixarray.md)).
 - This folder has no `97-Legacy/` directory and no `legacy-reference` row.
 
 ## P016 Package Record (ST01, ST02, ST19)
@@ -69,7 +69,7 @@ Handoffs: `31` owns minimum-alphabet reconstruction and `25` compressed dictiona
 Operations left out by the re-audit research (sources in [00-sources.md](00-sources.md)):
 
 - `06`: A parent field (Library Checker `aho_corasick` output) is recoverable in `O(V)` from `nodes[u].next`. Scans resuming from a given state (ei1333 `move`) are `step` plus `matchCount`. maspypy's persistent-array transitions for `fromTrie` are replaced by the dense build over at most 256 bytes. `lastOccurrences` is unsourced and is `firstOccurrences` on the reversed text and patterns (`n - first - length`).
-- `07`: `22` `frequencyStatistics` must not duplicate `longestRepeated(k)` (at least `k` occurrences, in `07`). Substring comparison, kth substrings, all-pairs LCP and occurrence ranges by position stay in `22`; distinct-substring counting in `10`; cyclic shifts in `15`. Dense symbol ranges (`max - min < max(4n, 256)`) are shifted rather than compressed (user refinement 2026-10-19). DC3 (skew) construction is not adopted: it is also `O(n)` and slower than SA-IS in practice. There is no size dispatch to `doubling`: it wins by up to 35% on short random texts but loses by 2–3 times on repetitive texts of the same lengths ([benchmark](07-suffixarray.md#benchmarks)).
+- `07`: `22` `frequencyStatistics` must not duplicate `longestRepeated(k)` (at least `k` occurrences, in `07`). Substring comparison, kth substrings, all-pairs LCP and occurrence ranges by position stay in `22`; distinct-substring counting in `10`; cyclic shifts in `15`. Dense symbol ranges (`max - min < max(4n, 256)`) are shifted rather than compressed (user refinement 2026-10-19). DC3 (skew) construction is not adopted: it is also `O(n)` and slower than SA-IS in practice. There is no size dispatch to `doubling`: it wins by up to 35% on short random texts but loses by 2–3 times on repetitive texts of the same lengths ([benchmark](007-suffixarray.md#benchmarks)).
 - `08`: The longest palindromic prefix and suffix are `05` `longestStarting()[0]` and `longestEnding()[n-1]`; inverse Manacher is `31`; range-restricted longest, count and distinct palindrome queries are `39`.
 
 Handoffs: `34` can reuse the stable state, failure and output interfaces of `06`; `clear` invalidates state ids.

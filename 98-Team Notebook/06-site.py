@@ -624,8 +624,8 @@ def items(operations: str) -> list[str]:
 
 
 def page_name(target: str) -> str:
-    """`02-Data Structures/01-dsu.hpp` -> `01-dsu`; `08-Python/_01_io.py` -> `01-io` (the evidence document stem)."""
-    return re.sub(r"^_?(\d{2})[-_](.*)\.(hpp|py)$", r"\1-\2", target.split("/")[1])
+    """`02-Data Structures/001-dsu.hpp` -> `001-dsu`; `08-Python/_001_io.py` -> `001-io` (the evidence document stem)."""
+    return re.sub(r"^_?(\d{2,3})[-_](.*)\.(hpp|py)$", r"\1-\2", target.split("/")[1])
 
 
 def folder_slug(folder: str) -> str:

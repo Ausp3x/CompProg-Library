@@ -12,10 +12,10 @@
 | `98-Team Notebook/06-site.py` | `MATH` (verbatim), `FENCE` and `OPTION` (adapted) | [pymdown-extensions](https://github.com/facelessuser/pymdown-extensions) `arithmatex`, `superfences` | MIT |
 | `98-Team Notebook/06-site.py` | the `MATHJAX` configuration (adapted) | [Material for MkDocs](https://github.com/squidfunk/mkdocs-material) documentation, `reference/math.md` | MIT |
 | `96-Local Testing/00-Tools/06-site_tester.py` | the `BACKTICK` pattern, `code_pass` and the heading-id oracle | Python-Markdown | BSD-3-Clause |
-| `96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.cpp` | the `TRICODES` and triad-name tables (verbatim), the `cluster.py` oracles (transliterated) | [NetworkX](https://github.com/networkx/networkx) `triads.py`, `cluster.py` | BSD-3-Clause |
+| `96-Local Testing/04-Graphs/035-subgraph_enumeration_tester.cpp` | the `TRICODES` and triad-name tables (verbatim), the `cluster.py` oracles (transliterated) | [NetworkX](https://github.com/networkx/networkx) `triads.py`, `cluster.py` | BSD-3-Clause |
 | `09-Contest Testing/_11_search_t2s.tsv` | the whole file: OpenCC's Traditional-to-Simplified phrases and characters, its Taiwan and Hong Kong variant phrases, variant characters and regional phrases, and mainland word classes linked by its phrase pairs (adapted: Chinese-character entries only, first values; recipe in [00-search.md](<96-Local Testing/Docs/00-search.md>)) | [OpenCC](https://github.com/ByVoid/OpenCC) `data/dictionary` at `fae2a0a` | Apache-2.0 |
 
-The SplitMix64 finalizer used across headers and tests (`06-Miscellaneous/02-customhash.hpp` and others) follows [splitmix64.c](https://prng.di.unimi.it/splitmix64.c), which Sebastiano Vigna dedicated to the public domain in 2015, so it needs no exclusion. Provenance audit and method: [00-contribution.md](00-Guidelines/13-Plan/Docs/00-contribution.md).
+The SplitMix64 finalizer used across headers and tests (`06-Miscellaneous/002-customhash.hpp` and others) follows [splitmix64.c](https://prng.di.unimi.it/splitmix64.c), which Sebastiano Vigna dedicated to the public domain in 2015, so it needs no exclusion. Provenance audit and method: [00-contribution.md](00-Guidelines/13-Plan/Docs/00-contribution.md).
 
 ## Python-Markdown (BSD-3-Clause)
 

@@ -186,7 +186,7 @@ These are shared-host observations, not timing gates. The whole-stream reader pa
 ## Limits and Handoffs
 
 - `readDouble` reports total underflow as `Overflow`; `long double` I/O and locale-specific formats are not owned. Floating `from_chars`/`to_chars` are in libstdc++ from GCC 11 (portable `double` parsing from GCC 12), which bounds portability to older judges.
-- `FastInput<0>` holds the whole stream: a mapping of a regular file, else a vector that may reach twice the stream while it grows. Pipes and terminals take the vector path; interactive protocols use `FastInput<1>` with explicit flushes ([50-interactive.md](../../06-Miscellaneous/Docs/50-interactive.md)).
+- `FastInput<0>` holds the whole stream: a mapping of a regular file, else a vector that may reach twice the stream while it grows. Pipes and terminals take the vector path; interactive protocols use `FastInput<1>` with explicit flushes ([050-interactive.md](../../06-Miscellaneous/Docs/050-interactive.md)).
 - `parseInt` takes only views this reader returned (its window precondition); other strings go through the integer types' own parsing.
 - The short-token kernels repeat InfInt's on purpose (no Core type includes another for I/O); a change to one is measured and mirrored in the other.
 - ModInt reading and writing (`rd`/`wt` of the archived modint) are not adopted: reading an integer and constructing the residue is a wrapper of `readInt` and the ModInt constructor ([03-cpp.md](../../00-Guidelines/03-cpp.md), One API per Operation; [05-modint.md](05-modint.md)).

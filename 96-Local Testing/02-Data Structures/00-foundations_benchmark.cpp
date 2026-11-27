@@ -1,4 +1,4 @@
-#include "../../02-Data Structures/02-fenwick.hpp"
+#include "../../02-Data Structures/002-fenwick.hpp"
 
 // Separate construction measurements: both methods build the same Fenwick tree.
 int main(int argc, char **argv) {

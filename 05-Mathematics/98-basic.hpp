@@ -1,7 +1,7 @@
 #pragma once
 // Existing implementations only; planned coverage is listed in 00-index.md.
-#include "01-mod_arithmetic.hpp"
-#include "02-search_algorithms.hpp"
-#include "03-equation_solvers.hpp"
-#include "04-sieve_algorithms.hpp"
-#include "05-combinatorics.hpp"
+#include "001-mod_arithmetic.hpp"
+#include "002-search_algorithms.hpp"
+#include "003-equation_solvers.hpp"
+#include "004-sieve_algorithms.hpp"
+#include "005-combinatorics.hpp"

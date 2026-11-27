@@ -6,7 +6,7 @@ Line format: `- YYYY-MM-DD | package or batch | idea | the rule text it replaces
 
 ## Open
 
-- 2026-11-27 | P011 | `04-Graphs` has no free two-digit prefix (rows 01–97, aggregates 98 and 99), so no new row can be planned there, the fully dynamic SCC row the user chose included (follow-up on P011); plan a support batch that groups one Graphs topic into a numbered subfolder, and have `03-consistency.py` warn when a folder has five or fewer free prefixes | none can go: it enforces `02-structure.md` (Names), "Before a folder's two-digit prefixes run out, group a topic into a numbered subfolder", which nothing checks | `04-Graphs/00-index.md`; P011 limits recheck, user decision 2026-11-27
+(none)
 
 ## Recorded Decisions
 

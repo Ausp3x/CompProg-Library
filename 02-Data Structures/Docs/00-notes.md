@@ -19,25 +19,25 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 - `SparseTable::prod` needs idempotence; `associativeProd` and the disjoint sparse table need only associativity.
 - Monoids follow the `03-cpp.md` monoid rule; presets, adapters and laws are row 00 ([00-monoids.md](00-monoids.md)). Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15, 18 and 19 consume acted monoids. Rows 13 and 18 need only the monoid part for their plain trees and only the action part for their dual trees; row 15's 2D trees need a commutative `op` or `composition`.
 - Li Chao trees and the convex hull trick state an overflow-safe evaluation policy, exact intersection comparison (128-bit products or bounded domains) and tie rules for equal lines, and serve both min and max queries.
-- Segment-tree beats variants beyond chmin, chmax, add and assign need their own amortized proof and value-domain statement ([14-segtreebeats.md](14-segtreebeats.md)).
-- ODT (Chtholly) workloads state their adversarial worst-case degeneration ([24-interval_set.md](24-interval_set.md)). Kinetic structures distinguish adversarial event counts from ordinary update bounds.
-- Hash maps use a process-seeded SplitMix hash; Miscellaneous `02-customhash.hpp` owns the hash functions and the seeding policy.
+- Segment-tree beats variants beyond chmin, chmax, add and assign need their own amortized proof and value-domain statement ([014-segtreebeats.md](014-segtreebeats.md)).
+- ODT (Chtholly) workloads state their adversarial worst-case degeneration ([024-interval_set.md](024-interval_set.md)). Kinetic structures distinguish adversarial event counts from ordinary update bounds.
+- Hash maps use a process-seeded SplitMix hash; Miscellaneous `002-customhash.hpp` owns the hash functions and the seeding policy.
 
 ## Ownership Boundaries
 
-- Data Structures owns data-structure engines. Graphs owns dynamic-connectivity orchestration (`26-dynamic_connectivity.hpp`), HLD, LCA and tree adapters; Graphs `48-matroidintersection.hpp` consumes the oracles of `46-matroid_oracle.hpp` and Mathematics linear algebra.
-- Geometry owns point-facing kd-tree, R-tree, quadtree and nearest-neighbour APIs (`28-spatial_index.hpp`), rectangle-union area and perimeter (`13-segment_union.hpp`), kinetic geometry and dynamic or decremental hulls; it may use `43-rangetree.hpp` and `33-offline_rectangle_queries.hpp` as engines.
-- Strings owns literal-prefix (`04-trie.hpp`) and radix tries; this folder owns binary integer and XOR tries and the succinct rank/select engines that Strings `36-compressed_text_index.hpp` uses.
-- Miscellaneous owns CDQ (`21-cdq.hpp`), parallel binary search (`20-parallelbinarysearch.hpp`), Hilbert order (`16-hilbertorder.hpp`), the generic undo log and checkpoints (`42-rollback_framework.hpp`), the persistent allocator, slope trick (`34-slope_trick.hpp`), coordinate compression by encounter ID, interval algorithms over static endpoint sets and probabilistic sketches. `63-offline_deletion.hpp` owns the generic add/remove-over-time engine and the queue-undo trick, because its contract is the rollback structure, not a graph.
-- Core owns reusable accelerated dynamic bitsets and GF(2) matrices (`12-bitmatrix.hpp`: rank, solve, nullspace); `62-xorbasis.hpp` owns the incremental basis, the prefix (timestamped) basis and offline range-basis queries. Miscellaneous owns static mex (`08-sequence_algorithms.hpp`, which Mathematics `25-game_theory.hpp` calls for Grundy values); `24-interval_set.hpp` owns dynamic mex over a set (`IntervalSet::find(x).second`).
-- Python mirrors (`08-Python`) own their own sorted-list and xor-basis (`_22_bitset.py`) implementations.
-- Rollback DSU owns the generic undo and connectivity substrate; weighted DSU owns potential, parity and noncommutative algebra and the weighted rollback variant. They reuse the undo contract without reciprocal header dependencies. `65-dsu_extensions.hpp` holds member enumeration, component aggregates and actions, sparse keys and the merge-history forest, and depends only on `01-dsu.hpp`, `61-hashmap.hpp` and Miscellaneous `02-customhash.hpp`. Groups for rows 29 and 65 are monoids with `inv` ([00-monoids.md](00-monoids.md#group-contract)).
+- Data Structures owns data-structure engines. Graphs owns dynamic-connectivity orchestration (`026-dynamic_connectivity.hpp`), HLD, LCA and tree adapters; Graphs `048-matroidintersection.hpp` consumes the oracles of `046-matroid_oracle.hpp` and Mathematics linear algebra.
+- Geometry owns point-facing kd-tree, R-tree, quadtree and nearest-neighbour APIs (`028-spatial_index.hpp`), rectangle-union area and perimeter (`013-segment_union.hpp`), kinetic geometry and dynamic or decremental hulls; it may use `043-rangetree.hpp` and `033-offline_rectangle_queries.hpp` as engines.
+- Strings owns literal-prefix (`004-trie.hpp`) and radix tries; this folder owns binary integer and XOR tries and the succinct rank/select engines that Strings `036-compressed_text_index.hpp` uses.
+- Miscellaneous owns CDQ (`021-cdq.hpp`), parallel binary search (`020-parallelbinarysearch.hpp`), Hilbert order (`016-hilbertorder.hpp`), the generic undo log and checkpoints (`042-rollback_framework.hpp`), the persistent allocator, slope trick (`034-slope_trick.hpp`), coordinate compression by encounter ID, interval algorithms over static endpoint sets and probabilistic sketches. `063-offline_deletion.hpp` owns the generic add/remove-over-time engine and the queue-undo trick, because its contract is the rollback structure, not a graph.
+- Core owns reusable accelerated dynamic bitsets and GF(2) matrices (`12-bitmatrix.hpp`: rank, solve, nullspace); `062-xorbasis.hpp` owns the incremental basis, the prefix (timestamped) basis and offline range-basis queries. Miscellaneous owns static mex (`008-sequence_algorithms.hpp`, which Mathematics `025-game_theory.hpp` calls for Grundy values); `024-interval_set.hpp` owns dynamic mex over a set (`IntervalSet::find(x).second`).
+- Python mirrors (`08-Python`) own their own sorted-list and xor-basis (`_022_bitset.py`) implementations.
+- Rollback DSU owns the generic undo and connectivity substrate; weighted DSU owns potential, parity and noncommutative algebra and the weighted rollback variant. They reuse the undo contract without reciprocal header dependencies. `065-dsu_extensions.hpp` holds member enumeration, component aggregates and actions, sparse keys and the merge-history forest, and depends only on `001-dsu.hpp`, `061-hashmap.hpp` and Miscellaneous `002-customhash.hpp`. Groups for rows 29 and 65 are monoids with `inv` ([00-monoids.md](00-monoids.md#group-contract)).
 - Dynamic wavelet and succinct structures are Esoteric rows, never extra modes inside the Advanced wavelet header. Persistent split and merge stay with the persistent segment tree; destructive meld and split stay with the dynamic segment tree.
 - Graphs Dijkstra and k-shortest walks and Miscellaneous optimal merge consume the heap and deque engines and do not reimplement heaps.
 
 ## Migration Obligations
 
-- Row 23 (`23-range_query_offline.hpp`) is a pinned unchanged extraction: it keeps its original body and comments until its package rewrites it (`03-cpp.md`, One API per Operation), and compiling proves nothing about its semantics. Its audit strips hidden template globals and splits mixed-operation bodies.
+- Row 23 (`023-range_query_offline.hpp`) is a pinned unchanged extraction: it keeps its original body and comments until its package rewrites it (`03-cpp.md`, One API per Operation), and compiling proves nothing about its semantics. Its audit strips hidden template globals and splits mixed-operation bodies.
 
 ## P006 Re-Audit Omissions
 
@@ -52,7 +52,7 @@ Candidates from the 2026-10-07 sweep ([00-sources.md](00-sources.md)) left out o
 
 ## Foundations Rows 01–08 (P006)
 
-Folder-level record for the verified Basic rows `01-dsu.hpp` … `08-monotone_stack.hpp` (package P006, DS01 then DS02). Per-header evidence: [01-dsu.md](01-dsu.md), [02-fenwick.md](02-fenwick.md), [03-segmenttree.md](03-segmenttree.md), [04-sparsetable.md](04-sparsetable.md), [05-prefix_sum.md](05-prefix_sum.md), [06-sqrt_decomposition.md](06-sqrt_decomposition.md), [07-ordered_set.md](07-ordered_set.md), [08-monotone_stack.md](08-monotone_stack.md). C01/P002 supplies the verified template, integer aliases and PBDS imports. Rows 01–08 use no ISA kernels, no Barrett or Montgomery reduction and no empirically selected dispatch thresholds.
+Folder-level record for the verified Basic rows `001-dsu.hpp` … `008-monotone_stack.hpp` (package P006, DS01 then DS02). Per-header evidence: [001-dsu.md](001-dsu.md), [002-fenwick.md](002-fenwick.md), [003-segmenttree.md](003-segmenttree.md), [004-sparsetable.md](004-sparsetable.md), [005-prefix_sum.md](005-prefix_sum.md), [006-sqrt_decomposition.md](006-sqrt_decomposition.md), [007-ordered_set.md](007-ordered_set.md), [008-monotone_stack.md](008-monotone_stack.md). C01/P002 supplies the verified template, integer aliases and PBDS imports. Rows 01–08 use no ISA kernels, no Barrett or Montgomery reduction and no empirically selected dispatch thresholds.
 
 ### Common Foundation Contracts
 
@@ -65,7 +65,7 @@ A moved-from structure may only be assigned to or destroyed. Its size fields kee
 Rows 01–08 run through `96-Local Testing/_00_contest_runner.py`, which sets the optimized, checked and sanitizer builds with their flags and leak checking; modes and failure reporting follow `05-testing.md` (Layout and Modes). Folder-specific parts:
 
 - Invalid probes must end in SIGABRT with an assertion diagnostic.
-- The ordered-set suite's checked build uses `_GLIBCXX_ASSERTIONS` instead of `_GLIBCXX_DEBUG` ([07-ordered_set.md](07-ordered_set.md)).
+- The ordered-set suite's checked build uses `_GLIBCXX_ASSERTIONS` instead of `_GLIBCXX_DEBUG` ([007-ordered_set.md](007-ordered_set.md)).
 - Exhaustive enumerations stop at the first failing case. The DSU union histories and the `FenwickTimestamp` add/clear histories run by iterative deepening, so their first failure is a shortest history; the other enumerations make no shrinking claim.
 - Each suite's source records its concrete mode limits.
 - Declared algebra, monotonicity and representability conditions and impractically large allocations are justified contracts, not proved at run time by finite tests.
@@ -97,7 +97,7 @@ Candidates from the 2026-10-09 sweep ([00-sources.md](00-sources.md)) left out o
 - Shrinking on erase (NYA): capacity stays at the peak; assign a new table to release it.
 - SortedList `countRange` and `irange`/`islice` (sortedcontainers, tatyam): `rank(r) - rank(l)` and iterators.
 - SortedList negative `kth` indices (tatyam, PyRival): a Python convention; C++ uses `kth(n - 1 - k)`.
-- Fenwick over bucket sizes (PyRival) or a positional index tree (sortedcontainers): `rank`/`kth` would gain O(log(n)) bucket lookup, but `insert` stays O(sqrt(n)) and every split or merge rebuilds the index. The RATIO sweep in [64-sortedlist.md](64-sortedlist.md) favours smaller buckets (shorter shifts) over fewer buckets, so the linear bucket scan is not the bottleneck at n <= 1e6.
+- Fenwick over bucket sizes (PyRival) or a positional index tree (sortedcontainers): `rank`/`kth` would gain O(log(n)) bucket lookup, but `insert` stays O(sqrt(n)) and every split or merge rebuilds the index. The RATIO sweep in [064-sortedlist.md](064-sortedlist.md) favours smaller buckets (shorter shifts) over fewer buckets, so the linear bucket scan is not the bottleneck at n <= 1e6.
 
 ## P028 Omissions
 

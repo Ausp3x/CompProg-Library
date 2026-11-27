@@ -40,7 +40,7 @@ def main():
         result = run([str(binary), str(args.seed)])
     cpu = next((line.split(':', 1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines()
                 if line.startswith('model name')), platform.processor())
-    paths = [ROOT / '01-Core/09-rational.hpp', ROOT / '03-Geometry/01-point.hpp', ROOT / '03-Geometry/02-line_segment.hpp', ROOT / '03-Geometry/04-convexhull.hpp',
+    paths = [ROOT / '01-Core/09-rational.hpp', ROOT / '03-Geometry/001-point.hpp', ROOT / '03-Geometry/002-line_segment.hpp', ROOT / '03-Geometry/004-convexhull.hpp',
              HERE / '00-foundations_benchmark.cpp']
     record = dict(seed=args.seed, cpu=cpu, platform=platform.platform(),
                   compiler=run([compiler, '--version']).stdout.splitlines()[0],

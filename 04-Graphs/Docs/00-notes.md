@@ -15,40 +15,40 @@
 
 ## Ownership Boundaries
 
-- Data Structures owns DSU (01, 09 rollback, 29 weighted), link-cut trees (37), Euler-tour trees (38), top trees (39), radix heaps (31), persistent leftist heaps (48), PQ-trees (56), matroid oracles (46) and Mo's algorithm including Mo on trees (`23-range_query_offline.hpp`, `TreeMo`). `04-dsu.hpp` and `51-lct.hpp` are adapters keyed by graph vertices and edge IDs.
-- Mathematics owns determinants and the matrix-tree counts (23: spanning trees, arborescences, rooted forests and BEST Eulerian circuits, user decision 2026-11-08), permanent/Pfaffian/hafnian (48), convolution (13), polynomial and generating-function kernels (14, 40) and linear algebra (16). `53-graph_counting.hpp` adapts graphs to the other kernels; `16-centroiddecomposition.hpp` uses Mathematics convolution for the all-distance histogram. Labeled graph-class counts by vertex count (connected, biconnected, DAG, Eulerian, forest, strong digraph, tree, unicyclic) are Mathematics generating-function work, not graph rows.
-- Miscellaneous owns small-to-large/DSU-on-tree merging (`15-smalltolarge.hpp`), generic Floyd/Brent cycle finding (`14-cyclefinding.hpp`), exchange-rule scheduling (39) and subset DP scaffolding (32). `14-tree_algorithms.hpp` supplies Euler-tour layouts to Miscellaneous 15 and does not duplicate its container merging.
-- Geometry owns Manhattan MST (`21-manhattan_geometry.hpp`) and geometric graph construction (`22-geometricmst.hpp`). Geometric arrangements and point location stay in Geometry; `29-planar_graph.hpp` works on a given combinatorial embedding, and its `fromDrawing` builds one from a straight-line drawing (cp-algorithms faces, decided 2026-10-28) without resolving nested components.
+- Data Structures owns DSU (01, 09 rollback, 29 weighted), link-cut trees (37), Euler-tour trees (38), top trees (39), radix heaps (31), persistent leftist heaps (48), PQ-trees (56), matroid oracles (46) and Mo's algorithm including Mo on trees (`023-range_query_offline.hpp`, `TreeMo`). `004-dsu.hpp` and `051-lct.hpp` are adapters keyed by graph vertices and edge IDs.
+- Mathematics owns determinants and the matrix-tree counts (23: spanning trees, arborescences, rooted forests and BEST Eulerian circuits, user decision 2026-11-08), permanent/Pfaffian/hafnian (48), convolution (13), polynomial and generating-function kernels (14, 40) and linear algebra (16). `053-graph_counting.hpp` adapts graphs to the other kernels; `016-centroiddecomposition.hpp` uses Mathematics convolution for the all-distance histogram. Labeled graph-class counts by vertex count (connected, biconnected, DAG, Eulerian, forest, strong digraph, tree, unicyclic) are Mathematics generating-function work, not graph rows.
+- Miscellaneous owns small-to-large/DSU-on-tree merging (`015-smalltolarge.hpp`), generic Floyd/Brent cycle finding (`014-cyclefinding.hpp`), exchange-rule scheduling (39) and subset DP scaffolding (32). `014-tree_algorithms.hpp` supplies Euler-tour layouts to Miscellaneous 15 and does not duplicate its container merging.
+- Geometry owns Manhattan MST (`021-manhattan_geometry.hpp`) and geometric graph construction (`022-geometricmst.hpp`). Geometric arrangements and point location stay in Geometry; `029-planar_graph.hpp` works on a given combinatorial embedding, and its `fromDrawing` builds one from a straight-line drawing (cp-algorithms faces, decided 2026-10-28) without resolving nested components.
 - Walks versus simple paths (`32` vs `59`), cardinality versus weighted general matching (`22` vs `64`), given planar embedding versus recognition (`29` vs `62`), offline versus online fully dynamic connectivity (`26` vs `63`), fundamental versus minimum cycle basis (`28` vs `72`), and edge connectivity versus vertex triconnectivity (`74` vs `61`) are separate rows.
 
 ## Bounded-Flow Ownership
 
-`30-flow_with_demands.hpp` owns lower/upper-bound and vertex-supply reductions and their reconstruction. Its costed-network adapter starts negative-cost edges saturated, so its backend sees nonnegative costs only, which keeps `20-min_cost_flow.hpp` (successive shortest paths, no negative cycles; [20-min_cost_flow.md](20-min_cost_flow.md)) inside its domain at a cost pseudo-polynomial in the total positive excess after the reversal ([30-flow_with_demands.md](30-flow_with_demands.md)); polynomial general signed-cost circulation engines belong to `65-costscalingflow.hpp` and `66-networksimplex.hpp`. Those backends may use the bounded-flow model, so the model must not depend back on them. `65` also owns min-cost b-flow with supplies and demands. `39-graphicalsequence.hpp` `directedDegreeRealization` is a flow reduction: paired out-/in-degree copies, admissible-arc capacities, a saturating flow; its contract must state the loop and parallel-edge restrictions.
+`030-flow_with_demands.hpp` owns lower/upper-bound and vertex-supply reductions and their reconstruction. Its costed-network adapter starts negative-cost edges saturated, so its backend sees nonnegative costs only, which keeps `020-min_cost_flow.hpp` (successive shortest paths, no negative cycles; [020-min_cost_flow.md](020-min_cost_flow.md)) inside its domain at a cost pseudo-polynomial in the total positive excess after the reversal ([030-flow_with_demands.md](030-flow_with_demands.md)); polynomial general signed-cost circulation engines belong to `065-costscalingflow.hpp` and `066-networksimplex.hpp`. Those backends may use the bounded-flow model, so the model must not depend back on them. `65` also owns min-cost b-flow with supplies and demands. `039-graphicalsequence.hpp` `directedDegreeRealization` is a flow reduction: paired out-/in-degree copies, admissible-arc capacities, a saturating flow; its contract must state the loop and parallel-edge restrictions.
 
 ## Tree Ownership
 
-- `07-lca.hpp` owns static LCA, k-th ancestor by binary lifting, path jumps and rerooted LCA. `85-levelancestor.hpp` owns O(1) level ancestor (ladder decomposition) and offline batched level-ancestor queries.
-- `14-tree_algorithms.hpp` owns diameter/center/centroid, static Euler tours, reroot and subtree DP, size-bounded subtree merge DP, virtual trees and Prüfer codes. `15-hld.hpp` owns path/subtree folds and actions; `16-centroiddecomposition.hpp` owns contour queries; `84-dynamictreedp.hpp` owns point-update tree DP through static top trees, including dynamic diameter under weight updates.
-- `11-functionalgraph.hpp` owns directed successor graphs. Undirected unicyclic (namori/pseudoforest) decomposition belongs to `41-cactusgraph.hpp`.
-- `79-tree_ordering.hpp` stays in Graphs: its objectives are defined on rooted trees and its engines are DSU/heap merges over tree structure; Miscellaneous 39 references it for precedence scheduling.
+- `007-lca.hpp` owns static LCA, k-th ancestor by binary lifting, path jumps and rerooted LCA. `085-levelancestor.hpp` owns O(1) level ancestor (ladder decomposition) and offline batched level-ancestor queries.
+- `014-tree_algorithms.hpp` owns diameter/center/centroid, static Euler tours, reroot and subtree DP, size-bounded subtree merge DP, virtual trees and Prüfer codes. `015-hld.hpp` owns path/subtree folds and actions; `016-centroiddecomposition.hpp` owns contour queries; `084-dynamictreedp.hpp` owns point-update tree DP through static top trees, including dynamic diameter under weight updates.
+- `011-functionalgraph.hpp` owns directed successor graphs. Undirected unicyclic (namori/pseudoforest) decomposition belongs to `041-cactusgraph.hpp`.
+- `079-tree_ordering.hpp` stays in Graphs: its objectives are defined on rooted trees and its engines are DSU/heap merges over tree structure; Miscellaneous 39 references it for precedence scheduling.
 
 ## Legacy Migration Obligations
 
 - `00-Guidelines/Ledgers/monolith-map.json` records the monolith source ranges and hashes of rows `12`, `13` and `15` (`00-Guidelines/History/2026-09-27-monolith-transfer.md`).
-- The `MinCostMaxFlow`/`MaxFlowMinCut` copies in `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `test.cpp` are mapped in `20-min_cost_flow.md`; the other archive leads are in `00-Guidelines/Ledgers/archive-map.json` and the rows' evidence documents. The TODO comments of `OLD/[1] algorithms.cpp` motivated rows `14` and `17`.
+- The `MinCostMaxFlow`/`MaxFlowMinCut` copies in `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `test.cpp` are mapped in `020-min_cost_flow.md`; the other archive leads are in `00-Guidelines/Ledgers/archive-map.json` and the rows' evidence documents. The TODO comments of `OLD/[1] algorithms.cpp` motivated rows `14` and `17`.
 
 ## Placement Decisions Recorded
 
-- `04-dsu.hpp` stays: it is a verified adapter with a real operation (`graphComponents`), not a bare re-export.
-- `51-lct.hpp` `DynamicForest` wraps Data Structures 37 `LinkCutTree` with edge-ID keys and calls it; it is kept (`00-Guidelines/23-Sweep Ledgers/duplicates.md`, Kept by the Sweep).
-- Shortest-path counting, shortest-path DAG, widest/minimax paths and Goldberg negative-weight scaling were placed in `13-shortest_path_advanced.hpp` rather than reopening the verified `05-shortest_path.hpp`.
-- `lineGraph`, `inducedSubgraph`, `contract` and `simplify` belong to `01-graph.hpp` because they are representation utilities; maximum-weight spanning forests are separate `06-mst.hpp` engines because negating full-range `lng` weights overflows.
+- `004-dsu.hpp` stays: it is a verified adapter with a real operation (`graphComponents`), not a bare re-export.
+- `051-lct.hpp` `DynamicForest` wraps Data Structures 37 `LinkCutTree` with edge-ID keys and calls it; it is kept (`00-Guidelines/23-Sweep Ledgers/duplicates.md`, Kept by the Sweep).
+- Shortest-path counting, shortest-path DAG, widest/minimax paths and Goldberg negative-weight scaling were placed in `013-shortest_path_advanced.hpp` rather than reopening the verified `005-shortest_path.hpp`.
+- `lineGraph`, `inducedSubgraph`, `contract` and `simplify` belong to `001-graph.hpp` because they are representation utilities; maximum-weight spanning forests are separate `006-mst.hpp` engines because negating full-range `lng` weights overflows.
 - Incremental SCC, dynamic connectivity and bridge maintenance, block-cut and bridge-tree queries, tree/HLD aggregates and postman augmentation belong to rows 70, 26, 27, 15 and 69; Euler-trail counting is Mathematics 23's. Functional successor updates are outside row 11's static contract.
 - The folder's prefixes are used up (user decision 2026-11-22): rows take 01–97 and the aggregates 98 and 99. The next package that needs a new row first groups a topic into a numbered subfolder (`02-structure.md`, Names). Prefix 97 also names `97-Legacy/`; that clash ends when the folder is deleted after rows 12 and 14 are verified.
 
 ## P010 Common Contract
 
-Applies to `01-graph.hpp` through `06-mst.hpp`. Every algorithm accepts `Graph` or `CsrGraph` unless it names `DenseGraph`. Vertices are `[0, n)`, logical edges `[0, m)` and arcs `[0, arcs.size())`, and every count fits `int`. Weights span the full `lng` range; path and forest totals are exact `lll`. Results hold arc and edge indices into the input graph, so they stay meaningful only while that graph's arc numbering and content are unchanged; result arrays themselves own their storage. Public storage of graphs and results is inspectable but must not be edited behind an algorithm's invariants. Violated preconditions (out-of-range vertex, wrong directedness, negative weights for Dijkstra) are assertions; a valid input with no answer returns a status field or an empty witness. Complexity comments use `m` for the arc count where it differs from the edge count only by a factor of two. Unvisited result fields are `-1`.
+Applies to `001-graph.hpp` through `006-mst.hpp`. Every algorithm accepts `Graph` or `CsrGraph` unless it names `DenseGraph`. Vertices are `[0, n)`, logical edges `[0, m)` and arcs `[0, arcs.size())`, and every count fits `int`. Weights span the full `lng` range; path and forest totals are exact `lll`. Results hold arc and edge indices into the input graph, so they stay meaningful only while that graph's arc numbering and content are unchanged; result arrays themselves own their storage. Public storage of graphs and results is inspectable but must not be edited behind an algorithm's invariants. Violated preconditions (out-of-range vertex, wrong directedness, negative weights for Dijkstra) are assertions; a valid input with no answer returns a status field or an empty witness. Complexity comments use `m` for the arc count where it differs from the edge count only by a factor of two. Unvisited result fields are `-1`.
 
 ## P010 Re-Audit Omissions
 
@@ -59,7 +59,7 @@ The 2026-10-07 completeness sweep ([sources](00-sources.md#pages-fetched-on-2026
 
 ## P011 Re-Audit Omissions
 
-The 2026-10-07 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit)) added `LCAFold: pathFold`, `pathIntersection`, the lexicographic `eulerianTrail` option, `LowlinkResult: cut_components`, `FunctionalGraph: jumpAll` and `FunctionalGraphFold: maxStep`. The 2026-11-08 sweep adopted ancestor and path binary search by predicate (hitonanode `max_length`, maspypy `max_path`) into row 15 as `maxPath`, and DFS-order LCA (OI Wiki) into row 07 as `SparseTableLCA`; GR03 measured its queries faster than `EulerLCA`'s, with a crossover below which `EulerLCA` wins on setup ([07-lca.md](07-lca.md#benchmarks)). The other candidates stay out:
+The 2026-10-07 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit)) added `LCAFold: pathFold`, `pathIntersection`, the lexicographic `eulerianTrail` option, `LowlinkResult: cut_components`, `FunctionalGraph: jumpAll` and `FunctionalGraphFold: maxStep`. The 2026-11-08 sweep adopted ancestor and path binary search by predicate (hitonanode `max_length`, maspypy `max_path`) into row 15 as `maxPath`, and DFS-order LCA (OI Wiki) into row 07 as `SparseTableLCA`; GR03 measured its queries faster than `EulerLCA`'s, with a crossover below which `EulerLCA` wins on setup ([007-lca.md](007-lca.md#benchmarks)). The other candidates stay out:
 
 - Two-edge-connectivity augmentation and extended block-cut trees: row 27 (block-cut and bridge trees).
 - Exporting the functional graph's reverse forest as a tree: `successor`, `depth` and `tin`/`tout` already describe it.
@@ -71,7 +71,7 @@ The 2026-10-07 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p011-r
 The 2026-10-09 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-09-p043)) added `addVar`, `setValue`, `addEquivalent` and the O(k) form of `addAtMostOne` to row 18; dynamic `addEdge`/`eraseEdge`/`augment` to row 21; and `kBestAssignments` and the unrestricted-size option with cost curve to row 23. The 2026-11-08 sweep adopted the DAG dominator tree by LCA (OI Wiki) into row 24 as `dominatorTreeDag` (online vertex appends in topological order). The other candidates stay out:
 
 - Lexicographically smallest 2-SAT assignment: needs O(n·m) incremental propagation; no catalog provides it. Incremental 2-SAT, solution counting (#P-hard) and Horn-SAT (suisen) are different problems.
-- Rank-maximal matching (maspypy): row 80 (`80-rankedmatching.hpp`).
+- Rank-maximal matching (maspypy): row 80 (`080-rankedmatching.hpp`).
 - Automatic bipartition overloads (hitonanode, maspypy): run `bipartiteCheck` (row 02) and map the sides.
 - Maximum antichain, DAG path and chain covers: row 31. Bipartite edge colouring: row 34.
 - Incremental row addition and dynamic Hungarian cost updates (hitonanode `augment`, OI Wiki): the internal single-row `search` exists, but a public stateful solver with update semantics is not part of any contest catalog interface fetched; rerun `hungarian` or use `kBestAssignments`.
@@ -90,7 +90,7 @@ The 2026-10-10 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-10-p044-m
 
 ## P045 Min Cost Flow Omissions
 
-The 2026-10-13 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-13-p045-min-cost-flow)) added `potentials`, the `below` bound of `flow`/`slope` (min-cost flow of any amount at `below = 0`) and the DAG-order initialisation to row 20. `minCostMaxFlow` (`flow(s, t)`), `bellmanFordPotentials` (automatic inside `flow`, `slope` and `potentials`) and `pathReconstruction` (`MaxFlow::pathDecomposition`) left the row ([20-min_cost_flow.md](20-min_cost_flow.md#legacy-mapping)). No catalog has a convex-cost edge API, so `addConvexEdge` follows the row's piecewise-linear wording. `maxCostFlow` joined row 20 under `missing:` (user decision 2026-11-22; source CF 884F). The other candidates stay out:
+The 2026-10-13 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-13-p045-min-cost-flow)) added `potentials`, the `below` bound of `flow`/`slope` (min-cost flow of any amount at `below = 0`) and the DAG-order initialisation to row 20. `minCostMaxFlow` (`flow(s, t)`), `bellmanFordPotentials` (automatic inside `flow`, `slope` and `potentials`) and `pathReconstruction` (`MaxFlow::pathDecomposition`) left the row ([020-min_cost_flow.md](020-min_cost_flow.md#legacy-mapping)). No catalog has a convex-cost edge API, so `addConvexEdge` follows the row's piecewise-linear wording. `maxCostFlow` joined row 20 under `missing:` (user decision 2026-11-22; source CF 884F). The other candidates stay out:
 
 - Target flow with an infeasible status (ei1333, cp-algorithms): `flow(s, t, k).first < k`.
 - Dense O(n^2) Dijkstra (OI Wiki footnote): measured slower than the heap on every benchmarked workload, including a 300-vertex half-dense graph.
@@ -102,7 +102,7 @@ The 2026-10-13 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-13-p045-m
 
 ## P056 Omissions
 
-The 2026-10-16 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-16-p056)) added `NearestMarked: unmark`, `DistanceSum`, `ContourFold`, `ContourApply` and `countPathsWithin` to row 16, and `allRootsClassification` and `rootedTreeIsomorphism` to row 17. The legacy recursive `par`/`sz` build left row 16 ([16-centroiddecomposition.md](16-centroiddecomposition.md#legacy-mapping)). The other candidates stay out:
+The 2026-10-16 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-16-p056)) added `NearestMarked: unmark`, `DistanceSum`, `ContourFold`, `ContourApply` and `countPathsWithin` to row 16, and `allRootsClassification` and `rootedTreeIsomorphism` to row 17. The legacy recursive `par`/`sz` build left row 16 ([016-centroiddecomposition.md](016-centroiddecomposition.md#legacy-mapping)). The other candidates stay out:
 
 - Per-centroid callback (maspypy, hitonanode): `tin`, `order` and `size` expose every component and its child blocks; a callback adds nothing.
 - Static contour sum (suisen `contour_sum`): `ContourSum` without updates; prefix arrays change only the constant.
@@ -124,7 +124,7 @@ The 2026-10-18 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-18-p047)
 
 ## P048 GR13 Omissions
 
-The 2026-10-28 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-28-p048-gr13)) added `XorWalk` and `CutSpaceHash` to row 28, and `fromDrawing`, `outer`, `commonFace`, per-arc capacities and the flow witness of `planarMinCutDual` to row 29; `primalDualTraversal` became `treeCotree` (decided 2026-10-28). Lipton–Tarjan planar separators (OGDF) and maspypy's dynamic fundamental cut became planned rows 89 and 90 (package P249, user decision 2026-10-28). The other candidates stay out (user decision 2026-10-28: every omission below and the agent's design calls recorded in [28-cycle_basis.md](28-cycle_basis.md) and [29-planar_graph.md](29-planar_graph.md) are confirmed):
+The 2026-10-28 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-28-p048-gr13)) added `XorWalk` and `CutSpaceHash` to row 28, and `fromDrawing`, `outer`, `commonFace`, per-arc capacities and the flow witness of `planarMinCutDual` to row 29; `primalDualTraversal` became `treeCotree` (decided 2026-10-28). Lipton–Tarjan planar separators (OGDF) and maspypy's dynamic fundamental cut became planned rows 89 and 90 (package P249, user decision 2026-10-28). The other candidates stay out (user decision 2026-10-28: every omission below and the agent's design calls recorded in [028-cycle_basis.md](028-cycle_basis.md) and [029-planar_graph.md](029-planar_graph.md) are confirmed):
 
 - Covering counts per forest edge: sizes of `fundamentalCuts`; tree differences over the chords give them in O(n + m) without a dedicated API.
 - Integer (gcd) cycle values of signed walks: no source.
@@ -205,26 +205,26 @@ The 2026-11-04 sweep ([sources](00-sources.md#pages-fetched-on-2026-11-04-p042-g
 
 P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per Operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items below returned to rows, and the earlier bullets that named them are deleted; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
 
-- `01-graph.hpp`: inDegrees; edgeId (u, v).
-- `02-traversal.hpp`: classifyArcs (tree, back, forward, cross).
-- `03-toposort.hpp`: topologicalSortLargest; topologicalGenerations (Kahn layers, Mirsky).
-- `05-shortest_path.hpp`: zeroOneBfs ({0, c} weights); voronoiCells (centers).
-- `12-all_pairs_shortest_path.hpp`: fixedLengthShortestPathAtMost; wienerIndex, hyperWienerIndex, schultzIndex, gutmanIndex; harmonicDiameter.
-- `13-shortest_path_advanced.hpp`: onSomeShortestPath (s, t); shortestPathsAll (bounded); shortestPathArcExtremes.
-- `14-tree_algorithms.hpp`: connectedSubtreeCounts; treeLinearExtensionCounts; treeEccentricities (vertex offsets); treeMaximumWeightIndependentSet.
-- `18-twosat.hpp`: TwoSat::addNand.
-- `19-max_flow.hpp`: MaxFlow::minCutFewestEdges.
-- `21-matching_bipartite.hpp`: maximumMatchingLexicographic; konigVertexCoverLexicographic (order).
-- `23-assignment.hpp`: bottleneckAssignment (threshold search over hopcroftKarp).
-- `24-dominatortree.hpp`: DominatorTree::dominatedCount; postDominatorTree (g, exit).
-- `25-directedmst.hpp`: kBestArborescences; maximumArborescence; DirectedMst::arborescenceAnyRoot.
-- `27-blockcuttree.hpp`: BlockCutTree::mandatoryVertexCount (vertex set).
-- `28-cycle_basis.hpp`: CycleBasis::inCycleSpace, CycleBasis::cycleSpaceCoordinates, CycleBasis::enumerateCycleSpace.
-- `30-flow_with_demands.hpp`: mixedEulerCircuit (mixed directed and undirected edges, by feasibleFlow).
-- `31-path_cover.hpp`: minimumChainCover (digraph with cycles).
-- `35-subgraph_enumeration.hpp`: averageClusteringWeighted.
-- `62-planarity.hpp`: planarCanonicalOrdering; straightLineDrawing; isStraightLineDrawing; makeBiconnectedPlanar; makeMaximalPlanar.
-- New Esoteric rows `95-graph_problems.hpp` (MAS, OI, CF, NX), `96-flow_problems.hpp` (MAS) and `97-network_measures.hpp` (NX), with the operations their rows list except those added on 2026-11-14 ([P010 GR01 Omissions](#p010-gr01-omissions-2026-11-14)). Row 97 also takes the NetworkX families `Docs/00-sources.md` had left out as "not contest algorithms" (user decision 2026-11-10).
+- `001-graph.hpp`: inDegrees; edgeId (u, v).
+- `002-traversal.hpp`: classifyArcs (tree, back, forward, cross).
+- `003-toposort.hpp`: topologicalSortLargest; topologicalGenerations (Kahn layers, Mirsky).
+- `005-shortest_path.hpp`: zeroOneBfs ({0, c} weights); voronoiCells (centers).
+- `012-all_pairs_shortest_path.hpp`: fixedLengthShortestPathAtMost; wienerIndex, hyperWienerIndex, schultzIndex, gutmanIndex; harmonicDiameter.
+- `013-shortest_path_advanced.hpp`: onSomeShortestPath (s, t); shortestPathsAll (bounded); shortestPathArcExtremes.
+- `014-tree_algorithms.hpp`: connectedSubtreeCounts; treeLinearExtensionCounts; treeEccentricities (vertex offsets); treeMaximumWeightIndependentSet.
+- `018-twosat.hpp`: TwoSat::addNand.
+- `019-max_flow.hpp`: MaxFlow::minCutFewestEdges.
+- `021-matching_bipartite.hpp`: maximumMatchingLexicographic; konigVertexCoverLexicographic (order).
+- `023-assignment.hpp`: bottleneckAssignment (threshold search over hopcroftKarp).
+- `024-dominatortree.hpp`: DominatorTree::dominatedCount; postDominatorTree (g, exit).
+- `025-directedmst.hpp`: kBestArborescences; maximumArborescence; DirectedMst::arborescenceAnyRoot.
+- `027-blockcuttree.hpp`: BlockCutTree::mandatoryVertexCount (vertex set).
+- `028-cycle_basis.hpp`: CycleBasis::inCycleSpace, CycleBasis::cycleSpaceCoordinates, CycleBasis::enumerateCycleSpace.
+- `030-flow_with_demands.hpp`: mixedEulerCircuit (mixed directed and undirected edges, by feasibleFlow).
+- `031-path_cover.hpp`: minimumChainCover (digraph with cycles).
+- `035-subgraph_enumeration.hpp`: averageClusteringWeighted.
+- `062-planarity.hpp`: planarCanonicalOrdering; straightLineDrawing; isStraightLineDrawing; makeBiconnectedPlanar; makeMaximalPlanar.
+- New Esoteric rows `095-graph_problems.hpp` (MAS, OI, CF, NX), `096-flow_problems.hpp` (MAS) and `097-network_measures.hpp` (NX), with the operations their rows list except those added on 2026-11-14 ([P010 GR01 Omissions](#p010-gr01-omissions-2026-11-14)). Row 97 also takes the NetworkX families `Docs/00-sources.md` had left out as "not contest algorithms" (user decision 2026-11-10).
 - The GR13, GR27 and GR32 confirmations of 2026-10-28/29 yield to the 2026-11-08 adoption (user decision 2026-11-10).
 - Not returned by P275: `TwoSat::answerLexicographic` waits for its source question (`omissions.md`, Open Questions, P043), and `effectiveResistanceApprox` takes Mathematics row 23's word. `maxCostFlow`, held back on the same kind of question, joined row 20 under `missing:` by user decision 2026-11-22 (source CF 884F).
 
@@ -243,11 +243,11 @@ The GR03 sweeps ([sources](00-sources.md#fetched-2026-11-15-p011-gr03)) added `l
 - Gabow's path-based SCC: Tarjan's bound and domain at the same length, no measured crossover.
 - Difference-array bridges and blocks (OI Wiki), chain-decomposition bridges (row 60 `chainDecomposition`), Fleury and adjacency-matrix Hierholzer: dominated.
 
-Copied code (`03-cpp.md`, One API per Operation): `localBridges` tests triangle membership itself (each edge scans its lower-degree endpoint) instead of calling row 35 `countTrianglesPerEdge`, whose package P048 is not verified and is scheduled after P011. `maximumWeightWalk` runs its longest-path pass over `condensationDag` in component-ID order instead of calling row 05 `dagLongestPath`: component IDs are already topological, and `Graph` arc weights (`lng`) cannot hold a component's summed vertex weight. `SparseTableLCA` uses the verified `SparseTable` with a one-line `lca_detail::MinInt` monoid instead of `Min<int>` from `00-monoids.hpp`, whose batch DS05 is open. `BridgesStreaming::bridges` runs a bridge-only lowlink on its kept edges instead of calling `lowlink`, whose `Graph` copy and full result lift the peak at the LOJ #2788 bounds from 9 MB to 33 MB, over its 16 MiB ([09-bridges_articulation.md](09-bridges_articulation.md#bridgesstreaming)). `localBridges` runs its own BFS and Dijkstra instead of row 02 `bfs` or row 05 `dijkstra`: each search skips every arc of the pair it measures, stops at the far endpoint and resets only the entries it touched, which neither offers per call.
+Copied code (`03-cpp.md`, One API per Operation): `localBridges` tests triangle membership itself (each edge scans its lower-degree endpoint) instead of calling row 35 `countTrianglesPerEdge`, whose package P048 is not verified and is scheduled after P011. `maximumWeightWalk` runs its longest-path pass over `condensationDag` in component-ID order instead of calling row 05 `dagLongestPath`: component IDs are already topological, and `Graph` arc weights (`lng`) cannot hold a component's summed vertex weight. `SparseTableLCA` uses the verified `SparseTable` with a one-line `lca_detail::MinInt` monoid instead of `Min<int>` from `00-monoids.hpp`, whose batch DS05 is open. `BridgesStreaming::bridges` runs a bridge-only lowlink on its kept edges instead of calling `lowlink`, whose `Graph` copy and full result lift the peak at the LOJ #2788 bounds from 9 MB to 33 MB, over its 16 MiB ([009-bridges_articulation.md](009-bridges_articulation.md#bridgesstreaming)). `localBridges` runs its own BFS and Dijkstra instead of row 02 `bfs` or row 05 `dijkstra`: each search skips every arc of the pair it measures, stops at the far endpoint and resets only the entries it touched, which neither offers per call.
 
 ## P010 GR02 Omissions
 
-The GR02 sweeps ([sources](00-sources.md#fetched-2026-11-14-p010-gr02)) added `shortestPaths` and `dagLongestPath` to row 05 (user decision 2026-11-14). `shortestPaths` dispatches to `bellmanFord`, `zeroOneBfs` or `dijkstra` only: Dial belongs to row 13, which includes row 05, and the recorded benchmark ([05-shortest_path.md](05-shortest_path.md#benchmarks)) found no density threshold for `dijkstraDense`. The other candidates stay out:
+The GR02 sweeps ([sources](00-sources.md#fetched-2026-11-14-p010-gr02)) added `shortestPaths` and `dagLongestPath` to row 05 (user decision 2026-11-14). `shortestPaths` dispatches to `bellmanFord`, `zeroOneBfs` or `dijkstra` only: Dial belongs to row 13, which includes row 05, and the recorded benchmark ([005-shortest_path.md](005-shortest_path.md#benchmarks)) found no density threshold for `dijkstraDense`. The other candidates stay out:
 
 - Prim on a cost oracle (maspypy `mst_prim(N, cost)`, hitonanode `mst_edges`): an implicit-graph engine, a follow-up on P051 for row 43 beside `implicitBoruvka`.
 - XOR minimum spanning tree (CF888G, named by OI Wiki): a one-problem composition of row 43's `implicitBoruvka`, which stays in row 43 (`02-structure.md`, Tiers and Core Order); a follow-up on P051.

@@ -15,7 +15,7 @@ Scope: the documentation-site generator [06-site.py](../06-site.py) for Zensical
   - a facts line with folder, tier, Core's Basic flag, status, line count, last commit date (`git log %cs`; omitted outside git) and the GitHub source and evidence links;
   - the `#include` line (headers), then the article;
   - `## Operations`, one bullet per `;` outside parentheses and brackets, where a half-open `[l, r)` counts as a bracket pair;
-  - `## Complexity` (user decision 2026-10-25), which lists each declaration with its complexity comment, every `// T:` or `// S:` line of the header (`03-cpp.md`, Complexity Comments). The declaration is the code after that line up to the first `{` or `;` outside parentheses. Each is one code span whose delimiters outrun any backtick inside (`05-Mathematics/10-crt.hpp` has some);
+  - `## Complexity` (user decision 2026-10-25), which lists each declaration with its complexity comment, every `// T:` or `// S:` line of the header (`03-cpp.md`, Complexity Comments). The declaration is the code after that line up to the first `{` or `;` outside parentheses. Each is one code span whose delimiters outrun any backtick inside (`05-Mathematics/010-crt.hpp` has some);
   - the evidence sections, copied verbatim with their titles: `## Contracts`, then `## Dependencies` (headers in the include graph), `## Limits and Handoffs` and `## Sources`;
   - `## Tests`, the tracked files of plan.py `tests_for`;
   - `## Source`, the file in a collapsed `??? abstract` block, fenced by more backticks than any run inside it.

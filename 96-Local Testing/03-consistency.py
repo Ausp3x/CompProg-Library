@@ -221,14 +221,17 @@ for folder in sorted(ROOT.iterdir()):
         if not line.startswith('|'):
             continue
         parts = cells(line)
-        match = re.fullmatch(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`', parts[0])
+        match = re.fullmatch(r'`((?:\d{2,3}-[^`]+\.hpp)|(?:_\d{2,3}_[^`]+\.py))`', parts[0])
         if not match:
             continue
         name = match[1]
         target = folder.name + '/' + name
         require(target not in inventories, 'Repeated inventory target: ' + target)
         inventories[target] = parts
-        rows.append((int(re.search(r'\d{2}', name)[0]), tier))
+        width = len(re.search(r'\d+', name)[0])  # Core keeps two digits, every other folder three (02-structure.md, Names)
+        require(width == (2 if folder.name == '01-Core' else 3) or re.fullmatch(r'_?00[-_].*', name),
+                f'Row prefix needs {2 if folder.name == "01-Core" else 3} digits (02-structure.md, Names): {target}')
+        rows.append((int(re.search(r'\d+', name)[0]), tier))
     # Prefixes are stable IDs: unique within a folder; new rows take the next free number.
     require(len({n for n, _ in rows}) == len(rows), 'Repeated target prefix: ' + folder.name)
     if folder.name != '01-Core':

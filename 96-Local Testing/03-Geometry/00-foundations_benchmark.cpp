@@ -1,5 +1,5 @@
-#include "../../03-Geometry/02-line_segment.hpp"
-#include "../../03-Geometry/04-convexhull.hpp"
+#include "../../03-Geometry/002-line_segment.hpp"
+#include "../../03-Geometry/004-convexhull.hpp"
 #include <chrono>
 
 int main(int argc, char **argv) {

@@ -559,7 +559,7 @@ class Pure(Base):
                 self.eq(M.blob(data), o_blob(data), round=r, data=data[:20])
 
     def test_evidence_path(self):
-        for h, d in (('02-Data Structures/01-dsu.hpp', '02-Data Structures/Docs/01-dsu.md'),
+        for h, d in (('02-Data Structures/001-dsu.hpp', '02-Data Structures/Docs/001-dsu.md'),
                      ('01-Core/07-infint.hpp', '01-Core/Docs/07-infint.md'),
                      ('07-Strings/12-suffix.array.hpp', '07-Strings/Docs/12-suffix.array.md')):
             self.eq(M.evidence(h), d, header=h)

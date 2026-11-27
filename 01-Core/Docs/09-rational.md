@@ -61,8 +61,8 @@ Under `NDEBUG` every violated precondition stays bounded and free of undefined b
 - Decided 2026-10-17 ([duplicates.md](../../00-Guidelines/23-Sweep%20Ledgers/duplicates.md)): `toDouble` beside `toLongDouble`, `read`/`toString` with a base beside the streams; `parse` became `read`, the name InfInt uses.
 - Not adopted, with reasons:
   - `height`, a rational `gcd`, `%`/`divMod` of rationals and `mulPow2`: rare; `num`/`den` and the operators express them.
-  - `limitDenominator`/best approximation, mediant, Stern–Brocot, continued fractions, simplest-between and fraction binary search: Mathematics `20-continued_fraction.hpp` owns them.
-  - `floorDiv`/`ceilDiv`: Mathematics `01-mod_arithmetic.hpp`.
+  - `limitDenominator`/best approximation, mediant, Stern–Brocot, continued fractions, simplest-between and fraction binary search: Mathematics `020-continued_fraction.hpp` owns them.
+  - `floorDiv`/`ceilDiv`: Mathematics `001-mod_arithmetic.hpp`.
   - Exact `sqrt`: no catalog has it; integer roots are Mathematics `21` and InfInt.
   - `numerator()`/`denominator()`, comparison and arithmetic with integers, `min`/`max`, `++`/`--`, `operator bool`/`!`, `isOne`, `addmul`/`submul`, `as_integer_ratio`: the fields, the converting constructor and `std::` algorithms already say the same.
   - A `den == 0` infinity: rationals exclude infinity ([00-notes.md](00-notes.md)).

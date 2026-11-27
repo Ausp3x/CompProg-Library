@@ -61,7 +61,7 @@ def rows(root, status=False):
     for index in sorted(root.glob('0[1-7]-*/00-index.md')):
         for line in index.read_text(encoding='utf-8').splitlines():
             c = cells(line) if line.startswith('| `') else []
-            m = re.fullmatch(r'`(\d{2}-[^`]+\.hpp)`', c[0]) if c else None
+            m = re.fullmatch(r'`(\d{2,3}-[^`]+\.hpp)`', c[0]) if c else None
             h = f'{index.parent.name}/{m[1]}' if m else None
             if h and (root / h).is_file() and h not in grab.EXCLUDED and not c[-1].startswith('planned'):
                 out.append((h, c[-1] if status else c[-2]))

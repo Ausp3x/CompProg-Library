@@ -345,20 +345,27 @@ def o_tag(path):
 
 
 def o_header(p):
-    """An inventory target: <0N-folder>/<NN-name>.hpp or <0N-folder>/_<NN>_<name>.py."""
+    """An inventory target: <0N-folder>/<NN-name>.hpp or <0N-folder>/_<NN>_<name>.py, with two or three digits."""
     parts = p.split('/')
     if len(parts) != 2 or not o_numbered(parts[0]):
         return False
     n = parts[1]
-    return (n[:2].isdigit() and n[2:3] == '-' and n.endswith('.hpp') and len(n) > 7) or (
-        n[:1] == '_' and n[1:3].isdigit() and n[3:4] == '_' and n.endswith('.py') and len(n) > 7)
+    k, j = o_lead(n), o_lead(n[1:])
+    return (k in (2, 3) and n[k:k + 1] == '-' and n.endswith('.hpp') and len(n) > k + 5) or (
+        n[:1] == '_' and j in (2, 3) and n[j + 1:j + 2] == '_' and n.endswith('.py') and len(n) > j + 5)
+
+
+def o_lead(n):
+    """The length of n's leading run of ASCII digits."""
+    return len(n) - len(n.lstrip('0123456789'))
 
 
 def o_mutated(p):
-    """A header that carries a mutation record: <01-07 folder>/<NN>-<name>.hpp, not a 98- or 99- aggregate."""
+    """A header that carries a mutation record: <01-07 folder>/<NN>-<name>.hpp (two or three digits), not a 98- or 99- aggregate."""
     parts = p.split('/')
-    return (len(parts) == 2 and o_numbered(parts[0]) and parts[0][1] in '1234567' and parts[1][:2].isdigit() and parts[1][2:3] == '-'
-            and parts[1][:2] not in ('98', '99') and parts[1].endswith('.hpp') and len(parts[1]) > 7)
+    k = o_lead(parts[-1])
+    return (len(parts) == 2 and o_numbered(parts[0]) and parts[0][1] in '1234567' and k in (2, 3) and parts[1][k:k + 1] == '-'
+            and parts[1][:3] not in ('98-', '99-') and parts[1].endswith('.hpp') and len(parts[1]) > k + 5)
 
 
 def o_mechanical(subject):
@@ -394,12 +401,12 @@ def o_core_full(p):
 
 
 def o_tests(root, target):
-    """Testers of a target: 96-Local Testing/<folder>/[_]<NN>[-_]*_tester.py with the target's two digits."""
+    """Testers of a target: 96-Local Testing/<folder>/[_]<NNN>[-_]*_tester.py with the target's digits."""
     folder, name = target.split('/')
     d = Path(root) / '96-Local Testing' / folder
-    nn = name.lstrip('_')[:2]
+    nn = name.lstrip('_').split('-')[0].split('_')[0]
     return {f'96-Local Testing/{folder}/{f.name}' for f in (d.iterdir() if d.is_dir() else []) if f.is_file()
-            and f.name.lstrip('_')[:2] == nn and f.name.lstrip('_')[2:3] in ('-', '_') and f.name.endswith('_tester.py')}
+            and f.name.lstrip('_')[:len(nn)] == nn and f.name.lstrip('_')[len(nn):len(nn) + 1] in ('-', '_') and f.name.endswith('_tester.py')}
 
 
 def o_outside(text):

@@ -1,0 +1,100 @@
+# 008-multiplicative_functions.hpp — Evidence
+
+`008-multiplicative_functions.hpp` covers multiplicative and additive arithmetic functions: point values for any 64-bit `n` from `factorize`, prefix tables from one generic linear-sieve hook, zeta and Möbius transforms in both directions on divisor-indexed arrays, and Dirichlet convolution and inversion tables. Point `divisorCount` and `divisorSum` belong to `07`; sublinear prefix sums (Du, min_25, Lucy) are separate rows.
+
+## Contracts
+
+There is no global state. Point functions take `ulng n >= 1` (asserted via `factorize`) in `O(n^(1/4) * log(n))` expected time. Tables take `0 <= n < INT_MAX` and return `n + 1` entries indexed by value, with entry 0 a convenience 0 (`T(0)`) and entry 1 equal to 1. Ring templates need `T(int)`/`T(ulng)` construction and `+=`, `*=`, `*`, `-`. Unsigned `T` wraps, and a modint `T` gives residues.
+
+### phi, mobius, omega, bigOmega, liouville, carmichaelLambda
+
+Euler's totient (exact `ulng`), Möbius in {-1, 0, 1}, the number of distinct primes, the number of primes with multiplicity, Liouville `(-1)^Omega(n)`, and Carmichael's `lambda(n)`, the least `m` with `a^m = 1` for every unit. `lambda` is the lcm over prime powers of `phi(p^e)`, halved for `2^e` with `e >= 3`, so it is not multiplicative in the ordinary product sense. It is at most `n`, so the lcm cannot overflow.
+
+### sigmaK, jordanTotient
+
+`sigmaK<T = ulll>(n, k) = sum(d^k)` over divisors, and `jordanTotient<T = ulll>(n, k) = prod(p^(k(e-1)) * (p^k - 1))`. Both compute in `T`: exact while the value fits, wrapping modulo 2^128 for the default type, and modular for a modint. The cost is the factorization plus one `O(log(k))` power per prime.
+
+### multiplicativeTable
+
+`multiplicativeTable<T>(n, f)` calls `f(p, k, p^k)` exactly once for each prime power `p^k <= n` (as `int` arguments, returning `T`) and extends the values multiplicatively. A linear sieve records, for each `j`, its full smallest-prime part `pw[j]` and that part's exponent. When `j` is a prime power it calls `f`; otherwise `res[j] = res[pw[j]] * res[j / pw[j]]`, where both factors are smaller and already final. Every composite is produced exactly once from `i * spf`. `O(n)` time plus the `f` calls; 5 bytes per entry beyond the result. A completely multiplicative table such as `i^K` is `f = (p, k, pk) -> pow(T(pk), K)`; `09` `powerTable` is the specialized version with one power per prime.
+
+### phiTable, mobiusTable, divisorCountTable, divisorSumTable, prefixPhiTable, prefixMobiusTable
+
+Instances of the hook, returning `vector<int>`, `vector<int8_t>`, `vector<int>`, `vector<lng>`, `vector<lng>` (Euler-phi prefix sums, below 2^61 for `n < 2^31`) and `vector<int>` (Mertens). They deliberately duplicate `LinearSieve` tables: they are standalone free functions, and the prefix sums are new.
+
+### dirichletConvolutionTable, dirichletInverseTable
+
+Inputs are vectors of size `n + 1`, indexed 1..n; index 0 is ignored and returned as `T(0)`. Convolution asserts equal non-empty sizes and computes `c[m] = sum(a[d] * b[m / d])` over `d | m` in `O(n * log(n))`. The inverse asserts size at least 2 and that `a[1]` is a unit with exact `T(1) / a[1]` (for integers `a[1] = ±1`; for modints, nonzero modulo a prime). It finalizes `res[i] = -a[1]^(-1) * sum(a[d] * res[i / d])` over `d > 1` in increasing `i`, pushing contributions forward, in `O(n * log(n))`. The caller must keep `T` from overflowing: signed integer inverses grow quickly, so use a modint or an unsigned type.
+
+### DivisorArray
+
+`DivisorArray<T>(n)` or `DivisorArray<T>(factorization)` stores `fac`, `divs` (all divisors of `n` in mixed-radix order: index `sum(e_i * stride_i)` with `stride_0 = 1`, unsorted) and `val` (initialized to `T(0)`). `build` rebuilds with the same rules. The default is `n = 1`.
+
+- `size()` returns `d(n)`. `operator[](i)` accesses by index. `get(d)` accesses by divisor through `index(d)`, which asserts `d >= 1` and `d | n` and costs `O(omega(n) + log(d))`; its `O(1)` exponent assertion per prime of `n` stays within that bound and is kept.
+- `setMultiplicative(f)` fills `val[d] = prod f(p, k, p^k)` (`ulng p`, `int k`, `ulng p^k`).
+- `zeta()` replaces `val[d]` with `sum(val[e])` over `e | d`, and `mobius()` inverts it. `multipleZeta()` replaces `val[d]` with `sum(val[e])` over `d | e | n`, and `multipleMobius()` inverts that. Each is a prefix sum or difference along every prime axis of the exponent grid, `O(d(n) * omega(n))`.
+
+The fields are public query data; changing `fac` or `divs` other than through `build` breaks the indexing.
+
+## Feature-to-Test Map
+
+Entry: [`008-multiplicative_functions_tester.py`](<../../96-Local Testing/05-Mathematics/008-multiplicative_functions_tester.py>). The oracles are the tester's own trial factorization, gcd counting, brute multiplicative orders, divisor enumeration, `O(n^2)` divisor sums, and Python closed forms on `n` built from known primes. Counts given as a / b / c are for quick / full / stress mode.
+
+| Feature | Oracle and edge classes |
+|---|---|
+| `phi`, `mobius`, `omega`, `bigOmega`, `liouville` | Trial-factor formulas for every `n` through 3000 / 30000 / 150000; `phi` by gcd counting through 400; Python closed forms on 300 / 4000 / 20000 values up to 2^64 with up to 8 known primes. |
+| `carmichaelLambda` | lcm of brute multiplicative orders through 400; through 3000, every unit satisfies `a^lambda = 1` and some unit fails `lambda / q` for each prime `q`; Python. |
+| `sigmaK`, `jordanTotient` | Divisor sums of `d^k` for `k` in 0..3, exact and modint with exponent `k + 10^9 + 7`, through 2000; `sum J_k(d) = n^k` for `k` in 1..3; pair counting `J_2` and `J_1 = phi` through 60. Python: `sigma_0`, `sigma_1`, `sigma_3` and `J_2` modulo 2^128, `sigma` with `k = 10^18` and `J` with `k = 123456789` modulo 998244353. |
+| `phiTable`, `mobiusTable`, `divisorCountTable`, `divisorSumTable`, `prefixPhiTable`, `prefixMobiusTable` | Sizes 0, 1, 2, 3 and N against trial-factor values, divisor-multiple sieves and running sums. |
+| `multiplicativeTable` | A salted hash of `(p, k, p^k)` against the product over trial factors; a completely multiplicative modint `i^K` table with random `K`; sizes 0 and 1. |
+| `dirichletConvolutionTable` | `O(n^2)` divisor sums for sizes 0, 1, 2, 7 and 300 / 3000 / 12000, random signed entries. |
+| `dirichletInverseTable` | `a * a^(-1) = e` for wrapping `ulng` with `a[1] = 1` and for modint with random `a[1] != 0`; the inverse of all-ones equals `mobiusTable`. |
+| `DivisorArray` | 11 fixed `n` (1, primes, 360, 720720, `600851475143`, `897612484786617600` with 103680 divisors, `2^64 - 1`) and 40 / 400 random `n`. Both constructors (each calls `build`); `size` and divisor sets against `07` `divisors` and brute enumeration below 10^5; every `index`; `get` and `operator[]`; `zeta` and `multipleZeta` against brute sums when `d(n) <= 3000`; inverse round trips (`mobius`, `multipleMobius`) everywhere; `setMultiplicative` (phi then zeta gives the identity; Möbius against trial factors); the default object. |
+| Preconditions | 10 checked-build probes: zero `n`, negative and `INT_MAX` table sizes, mismatched or empty convolution inputs, a too-small inverse input, `index(0)`, `index` of a non-divisor. |
+
+## Commands and Results
+
+Conditions as in [007-primality_factorization.md](007-primality_factorization.md). The 2026-10-13 rows are the latest with recorded counts; that rerun changed only the included `007-primality_factorization.hpp`, and this header was unchanged.
+
+| Date, package | Command | Result |
+|---|---|---|
+| 2026-10-13 P052 prune | `008-multiplicative_functions_tester.py --mode full --seed 1` | PASS, 3 configurations, 350,193 C++ checks and 4,001 Python cases each, 10 probes; MEMORY peak 474 MB |
+| 2026-10-13 P052 prune | same with `CXX=g++-14` | PASS, same counts; MEMORY peak 487 MB |
+| 2026-11-10 P274 (seed 42, beside the other suites, build cache emptied before each cold run) | `01-run.py --mode full` (GCC 16.2.1) | PASS; pre-flight quick peak 780 MB; optimized 0.2 s compile + 7.4 s run, checked 16.6 s + 9.0 s, ASan-UBSan 19.1 s + 12.9 s; MEMORY peak 948 MB |
+| 2026-11-10 P274 | `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | PASS; pre-flight quick peak 840 MB; optimized 0.2 s + 7.4 s, checked 20.9 s + 16.7 s, ASan-UBSan 24.6 s + 20.4 s; MEMORY peak 1003 MB |
+| 2026-11-10 P274 | `01-run.py --mode quick` | PASS; optimized 24.1 s + 2.1 s, checked 19.1 s + 8.8 s; MEMORY peak 770 MB |
+| 2026-11-10 P274 | `01-run.py --mode stress --rounds 1` | PASS; pre-flight quick peak 775 MB; optimized 0.1 s + 13.1 s, checked 6.0 s + 16.1 s, ASan-UBSan 7.6 s + 21.1 s; MEMORY peak 546 MB; check counts not recorded |
+
+```bash
+python3 '96-Local Testing/05-Mathematics/008-multiplicative_functions_tester.py' --mode full --seed 1
+CXX=g++-14 python3 '96-Local Testing/05-Mathematics/008-multiplicative_functions_tester.py' --mode full --seed 1
+```
+
+The header and tester build without warnings under `-Wall -Wextra -Wconversion`, including two translation units.
+
+## Benchmarks
+
+None required. No Barrett, Montgomery or ISA-specific code is used directly; Montgomery runs only inside `07` `factorize`.
+
+## Sources
+
+[00-sources.md](00-sources.md), P052 sweep: maspypy `array_on_divisors`, hitonanode `sieve` (divisor-array multiplicative fill and multiple-direction transforms), OI Wiki number-theory basics (`omega`, `bigOmega`), OI Wiki sieve (linear-sieve recurrences). Written independently. Legacy: `OLD/5-Mathematics/06-phiandinverse.hpp` (`getPhi` becomes `phi`).
+
+Adopted by the P052 sweep: `omega`, `bigOmega`, and `DivisorArray` `setMultiplicative`, `multipleZeta`, `multipleMobius`, `size`, `operator[]`.
+
+## Limits and Handoffs
+
+- The row's original `divisorCountFn` and `divisorSumFn` were replaced by `divisorCountTable` and `divisorSumTable`, because the point values already exist as `07` `divisorCount` and `divisorSum`.
+- Rejected candidates are in [00-notes.md](00-notes.md).
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+Search aliases (P263, grab --find): Euler's totient function (phi), multiplicative function; 欧拉函数, 筛法, 狄利克雷卷积, 莫比乌斯反演, 莫比乌斯函数, 积性函数, 约数个数函数, 约数和函数, 卡迈克尔函数, 刘维尔函数, 狄利克雷逆.
+
+## History
+
+- 2026-10-09: P052 initial implementation and verification, `@reviewer` found no defect; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: P052 prune rerun (included `007-primality_factorization.hpp` changed), header unchanged; full passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases, then Chinese names from OI Wiki's page titles and common names of the row's operations (Simplified, plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; library-wide full (g++ and g++-14), quick and stress runs passed.

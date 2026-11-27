@@ -30,7 +30,7 @@ LIMITS = re.compile(r'(#{2,3}) .*\b(Limits|Handoffs?)\b')  # an evidence documen
 DECIDED = re.compile(r'\buser decisions? \d{4}-\d\d-\d\d')  # a limit the user decided (02-structure.md, Names)
 HANDED = re.compile(r'\bfollow-up on (P\d{3})\b')  # work a rule handed to another package: decided while its follow-up is open
 PR_PAGE = 30  # open pull requests `waiting` lists: their commits must stay under GitHub's GraphQL node limit
-TARGET = re.compile(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`')
+TARGET = re.compile(r'`((?:\d{2,3}-[^`]+\.hpp)|(?:_\d{2,3}_[^`]+\.py))`')
 # Re-attachment room (SUP33, SUP34; 00-harness-review.md): after a compaction Claude Code re-attaches each invoked skill's
 # first 5,000 tokens, its `!` output included (docs, Skills). The scripts a skill's `!` lines run fit their output to what
 # its text leaves, and 03-consistency.py warns (skill_reattach) below MIN_FACTS; every one of them reads these.
@@ -333,7 +333,7 @@ def check(root=ROOT):
 
 
 def stem(name):
-    return re.sub(r'^_?\d{2}[-_]|\.(hpp|py)$', '', name)
+    return re.sub(r'^_?\d{2,3}[-_]|\.(hpp|py)$', '', name)
 
 
 def row_stem(name):
@@ -343,10 +343,10 @@ def row_stem(name):
 
 def tests_for(root, target):
     folder, name = target.split('/')
-    prefix, base = re.search(r'\d{2}', name)[0], root / '96-Local Testing' / folder
+    prefix, base = re.search(r'\d+', name)[0], root / '96-Local Testing' / folder
     return sorted(str(p.relative_to(root)) for p in base.iterdir() if p.is_file()
-                  and re.match(r'_?(\d{2})[-_]', p.name) and re.match(r'_?(\d{2})', p.name)[1] == prefix
-                  and re.sub(r'^_?\d{2}[-_]', '', p.name).startswith(row_stem(name))) if base.is_dir() else []
+                  and re.match(r'_?(\d+)[-_]', p.name) and re.match(r'_?(\d+)', p.name)[1] == prefix
+                  and re.sub(r'^_?\d+[-_]', '', p.name).startswith(row_stem(name))) if base.is_dir() else []
 
 
 def legacy_for(root, target):
@@ -360,7 +360,7 @@ def legacy_for(root, target):
 
 def docs_for(root, target):
     folder, name = target.split('/')
-    prefix = re.search(r'\d{2}', name)[0]
+    prefix = re.search(r'\d+', name)[0]
     base = root / folder / 'Docs'
     return sorted(str(p.relative_to(root)) for p in base.glob(f'{prefix}-{row_stem(name)}*.md')) if base.is_dir() else []
 

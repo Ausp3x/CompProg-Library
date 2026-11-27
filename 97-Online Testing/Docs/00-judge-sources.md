@@ -9,7 +9,7 @@ Every source here is **locally compiled/run** and **accepted online**. The maint
 Candidates came from `07-judge.py problems` (256 problems, Library Checker commit `73876f1cbcf0`). They were matched against the operations in the inventory rows and evidence documents of the headers in scope: [16-poly.md](../../01-Core/Docs/16-poly.md), [18-bitset.md](../../01-Core/Docs/18-bitset.md), [09-rational.md](../../01-Core/Docs/09-rational.md), [03-barrett.md](../../01-Core/Docs/03-barrett.md) and [04-montgomery.md](../../01-Core/Docs/04-montgomery.md). A source was written when the library operation it calls is the work the problem measures. The driver adds only a few lines: input, output and at most a series identity such as `B_n = n! [x^n] exp(e^x - 1)`.
 
 - `16-poly.hpp`: 46 problems, all under `src/01-Yosupo/03-Polynomials/`.
-- `04-montgomery.hpp`: `primality_test` and `factorize`, both under `src/01-Yosupo/04-Number Theory/`. They call `isPrime` and `factorize` of [`07-primality_factorization.hpp`](../../05-Mathematics/07-primality_factorization.hpp), whose Miller–Rabin and Pollard–Brent rho run on `Montgomery64::redc` and `init`.
+- `04-montgomery.hpp`: `primality_test` and `factorize`, both under `src/01-Yosupo/04-Number Theory/`. They call `isPrime` and `factorize` of [`007-primality_factorization.hpp`](../../05-Mathematics/007-primality_factorization.hpp), whose Miller–Rabin and Pollard–Brent rho run on `Montgomery64::redc` and `init`.
 - `03-barrett.hpp`: no problem. No Mathematics operation takes a Barrett reducer. Barrett64 only reduces the Garner output of `PolyCompanion::convolutionArbitraryMod` inside Poly and backs the runtime modulus of `DynModInt` inside modint; neither is a direct use.
 - `18-bitset.hpp`: no problem. The mod-2 matrix problems belong to `12-bitmatrix.hpp`, and no other Library Checker task is bound by bitset word operations.
 - `09-rational.hpp`: no problem. `rational_approximation`, `stern_brocot_tree`, `sum_of_floor_of_linear` and `min_of_mod_of_linear` are integer continued-fraction tasks: `bestRationalApproximation` and the floor-sum family use `lng` pairs, not `Rational`.
@@ -18,13 +18,13 @@ Problems left out because no header in scope is the bottleneck:
 
 | Problem | Why there is no source |
 |---|---|
-| `sqrt_mod`, `kth_root_mod`, `discrete_logarithm_mod`, `primitive_root`, `tetration_mod`, `binomial_coefficient` | Their Mathematics headers (`11-discrete_log_root.hpp`, `33-modular_square_roots.hpp`, `30-modular_power_towers.hpp`, `12-combinatorics_advanced.hpp`) multiply with 128-bit `%`, so no Core reducer is involved. |
+| `sqrt_mod`, `kth_root_mod`, `discrete_logarithm_mod`, `primitive_root`, `tetration_mod`, `binomial_coefficient` | Their Mathematics headers (`011-discrete_log_root.hpp`, `033-modular_square_roots.hpp`, `030-modular_power_towers.hpp`, `012-combinatorics_advanced.hpp`) multiply with 128-bit `%`, so no Core reducer is involved. |
 | `montmort_number_mod` | Barrett32 work only through `DynModInt` in `derangementTable`, and output-bound; not a direct reducer use. |
-| `factorial`, `many_factorials` | Poly-bound (`shiftSamplingPoints` doubling), but the sqrt(p) factorial algorithm belongs to the planned `05-Mathematics/37-fastfactorial.hpp`. |
-| `mul_modp_convolution` | One Poly convolution after primitive-root reindexing, which belongs to the planned `05-Mathematics/65-convolution_specialized.hpp`. |
+| `factorial`, `many_factorials` | Poly-bound (`shiftSamplingPoints` doubling), but the sqrt(p) factorial algorithm belongs to the planned `05-Mathematics/037-fastfactorial.hpp`. |
+| `mul_modp_convolution` | One Poly convolution after primitive-root reindexing, which belongs to the planned `05-Mathematics/065-convolution_specialized.hpp`. |
 | `number_of_increasing_sequences_between_two_sequences` | Divide-and-conquer lattice-path algorithm with no library header yet. |
-| `wildcard_pattern_matching` | `07-Strings/21-wildcardmatching.hpp` runs its own correlator rather than Core Poly. |
-| `exp_of_set_power_series`, `log_of_set_power_series`, `polynomial_composite_set_power_series`, `power_projection_of_set_power_series`, `subset_convolution`, the bitwise, gcd and lcm convolutions | Set power series and transforms, owned by Mathematics (`66-set_power_series.hpp` planned, `24-transform_algorithms.hpp`), not Poly. |
+| `wildcard_pattern_matching` | `07-Strings/021-wildcardmatching.hpp` runs its own correlator rather than Core Poly. |
+| `exp_of_set_power_series`, `log_of_set_power_series`, `polynomial_composite_set_power_series`, `power_projection_of_set_power_series`, `subset_convolution`, the bitwise, gcd and lcm convolutions | Set power series and transforms, owned by Mathematics (`066-set_power_series.hpp` planned, `024-transform_algorithms.hpp`), not Poly. |
 | `matrix_*_mod_2`, `inverse_matrix_mod_2`, `system_of_linear_equations_mod_2` | `12-bitmatrix.hpp`, not Bitset (a later P225 slice). |
 
 ## Sources and Local Results
@@ -79,8 +79,8 @@ Each source reads with `FastInput<0>` and writes with `FastOutput` (`19-fastio.h
 | `03-Polynomials/44-multivariatecyclic.cpp` | [multivariate_convolution_cyclic](https://judge.yosupo.jp/problem/multivariate_convolution_cyclic) | `Poly<DynModInt<>>::multivariateCyclic` (per-axis DFTs of lengths dividing p - 1) with a runtime prime | 24/24 | 557 | [#417095](https://judge.yosupo.jp/submission/417095), 349 |
 | `03-Polynomials/45-multivariate.cpp` | [multivariate_convolution](https://judge.yosupo.jp/problem/multivariate_convolution) | Poly::multivariate (truncated product by the chi-graded Kronecker trick) | 17/17 | 937 | [#417096](https://judge.yosupo.jp/submission/417096), 562 |
 | `03-Polynomials/46-inv2d.cpp` | [inv_of_formal_power_series_2d](https://judge.yosupo.jp/problem/inv_of_formal_power_series_2d) | Poly::inv2d (Newton in x over F_p[y] / y^m) | 28/28 | 763 | [#417097](https://judge.yosupo.jp/submission/417097), 270 |
-| `04-Number Theory/01-primalitytest.cpp` | [primality_test](https://judge.yosupo.jp/problem/primality_test) | Montgomery64 (redc, init) as the reducer of isPrime (deterministic Miller-Rabin, 05-Mathematics/07-primality_factorization.hpp) | 13/13 | 335 | [#417106](https://judge.yosupo.jp/submission/417106), 165 |
-| `04-Number Theory/02-factorize.cpp` | [factorize](https://judge.yosupo.jp/problem/factorize) | Montgomery64 (redc, init) as the reducer of factorize (Miller-Rabin and batched Pollard-Brent rho, 05-Mathematics/07-primality_factorization.hpp) | 31/31 | 137 | [#417103](https://judge.yosupo.jp/submission/417103), 35 |
+| `04-Number Theory/01-primalitytest.cpp` | [primality_test](https://judge.yosupo.jp/problem/primality_test) | Montgomery64 (redc, init) as the reducer of isPrime (deterministic Miller-Rabin, 05-Mathematics/007-primality_factorization.hpp) | 13/13 | 335 | [#417106](https://judge.yosupo.jp/submission/417106), 165 |
+| `04-Number Theory/02-factorize.cpp` | [factorize](https://judge.yosupo.jp/problem/factorize) | Montgomery64 (redc, init) as the reducer of factorize (Miller-Rabin and batched Pollard-Brent rho, 05-Mathematics/007-primality_factorization.hpp) | 31/31 | 137 | [#417103](https://judge.yosupo.jp/submission/417103), 35 |
 
 ## Commands and Results
 

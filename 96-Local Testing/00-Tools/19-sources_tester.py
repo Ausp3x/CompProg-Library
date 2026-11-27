@@ -48,7 +48,7 @@ SCRIPT = ROOT / '95-Resources/00-sources.py'
 REMOTE_LINE = "REMOTE = 'https://github.com/Ausp3x/CompProg-Library-Sources.git'"
 LOCAL = 'Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).'
 OLD = b'old paper\n'
-ENTRY = {'file': '13-Papers/01-old_paper-a_2000.pdf', 'title': 'A, *Old*', 'source_page': 'https://example.invalid/old',
+ENTRY = {'file': '13-Papers/001-old_paper-a_2000.pdf', 'title': 'A, *Old*', 'source_page': 'https://example.invalid/old',
          'downloaded': '2026-11-22', 'bytes': len(OLD), 'sha256': hashlib.sha256(OLD).hexdigest(),
          'cited_in': ['Docs/a.md'], 'provided_by': 'user', 'reuse_note': LOCAL, 'committed': False}
 ENV = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')} | {
@@ -129,14 +129,14 @@ class Sources(unittest.TestCase):
         mine = '- 2026-11-27 | P900 | X | https://example.invalid/x | x.pdf'
         other = '- 2026-11-27 | P901 | Y | https://example.invalid/y | y.pdf'
         (self.inbox / '00-requests.md').write_text(f'{head}{mine}\n{other}\n')
-        r = self.file(src, '13-Papers/02-coolest-ruskey_2009.pdf', '--pages', '3')
+        r = self.file(src, '13-Papers/002-coolest-ruskey_2009.pdf', '--pages', '3')
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn('filed 13-Papers/02-coolest-ruskey_2009.pdf (SHA-256 ' + sha(b'paper\n') + '); cite it by that path in Docs/a.md',
+        self.assertIn('filed 13-Papers/002-coolest-ruskey_2009.pdf (SHA-256 ' + sha(b'paper\n') + '); cite it by that path in Docs/a.md',
                       r.stdout)
         self.assertNotIn('backed up', r.stdout, 'no private history')
         self.assertFalse(src.exists(), 'moved, not copied')
-        self.assertEqual((self.res / '13-Papers/02-coolest-ruskey_2009.pdf').read_bytes(), b'paper\n')
-        want = {'file': '13-Papers/02-coolest-ruskey_2009.pdf', 'title': 'R–W, *Coolest*', 'source_page': 'https://example.invalid/p',
+        self.assertEqual((self.res / '13-Papers/002-coolest-ruskey_2009.pdf').read_bytes(), b'paper\n')
+        want = {'file': '13-Papers/002-coolest-ruskey_2009.pdf', 'title': 'R–W, *Coolest*', 'source_page': 'https://example.invalid/p',
                 'downloaded': str(datetime.date.today()), 'bytes': 6, 'pages': 3, 'sha256': sha(b'paper\n'), 'cited_in': ['Docs/a.md'],
                 'provided_by': 'user', 'reuse_note': LOCAL, 'committed': False}
         self.assertEqual(self.manifest(), [ENTRY, want])
@@ -144,34 +144,34 @@ class Sources(unittest.TestCase):
         self.assertEqual(text, json.dumps(json.loads(text), indent=2, ensure_ascii=False) + '\n', 'format and non-ASCII kept')
         self.assertEqual((self.inbox / '00-requests.md').read_text(), f'{head}{other}\n', 'only its own request line goes')
         (self.main / 'Docs/b c.md').write_text('B\n')
-        r = self.run_script('file', str(self.place('y.pdf', b'y\n')), '14-Web Pages/03-site_1-page.pdf', '--title', 'Y', '--url', 'u',
+        r = self.run_script('file', str(self.place('y.pdf', b'y\n')), '14-Web Pages/003-site_1-page.pdf', '--title', 'Y', '--url', 'u',
                             '--cited-in', 'Docs/a.md', '--download-url', 'https://example.invalid/y.pdf', '--cited-in', 'Docs/b c.md')
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual([self.manifest()[-1][k] for k in ('download_url', 'cited_in')],
                          ['https://example.invalid/y.pdf', ['Docs/a.md', 'Docs/b c.md']], 'every citing document, in order')
-        self.assertTrue((self.res / '14-Web Pages/03-site_1-page.pdf').is_file())
+        self.assertTrue((self.res / '14-Web Pages/003-site_1-page.pdf').is_file())
         self.assertEqual((self.inbox / '00-requests.md').read_text(), head)
 
     def test_file_refusals(self):
         src = self.place('x.pdf', b'paper\n')
         before = (self.res / '99-sources.json').read_text()
-        (self.res / '13-Papers/03-taken-a_1.pdf').write_bytes(b'unlisted\n')
-        for dest, why in (('15-Other/02-x-a_1.pdf', 'name the destination'), ('13-Papers/02-Bad-a_1.pdf', 'name the destination'),
-                          ('13-Papers/x-a_1.pdf', 'name the destination'), ('13-Papers/02-x-a_1', 'name the destination'),
+        (self.res / '13-Papers/003-taken-a_1.pdf').write_bytes(b'unlisted\n')
+        for dest, why in (('15-Other/02-x-a_1.pdf', 'name the destination'), ('13-Papers/002-Bad-a_1.pdf', 'name the destination'),
+                          ('13-Papers/x-a_1.pdf', 'name the destination'), ('13-Papers/002-x-a_1', 'name the destination'),
                           (ENTRY['file'], f'already holds {ENTRY["file"]}'),
-                          ('13-Papers/03-taken-a_1.pdf', 'exists without a manifest entry')):
+                          ('13-Papers/003-taken-a_1.pdf', 'exists without a manifest entry')):
             r = self.file(src, dest)
             self.assertNotEqual(r.returncode, 0, dest)
             self.assertIn(why, r.stderr, dest)
-        r = self.file(self.place('dup.pdf', OLD), '13-Papers/04-dup-a_1.pdf')
+        r = self.file(self.place('dup.pdf', OLD), '13-Papers/004-dup-a_1.pdf')
         self.assertIn(f'already holds {ENTRY["file"]}, with these bytes: cite it and delete this copy', r.stderr)
-        r = self.file(self.inbox / 'missing.pdf', '13-Papers/05-m-a_1.pdf')
+        r = self.file(self.inbox / 'missing.pdf', '13-Papers/005-m-a_1.pdf')
         self.assertIn('no file', r.stderr)
         for cited in (('Docs/a.md:3',), ('Docs/a.md', 'Docs/none.md'), ('a.md',)):
-            r = self.file(src, '13-Papers/07-c-a_1.pdf', cited=cited)
+            r = self.file(src, '13-Papers/007-c-a_1.pdf', cited=cited)
             self.assertIn('--cited-in names a document of this checkout by its path from the root, without a line number: '
                           + cited[-1], r.stderr, cited)
-        r = self.run_script('file', str(src), '13-Papers/06-y-a_1.pdf', '--title', 'T', '--url', 'u')
+        r = self.run_script('file', str(src), '13-Papers/006-y-a_1.pdf', '--title', 'T', '--url', 'u')
         self.assertEqual(r.returncode, 2, 'argparse error without --cited-in')
         self.assertTrue(src.exists() and (self.inbox / 'Papers/dup.pdf').exists(), 'nothing moved')
         self.assertEqual((self.res / '99-sources.json').read_text(), before, 'manifest unchanged')
@@ -181,14 +181,14 @@ class Sources(unittest.TestCase):
         priv = self.private()
         scratch = self.tmp / 'download.pdf'
         scratch.write_bytes(b'download\n')
-        r = self.file(scratch, '13-Papers/02-d-a_1.pdf')
+        r = self.file(scratch, '13-Papers/002-d-a_1.pdf')
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(self.manifest()[-1]['provided_by'], 'session', "a session's own download")
         self.assertIn('backed up in the private repository; push (the user runs it):', r.stdout)
         self.assertIn('push -u origin master', r.stdout)
         log = subprocess.run([*priv, 'log', '--format=%s', '--name-only', '-1'], capture_output=True, text=True, env=ENV).stdout
-        self.assertEqual(log.split(), ['File', '13-Papers/02-d-a_1.pdf', '13-Papers/02-d-a_1.pdf'])
-        r = self.file(self.place('c.pdf', b'curl\n'), '13-Papers/03-c-a_1.pdf', '--provided-by', 'session (curl)')
+        self.assertEqual(log.split(), ['File', '13-Papers/002-d-a_1.pdf', '13-Papers/002-d-a_1.pdf'])
+        r = self.file(self.place('c.pdf', b'curl\n'), '13-Papers/003-c-a_1.pdf', '--provided-by', 'session (curl)')
         self.assertEqual((r.returncode, self.manifest()[-1]['provided_by']), (0, 'session (curl)'), r.stderr)
 
     def test_check(self):
@@ -205,7 +205,7 @@ class Sources(unittest.TestCase):
             (self.main / kept).mkdir()
             (self.main / kept / 'x.md').write_text(f'{cite}\n')
         (self.res / 'notes.md').write_text(f'{cite}\n')
-        (self.res / '13-Papers/09-z-a_1.pdf').write_bytes(b'z\n')
+        (self.res / '13-Papers/009-z-a_1.pdf').write_bytes(b'z\n')
         r = self.run_script('check', 'P900')
         self.assertEqual(r.returncode, 1, r.stderr)
         self.assertEqual(r.stdout.splitlines(), [
@@ -214,7 +214,7 @@ class Sources(unittest.TestCase):
             f'00-Inbox/Papers/d.pdf: a copy of the filed {ENTRY["file"]}; delete it',
             'Docs/a.md:3: cites a file in 00-Inbox; file it and cite the filed path',
             'Docs/new.md:1: cites a file in 00-Inbox; file it and cite the filed path',
-            '13-Papers/09-z-a_1.pdf: no manifest entry'])
+            '13-Papers/009-z-a_1.pdf: no manifest entry'])
         r = self.run_script('check', 'P901', 'MI16')
         self.assertIn('00-Inbox/Papers/b.pdf: placed for P901; file it (00-sources.py file)', r.stdout)
         self.assertNotIn('a.pdf: placed', r.stdout, "another session's request stays")
@@ -241,7 +241,7 @@ class Sources(unittest.TestCase):
 
     def test_check_backup(self):
         self.full()
-        two = dict(ENTRY, file='13-Papers/02-two-a_1.pdf', sha256=sha(b'two\n'))
+        two = dict(ENTRY, file='13-Papers/002-two-a_1.pdf', sha256=sha(b'two\n'))
         self.write_manifest(self.res, [ENTRY, two])
         (self.main / 'Docs/a.md').write_text(f'{A_MD}`95-Resources/{two["file"]}`\n')
         (self.res / two['file']).write_bytes(b'two\n')
@@ -262,18 +262,18 @@ class Sources(unittest.TestCase):
         (wt / 'Docs/w.md').write_text('`95-Resources/00-Inbox/Papers/x.pdf`\n')
         r = self.run_script('check', res=wt / '95-Resources')
         self.assertIn('Docs/w.md:1: cites a file in 00-Inbox; file it and cite the filed path', r.stdout, 'the worktree\'s documents')
-        r = self.file(src, '13-Papers/02-x-a_1.pdf', res=wt / '95-Resources', cited=('Docs/w.md',))
+        r = self.file(src, '13-Papers/002-x-a_1.pdf', res=wt / '95-Resources', cited=('Docs/w.md',))
         self.assertEqual(r.returncode, 0, r.stderr + ": a document only the worktree has")
-        self.assertIn('13-Papers/02-x-a_1.pdf: cited_in names Docs/w.md, which does not name the file',
+        self.assertIn('13-Papers/002-x-a_1.pdf: cited_in names Docs/w.md, which does not name the file',
                       self.run_script('check', res=wt / '95-Resources').stdout)
-        (wt / 'Docs/w.md').write_text('`95-Resources/13-Papers/02-x-a_1.pdf`\n')
+        (wt / 'Docs/w.md').write_text('`95-Resources/13-Papers/002-x-a_1.pdf`\n')
         self.assertEqual(self.run_script('check', res=wt / '95-Resources').stdout, 'sources: nothing to file\n', "the worktree's documents")
-        self.assertTrue((self.res / '13-Papers/02-x-a_1.pdf').is_file(), "filed in the main checkout's folder")
-        self.assertEqual([e['file'] for e in self.manifest(wt / '95-Resources')], [ENTRY['file'], '13-Papers/02-x-a_1.pdf'])
+        self.assertTrue((self.res / '13-Papers/002-x-a_1.pdf').is_file(), "filed in the main checkout's folder")
+        self.assertEqual([e['file'] for e in self.manifest(wt / '95-Resources')], [ENTRY['file'], '13-Papers/002-x-a_1.pdf'])
         self.assertEqual(self.manifest(), [ENTRY], "the main checkout's manifest waits for the branch")
         self.assertEqual(self.run_script('check').stdout, 'sources: nothing to file\n', "the worktree's entry counts")
-        r = self.file(self.place('again.pdf', b'x\n'), '13-Papers/03-y-a_1.pdf')
-        self.assertIn('already holds 13-Papers/02-x-a_1.pdf, with these bytes', r.stderr, "another checkout's entry")
+        r = self.file(self.place('again.pdf', b'x\n'), '13-Papers/003-y-a_1.pdf')
+        self.assertIn('already holds 13-Papers/002-x-a_1.pdf, with these bytes', r.stderr, "another checkout's entry")
 
     def test_fetch(self):
         self.full()
@@ -282,31 +282,31 @@ class Sources(unittest.TestCase):
         (served / 'ok.pdf').write_bytes(b'ok\n')
         (served / 'bad.pdf').write_bytes(b'changed\n')
         entries = [ENTRY,
-                   dict(ENTRY, file='13-Papers/02-ok-a_1.pdf', download_url=(served / 'ok.pdf').as_uri(), sha256=sha(b'ok\n')),
-                   dict(ENTRY, file='13-Papers/03-local-a_1.pdf', sha256=sha(b'local\n')),
-                   dict(ENTRY, file='13-Papers/04-local-b_1.pdf', sha256=sha(b'local2\n'))]
+                   dict(ENTRY, file='13-Papers/002-ok-a_1.pdf', download_url=(served / 'ok.pdf').as_uri(), sha256=sha(b'ok\n')),
+                   dict(ENTRY, file='13-Papers/003-local-a_1.pdf', sha256=sha(b'local\n')),
+                   dict(ENTRY, file='13-Papers/004-local-b_1.pdf', sha256=sha(b'local2\n'))]
         self.write_manifest(self.res, entries)
         self.place('supplied.pdf', b'local2\n')
         (self.inbox / '00-requests.md').write_text('- 2026-11-27 | PR7 | B | u | supplied.pdf\n')
-        self.assertIn('00-Inbox/Papers/supplied.pdf: the file of 13-Papers/04-local-b_1.pdf, missing here; 00-sources.py fetch moves '
+        self.assertIn('00-Inbox/Papers/supplied.pdf: the file of 13-Papers/004-local-b_1.pdf, missing here; 00-sources.py fetch moves '
                       'it into place', self.run_script('check').stdout)
         r = self.run_script('fetch')
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertEqual((self.res / '13-Papers/02-ok-a_1.pdf').read_bytes(), b'ok\n')
-        self.assertEqual((self.res / '13-Papers/04-local-b_1.pdf').read_bytes(), b'local2\n')
+        self.assertEqual((self.res / '13-Papers/002-ok-a_1.pdf').read_bytes(), b'ok\n')
+        self.assertEqual((self.res / '13-Papers/004-local-b_1.pdf').read_bytes(), b'local2\n')
         self.assertFalse((self.inbox / 'Papers/supplied.pdf').exists())
         self.assertEqual((self.inbox / '00-requests.md').read_text(), '', 'its request line goes')
-        self.assertEqual(r.stdout.splitlines(), ['fetched 13-Papers/02-ok-a_1.pdf', 'moved from 00-Inbox: 13-Papers/04-local-b_1.pdf',
+        self.assertEqual(r.stdout.splitlines(), ['fetched 13-Papers/002-ok-a_1.pdf', 'moved from 00-Inbox: 13-Papers/004-local-b_1.pdf',
                                                  'not fetched, having no download URL (local-only copies; each manifest entry names its '
-                                                 'source page): 13-Papers/03-local-a_1.pdf'])
-        entries.append(dict(ENTRY, file='13-Papers/05-bad-a_1.pdf', download_url=(served / 'bad.pdf').as_uri(), sha256=sha(b'bad\n')))
+                                                 'source page): 13-Papers/003-local-a_1.pdf'])
+        entries.append(dict(ENTRY, file='13-Papers/005-bad-a_1.pdf', download_url=(served / 'bad.pdf').as_uri(), sha256=sha(b'bad\n')))
         self.write_manifest(self.res, entries)
         (self.res / ENTRY['file']).write_bytes(b'edited\n')
         r = self.run_script('fetch')
         self.assertEqual(r.returncode, 1)
         self.assertIn(f'FAIL {ENTRY["file"]}: local file differs from the manifest SHA-256', r.stdout)
-        self.assertIn('FAIL 13-Papers/05-bad-a_1.pdf: downloaded file differs from the manifest SHA-256', r.stdout)
-        self.assertFalse((self.res / '13-Papers/05-bad-a_1.pdf').exists() or (self.res / '13-Papers/05-bad-a_1.pdf.part').exists())
+        self.assertIn('FAIL 13-Papers/005-bad-a_1.pdf: downloaded file differs from the manifest SHA-256', r.stdout)
+        self.assertFalse((self.res / '13-Papers/005-bad-a_1.pdf').exists() or (self.res / '13-Papers/005-bad-a_1.pdf.part').exists())
 
 
 if __name__ == '__main__':

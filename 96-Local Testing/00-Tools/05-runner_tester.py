@@ -464,10 +464,10 @@ class Runner(Base):
     def test_quick_discovery(self):
         f = self.f
         for rel in ('01-Core/01-template_tester.py', '02-Data Structures/01-q_tester.py', '01-Core/10-x_tester.py',
-                    '09-Other/01-y_tester.py', '02-Data Structures/02-z_compile_tester.py'):
+                    '09-Other/01-y_tester.py', '02-Data Structures/002-z_compile_tester.py'):
             f.suite(rel)
         (f.root / '02-Data Structures/03-helper.py').write_text('raise SystemExit(9)\n')
-        compiled, full = f.suites.pop('02-Data Structures/02-z_compile_tester.py'), dict(f.suites)
+        compiled, full = f.suites.pop('02-Data Structures/002-z_compile_tester.py'), dict(f.suites)
         for mode, extra, keep in ('full', (), ''), ('quick', (), ('01-Core/01-', '02-')), ('full', ('--filter', '01-Core/'), '01-C'):
             f.suites = {k: v for k, v in full.items() if k.startswith(keep)}
             self.check(f.run('-j', '2', '--mode', mode, *extra), 0, f.expect(mode), f'{mode} {extra}')

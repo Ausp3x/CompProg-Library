@@ -38,7 +38,7 @@ The notebook is a source collection, not a compilation unit. Under each heading 
 [05-dependencies.py](05-dependencies.py) reads the `#include "…"` lines of the `01`–`07` headers. It serves the selector above, `plan.py check` (every include edge between batches is a declared prerequisite) and the documentation site below:
 
 ```bash
-python3 05-dependencies.py closure '05-Mathematics/12-combinatorics_advanced.hpp'   # typing order with line counts; no argument: every header
+python3 05-dependencies.py closure '05-Mathematics/012-combinatorics_advanced.hpp'   # typing order with line counts; no argument: every header
 python3 05-dependencies.py chart '07-Strings'                                       # Mermaid include chart without template edges; no argument: every folder
 ```
 

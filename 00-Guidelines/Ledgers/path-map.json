@@ -9,13 +9,13 @@
     "1-Core/06-infintmini.hpp": "01-Core/08-infintmini.hpp",
     "1-Core/07-matrix.hpp": "01-Core/10-matrix.hpp",
     "5-Mathematics/09-montgomery.hpp": "01-Core/04-montgomery.hpp",
-    "6-Miscellaneous/random.hpp": "06-Miscellaneous/01-random.hpp",
-    "6-Miscellaneous/customhash.hpp": "06-Miscellaneous/02-customhash.hpp",
-    "6-Miscellaneous/fastconv.hpp": "05-Mathematics/24-transform_algorithms.hpp",
-    "5-Mathematics/01-exgcdandmodpow.hpp": "05-Mathematics/01-mod_arithmetic.hpp",
-    "5-Mathematics/02-search.hpp": "05-Mathematics/02-search_algorithms.hpp",
-    "5-Mathematics/03-eqnsolvers.hpp": "05-Mathematics/03-equation_solvers.hpp",
-    "5-Mathematics/12-combinatorics.hpp": "05-Mathematics/05-combinatorics.hpp"
+    "6-Miscellaneous/random.hpp": "06-Miscellaneous/001-random.hpp",
+    "6-Miscellaneous/customhash.hpp": "06-Miscellaneous/002-customhash.hpp",
+    "6-Miscellaneous/fastconv.hpp": "05-Mathematics/024-transform_algorithms.hpp",
+    "5-Mathematics/01-exgcdandmodpow.hpp": "05-Mathematics/001-mod_arithmetic.hpp",
+    "5-Mathematics/002-search.hpp": "05-Mathematics/002-search_algorithms.hpp",
+    "5-Mathematics/03-eqnsolvers.hpp": "05-Mathematics/003-equation_solvers.hpp",
+    "5-Mathematics/12-combinatorics.hpp": "05-Mathematics/005-combinatorics.hpp"
   },
   "online_sources": [
     "97-Online Testing/src/01-Yosupo/02-Big Integers/01-addition.cpp",

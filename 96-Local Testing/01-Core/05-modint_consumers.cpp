@@ -1,5 +1,5 @@
 #include "../../01-Core/99-all.hpp"
-#include "../../05-Mathematics/05-combinatorics.hpp"
+#include "../../05-Mathematics/005-combinatorics.hpp"
 
 // The residue concepts accept the four minis in a mixed full/mini translation unit.
 static_assert(ModularInt<mintmini> && ModularInt<ModInt64Mini<7>> && ModularInt<DynModIntMini<>> && ModularInt<DynModInt64Mini<>>);

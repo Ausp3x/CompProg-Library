@@ -425,7 +425,10 @@ def post_order(graph: dict[str, list[str]], h: str, order=None) -> list[str]:
 
 def pname(target: str) -> str:
     name = target.split("/")[1]
-    return f"{name[1:3]}-{name[4:-3]}" if name.startswith("_") else name[:-4]
+    if name.startswith("_"):
+        number, rest = name[1:].split("_", 1)
+        return f"{number}-{rest[:-3]}"
+    return name[:-4]
 
 
 def fslug(folder: str) -> str:
@@ -642,9 +645,9 @@ def inc(*names: str) -> str:
     return "".join(f'#include "{n}"\n' for n in names)
 
 
-DSU_EVIDENCE = """# 01-dsu.hpp — evidence
+DSU_EVIDENCE = """# 001-dsu.hpp — evidence
 
-Intro paragraph [ignored](../01-dsu.hpp).
+Intro paragraph [ignored](../001-dsu.hpp).
 
 ## Contracts
 
@@ -652,36 +655,36 @@ Intro paragraph [ignored](../01-dsu.hpp).
 
 - `findSet(x)` returns the root; see [adv](../02-adv.hpp) and [its contracts](02-adv.md#contracts).
 - Same document: [limits](#limits-and-handoffs) and [second](#dsu_1).
-- [notes](<00-notes.md>), [core](../../01-Core/05-thing.hpp), [pct](../../02-Data%20Structures/01-dsu.hpp).
+- [notes](<00-notes.md>), [core](../../01-Core/05-thing.hpp), [pct](../../02-Data%20Structures/001-dsu.hpp).
 - [line](<../../02-Data Structures/02-adv.hpp#L1>), [web](https://cp-algorithms.com/x.html), [mail](mailto:a@b.c).
-- Literal `[code](../01-dsu.hpp)` and ``[two](../01-dsu.hpp) ` tick``; label [`DSU::findSet`](../01-dsu.hpp).
+- Literal `[code](../001-dsu.hpp)` and ``[two](../001-dsu.hpp) ` tick``; label [`DSU::findSet`](../001-dsu.hpp).
 - [gone](../nothere.hpp), [folder](..), [index](../00-index.md#advanced), [bad anchor](../00-index.md#nope).
-- [tester](../../96-Local%20Testing/02-Data%20Structures/01-dsu_tester.py), [tests](<../../96-Local Testing/>).
+- [tester](../../96-Local%20Testing/02-Data%20Structures/001-dsu_tester.py), [tests](<../../96-Local Testing/>).
 - [escape](../../../outside.md), [absolute](ABS).
 
 ```text
-[fenced](../01-dsu.hpp)
+[fenced](../001-dsu.hpp)
 ## Not a heading
 ```
 
 ~~~~
 ```
-[tilde](../01-dsu.hpp)
+[tilde](../001-dsu.hpp)
 ~~~
 ## Still fenced
 ~~~~
 
 ### DSU
 
-Second DSU heading; after the fences [again](../01-dsu.hpp).
+Second DSU heading; after the fences [again](../001-dsu.hpp).
 
 ## Limits and Handoffs
 
-- Recursion-free; [geometry](../../03-Geometry/01-point.hpp#point).
+- Recursion-free; [geometry](../../03-Geometry/001-point.hpp#point).
 
 ## Tests
 
-Not copied [hidden](../01-dsu.hpp).
+Not copied [hidden](../001-dsu.hpp).
 
 ## Sources
 
@@ -697,7 +700,7 @@ $$
 \\sum_{i} a_i
 $$
 
-See [the contracts](<../../../02-Data Structures/Docs/01-dsu.md#contracts>), [this overview](#overview) and
+See [the contracts](<../../../02-Data Structures/Docs/001-dsu.md#contracts>), [this overview](#overview) and
 [the advanced header](../../../02-Data%20Structures/02-adv.hpp).
 """
 
@@ -721,45 +724,45 @@ def fixture(root: Path) -> None:
         "[DS](<../../02-Data Structures/00-index.md#advanced>).\n",
         "01-Core/Docs/00-sources.md": "# Sources\n",
         "01-Core/Docs/05-thing.md": "# 05-thing.hpp — evidence\n\n## Contracts\n\n- Thing pairs with "
-        "[DSU contracts](../../02-Data%20Structures/Docs/01-dsu.md#dsu).\n\n## Sources\n\n- Original.\n",
+        "[DSU contracts](../../02-Data%20Structures/Docs/001-dsu.md#dsu).\n\n## Sources\n\n- Original.\n",
         "02-Data Structures/00-index.md": "# 02 Data Structures — inventory\n\nScope: DS fixture; notes in "
         "[00-notes.md](Docs/00-notes.md), [sources](Docs/00-sources.md) and [Core](../01-Core/00-index.md).\n\n## Basic\n\n"
         "| Header | Operations | Status |\n|---|---|---|\n"
-        "| `01-dsu.hpp` | DSU: findSet, uniteSets; groups (sorted; stable); makeSet | verified; [evidence](Docs/01-dsu.md) |\n"
+        "| `001-dsu.hpp` | DSU: findSet, uniteSets; groups (sorted; stable); makeSet | verified; [evidence](Docs/001-dsu.md) |\n"
         "| `03-red.hpp` | Red: mul | verified |\n\n## Advanced\n\n| Header | Operations | Status |\n|---|---|---|\n"
         "| `02-adv.hpp` | Adv: q | in-progress |\n| `04-missing.hpp` | M: r | planned |\n",
-        "02-Data Structures/01-dsu.hpp": T + inc("../01-Core/01-template.hpp") + "struct DSU {};\n",
-        "02-Data Structures/02-adv.hpp": T + inc("01-dsu.hpp", "../01-Core/05-thing.hpp") + "struct Adv {};\n",
+        "02-Data Structures/001-dsu.hpp": T + inc("../01-Core/01-template.hpp") + "struct DSU {};\n",
+        "02-Data Structures/02-adv.hpp": T + inc("001-dsu.hpp", "../01-Core/05-thing.hpp") + "struct Adv {};\n",
         "02-Data Structures/03-red.hpp": T + inc("../01-Core/01-template.hpp", "../01-Core/03-barrett.hpp")
         + "struct RedCompact {\n};\n",
-        "02-Data Structures/99-all.hpp": inc("01-dsu.hpp", "02-adv.hpp", "03-red.hpp"),
-        "02-Data Structures/Docs/00-notes.md": "# 02 Data Structures — notes\n\n## Rules\n\n- See [dsu](../01-dsu.hpp) and "
+        "02-Data Structures/99-all.hpp": inc("001-dsu.hpp", "02-adv.hpp", "03-red.hpp"),
+        "02-Data Structures/Docs/00-notes.md": "# 02 Data Structures — notes\n\n## Rules\n\n- See [dsu](../001-dsu.hpp) and "
         "[core notes](../../01-Core/Docs/00-notes.md#shared).\n",
-        "02-Data Structures/Docs/01-dsu.md": DSU_EVIDENCE.replace("ABS", str(root / "01-Core/01-template.hpp")),
-        "02-Data Structures/Docs/02-adv.md": "# 02-adv.hpp — evidence\n\n## Contracts\n\n- Adv uses [DSU](01-dsu.md#dsu).\n\n"
+        "02-Data Structures/Docs/001-dsu.md": DSU_EVIDENCE.replace("ABS", str(root / "01-Core/01-template.hpp")),
+        "02-Data Structures/Docs/02-adv.md": "# 02-adv.hpp — evidence\n\n## Contracts\n\n- Adv uses [DSU](001-dsu.md#dsu).\n\n"
         "## Limits and Handoffs\n\n## Sources\n",
         "03-Geometry/00-index.md": "# 03 Geometry — inventory\n\nScope: geometry fixture.\n\n## Basic\n\n"
-        "| Header | Operations | Status |\n|---|---|---|\n| `01-point.hpp` | Point: dot; cross | verified |\n",
-        "03-Geometry/01-point.hpp": T + inc("../01-Core/01-template.hpp") + "struct Point {};\n",
+        "| Header | Operations | Status |\n|---|---|---|\n| `001-point.hpp` | Point: dot; cross | verified |\n",
+        "03-Geometry/001-point.hpp": T + inc("../01-Core/01-template.hpp") + "struct Point {};\n",
         "08-Python/00-index.md": "# 08 Python — inventory\n\nScope: Python fixture.\n\n## Basic\n\n"
         "| Module | Operations | Status |\n|---|---|---|\n| `_01_x.py` | readInts; Fast: read, write | planned; pyrival |\n"
         "| `_02_y.py` | y | planned |\n",
         "08-Python/_01_x.py": 'DOC = """\n````\n"""\n\n   \ndef readInts():\n    return 1\n',
         "08-Python/Docs/01-x.md": "# _01_x.py — evidence\n\n## Contracts\n\n- readInts returns [ints](../_01_x.py).\n",
         "09-Contest Testing/10-grab.py": "",
-        "96-Local Testing/02-Data Structures/01-dsu_tester.py": "",
-        "96-Local Testing/02-Data Structures/01-dsu_tester.cpp": "",
+        "96-Local Testing/02-Data Structures/001-dsu_tester.py": "",
+        "96-Local Testing/02-Data Structures/001-dsu_tester.cpp": "",
         "96-Local Testing/02-Data Structures/02-adv_tester.py": "",
-        f"{ARTICLES}/02-Data Structures/01-dsu.md": ARTICLE,
+        f"{ARTICLES}/02-Data Structures/001-dsu.md": ARTICLE,
     })
     (root.parent / "outside.md").write_text("# outside\n")
 
 
 PAGES = {"01-Core/01-template.hpp": "01-core/01-template.md", "01-Core/03-barrett.hpp": "01-core/03-barrett.md",
          "01-Core/05-thing.hpp": "01-core/05-thing.md", "01-Core/06-thingmini.hpp": "01-core/06-thingmini.md",
-         "02-Data Structures/01-dsu.hpp": "02-data-structures/01-dsu.md",
+         "02-Data Structures/001-dsu.hpp": "02-data-structures/001-dsu.md",
          "02-Data Structures/03-red.hpp": "02-data-structures/03-red.md",
-         "02-Data Structures/02-adv.hpp": "02-data-structures/02-adv.md", "03-Geometry/01-point.hpp": "03-geometry/01-point.md",
+         "02-Data Structures/02-adv.hpp": "02-data-structures/02-adv.md", "03-Geometry/001-point.hpp": "03-geometry/001-point.md",
          "08-Python/_01_x.py": "08-python/01-x.md"}
 NOTES = {"01-Core": "01-core/notes.md", "02-Data Structures": "02-data-structures/notes.md"}
 FOLDERS = ["01-Core", "02-Data Structures", "03-Geometry", "08-Python"]
@@ -956,9 +959,9 @@ class Units(Base):
                 self.assertEqual(SITE.items(cell), want)
 
     def test_names(self):
-        for target, want in [("02-Data Structures/01-dsu.hpp", "01-dsu"), ("08-Python/_01_io.py", "01-io"),
-                             ("08-Python/_03_number_theory.py", "03-number_theory"), ("01-Core/16-poly.hpp", "16-poly"),
-                             ("05-Mathematics/12-combinatorics_advanced.hpp", "12-combinatorics_advanced")]:
+        for target, want in [("02-Data Structures/001-dsu.hpp", "001-dsu"), ("08-Python/_001_io.py", "001-io"),
+                             ("08-Python/_003_number_theory.py", "003-number_theory"), ("01-Core/16-poly.hpp", "16-poly"),
+                             ("05-Mathematics/012-combinatorics_advanced.hpp", "012-combinatorics_advanced")]:
             self.assertEqual(SITE.page_name(target), want)
             self.assertEqual(pname(target), want)
         self.assertEqual(SITE.folder_slug("02-Data Structures"), "02-data-structures")
@@ -1081,22 +1084,22 @@ class Renderer(Base):
         """relink() leaves links inside inline math (`$…$`, `\\(…\\)`) and escaped brackets literal, as rendered."""
         fixture(self.root)
         s = SITE.Site(self.root, REPO)
-        docs = ["see $c[l](../01-dsu.hpp)$ and [l](../01-dsu.hpp)\n", "\\(c [l](../01-dsu.hpp)\\) y [l](../01-dsu.hpp)\n",
-                "\\[l](../01-dsu.hpp) and \\$[l](../01-dsu.hpp)$\n"]
-        new = [s.relink(d, "02-Data Structures/Docs/01-dsu.md", "02-data-structures/01-dsu.md") for d in docs]
+        docs = ["see $c[l](../001-dsu.hpp)$ and [l](../001-dsu.hpp)\n", "\\(c [l](../001-dsu.hpp)\\) y [l](../001-dsu.hpp)\n",
+                "\\[l](../001-dsu.hpp) and \\$[l](../001-dsu.hpp)$\n"]
+        new = [s.relink(d, "02-Data Structures/Docs/001-dsu.md", "02-data-structures/001-dsu.md") for d in docs]
         html = pm_ids(docs + new, "html")
         for d, h, g in zip(docs, html, html[len(docs):]):
-            self.assertIn('href="../01-dsu.hpp"', h, d)
-            self.assertEqual(g, h.replace('href="../01-dsu.hpp"', 'href="01-dsu.md"'), d)
+            self.assertIn('href="../001-dsu.hpp"', h, d)
+            self.assertEqual(g, h.replace('href="../001-dsu.hpp"', 'href="001-dsu.md"'), d)
 
     def test_table_cell_links(self):
         """Regression (P239): relink() finds code spans per table cell, as the tables extension splits rows, so a link
         Python-Markdown renders is rewritten and one inside a cell's code span stays literal (rendered tables are
         compared, dropped extra cells included; other blocks hit the per-line limit)."""
-        src, page = "02-Data Structures/Docs/01-dsu.md", "02-data-structures/01-dsu.md"
-        toks = ["`", "``", "|", "\\|", "\\`", "[l](../01-dsu.hpp)", " ", "x"]
+        src, page = "02-Data Structures/Docs/001-dsu.md", "02-data-structures/001-dsu.md"
+        toks = ["`", "``", "|", "\\|", "\\`", "[l](../001-dsu.hpp)", " ", "x"]
         rng = random.Random(SEED)
-        docs = ["| h | h |\n|---|---|\n| ``a | [l](../01-dsu.hpp) ` |\n", "| h |\n|---|\n| `a|b` [l](../01-dsu.hpp) |\n"]
+        docs = ["| h | h |\n|---|---|\n| ``a | [l](../001-dsu.hpp) ` |\n", "| h |\n|---|\n| `a|b` [l](../001-dsu.hpp) |\n"]
         for _ in range({"quick": 300, "full": 2000}.get(MODE, 20 * ROUNDS)):
             row = lambda: "|".join("".join(rng.choice(toks) for _ in range(rng.randint(0, 4))) for _ in range(rng.randint(1, 4)))
             docs.append("\n".join([rng.choice(["| h | h |", "h | h", "| h |"]), rng.choice(["|---|---|", "---|---", "|---|", "- | -"]), row()]) + "\n")
@@ -1105,9 +1108,9 @@ class Renderer(Base):
         new = [s.relink(d, src, page) for d in docs]
         html = pm_ids(docs + new, "html")
         tables = [(d, n, h, g) for d, n, h, g in zip(docs, new, html, html[len(docs):]) if "<table>" in h]
-        bad = [t for t in tables if t[3] != t[2].replace('href="../01-dsu.hpp"', 'href="01-dsu.md"')]
+        bad = [t for t in tables if t[3] != t[2].replace('href="../001-dsu.hpp"', 'href="001-dsu.md"')]
         self.assertGreater(len(tables), len(docs) // 4)
-        self.assertIn('<a href="01-dsu.md">l</a>', html[len(docs)], "the reviewer's row")
+        self.assertIn('<a href="001-dsu.md">l</a>', html[len(docs)], "the reviewer's row")
         self.assertEqual(bad[:3], [], f"{len(bad)} of {len(tables)} tables render differently after relink (seed {SEED})")
 
 
@@ -1137,18 +1140,18 @@ class Fixture(Base):
     def test_href_and_link(self):
         for repo in (REPO, None):
             s, _ = self.site(repo)
-            page = "02-data-structures/01-dsu.md"
+            page = "02-data-structures/001-dsu.md"
             gh = lambda kind, p, a="": f"{REPO}/{kind}/master/{quote(p)}" + (f"#{a}" if a else "") if repo else None
-            cases = [("02-Data Structures/01-dsu.hpp", "index.md", "", "02-data-structures/01-dsu.md"),
-                     ("02-Data Structures/01-dsu.hpp", page, "dsu_1", "01-dsu.md#dsu_1"),
+            cases = [("02-Data Structures/001-dsu.hpp", "index.md", "", "02-data-structures/001-dsu.md"),
+                     ("02-Data Structures/001-dsu.hpp", page, "dsu_1", "001-dsu.md#dsu_1"),
                      ("01-Core/05-thing.hpp", page, "", "../01-core/05-thing.md"),
-                     ("02-Data Structures/01-dsu.hpp", page, "nope", gh("blob", "02-Data Structures/01-dsu.hpp", "nope")),
+                     ("02-Data Structures/001-dsu.hpp", page, "nope", gh("blob", "02-Data Structures/001-dsu.hpp", "nope")),
                      ("02-Data Structures/04-missing.hpp", page, "", None), ("02-Data Structures", "index.md", "",
                                                                              "02-data-structures/index.md"),
                      ("01-Core/Docs/00-notes.md", page, "shared", "../01-core/notes.md#shared"),
                      ("96-Local Testing", page, "", gh("tree", "96-Local Testing")),
-                     ("96-Local Testing/02-Data Structures/01-dsu_tester.py", page, "L3",
-                      gh("blob", "96-Local Testing/02-Data Structures/01-dsu_tester.py", "L3")),
+                     ("96-Local Testing/02-Data Structures/001-dsu_tester.py", page, "L3",
+                      gh("blob", "96-Local Testing/02-Data Structures/001-dsu_tester.py", "L3")),
                      ("01-Core/Docs/00-sources.md", page, "", gh("blob", "01-Core/Docs/00-sources.md")),
                      ("../outside.md", page, "", None), (str(self.root / "01-Core/01-template.hpp"), page, "", None),
                      ("/etc", page, "", None)]
@@ -1161,7 +1164,7 @@ class Fixture(Base):
                              f"[lbl]({REPO}/blob/master/01-Core/Docs/00-sources.md)" if repo else "lbl")
 
     def test_relink_cases(self):
-        src, page = "02-Data Structures/Docs/01-dsu.md", "02-data-structures/01-dsu.md"
+        src, page = "02-Data Structures/Docs/001-dsu.md", "02-data-structures/001-dsu.md"
         absolute = str(self.root / "01-Core/01-template.hpp")
         for repo in (REPO, None):
             s, _ = self.site(repo)
@@ -1169,35 +1172,35 @@ class Fixture(Base):
             cases = [
                 (src, page, "[a](../02-adv.hpp)", "[a](02-adv.md)"),
                 (src, page, "[a](02-adv.md#contracts)", "[a](02-adv.md#contracts)"),
-                (src, page, "[a](#limits-and-handoffs)", "[a](01-dsu.md#limits-and-handoffs)"),
-                (src, page, "[a](#dsu_1)", "[a](01-dsu.md#dsu_1)"), (src, page, "[a](<00-notes.md>)", "[a](notes.md)"),
+                (src, page, "[a](#limits-and-handoffs)", "[a](001-dsu.md#limits-and-handoffs)"),
+                (src, page, "[a](#dsu_1)", "[a](001-dsu.md#dsu_1)"), (src, page, "[a](<00-notes.md>)", "[a](notes.md)"),
                 (src, page, "[a](../../01-Core/05-thing.hpp)", "[a](../01-core/05-thing.md)"),
-                (src, page, "[a](../../02-Data%20Structures/01-dsu.hpp)", "[a](01-dsu.md)"),
+                (src, page, "[a](../../02-Data%20Structures/001-dsu.hpp)", "[a](001-dsu.md)"),
                 (src, page, "[a](<../../02-Data Structures/02-adv.hpp#L1>)", gh("blob", "02-Data Structures/02-adv.hpp", "L1", "a")),
                 (src, page, "[a](https://x.org/a.md) [m](mailto:a@b.c)", "[a](https://x.org/a.md) [m](mailto:a@b.c)"),
-                (src, page, "`[a](../01-dsu.hpp)` ``x [b](../01-dsu.hpp) ` x``", "`[a](../01-dsu.hpp)` ``x [b](../01-dsu.hpp) ` x``"),
-                (src, page, "`[a](../01-dsu.hpp)` and [b](../01-dsu.hpp)", "`[a](../01-dsu.hpp)` and [b](01-dsu.md)"),
-                (src, page, "[`DSU::findSet`](../01-dsu.hpp)", "[`DSU::findSet`](01-dsu.md)"),
+                (src, page, "`[a](../001-dsu.hpp)` ``x [b](../001-dsu.hpp) ` x``", "`[a](../001-dsu.hpp)` ``x [b](../001-dsu.hpp) ` x``"),
+                (src, page, "`[a](../001-dsu.hpp)` and [b](../001-dsu.hpp)", "`[a](../001-dsu.hpp)` and [b](001-dsu.md)"),
+                (src, page, "[`DSU::findSet`](../001-dsu.hpp)", "[`DSU::findSet`](001-dsu.md)"),
                 (src, page, "[a](../nothere.hpp)", "a"), (src, page, "[a](..) [b](../)", "[a](index.md) [b](index.md)"),
                 (src, page, "[a](../00-index.md#advanced)", "[a](index.md#advanced)"),
                 (src, page, "[a](../00-index.md#nope)", gh("blob", "02-Data Structures/00-index.md", "nope", "a")),
-                (src, page, "[a](../../96-Local%20Testing/02-Data%20Structures/01-dsu_tester.py)",
-                 gh("blob", "96-Local Testing/02-Data Structures/01-dsu_tester.py", "", "a")),
+                (src, page, "[a](../../96-Local%20Testing/02-Data%20Structures/001-dsu_tester.py)",
+                 gh("blob", "96-Local Testing/02-Data Structures/001-dsu_tester.py", "", "a")),
                 (src, page, "[a](<../../96-Local Testing/>)", gh("tree", "96-Local Testing", "", "a")),
                 (src, page, "[a](../../../outside.md)", "a"), (src, page, f"[a]({absolute})", "a"), (src, page, "[a](/etc)", "a"),
-                (src, page, "```\n[a](../01-dsu.hpp)\n```\n[b](../01-dsu.hpp)", "```\n[a](../01-dsu.hpp)\n```\n[b](01-dsu.md)"),
+                (src, page, "```\n[a](../001-dsu.hpp)\n```\n[b](../001-dsu.hpp)", "```\n[a](../001-dsu.hpp)\n```\n[b](001-dsu.md)"),
                 (src, page, "~~~~\n```\n[a](x)\n~~~\n[b](y)\n~~~~\n[c](..)", "~~~~\n```\n[a](x)\n~~~\n[b](y)\n~~~~\n[c](index.md)"),
-                (f"{ARTICLES}/02-Data Structures/01-dsu.md", page,
-                 "[a](<../../../02-Data Structures/Docs/01-dsu.md#contracts>) [b](#overview)",
-                 "[a](01-dsu.md#contracts) [b](01-dsu.md#overview)"),
+                (f"{ARTICLES}/02-Data Structures/001-dsu.md", page,
+                 "[a](<../../../02-Data Structures/Docs/001-dsu.md#contracts>) [b](#overview)",
+                 "[a](001-dsu.md#contracts) [b](001-dsu.md#overview)"),
                 ("02-Data Structures/00-index.md", "02-data-structures/index.md",
-                 "[n](Docs/00-notes.md) [e](Docs/01-dsu.md) [s](Docs/00-sources.md)", "[n](notes.md) [e](01-dsu.md) s"),
-                ("01-Core/Docs/05-thing.md", "01-core/05-thing.md", "[x](../../02-Data%20Structures/Docs/01-dsu.md#dsu)",
-                 "[x](../02-data-structures/01-dsu.md#dsu)"),
+                 "[n](Docs/00-notes.md) [e](Docs/001-dsu.md) [s](Docs/00-sources.md)", "[n](notes.md) [e](001-dsu.md) s"),
+                ("01-Core/Docs/05-thing.md", "01-core/05-thing.md", "[x](../../02-Data%20Structures/Docs/001-dsu.md#dsu)",
+                 "[x](../02-data-structures/001-dsu.md#dsu)"),
                 ("01-Core/00-index.md", "01-core/index.md", "[s](Docs/00-sources.md)", gh("blob", "01-Core/Docs/00-sources.md", "", "s")),
                 (src, page, "Vertices `[0, n)` and [a](../02-adv.hpp).", "Vertices `[0, n)` and [a](02-adv.md)."),
-                (src, page, "\\`[a](../01-dsu.hpp)\\` and `\\`[b](../01-dsu.hpp)` `c\\` [d](..)`", "\\`[a](01-dsu.md)\\` and "
-                 "`\\`[b](01-dsu.md)` `c\\` [d](index.md)`"),  # no escapes inside a code span: `\\` is one
+                (src, page, "\\`[a](../001-dsu.hpp)\\` and `\\`[b](../001-dsu.hpp)` `c\\` [d](..)`", "\\`[a](001-dsu.md)\\` and "
+                 "`\\`[b](001-dsu.md)` `c\\` [d](index.md)`"),  # no escapes inside a code span: `\\` is one
             ]
             for source, frm, text, want in cases:
                 with self.subTest(repo=repo, text=text):
@@ -1210,14 +1213,14 @@ class Fixture(Base):
               "[Core](../01-core/index.md).\n\n[Folder notes](notes.md): contracts and ownership rules shared by the folder's "
               "headers.\n\n## Include Chart\n\nArrows point from a header to the headers it includes; the template is left "
               f"out.\n\n```mermaid\n{chart}\n```\n\n## Basic\n\n| Header | Operations | Status |\n|---|---|---|\n"
-              "| [`01-dsu.hpp`](01-dsu.md) | DSU: findSet, uniteSets; groups (sorted; stable); makeSet | verified; "
-              "[evidence](01-dsu.md) |\n| [`03-red.hpp`](03-red.md) | Red: mul | verified |\n\n## Advanced\n\n"
+              "| [`001-dsu.hpp`](001-dsu.md) | DSU: findSet, uniteSets; groups (sorted; stable); makeSet | verified; "
+              "[evidence](001-dsu.md) |\n| [`03-red.hpp`](03-red.md) | Red: mul | verified |\n\n## Advanced\n\n"
               "| Header | Operations | Status |\n|---|---|---|\n| [`02-adv.hpp`](02-adv.md) | Adv: q | in-progress |\n"
               "| `04-missing.hpp` | M: r | planned |\n")
         self.assertEqual(files["docs/02-data-structures/index.md"], ds)
         names = dict(re.findall(r'(n\d+)\["([^"]+)"\]', chart))
         edges = {(names[a], names[b]) for a, b in re.findall(r"(n\d+) --> (n\d+)", chart)}
-        self.assertEqual(edges, {("02-adv.hpp", "01-dsu.hpp"), ("02-adv.hpp", "05-thing.hpp"), ("03-red.hpp", "03-barrett.hpp")})
+        self.assertEqual(edges, {("02-adv.hpp", "001-dsu.hpp"), ("02-adv.hpp", "05-thing.hpp"), ("03-red.hpp", "03-barrett.hpp")})
         core = files["docs/01-core/index.md"]
         self.assertIn("\n\n| Header | Basic | Operations | Status |\n|---|---|---|---|\n| [`01-template.hpp`](01-template.md) "
                       "| yes | macros: fi, se; chmin (a; b) | verified; [01-template.md](01-template.md) |\n", core)
@@ -1234,15 +1237,15 @@ class Fixture(Base):
         self.assertIn("## Basic\n\n| Module | Operations | Status |\n|---|---|---|\n| [`_01_x.py`](01-x.md) | readInts; Fast: "
                       "read, write | planned; pyrival |\n| `_02_y.py` | y | planned |\n", py)
         self.assertEqual(files["docs/02-data-structures/notes.md"], "# 02 Data Structures — notes\n\n## Rules\n\n- See "
-                         "[dsu](01-dsu.md) and [core notes](../01-core/notes.md#shared).\n")
+                         "[dsu](001-dsu.md) and [core notes](../01-core/notes.md#shared).\n")
         self.assertIn("[DS](../02-data-structures/index.md#advanced)", files["docs/01-core/notes.md"])
 
     def test_relink_code_span_rule(self):
         """Regression (P239): a link in a code span that Python-Markdown opens after an escaped-backslash pair, an
         escaped backtick or one backtick into an unclosed longer run stays literal (see Units.test_code_span_rule)."""
         s, _ = self.site(files=False)
-        src, page = "02-Data Structures/Docs/01-dsu.md", "02-data-structures/01-dsu.md"
-        for text in ("a \\\\`[a](../01-dsu.hpp)`", "``[a](../01-dsu.hpp)`", "\\``[a](../01-dsu.hpp)`"):
+        src, page = "02-Data Structures/Docs/001-dsu.md", "02-data-structures/001-dsu.md"
+        for text in ("a \\\\`[a](../001-dsu.hpp)`", "``[a](../001-dsu.hpp)`", "\\``[a](../001-dsu.hpp)`"):
             with self.subTest(text=text):
                 self.assertEqual(links(text), [], "the oracle sees the link in a code span")
                 self.assertEqual(s.relink(text, src, page), text)
@@ -1250,25 +1253,25 @@ class Fixture(Base):
     def test_anchors_per_source(self):
         """A heading id on a page belongs to the document it was copied from: an anchored link into a copied document
         lands on the page id its own heading got; a link to any other target uses the page's ids."""
-        art = self.root / ARTICLES / "02-Data Structures/01-dsu.md"
-        art.write_text(ARTICLE + "\n### DSU\n\nArticle DSU: [own](#dsu), [evidence](<../../../02-Data Structures/Docs/01-dsu.md#dsu>), "
-                       "[tests](<../../../02-Data Structures/Docs/01-dsu.md#tests>), [header](<../../../02-Data Structures/01-dsu.hpp#dsu>).\n")
+        art = self.root / ARTICLES / "02-Data Structures/001-dsu.md"
+        art.write_text(ARTICLE + "\n### DSU\n\nArticle DSU: [own](#dsu), [evidence](<../../../02-Data Structures/Docs/001-dsu.md#dsu>), "
+                       "[tests](<../../../02-Data Structures/Docs/001-dsu.md#tests>), [header](<../../../02-Data Structures/001-dsu.hpp#dsu>).\n")
         for repo in (REPO, None):
             s, files = self.site(repo)
-            dsu = files["docs/02-data-structures/01-dsu.md"]
+            dsu = files["docs/02-data-structures/001-dsu.md"]
             ids = line_ids(dsu)
             self.assertEqual(SITE.heading_ids(dsu), ids)
             at = {v: k for k, v in ids.items()}
             self.assertEqual([dsu.split("\n")[at[i]] for i in ("dsu", "dsu_1", "dsu_2")], ["### DSU"] * 3)
             self.assertLess(at["dsu"], at["contracts"], "the article's DSU comes first and takes `dsu`")
-            tests = f"[tests]({REPO}/blob/master/02-Data%20Structures/Docs/01-dsu.md#tests)" if repo else "tests"
-            self.assertIn(f"Article DSU: [own](01-dsu.md#dsu), [evidence](01-dsu.md#dsu_1), {tests}, [header](01-dsu.md#dsu).", dsu)
-            self.assertIn("[second](01-dsu.md#dsu_2)", dsu, "the evidence's own #dsu_1")
-            self.assertIn("[DSU contracts](../02-data-structures/01-dsu.md#dsu_1)", files["docs/01-core/05-thing.md"])
-            self.assertIn("[DSU](01-dsu.md#dsu_1)", files["docs/02-data-structures/02-adv.md"])
-            self.assertEqual(s.ids["02-data-structures/01-dsu.md"], {
-                f"{ARTICLES}/02-Data Structures/01-dsu.md": {"overview": "overview", "dsu": "dsu"},
-                "02-Data Structures/Docs/01-dsu.md": {"contracts": "contracts", "dsu": "dsu_1", "dsu_1": "dsu_2",
+            tests = f"[tests]({REPO}/blob/master/02-Data%20Structures/Docs/001-dsu.md#tests)" if repo else "tests"
+            self.assertIn(f"Article DSU: [own](001-dsu.md#dsu), [evidence](001-dsu.md#dsu_1), {tests}, [header](001-dsu.md#dsu).", dsu)
+            self.assertIn("[second](001-dsu.md#dsu_2)", dsu, "the evidence's own #dsu_1")
+            self.assertIn("[DSU contracts](../02-data-structures/001-dsu.md#dsu_1)", files["docs/01-core/05-thing.md"])
+            self.assertIn("[DSU](001-dsu.md#dsu_1)", files["docs/02-data-structures/02-adv.md"])
+            self.assertEqual(s.ids["02-data-structures/001-dsu.md"], {
+                f"{ARTICLES}/02-Data Structures/001-dsu.md": {"overview": "overview", "dsu": "dsu"},
+                "02-Data Structures/Docs/001-dsu.md": {"contracts": "contracts", "dsu": "dsu_1", "dsu_1": "dsu_2",
                                                       "limits-and-handoffs": "limits-and-handoffs", "sources": "sources"}})
             self.assertEqual(s.ids["02-data-structures/03-red.md"], {"02-Data Structures/Docs/03-red.md": {}}, "no evidence file")
             pages = {k[5:]: v for k, v in files.items() if k.endswith(".md")}
@@ -1280,8 +1283,8 @@ class Fixture(Base):
         chart; relinked relative to itself; its anchors map per source; not an orphan."""
         before = {repo: self.site(repo)[1] for repo in (REPO, None)}
         art = f"{ARTICLES}/02-Data Structures"
-        write(self.root, {f"{art}/00-index.md": "# Data structures guide\n\nStart with [the DSU](<../../../02-Data Structures/01-dsu.hpp>)"
-                          " and [usage](#usage).\n\n## Usage\n\nPick by [contracts](<../../../02-Data Structures/Docs/01-dsu.md#contracts>);"
+        write(self.root, {f"{art}/00-index.md": "# Data structures guide\n\nStart with [the DSU](<../../../02-Data Structures/001-dsu.hpp>)"
+                          " and [usage](#usage).\n\n## Usage\n\nPick by [contracts](<../../../02-Data Structures/Docs/001-dsu.md#contracts>);"
                           " ![fig](fig.png).\n", f"{art}/fig.png": "PNG",
                           f"{ARTICLES}/08-Python/00-index.md": "# Python guide\n\n## Python usage\n\nSee [x](../../../08-Python/_01_x.py).\n",
                           f"{ARTICLES}/03-Geometry/00-index.md": "# Only a title\n"})
@@ -1290,7 +1293,7 @@ class Fixture(Base):
                          "[top](<../../98-Team Notebook/Articles/02-Data Structures/00-index.md>).\n")
         for repo in (REPO, None):
             s, files = self.site(repo)
-            body = "Start with [the DSU](01-dsu.md) and [usage](index.md#usage).\n\n## Usage\n\nPick by [contracts](01-dsu.md#contracts); ![fig](fig.png)."
+            body = "Start with [the DSU](001-dsu.md) and [usage](index.md#usage).\n\n## Usage\n\nPick by [contracts](001-dsu.md#contracts); ![fig](fig.png)."
             ds = before[repo]["docs/02-data-structures/index.md"]
             self.assertIn("headers.\n\n## Include Chart", ds)
             self.assertEqual(files["docs/02-data-structures/index.md"], ds.replace("headers.\n\n## Include Chart", f"headers.\n\n{body}\n\n## Include Chart"))
@@ -1321,7 +1324,7 @@ class Fixture(Base):
         self.assertIn("[tier](index.md#basic_1)", files["docs/02-data-structures/notes.md"])
 
     def test_header_complexity(self):
-        write(self.root, {"02-Data Structures/02-adv.hpp": T + inc("01-dsu.hpp", "../01-Core/05-thing.hpp") +
+        write(self.root, {"02-Data Structures/02-adv.hpp": T + inc("001-dsu.hpp", "../01-Core/05-thing.hpp") +
                           "// S: O(n), Q: O(1), M: O(n)\n// q in [0, n).\nstruct Adv {\n    // T: O(log(n))\n    int q(int i,\n"
                           "          int d = {}) const { return i; }\n};\n",
                           "08-Python/_01_x.py": 'S = """\n// T: O(1)\nint f() {}\n"""\n'})
@@ -1330,7 +1333,7 @@ class Fixture(Base):
         self.assertIn("\n\n## Operations\n\n- Adv: q\n\n## Complexity\n\n- `struct Adv`: `S: O(n), Q: O(1), M: O(n)`\n"
                       "- `int q(int i, int d = {}) const`: `T: O(log(n))`\n\n## Contracts\n", adv)
         self.assertEqual(h2(adv), ["Operations", "Complexity", "Contracts", "Dependencies", "Tests", "Source"])
-        for p in ("02-data-structures/01-dsu.md", "08-python/01-x.md", "01-core/05-thing.md"):
+        for p in ("02-data-structures/001-dsu.md", "08-python/01-x.md", "01-core/05-thing.md"):
             self.assertNotIn("## Complexity", files["docs/" + p], p)
 
     def test_overview_cell_anchor_links(self):
@@ -1347,27 +1350,27 @@ class Fixture(Base):
     def test_header_page_dsu(self):
         for repo in (REPO, None):
             s, files = self.site(repo)
-            page = files["docs/02-data-structures/01-dsu.md"]
+            page = files["docs/02-data-structures/001-dsu.md"]
             gh = lambda p: f"{REPO}/blob/master/{quote(p)}"
             facts = "[02 Data Structures](index.md) · Basic · verified · 3 lines" + (
-                f" · [source]({gh('02-Data Structures/01-dsu.hpp')}) · [evidence]({gh('02-Data Structures/Docs/01-dsu.md')})"
+                f" · [source]({gh('02-Data Structures/001-dsu.hpp')}) · [evidence]({gh('02-Data Structures/Docs/001-dsu.md')})"
                 if repo else "")
-            self.assertTrue(page.startswith(f'# 01-dsu.hpp\n\n{facts}\n\n```cpp\n#include "02-Data Structures/01-dsu.hpp"\n'
+            self.assertTrue(page.startswith(f'# 001-dsu.hpp\n\n{facts}\n\n```cpp\n#include "02-Data Structures/001-dsu.hpp"\n'
                                             "```\n\n## Overview\n\nUnion by size"), page[:600])
             self.assertNotIn("DSU article title", page)
             self.assertIn("\n\n## Operations\n\n- DSU: findSet, uniteSets\n- groups (sorted; stable)\n- makeSet\n\n## Contracts", page)
-            literal = ["`[code](../01-dsu.hpp)`", "``[two](../01-dsu.hpp) ` tick``", "[fenced](../01-dsu.hpp)",
-                       "[tilde](../01-dsu.hpp)", "[web](https://cp-algorithms.com/x.html)", "[mail](mailto:a@b.c)",
+            literal = ["`[code](../001-dsu.hpp)`", "``[two](../001-dsu.hpp) ` tick``", "[fenced](../001-dsu.hpp)",
+                       "[tilde](../001-dsu.hpp)", "[web](https://cp-algorithms.com/x.html)", "[mail](mailto:a@b.c)",
                        "[KACTL](https://github.com/kactl/kactl/blob/main/content/data-structures/UnionFind.h)"]
-            linked = ["[adv](02-adv.md)", "[its contracts](02-adv.md#contracts)", "[second](01-dsu.md#dsu_1)",
-                      "[notes](notes.md)", "[core](../01-core/05-thing.md)", "[pct](01-dsu.md)", "[`DSU::findSet`](01-dsu.md)",
-                      "[folder](index.md)", "[index](index.md#advanced)", "[again](01-dsu.md)",
-                      "[the contracts](01-dsu.md#contracts)", "[this overview](01-dsu.md#overview)",
-                      "[the advanced header](02-adv.md)", "[limits](01-dsu.md#limits-and-handoffs)"]
+            linked = ["[adv](02-adv.md)", "[its contracts](02-adv.md#contracts)", "[second](001-dsu.md#dsu_1)",
+                      "[notes](notes.md)", "[core](../01-core/05-thing.md)", "[pct](001-dsu.md)", "[`DSU::findSet`](001-dsu.md)",
+                      "[folder](index.md)", "[index](index.md#advanced)", "[again](001-dsu.md)",
+                      "[the contracts](001-dsu.md#contracts)", "[this overview](001-dsu.md#overview)",
+                      "[the advanced header](02-adv.md)", "[limits](001-dsu.md#limits-and-handoffs)"]
             github = {"line": gh("02-Data Structures/02-adv.hpp") + "#L1",
                       "bad anchor": gh("02-Data Structures/00-index.md") + "#nope",
-                      "tester": gh("96-Local Testing/02-Data Structures/01-dsu_tester.py"),
-                      "tests": f"{REPO}/tree/master/96-Local%20Testing", "geometry": gh("03-Geometry/01-point.hpp") + "#point"}
+                      "tester": gh("96-Local Testing/02-Data Structures/001-dsu_tester.py"),
+                      "tests": f"{REPO}/tree/master/96-Local%20Testing", "geometry": gh("03-Geometry/001-point.hpp") + "#point"}
             for x in literal + linked + ([f"[{k}]({v})" for k, v in github.items()] if repo else []):
                 self.assertIn(x, page)
             for label in ["gone", "escape", "absolute"] + ([] if repo else list(github)):
@@ -1375,13 +1378,13 @@ class Fixture(Base):
                 self.assertNotIn(f"[{label}](", page, label)
             for hidden in ("ignored", "hidden", "Not copied", "DSU article title"):
                 self.assertNotIn(hidden, page)
-            want = {"01-dsuhpp", "overview", "operations", "contracts", "dsu", "dsu_1", "dependencies", "limits-and-handoffs", "sources",
+            want = {"001-dsuhpp", "overview", "operations", "contracts", "dsu", "dsu_1", "dependencies", "limits-and-handoffs", "sources",
                     "tests", "source"}
             self.assertEqual(SITE.anchors(page), want)
             self.assertEqual(heading_ids(page), want)
-            tests = ["96-Local Testing/02-Data Structures/01-dsu_tester.cpp", "96-Local Testing/02-Data Structures/01-dsu_tester.py"]
+            tests = ["96-Local Testing/02-Data Structures/001-dsu_tester.cpp", "96-Local Testing/02-Data Structures/001-dsu_tester.py"]
             self.assertIn("## Tests\n\n" + "\n".join(f"- [`{t}`]({gh(t)})" if repo else f"- `{t}`" for t in tests) + "\n\n", page)
-            self.assertTrue(page.endswith('## Source\n\n??? abstract "01-dsu.hpp, 3 lines"\n\n    ```cpp\n    #pragma once\n'
+            self.assertTrue(page.endswith('## Source\n\n??? abstract "001-dsu.hpp, 3 lines"\n\n    ```cpp\n    #pragma once\n'
                                           '    #include "../01-Core/01-template.hpp"\n    struct DSU {};\n    ```\n'), page[-300:])
             self.assertIn("\n\n## Limits and Handoffs\n\n- Recursion-free; ", page)
             self.assertIn("\n\n## Sources\n\n- [KACTL]", page)
@@ -1400,7 +1403,7 @@ class Fixture(Base):
 
     def test_header_section_order(self):
         _, files = self.site()
-        order = {"02-data-structures/01-dsu.md": ["Overview", "Operations", "Contracts", "Dependencies", "Limits and Handoffs", "Sources",
+        order = {"02-data-structures/001-dsu.md": ["Overview", "Operations", "Contracts", "Dependencies", "Limits and Handoffs", "Sources",
                                                   "Tests", "Source"],
                  "02-data-structures/02-adv.md": ["Operations", "Contracts", "Dependencies", "Tests", "Source"],
                  "02-data-structures/03-red.md": ["Operations", "Dependencies", "Source"],
@@ -1416,13 +1419,13 @@ class Fixture(Base):
         _, files = self.site()
         graph, n = scan(self.root), lambda h: count_lines(self.root / h)
         link = {h: f"[`{h}`]({os.path.relpath(p, '02-data-structures')})" for h, p in PAGES.items()}
-        status = {"01-Core/01-template.hpp": "verified", "02-Data Structures/01-dsu.hpp": "verified",
+        status = {"01-Core/01-template.hpp": "verified", "02-Data Structures/001-dsu.hpp": "verified",
                   "01-Core/03-barrett.hpp": "verified", "01-Core/05-thing.hpp": "partial",
                   "02-Data Structures/02-adv.hpp": "in-progress", "01-Core/06-thingmini.hpp": "existing-unverified"}
         name = lambda h: f"{link[h]} ({status[h]})"
         adv = "02-Data Structures/02-adv.hpp"
         order = post_order(graph, adv)
-        self.assertEqual(order, ["01-Core/01-template.hpp", "02-Data Structures/01-dsu.hpp", "01-Core/03-barrett.hpp",
+        self.assertEqual(order, ["01-Core/01-template.hpp", "02-Data Structures/001-dsu.hpp", "01-Core/03-barrett.hpp",
                                  "01-Core/05-thing.hpp", adv])
         grab = f"Extract only the declarations a name reaches with [`{GRAB}`]({REPO}/blob/master/{quote(GRAB)})."
         want = ("## Dependencies\n\nIncludes: " + ", ".join(name(h) for h in graph[adv]) + ".\n\nTyping order (each file after "
@@ -1438,7 +1441,7 @@ class Fixture(Base):
         self.assertNotIn("Compact", red.partition("## Dependencies")[2].partition("## Source")[0])
         _, plain = self.site(repo=None)
         self.assertIn(f"\n\nExtract only the declarations a name reaches with `{GRAB}`.\n\n", plain["docs/02-data-structures/03-red.md"])
-        self.assertIn(f"Included by: {name(adv)}.", files["docs/02-data-structures/01-dsu.md"])
+        self.assertIn(f"Included by: {name(adv)}.", files["docs/02-data-structures/001-dsu.md"])
         tpl = files["docs/01-core/01-template.md"]
         self.assertIn("Includes: nothing.", tpl)
         users = [h for h, ds in graph.items() if "01-Core/01-template.hpp" in ds and not re.search(r"/9[89]-", h)]
@@ -1467,9 +1470,9 @@ class Fixture(Base):
             nav = [{"Home": "index.md"},
                    {"01 Core": ["01-core/index.md", {"Notes": "01-core/notes.md"}] + [page(t) for t in PAGES if t.startswith("01-")]},
                    {"02 Data Structures": ["02-data-structures/index.md", {"Notes": "02-data-structures/notes.md"},
-                                           {"Basic": [page("02-Data Structures/01-dsu.hpp"), page("02-Data Structures/03-red.hpp")]},
+                                           {"Basic": [page("02-Data Structures/001-dsu.hpp"), page("02-Data Structures/03-red.hpp")]},
                                            {"Advanced": [page("02-Data Structures/02-adv.hpp")]}]},
-                   {"03 Geometry": ["03-geometry/index.md", {"Basic": [page("03-Geometry/01-point.hpp")]}]},
+                   {"03 Geometry": ["03-geometry/index.md", {"Basic": [page("03-Geometry/001-point.hpp")]}]},
                    {"08 Python": ["08-python/index.md", {"Basic": [page("08-Python/_01_x.py")]}]}]
             self.assertEqual(data["nav"], nav)
             flat = []
@@ -1515,33 +1518,33 @@ class Fixture(Base):
         git(self.root, "remote", "add", "origin", "git@github.com:u/r.git")
         git(self.root, "add", "-A")
         git(self.root, "commit", "-q", "-m", "one", date="2020-01-02T03:04:05+00:00")
-        (self.root / "02-Data Structures/01-dsu.hpp").write_text(T + inc("../01-Core/01-template.hpp") + "struct DSU { };\n")
+        (self.root / "02-Data Structures/001-dsu.hpp").write_text(T + inc("../01-Core/01-template.hpp") + "struct DSU { };\n")
         git(self.root, "commit", "-q", "-am", "two", date="2021-03-04T05:06:07+00:00")
         out = self.base / "out"
         SITE.generate(self.root, out)
-        dsu, red = (out / "docs/02-data-structures/01-dsu.md").read_text(), (out / "docs/02-data-structures/03-red.md").read_text()
-        self.assertIn(f"verified · 3 lines · last commit 2021-03-04 · [source]({REPO}/blob/master/02-Data%20Structures/01-dsu.hpp)", dsu)
+        dsu, red = (out / "docs/02-data-structures/001-dsu.md").read_text(), (out / "docs/02-data-structures/03-red.md").read_text()
+        self.assertIn(f"verified · 3 lines · last commit 2021-03-04 · [source]({REPO}/blob/master/02-Data%20Structures/001-dsu.hpp)", dsu)
         self.assertIn("· last commit 2020-01-02 · [source]", red)
         self.assertTrue(all(re.match(r"0[1-8]-", p) for p in SITE.changed(self.root)))
 
     def test_tracked_files_only(self):
         """Inside git, only tracked files get repository links and Tests entries (a clone generates the same pages)."""
         self.assertIsNone(SITE.tracked(self.root), "outside git")
-        write(self.root, {".gitignore": "*_benchmark.jsonl\n", "96-Local Testing/02-Data Structures/01-dsu_benchmark.jsonl": "{}\n"})
+        write(self.root, {".gitignore": "*_benchmark.jsonl\n", "96-Local Testing/02-Data Structures/001-dsu_benchmark.jsonl": "{}\n"})
         git(self.root, "init", "-q")
         git(self.root, "add", "-A")
         git(self.root, "commit", "-q", "-m", "one")
-        write(self.root, {"96-Local Testing/02-Data Structures/01-dsu_untracked.py": "x\n"})
+        write(self.root, {"96-Local Testing/02-Data Structures/001-dsu_untracked.py": "x\n"})
         known = SITE.tracked(self.root)
-        self.assertIn("96-Local Testing/02-Data Structures/01-dsu_tester.py", known)
+        self.assertIn("96-Local Testing/02-Data Structures/001-dsu_tester.py", known)
         self.assertTrue({"96-Local Testing", "96-Local Testing/02-Data Structures", "02-Data Structures"} <= known)
-        self.assertFalse({"96-Local Testing/02-Data Structures/01-dsu_benchmark.jsonl",
-                          "96-Local Testing/02-Data Structures/01-dsu_untracked.py", ""} & known)
-        page = SITE.Site(self.root, REPO).files()["docs/02-data-structures/01-dsu.md"]
+        self.assertFalse({"96-Local Testing/02-Data Structures/001-dsu_benchmark.jsonl",
+                          "96-Local Testing/02-Data Structures/001-dsu_untracked.py", ""} & known)
+        page = SITE.Site(self.root, REPO).files()["docs/02-data-structures/001-dsu.md"]
         tests = page.split("## Tests\n\n")[1].split("\n\n")[0]
-        self.assertIn("01-dsu_tester.py", tests)
+        self.assertIn("001-dsu_tester.py", tests)
         self.assertNotIn("jsonl", page)
-        self.assertNotIn("01-dsu_untracked", page)
+        self.assertNotIn("001-dsu_untracked", page)
 
     def test_missing_git(self):
         with patch.object(SITE.subprocess, "run", side_effect=FileNotFoundError("git")):
@@ -1549,18 +1552,18 @@ class Fixture(Base):
             self.assertIsNone(SITE.repository(self.root))
             self.assertEqual(SITE.changed(self.root), {})
             self.assertIsNone(SITE.tracked(self.root))
-            self.assertIn("docs/02-data-structures/01-dsu.md", SITE.Site(self.root, None).files())
+            self.assertIn("docs/02-data-structures/001-dsu.md", SITE.Site(self.root, None).files())
 
     def test_article_assets_and_images(self):
         art = f"{ARTICLES}/02-Data Structures"
-        write(self.root, {f"{art}/fig.png": "PNG", f"{art}/img/a.svg": "<svg/>", f"{art}/01-dsu.md": ARTICLE +
-                          "\n![fig](fig.png) ![a](<img/a.svg>) ![t](<../../../96-Local Testing/02-Data Structures/01-dsu_tester.py>)"
+        write(self.root, {f"{art}/fig.png": "PNG", f"{art}/img/a.svg": "<svg/>", f"{art}/001-dsu.md": ARTICLE +
+                          "\n![fig](fig.png) ![a](<img/a.svg>) ![t](<../../../96-Local Testing/02-Data Structures/001-dsu_tester.py>)"
                           " ![x](missing.png) [plain](fig.png) `![c](fig.png)`\n"})
         for repo in (REPO, None):
             s = SITE.Site(self.root, repo)
             self.assertEqual(s.assets, {f"{art}/fig.png": "02-data-structures/fig.png", f"{art}/img/a.svg": "02-data-structures/img/a.svg"})
-            page = s.files()["docs/02-data-structures/01-dsu.md"]
-            raw = f"![t]({REPO}/blob/master/{quote('96-Local Testing/02-Data Structures/01-dsu_tester.py')}?raw=true)" if repo else "t"
+            page = s.files()["docs/02-data-structures/001-dsu.md"]
+            raw = f"![t]({REPO}/blob/master/{quote('96-Local Testing/02-Data Structures/001-dsu_tester.py')}?raw=true)" if repo else "t"
             self.assertIn(f"![fig](fig.png) ![a](img/a.svg) {raw} x [plain](fig.png) `![c](fig.png)`", page)
         out = self.base / "out"
         SITE.generate(self.root, out)
@@ -1742,7 +1745,7 @@ class Build(Base):
             for f, chart in (("01-core", True), ("02-data-structures", True), ("03-geometry", False), ("08-python", False)):
                 self.assertEqual('class="mermaid"' in (out / f"html/{f}/index.html").read_text(), chart, f)
             self.assertTrue((out / "html" / SEARCH[name]).is_file(), SEARCH[name])
-            self.assertIn('class="arithmatex"', (out / "html/02-data-structures/01-dsu.html").read_text())
+            self.assertIn('class="arithmatex"', (out / "html/02-data-structures/001-dsu.html").read_text())
             self.assertFalse((self.root / ".cache").exists() or (self.root.parent / ".cache").exists(), "cache outside out")
         self.per_engine(check)
 
@@ -1750,7 +1753,7 @@ class Build(Base):
         def check(name, exe):
             out = self.generated()
             with open(out / "docs/02-data-structures/02-adv.md", "a") as f:
-                f.write("\n[broken](01-dsu.md#no-such-anchor)\n")
+                f.write("\n[broken](001-dsu.md#no-such-anchor)\n")
             r = build(exe, out)
             self.assertNotEqual(r.returncode, 0, "strict build accepted a broken anchor")
             self.assertIn("no-such-anchor", plain(r))
@@ -1800,7 +1803,7 @@ class Repository(Base):
         cls.graph = scan(ROOT)
         cls.rows = {}
         for index in sorted(ROOT.glob("0[1-8]-*/00-index.md")):
-            for m in re.finditer(r"^\| `((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))` \|", index.read_text(encoding="utf-8"), re.M):
+            for m in re.finditer(r"^\| `((?:\d{2,3}-[^`]+\.hpp)|(?:_\d{2,3}_[^`]+\.py))` \|", index.read_text(encoding="utf-8"), re.M):
                 cls.rows.setdefault(f"{index.parent.name}/{m[1]}", None)
 
     @classmethod
@@ -1874,7 +1877,7 @@ class Repository(Base):
 
     def test_repo_complexity_code_spans(self):
         """Regression (P239): each Complexity bullet renders as two code spans holding exactly the declaration and the
-        comment, also when either contains a backtick (05-Mathematics/10-crt.hpp: "mod `mod`")."""
+        comment, also when either contains a backtick (05-Mathematics/010-crt.hpp: "mod `mod`")."""
         for t in self.rows:
             if t.endswith(".hpp") and (ROOT / t).is_file():
                 got = own_sections(self.pages[self.page(t)]).get("Complexity")

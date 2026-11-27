@@ -259,7 +259,7 @@
       "reuse_note": "CC BY-NC-SA 4.0 according to the author's course page; retain individual notices."
     },
     {
-      "file": "13-Papers/02-computational_algebraic_number_theory-cohen_1993.pdf",
+      "file": "13-Papers/002-computational_algebraic_number_theory-cohen_1993.pdf",
       "title": "H. Cohen, *A Course in Computational Algebraic Number Theory*, Alg. 3.3.7, GTM 138, Springer, 1993",
       "source_page": "https://doi.org/10.1007/978-3-662-02945-9",
       "downloaded": "2026-11-22",
@@ -274,7 +274,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/03-power_series_composition-kinoshita_2024.pdf",
+      "file": "13-Papers/003-power_series_composition-kinoshita_2024.pdf",
       "title": "Y. Kinoshita, B. Li, \"Power Series Composition in Near-Linear Time\", arXiv 2404.05177, 2024",
       "source_page": "https://arxiv.org/abs/2404.05177",
       "downloaded": "2026-11-22",
@@ -289,7 +289,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/04-tellegens_principle_into_practice-bostan_2003.pdf",
+      "file": "13-Papers/004-tellegens_principle_into_practice-bostan_2003.pdf",
       "title": "A. Bostan, G. Lecerf, É. Schost, \"Tellegen's principle into practice\", ISSAC 2003",
       "source_page": "https://doi.org/10.1145/860854.860870",
       "downloaded": "2026-11-22",
@@ -305,7 +305,7 @@
       "open_copy": "https://hal.science/hal-00186758"
     },
     {
-      "file": "13-Papers/05-faster_remainder_by_direct_computation-lemire_2019.pdf",
+      "file": "13-Papers/005-faster_remainder_by_direct_computation-lemire_2019.pdf",
       "title": "D. Lemire, O. Kaser, N. Kurz, \"Faster remainder by direct computation\", Software: Practice and Experience 49(6), 2019",
       "source_page": "https://doi.org/10.1002/spe.2689",
       "downloaded": "2026-11-22",
@@ -321,7 +321,7 @@
       "open_copy": "https://arxiv.org/abs/1902.01961"
     },
     {
-      "file": "13-Papers/06-optimal_preprocessing_for_online_product_queries-alon_1987.pdf",
+      "file": "13-Papers/006-optimal_preprocessing_for_online_product_queries-alon_1987.pdf",
       "title": "N. Alon, B. Schieber, \"Optimal Preprocessing for Answering On-Line Product Queries\", TR 1987, arXiv 2406.06321",
       "source_page": "https://arxiv.org/abs/2406.06321",
       "downloaded": "2026-11-22",
@@ -336,7 +336,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/07-partial_sums_off_line-chazelle_1991.pdf",
+      "file": "13-Papers/007-partial_sums_off_line-chazelle_1991.pdf",
       "title": "B. Chazelle, B. Rosenberg, \"The complexity of computing partial sums off-line\", IJCGA 1(1), 1991",
       "source_page": "https://doi.org/10.1142/S0218195991000049",
       "downloaded": "2026-11-22",
@@ -351,7 +351,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/08-faster_algorithms_for_shortest_paths-ahuja_1990.pdf",
+      "file": "13-Papers/008-faster_algorithms_for_shortest_paths-ahuja_1990.pdf",
       "title": "R. K. Ahuja, K. Mehlhorn, J. B. Orlin, R. E. Tarjan, \"Faster algorithms for the shortest path problem\", JACM 37(2), 1990",
       "source_page": "https://doi.org/10.1145/77600.77615",
       "downloaded": "2026-11-22",
@@ -366,7 +366,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/09-art_of_computer_programming_vol3-knuth_1998.pdf",
+      "file": "13-Papers/009-art_of_computer_programming_vol3-knuth_1998.pdf",
       "title": "D. E. Knuth, *The Art of Computer Programming*, vol. 3, §6.4 Algorithm R, 2nd ed., Addison-Wesley, 1998",
       "source_page": "https://www-cs-faculty.stanford.edu/~knuth/taocp.html",
       "downloaded": "2026-11-22",
@@ -381,7 +381,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/10-unit_disk_range_searching-wang_2022.pdf",
+      "file": "13-Papers/010-unit_disk_range_searching-wang_2022.pdf",
       "title": "H. Wang, \"Unit-Disk Range Searching and Applications\", arXiv 2204.08992",
       "source_page": "https://arxiv.org/abs/2204.08992",
       "downloaded": "2026-11-22",
@@ -396,7 +396,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/11-smallest_k_enclosing_circle-har_peled_2005.pdf",
+      "file": "13-Papers/011-smallest_k_enclosing_circle-har_peled_2005.pdf",
       "title": "S. Har-Peled, S. Mazumdar, \"Fast Algorithms for Computing the Smallest k-Enclosing Circle\", Algorithmica 41, 2005",
       "source_page": "https://doi.org/10.1007/s00453-004-1123-0",
       "downloaded": "2026-11-22",
@@ -411,7 +411,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/12-linear_programming_in_r3-megiddo_1983.pdf",
+      "file": "13-Papers/012-linear_programming_in_r3-megiddo_1983.pdf",
       "title": "N. Megiddo, \"Linear-Time Algorithms for Linear Programming in R^3 and Related Problems\", SIAM J. Comput. 12(4), 1983",
       "source_page": "https://doi.org/10.1137/0212052",
       "downloaded": "2026-11-22",
@@ -426,7 +426,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/13-minimal_enclosing_triangles-orourke_1986.pdf",
+      "file": "13-Papers/013-minimal_enclosing_triangles-orourke_1986.pdf",
       "title": "J. O'Rourke, A. Aggarwal, S. Maddila, M. Baldwin, \"An optimal algorithm for finding minimal enclosing triangles\", J. Algorithms 7(2), 1986",
       "source_page": "https://doi.org/10.1016/0196-6774(86)90007-6",
       "downloaded": "2026-11-22",
@@ -441,7 +441,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/15-convex_hull_of_a_simple_polyline-melkman_1987.pdf",
+      "file": "13-Papers/015-convex_hull_of_a_simple_polyline-melkman_1987.pdf",
       "title": "A. A. Melkman, \"On-line construction of the convex hull of a simple polyline\", Inf. Process. Lett. 25(1), 1987",
       "source_page": "https://doi.org/10.1016/0020-0190(87)90086-X",
       "downloaded": "2026-11-22",
@@ -456,7 +456,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/16-finding_optimum_branchings-tarjan_1977.pdf",
+      "file": "13-Papers/016-finding_optimum_branchings-tarjan_1977.pdf",
       "title": "R. E. Tarjan, \"Finding optimum branchings\", Networks 7(1), 1977",
       "source_page": "https://doi.org/10.1002/net.3230070103",
       "downloaded": "2026-11-22",
@@ -471,7 +471,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/17-minimum_spanning_trees_in_directed_graphs-gabow_1986.pdf",
+      "file": "13-Papers/017-minimum_spanning_trees_in_directed_graphs-gabow_1986.pdf",
       "title": "H. N. Gabow, Z. Galil, T. Spencer, R. E. Tarjan, \"Efficient algorithms for finding minimum spanning trees in undirected and directed graphs\", Combinatorica 6(2), 1986",
       "source_page": "https://doi.org/10.1007/BF02579168",
       "downloaded": "2026-11-22",
@@ -486,7 +486,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/18-maximum_flow_in_st_planar_networks-hassin_1981.pdf",
+      "file": "13-Papers/018-maximum_flow_in_st_planar_networks-hassin_1981.pdf",
       "title": "R. Hassin, \"Maximum flow in (s,t) planar networks\", Inf. Process. Lett. 13(3), 1981",
       "source_page": "https://doi.org/10.1016/0020-0190(81)90120-4",
       "downloaded": "2026-11-22",
@@ -501,7 +501,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/19-dynamic_generators_of_embedded_graphs-eppstein_2003.pdf",
+      "file": "13-Papers/019-dynamic_generators_of_embedded_graphs-eppstein_2003.pdf",
       "title": "D. Eppstein, \"Dynamic Generators of Topologically Embedded Graphs\", SODA 2003, arXiv cs/0207082",
       "source_page": "https://arxiv.org/abs/cs/0207082",
       "downloaded": "2026-11-22",
@@ -516,7 +516,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/20-planar_minimum_st_cut-reif_1983.pdf",
+      "file": "13-Papers/020-planar_minimum_st_cut-reif_1983.pdf",
       "title": "J. H. Reif, \"Minimum s-t cut of a planar undirected network in O(n log² n) time\", SIAM J. Comput. 12(1), 1983",
       "source_page": "https://doi.org/10.1137/0212005",
       "downloaded": "2026-11-22",
@@ -531,7 +531,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/21-min_cut_and_max_flow_in_planar_graphs-italiano_2011.pdf",
+      "file": "13-Papers/021-min_cut_and_max_flow_in_planar_graphs-italiano_2011.pdf",
       "title": "G. F. Italiano, Y. Nussbaum, P. Sankowski, C. Wulff-Nilsen, \"Improved algorithms for min cut and max flow in undirected planar graphs\", STOC 2011",
       "source_page": "https://doi.org/10.1145/1993636.1993679",
       "downloaded": "2026-11-22",
@@ -546,7 +546,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/22-level_ancestor_problem_simplified-bender_2004.pdf",
+      "file": "13-Papers/022-level_ancestor_problem_simplified-bender_2004.pdf",
       "title": "M. A. Bender, M. Farach-Colton, \"The Level Ancestor Problem simplified\", TCS 321(1), 2004",
       "source_page": "https://doi.org/10.1016/j.tcs.2003.05.002",
       "downloaded": "2026-11-22",
@@ -563,7 +563,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/23-generating_all_topological_sorts-varol_1981.pdf",
+      "file": "13-Papers/023-generating_all_topological_sorts-varol_1981.pdf",
       "title": "Y. L. Varol, D. Rotem, \"An algorithm to generate all topological sorting arrangements\", Computer Journal 24(1), 1981",
       "source_page": "https://doi.org/10.1093/comjnl/24.1.83",
       "downloaded": "2026-11-22",
@@ -578,7 +578,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/24-art_of_computer_programming_vol4_prefascicles-knuth_2005.pdf",
+      "file": "13-Papers/024-art_of_computer_programming_vol4_prefascicles-knuth_2005.pdf",
       "title": "D. E. Knuth, *The Art of Computer Programming*, vol. 4A pre-fascicles 2B, 3A and 3B (§7.2.1.2 Alg. V, §7.2.1.3, §7.2.1.5 Alg. H), Addison-Wesley, 2005 (3A: zeroth printing, revision 11, 31 March 2005)",
       "source_page": "https://www-cs-faculty.stanford.edu/~knuth/taocp.html",
       "downloaded": "2026-11-22",
@@ -594,7 +594,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/25-augmentation_problems-eswaran_1976.pdf",
+      "file": "13-Papers/025-augmentation_problems-eswaran_1976.pdf",
       "title": "K. P. Eswaran, R. E. Tarjan, \"Augmentation Problems\", SIAM J. Comput. 5(4), 1976",
       "source_page": "https://doi.org/10.1137/0205044",
       "downloaded": "2026-11-22",
@@ -609,7 +609,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/26-k_connectivity_and_forest_decomposition-nishizeki_1994.pdf",
+      "file": "13-Papers/026-k_connectivity_and_forest_decomposition-nishizeki_1994.pdf",
       "title": "T. Nishizeki, S. Poljak, \"k-Connectivity and decomposition of graphs into forests\", Discrete Appl. Math. 55(3), 1994",
       "source_page": "https://doi.org/10.1016/0166-218X(94)90015-9",
       "downloaded": "2026-11-22",
@@ -624,7 +624,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/27-special_case_of_disjoint_set_union-gabow_1983.pdf",
+      "file": "13-Papers/027-special_case_of_disjoint_set_union-gabow_1983.pdf",
       "title": "H. N. Gabow, R. E. Tarjan, \"A linear-time algorithm for a special case of disjoint set union\", STOC 1983",
       "source_page": "https://doi.org/10.1145/800061.808753",
       "downloaded": "2026-11-22",
@@ -639,7 +639,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/28-depth_first_search-tarjan_1972.pdf",
+      "file": "13-Papers/028-depth_first_search-tarjan_1972.pdf",
       "title": "R. E. Tarjan, \"Depth-First Search and Linear Graph Algorithms\", SIAM J. Comput. 1(2), 1972",
       "source_page": "https://doi.org/10.1137/0201010",
       "downloaded": "2026-11-22",
@@ -654,7 +654,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/29-dominators_in_a_flowgraph-lengauer_1979.pdf",
+      "file": "13-Papers/029-dominators_in_a_flowgraph-lengauer_1979.pdf",
       "title": "T. Lengauer, R. E. Tarjan, \"A fast algorithm for finding dominators in a flowgraph\", TOPLAS 1(1), 1979",
       "source_page": "https://doi.org/10.1145/357062.357071",
       "downloaded": "2026-11-22",
@@ -669,7 +669,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/30-simple_fast_dominance_algorithm-cooper_2001.pdf",
+      "file": "13-Papers/030-simple_fast_dominance_algorithm-cooper_2001.pdf",
       "title": "K. D. Cooper, T. J. Harvey, K. Kennedy, \"A Simple, Fast Dominance Algorithm\", Rice University report, 2001",
       "source_page": "https://www.cs.tufts.edu/comp/150FP/archive/keith-cooper/dom14.pdf",
       "downloaded": "2026-11-22",
@@ -684,7 +684,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/31-note_on_optimum_branchings-camerini_1979.pdf",
+      "file": "13-Papers/031-note_on_optimum_branchings-camerini_1979.pdf",
       "title": "P. M. Camerini, L. Fratta, F. Maffioli, \"A note on finding optimum branchings\", Networks 9(4), 1979",
       "source_page": "https://doi.org/10.1002/net.3230090403",
       "downloaded": "2026-11-22",
@@ -699,7 +699,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/32-online_bridge_and_biconnected_components-westbrook_1992.pdf",
+      "file": "13-Papers/032-online_bridge_and_biconnected_components-westbrook_1992.pdf",
       "title": "J. Westbrook, R. E. Tarjan, \"Maintaining bridge-connected and biconnected components on-line\", Algorithmica 7, 1992",
       "source_page": "https://doi.org/10.1007/BF01758773",
       "downloaded": "2026-11-22",
@@ -714,7 +714,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/33-selected_papers-hoffman_2003.pdf",
+      "file": "13-Papers/033-selected_papers-hoffman_2003.pdf",
       "title": "A. J. Hoffman, \"Some recent applications of the theory of linear inequalities to extremal combinatorial analysis\", Proc. Symp. Appl. Math. 10, AMS, 1960",
       "source_page": "https://doi.org/10.1090/psapm/010/0114759",
       "downloaded": "2026-11-22",
@@ -729,7 +729,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/34-strong_pseudoprimes_to_several_bases-jaeschke_1993.pdf",
+      "file": "13-Papers/034-strong_pseudoprimes_to_several_bases-jaeschke_1993.pdf",
       "title": "G. Jaeschke, \"On strong pseudoprimes to several bases\", Math. Comp. 61(204), 1993",
       "source_page": "https://doi.org/10.1090/S0025-5718-1993-1192971-8",
       "downloaded": "2026-11-22",
@@ -744,7 +744,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/35-factoring_into_coprimes-bernstein_2005.pdf",
+      "file": "13-Papers/035-factoring_into_coprimes-bernstein_2005.pdf",
       "title": "D. J. Bernstein, \"Factoring into coprimes in essentially linear time\", J. Algorithms 54(1), 2005",
       "source_page": "https://doi.org/10.1016/j.jalgor.2004.04.009",
       "downloaded": "2026-11-22",
@@ -760,7 +760,7 @@
       "open_copy": "https://cr.yp.to/lineartime/dcba-20040404.pdf"
     },
     {
-      "file": "13-Papers/36-pierce_and_engel_series-erdos_1991.pdf",
+      "file": "13-Papers/036-pierce_and_engel_series-erdos_1991.pdf",
       "title": "P. Erdős, J. O. Shallit, \"New bounds on the length of finite Pierce and Engel series\", J. Théor. Nombres Bordeaux 3(1), 1991",
       "source_page": "https://doi.org/10.5802/jtnb.41",
       "downloaded": "2026-11-22",
@@ -776,7 +776,7 @@
       "open_copy": "https://www.numdam.org/item/JTNB_1991__3_1_43_0/"
     },
     {
-      "file": "13-Papers/37-numerical_recipes_3rd_edition-press_2007.pdf",
+      "file": "13-Papers/037-numerical_recipes_3rd_edition-press_2007.pdf",
       "title": "W. H. Press et al., *Numerical Recipes*, 3rd ed., §4.5, 4.6, 5.6, 9.3, 9.4, Cambridge UP, 2007",
       "source_page": "https://numerical.recipes/book.html",
       "downloaded": "2026-11-22",
@@ -791,7 +791,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/38-floating_point_without_extra_precise_arithmetic-kahan_2004.pdf",
+      "file": "13-Papers/038-floating_point_without_extra_precise_arithmetic-kahan_2004.pdf",
       "title": "W. Kahan, \"On the Cost of Floating-Point Computation Without Extra-Precise Arithmetic\", 2004",
       "source_page": "https://people.eecs.berkeley.edu/~wkahan/Qdrtcs.pdf",
       "downloaded": "2026-11-22",
@@ -806,7 +806,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/39-accuracy_and_stability_of_numerical_algorithms-higham_2002.pdf",
+      "file": "13-Papers/039-accuracy_and_stability_of_numerical_algorithms-higham_2002.pdf",
       "title": "N. J. Higham, *Accuracy and Stability of Numerical Algorithms*, ch. 4, 2nd ed., SIAM, 2002",
       "source_page": "https://doi.org/10.1137/1.9780898718027",
       "downloaded": "2026-11-22",
@@ -821,7 +821,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/40-adaptive_simpson_quadrature-lyness_1969.pdf",
+      "file": "13-Papers/040-adaptive_simpson_quadrature-lyness_1969.pdf",
       "title": "J. N. Lyness, \"Notes on the Adaptive Simpson Quadrature Routine\", JACM 16(3), 1969",
       "source_page": "https://doi.org/10.1145/321526.321537",
       "downloaded": "2026-11-22",
@@ -836,7 +836,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/41-double_exponential_formulas-takahasi_1974.pdf",
+      "file": "13-Papers/041-double_exponential_formulas-takahasi_1974.pdf",
       "title": "H. Takahasi, M. Mori, \"Double Exponential Formulas for Numerical Integration\", Publ. RIMS 9(3), 1974",
       "source_page": "https://doi.org/10.2977/prims/1195192451",
       "downloaded": "2026-11-22",
@@ -851,7 +851,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/42-root_finding_over_local_rings-berthomieu_2013.pdf",
+      "file": "13-Papers/042-root_finding_over_local_rings-berthomieu_2013.pdf",
       "title": "J. Berthomieu, G. Lecerf, G. Quintin, \"Polynomial root finding over local rings and application to error correcting codes\", AAECC 24, 2013",
       "source_page": "https://doi.org/10.1007/s00200-013-0200-5",
       "downloaded": "2026-11-22",
@@ -867,7 +867,7 @@
       "open_copy": "https://inria.hal.science/hal-00642075v2"
     },
     {
-      "file": "13-Papers/43-bijective_burrows_wheeler_transforms-kufleitner_2009.pdf",
+      "file": "13-Papers/043-bijective_burrows_wheeler_transforms-kufleitner_2009.pdf",
       "title": "M. Kufleitner, \"On Bijective Variants of the Burrows-Wheeler Transform\", arXiv 0908.0239, 2009",
       "source_page": "https://arxiv.org/abs/0908.0239",
       "downloaded": "2026-11-22",
@@ -882,7 +882,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/44-original_ebwt_faster-boucher_2021.pdf",
+      "file": "13-Papers/044-original_ebwt_faster-boucher_2021.pdf",
       "title": "C. Boucher, D. Cenzato, Zs. Lipták, M. Rossi, M. Sciortino, \"Computing the original eBWT faster, simpler, and with less memory\", arXiv 2106.11191, 2021",
       "source_page": "https://arxiv.org/abs/2106.11191",
       "downloaded": "2026-11-22",
@@ -897,7 +897,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/46-applicative_random_access_stack-myers_1983.pdf",
+      "file": "13-Papers/046-applicative_random_access_stack-myers_1983.pdf",
       "title": "E. W. Myers, \"An applicative random-access stack\", Inf. Process. Lett. 17(5), 1983",
       "source_page": "https://doi.org/10.1016/0020-0190(83)90106-0",
       "downloaded": "2026-11-22",
@@ -912,7 +912,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/47-boyer_moore_worst_case-galil_1979.pdf",
+      "file": "13-Papers/047-boyer_moore_worst_case-galil_1979.pdf",
       "title": "Z. Galil, \"On improving the worst case running time of the Boyer–Moore string matching algorithm\", CACM 22(9), 1979",
       "source_page": "https://doi.org/10.1145/359146.359148",
       "downloaded": "2026-11-22",
@@ -927,7 +927,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/01-library_checker-help.pdf",
+      "file": "14-Web Pages/001-library_checker-help.pdf",
       "title": "Help",
       "source_page": "https://judge.yosupo.jp/help",
       "downloaded": "2026-11-22",
@@ -942,7 +942,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/02-polygon-index.pdf",
+      "file": "14-Web Pages/002-polygon-index.pdf",
       "title": "Index Page - Polygon",
       "source_page": "https://polygon.codeforces.com/",
       "downloaded": "2026-11-22",
@@ -957,7 +957,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/03-library_checker_min_cost_b_flow-minimum_cost_b_flow.pdf",
+      "file": "14-Web Pages/003-library_checker_min_cost_b_flow-minimum_cost_b_flow.pdf",
       "title": "Minimum Cost b-flow",
       "source_page": "https://judge.yosupo.jp/problem/min_cost_b_flow",
       "downloaded": "2026-11-22",
@@ -973,7 +973,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/04-codeforces_blog_101655-faster_matrix_multiplication.pdf",
+      "file": "14-Web Pages/004-codeforces_blog_101655-faster_matrix_multiplication.pdf",
       "title": "50x faster matrix multiplication in under 40 lines of C - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/101655",
       "downloaded": "2026-11-22",
@@ -988,7 +988,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/05-codeforces_blog_62393-blowing_up_unordered_map.pdf",
+      "file": "14-Web Pages/005-codeforces_blog_62393-blowing_up_unordered_map.pdf",
       "title": "Blowing up unordered_map, and how to stop getting hacked on it - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/62393/",
       "downloaded": "2026-11-22",
@@ -1003,7 +1003,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/06-ac_library-convolution.pdf",
+      "file": "14-Web Pages/006-ac_library-convolution.pdf",
       "title": "AC Library document: Convolution",
       "source_page": "https://atcoder.github.io/ac-library/production/document_en/convolution.html",
       "downloaded": "2026-11-22",
@@ -1018,7 +1018,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/07-codeforces_blog_83467-queue_like_undoing.pdf",
+      "file": "14-Web Pages/007-codeforces_blog_83467-queue_like_undoing.pdf",
       "title": "[Tutorial] Supporting Queue-like Undoing on DS - Codeforces (spoilers \"Upperbound\" and \"Detailed\" open)",
       "source_page": "https://codeforces.com/blog/entry/83467",
       "downloaded": "2026-11-22",
@@ -1033,7 +1033,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/08-codeforces_blog_111117-priority_queue_like_undoing.pdf",
+      "file": "14-Web Pages/008-codeforces_blog_111117-priority_queue_like_undoing.pdf",
       "title": "[Tutorial] Supporting Priority-Queue-like Undoing on DS - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/111117",
       "downloaded": "2026-11-22",
@@ -1050,7 +1050,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/08-codeforces_blog_154645-deque_like_undoing.pdf",
+      "file": "14-Web Pages/008-codeforces_blog_154645-deque_like_undoing.pdf",
       "title": "Deque-like Undoing - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/154645",
       "downloaded": "2026-11-22",
@@ -1065,7 +1065,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/09-ceoi_2009_harbingers-official_statement.pdf",
+      "file": "14-Web Pages/009-ceoi_2009_harbingers-official_statement.pdf",
       "title": "CEOI 2009 Day 1, Harbingers (official statement)",
       "source_page": "not recorded (the official CEOI 2009 statement PDF; the oj.uz page is https://oj.uz/problem/view/CEOI09_harbingers)",
       "downloaded": "2026-11-22",
@@ -1080,7 +1080,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/09-codeforces_blog_51684-fully_persistent_convex_hull_trick.pdf",
+      "file": "14-Web Pages/009-codeforces_blog_51684-fully_persistent_convex_hull_trick.pdf",
       "title": "Fully Persistent Convex Hull Trick - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/51684",
       "downloaded": "2026-11-22",
@@ -1095,7 +1095,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/09-oj_uz_ceoi09_harbingers-harbingers.pdf",
+      "file": "14-Web Pages/009-oj_uz_ceoi09_harbingers-harbingers.pdf",
       "title": "View problem - Harbingers (CEOI09_harbingers) :: oj.uz",
       "source_page": "https://oj.uz/problem/view/CEOI09_harbingers",
       "downloaded": "2026-11-22",
@@ -1110,7 +1110,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/10-codeforces_blog_68953-xor_related_technique.pdf",
+      "file": "14-Web Pages/010-codeforces_blog_68953-xor_related_technique.pdf",
       "title": "A Beautiful Technique for Some XOR Related Problems - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/68953",
       "downloaded": "2026-11-22",
@@ -1125,7 +1125,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/13-codeforces_932f-escape_through_leaf.pdf",
+      "file": "14-Web Pages/013-codeforces_932f-escape_through_leaf.pdf",
       "title": "Codeforces 932F, Escape Through Leaf",
       "source_page": "https://codeforces.com/problemset/problem/932/F",
       "downloaded": "2026-11-22",
@@ -1140,7 +1140,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/14-codeforces_703d-mishka_and_interesting_sum.pdf",
+      "file": "14-Web Pages/014-codeforces_703d-mishka_and_interesting_sum.pdf",
       "title": "Codeforces 703D, Mishka and Interesting sum",
       "source_page": "https://codeforces.com/problemset/problem/703/D",
       "downloaded": "2026-11-22",
@@ -1155,7 +1155,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/15-aoj_grl_1_a-single_source_shortest_path.pdf",
+      "file": "14-Web Pages/015-aoj_grl_1_a-single_source_shortest_path.pdf",
       "title": "GRL_1_A < Problems | Aizu Online Judge",
       "source_page": "https://onlinejudge.u-aizu.ac.jp/problems/GRL_1_A",
       "downloaded": "2026-11-22",
@@ -1170,7 +1170,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/15-yukicoder_1288-yuki_collection.pdf",
+      "file": "14-Web Pages/015-yukicoder_1288-yuki_collection.pdf",
       "title": "No.1288 yuki collection - yukicoder",
       "source_page": "https://yukicoder.me/problems/no/1288",
       "downloaded": "2026-11-22",
@@ -1185,7 +1185,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/15-yukicoder_1320-two_type_min_cost_cycle.pdf",
+      "file": "14-Web Pages/015-yukicoder_1320-two_type_min_cost_cycle.pdf",
       "title": "No.1320 Two Type Min Cost Cycle - yukicoder",
       "source_page": "https://yukicoder.me/problems/no/1320",
       "downloaded": "2026-11-22",
@@ -1200,7 +1200,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/16-loj_6279-sequence_blocks_intro_3.pdf",
+      "file": "14-Web Pages/016-loj_6279-sequence_blocks_intro_3.pdf",
       "title": "#6279. 数列分块入门 3 - Problem - LibreOJ",
       "source_page": "https://loj.ac/p/6279",
       "downloaded": "2026-11-22",
@@ -1215,7 +1215,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/17-atcoder_abc393-editorial.pdf",
+      "file": "14-Web Pages/017-atcoder_abc393-editorial.pdf",
       "title": "Editorial - AtCoder Beginner Contest 393",
       "source_page": "https://atcoder.jp/contests/abc393/editorial",
       "downloaded": "2026-11-22",
@@ -1230,7 +1230,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/17-atcoder_abc393_e-editorial.pdf",
+      "file": "14-Web Pages/017-atcoder_abc393_e-editorial.pdf",
       "title": "AtCoder ABC393 editorial, problem E",
       "source_page": "https://atcoder.jp/contests/abc393/editorial/12259",
       "downloaded": "2026-11-22",
@@ -1245,7 +1245,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/17-atcoder_abc393_f-editorial.pdf",
+      "file": "14-Web Pages/017-atcoder_abc393_f-editorial.pdf",
       "title": "AtCoder ABC393 editorial, problem F",
       "source_page": "https://atcoder.jp/contests/abc393/editorial/12261",
       "downloaded": "2026-11-22",
@@ -1260,7 +1260,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/18-codeforces_1889e-doremys_swapping_trees.pdf",
+      "file": "14-Web Pages/018-codeforces_1889e-doremys_swapping_trees.pdf",
       "title": "Codeforces 1889E, Doremy's Swapping Trees",
       "source_page": "https://codeforces.com/problemset/problem/1889/E",
       "downloaded": "2026-11-22",
@@ -1275,7 +1275,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/18-codeforces_845g-shortest_path_problem.pdf",
+      "file": "14-Web Pages/018-codeforces_845g-shortest_path_problem.pdf",
       "title": "Codeforces 845G, Shortest Path Problem?",
       "source_page": "https://codeforces.com/problemset/problem/845/G",
       "downloaded": "2026-11-22",
@@ -1290,7 +1290,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/18-luogu_p4151-wc2011_max_xor_path.pdf",
+      "file": "14-Web Pages/018-luogu_p4151-wc2011_max_xor_path.pdf",
       "title": "P4151 [WC2011] 最大 XOR 和路径 - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/P4151",
       "downloaded": "2026-11-22",
@@ -1305,7 +1305,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/19-luogu_p2046-noi2010_altitude.pdf",
+      "file": "14-Web Pages/019-luogu_p2046-noi2010_altitude.pdf",
       "title": "P2046 [NOI2010] 海拔 - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/P2046",
       "downloaded": "2026-11-22",
@@ -1320,7 +1320,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/20-lemon-circulation_class_reference.html",
+      "file": "14-Web Pages/020-lemon-circulation_class_reference.html",
       "title": "LEMON: Circulation< GR, LM, UM, SM, TR > Class Template Reference",
       "source_page": "https://lemon.cs.elte.hu/pub/doc/latest/a00071.html",
       "downloaded": "2026-11-22",
@@ -1334,7 +1334,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/21-spoj_cot-count_on_a_tree.pdf",
+      "file": "14-Web Pages/021-spoj_cot-count_on_a_tree.pdf",
       "title": "SPOJ.com - Problem COT",
       "source_page": "https://www.spoj.com/problems/COT/",
       "downloaded": "2026-11-22",
@@ -1351,7 +1351,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/22-loj_2788-ceoi2015_pipes.pdf",
+      "file": "14-Web Pages/022-loj_2788-ceoi2015_pipes.pdf",
       "title": "#2788. 「CEOI2015 Day1」管道 - Problem - LibreOJ",
       "source_page": "https://loj.ac/p/2788",
       "downloaded": "2026-11-22",
@@ -1366,7 +1366,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/23-cses_2179-even_outdegree_edges.pdf",
+      "file": "14-Web Pages/023-cses_2179-even_outdegree_edges.pdf",
       "title": "CSES - Even Outdegree Edges",
       "source_page": "https://cses.fi/problemset/task/2179",
       "downloaded": "2026-11-22",
@@ -1381,7 +1381,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/24-miller_rabin_appspot-sprp_bases.pdf",
+      "file": "14-Web Pages/024-miller_rabin_appspot-sprp_bases.pdf",
       "title": "Deterministic variants of the Miller-Rabin primality test. Miller-Rabin SPRP bases records",
       "source_page": "https://miller-rabin.appspot.com/",
       "downloaded": "2026-11-22",
@@ -1396,7 +1396,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/26-codeforces_1999g1-ruler_easy_version.pdf",
+      "file": "14-Web Pages/026-codeforces_1999g1-ruler_easy_version.pdf",
       "title": "Codeforces 1999G1, Ruler (easy version)",
       "source_page": "https://codeforces.com/problemset/problem/1999/G1",
       "downloaded": "2026-11-22",
@@ -1411,7 +1411,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/26-codeforces_blog_45307-interactive_problems_guide.pdf",
+      "file": "14-Web Pages/026-codeforces_blog_45307-interactive_problems_guide.pdf",
       "title": "Interactive Problems: Guide for Participants - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/45307",
       "downloaded": "2026-11-22",
@@ -1426,7 +1426,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/27-codeforces_914f-substrings_in_a_string.pdf",
+      "file": "14-Web Pages/027-codeforces_914f-substrings_in_a_string.pdf",
       "title": "Codeforces 914F, Substrings in a String",
       "source_page": "https://codeforces.com/problemset/problem/914/F",
       "downloaded": "2026-11-22",
@@ -1441,7 +1441,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/27-codeforces_963d-frequency_of_string.pdf",
+      "file": "14-Web Pages/027-codeforces_963d-frequency_of_string.pdf",
       "title": "Codeforces 963D, Frequency of String",
       "source_page": "https://codeforces.com/problemset/problem/963/D",
       "downloaded": "2026-11-22",
@@ -1456,7 +1456,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/28-codeforces_580e-kefa_and_watch.pdf",
+      "file": "14-Web Pages/028-codeforces_580e-kefa_and_watch.pdf",
       "title": "Codeforces 580E, Kefa and Watch",
       "source_page": "https://codeforces.com/problemset/problem/580/E",
       "downloaded": "2026-11-22",
@@ -1471,7 +1471,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/28-codeforces_blog_13959-palindromic_tree.pdf",
+      "file": "14-Web Pages/028-codeforces_blog_13959-palindromic_tree.pdf",
       "title": "Palindromic tree: behind the scenes - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/13959",
       "downloaded": "2026-11-22",
@@ -1486,7 +1486,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/28-cses_2420-palindrome_queries.pdf",
+      "file": "14-Web Pages/028-cses_2420-palindrome_queries.pdf",
       "title": "CSES - Palindrome Queries",
       "source_page": "https://cses.fi/problemset/task/2420",
       "downloaded": "2026-11-22",
@@ -1501,7 +1501,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/28-luogu_p4036-jsoi2008_martian.pdf",
+      "file": "14-Web Pages/028-luogu_p4036-jsoi2008_martian.pdf",
       "title": "P4036 [JSOI2008] 火星人 - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/P4036",
       "downloaded": "2026-11-22",
@@ -1516,7 +1516,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/28-spoj_bwheeler-burrows_wheeler_precompression.pdf",
+      "file": "14-Web Pages/028-spoj_bwheeler-burrows_wheeler_precompression.pdf",
       "title": "SPOJ.com - Problem BWHEELER",
       "source_page": "https://www.spoj.com/problems/BWHEELER/",
       "downloaded": "2026-11-22",
@@ -1531,7 +1531,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/14-minimal_enclosing_parallelogram-schwarz_1995.pdf",
+      "file": "13-Papers/014-minimal_enclosing_parallelogram-schwarz_1995.pdf",
       "title": "C. Schwarz, J. Teich, A. Vainshtein, E. Welzl, B. L. Evans, \"Minimal enclosing parallelogram with application\", SoCG 1995",
       "source_page": "https://doi.org/10.1145/220279.220338",
       "downloaded": "2026-11-22",
@@ -1546,7 +1546,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/45-enhanced_suffix_arrays-abouelhoda_2004.pdf",
+      "file": "13-Papers/045-enhanced_suffix_arrays-abouelhoda_2004.pdf",
       "title": "M. I. Abouelhoda, S. Kurtz, E. Ohlebusch, \"Replacing suffix trees with enhanced suffix arrays\", J. Discrete Algorithms 2(1), 2004",
       "source_page": "https://doi.org/10.1016/S1570-8667(03)00065-0",
       "downloaded": "2026-11-22",
@@ -1561,7 +1561,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/04-codeforces_blog_142063-ntt_convolution_with_avx2.pdf",
+      "file": "14-Web Pages/004-codeforces_blog_142063-ntt_convolution_with_avx2.pdf",
       "title": "Making NTT convolution 10x faster with avx2 - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/142063",
       "downloaded": "2026-11-22",
@@ -1577,7 +1577,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/04-codeforces_blog_22448-fast_matrix_multiplication.pdf",
+      "file": "14-Web Pages/004-codeforces_blog_22448-fast_matrix_multiplication.pdf",
       "title": "Fast matrix multiplication - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/22448",
       "downloaded": "2026-11-22",
@@ -1592,7 +1592,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/04-codeforces_blog_78489-fast_modular_multiplication.pdf",
+      "file": "14-Web Pages/004-codeforces_blog_78489-fast_modular_multiplication.pdf",
       "title": "Fast modular multiplication - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/78489",
       "downloaded": "2026-11-22",
@@ -1607,7 +1607,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/05-codeforces_blog_106195-cpp_template_with_debug_printouts.pdf",
+      "file": "14-Web Pages/005-codeforces_blog_106195-cpp_template_with_debug_printouts.pdf",
       "title": "My C++ template, incl. fancy colorized debug printouts - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/106195",
       "downloaded": "2026-11-22",
@@ -1622,7 +1622,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/05-codeforces_blog_125435-cpp_debug_template.pdf",
+      "file": "14-Web Pages/005-codeforces_blog_125435-cpp_debug_template.pdf",
       "title": "C++ Debug Template! - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/125435",
       "downloaded": "2026-11-22",
@@ -1637,7 +1637,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/05-codeforces_blog_91347-easy_debugging_and_logging.pdf",
+      "file": "14-Web Pages/005-codeforces_blog_91347-easy_debugging_and_logging.pdf",
       "title": "C++ Trick — Easy Debugging / Logging - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/91347",
       "downloaded": "2026-11-22",
@@ -1652,7 +1652,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/10-codeforces_blog_149993-xor_basis_with_deletion.pdf",
+      "file": "14-Web Pages/010-codeforces_blog_149993-xor_basis_with_deletion.pdf",
       "title": "XOR Basis with deletion - Codeforces",
       "source_page": "https://codeforces.com/blog/entry/149993",
       "downloaded": "2026-11-22",
@@ -1667,7 +1667,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/11-codeforces_1093g-multidimensional_queries.pdf",
+      "file": "14-Web Pages/011-codeforces_1093g-multidimensional_queries.pdf",
       "title": "Codeforces 1093G, Multidimensional Queries",
       "source_page": "https://codeforces.com/problemset/problem/1093/G",
       "downloaded": "2026-11-22",
@@ -1682,7 +1682,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/11-codeforces_2057d-gifts_order.pdf",
+      "file": "14-Web Pages/011-codeforces_2057d-gifts_order.pdf",
       "title": "Codeforces 2057D, Gifts Order",
       "source_page": "https://codeforces.com/problemset/problem/2057/D",
       "downloaded": "2026-11-22",
@@ -1697,7 +1697,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/11-codeforces_266e-more_queries_to_array.pdf",
+      "file": "14-Web Pages/011-codeforces_266e-more_queries_to_array.pdf",
       "title": "Codeforces 266E, More Queries to Array...",
       "source_page": "https://codeforces.com/problemset/problem/266/E",
       "downloaded": "2026-11-22",
@@ -1712,7 +1712,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/11-luogu_cf1093g-multidimensional_queries.pdf",
+      "file": "14-Web Pages/011-luogu_cf1093g-multidimensional_queries.pdf",
       "title": "CF1093G Multidimensional Queries - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/CF1093G",
       "downloaded": "2026-11-22",
@@ -1727,7 +1727,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/11-luogu_cf2057d-gifts_order.pdf",
+      "file": "14-Web Pages/011-luogu_cf2057d-gifts_order.pdf",
       "title": "CF2057D Gifts Order - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/CF2057D",
       "downloaded": "2026-11-22",
@@ -1742,7 +1742,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/11-luogu_cf266e-more_queries_to_array.pdf",
+      "file": "14-Web Pages/011-luogu_cf266e-more_queries_to_array.pdf",
       "title": "CF266E More Queries to Array... - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/CF266E",
       "downloaded": "2026-11-22",
@@ -1757,7 +1757,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/11-luogu_p2486-sdoi2011_coloring.pdf",
+      "file": "14-Web Pages/011-luogu_p2486-sdoi2011_coloring.pdf",
       "title": "P2486 [SDOI2011] 染色 - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/P2486",
       "downloaded": "2026-11-22",
@@ -1772,7 +1772,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/12-codeforces_edu_course_2_lesson_4-segment_tree_part_1.pdf",
+      "file": "14-Web Pages/012-codeforces_edu_course_2_lesson_4-segment_tree_part_1.pdf",
       "title": "Segment Tree, part 1 - Codeforces",
       "source_page": "https://codeforces.com/edu/course/2/lesson/4",
       "downloaded": "2026-11-22",
@@ -1787,7 +1787,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/12-codeforces_edu_course_2_lesson_5-segment_tree_part_2.pdf",
+      "file": "14-Web Pages/012-codeforces_edu_course_2_lesson_5-segment_tree_part_2.pdf",
       "title": "Segment Tree, part 2 - Codeforces",
       "source_page": "https://codeforces.com/edu/course/2/lesson/5",
       "downloaded": "2026-11-22",
@@ -1802,7 +1802,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/14-codeforces_1436e-complicated_computations.pdf",
+      "file": "14-Web Pages/014-codeforces_1436e-complicated_computations.pdf",
       "title": "Codeforces 1436E, Complicated Computations",
       "source_page": "https://codeforces.com/problemset/problem/1436/E",
       "downloaded": "2026-11-22",
@@ -1817,7 +1817,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/14-codeforces_220b-little_elephant_and_array.pdf",
+      "file": "14-Web Pages/014-codeforces_220b-little_elephant_and_array.pdf",
       "title": "Codeforces 220B, Little Elephant and Array",
       "source_page": "https://codeforces.com/problemset/problem/220/B",
       "downloaded": "2026-11-22",
@@ -1832,7 +1832,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/14-codeforces_522d-closest_equals.pdf",
+      "file": "14-Web Pages/014-codeforces_522d-closest_equals.pdf",
       "title": "Codeforces 522D, Closest Equals",
       "source_page": "https://codeforces.com/problemset/problem/522/D",
       "downloaded": "2026-11-22",
@@ -1847,7 +1847,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/14-luogu_p4137-rmq_problem_mex.pdf",
+      "file": "14-Web Pages/014-luogu_p4137-rmq_problem_mex.pdf",
       "title": "P4137 Rmq Problem / mex - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/P4137",
       "downloaded": "2026-11-22",
@@ -1862,7 +1862,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/17-atcoder_abc393_g-editorial.pdf",
+      "file": "14-Web Pages/017-atcoder_abc393_g-editorial.pdf",
       "title": "AtCoder ABC393 editorial, problem G (Unevenness)",
       "source_page": "https://atcoder.jp/contests/abc393/editorial/12256",
       "downloaded": "2026-11-22",
@@ -1877,7 +1877,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/19-luogu_p7916-csp_s_2021_traffic_planning.pdf",
+      "file": "14-Web Pages/019-luogu_p7916-csp_s_2021_traffic_planning.pdf",
       "title": "P7916 [CSP-S 2021] 交通规划 - 洛谷",
       "source_page": "https://www.luogu.com.cn/problem/P7916",
       "downloaded": "2026-11-22",
@@ -1892,7 +1892,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/25-cecm_sfu_feitsma_psp2-base2_pseudoprimes_below_2_64.html",
+      "file": "14-Web Pages/025-cecm_sfu_feitsma_psp2-base2_pseudoprimes_below_2_64.html",
       "title": "Tables of pseudoprimes and related data (computed by Jan Feitsma, arranged by William Galway; base-2 Fermat pseudoprimes below 2^64)",
       "source_page": "https://www.cecm.sfu.ca/Pseudoprimes/index-2-to-64.html",
       "downloaded": "2026-11-22",
@@ -1906,7 +1906,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/01-modern_computer_algebra-von_zur_gathen_2013.pdf",
+      "file": "13-Papers/001-modern_computer_algebra-von_zur_gathen_2013.pdf",
       "title": "J. von zur Gathen, J. Gerhard, *Modern Computer Algebra*, 3rd ed., Cambridge University Press, 2013 (whole book; ch. 11, Fast Euclidean Algorithm)",
       "source_page": "https://doi.org/10.1017/CBO9781139856065",
       "downloaded": "2026-11-22",
@@ -1921,7 +1921,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/48-k_best_spanning_arborescences-camerini_1980.pdf",
+      "file": "13-Papers/048-k_best_spanning_arborescences-camerini_1980.pdf",
       "title": "P. M. Camerini, L. Fratta, F. Maffioli, \"The k best spanning arborescences of a network\", Networks 10(2), 1980",
       "source_page": "https://doi.org/10.1002/net.3230100202",
       "downloaded": "2026-11-22",
@@ -1937,7 +1937,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/49-algorithms_for_minimization_without_derivatives-brent_1973.pdf",
+      "file": "13-Papers/049-algorithms_for_minimization_without_derivatives-brent_1973.pdf",
       "title": "R. P. Brent, *Algorithms for Minimization without Derivatives*, Prentice-Hall, 1973 (scan without a text layer; ch. 4, zero of a function)",
       "source_page": "https://maths-people.anu.edu.au/~brent/pub/pub011.html",
       "downloaded": "2026-11-22",
@@ -1952,7 +1952,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/29-dmoj_knapsack-knapsack_3.pdf",
+      "file": "14-Web Pages/029-dmoj_knapsack-knapsack_3.pdf",
       "title": "DMOJ, Knapsack 3",
       "source_page": "https://dmoj.ca/problem/knapsack",
       "downloaded": "2026-11-26",
@@ -1967,7 +1967,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/29-dmoj_knapsack4-knapsack_4.pdf",
+      "file": "14-Web Pages/029-dmoj_knapsack4-knapsack_4.pdf",
       "title": "DMOJ, Knapsack 4",
       "source_page": "https://dmoj.ca/problem/knapsack4",
       "downloaded": "2026-11-26",
@@ -1982,7 +1982,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/50-binary_reflected_gray_code-bitner_1976.pdf",
+      "file": "13-Papers/050-binary_reflected_gray_code-bitner_1976.pdf",
       "title": "J. R. Bitner, G. Ehrlich, E. M. Reingold, *Efficient generation of the binary reflected Gray code and its applications*, CACM 19(9) (1976) 517–521",
       "source_page": "https://doi.org/10.1145/360336.360343",
       "downloaded": "2026-11-27",
@@ -1997,7 +1997,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/51-coolest_way_to_generate_combinations-ruskey_2009.pdf",
+      "file": "13-Papers/051-coolest_way_to_generate_combinations-ruskey_2009.pdf",
       "title": "F. Ruskey, A. Williams, *The coolest way to generate combinations*, Discrete Math. 309(17) (2009) 5305–5320 (the authors' preprint)",
       "source_page": "https://webhome.cs.uvic.ca/~ruskey/Publications/Coollex/coolestDMvanilla.pdf",
       "downloaded": "2026-11-27",
@@ -2012,7 +2012,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/52-handbook_of_applied_cryptography_ch3-menezes_1996.pdf",
+      "file": "13-Papers/052-handbook_of_applied_cryptography_ch3-menezes_1996.pdf",
       "title": "Menezes, van Oorschot, Vanstone, Handbook of Applied Cryptography (1996), chapter 3",
       "source_page": "https://cacr.uwaterloo.ca/hac/about/chap3.pdf",
       "downloaded": "2026-11-27",
@@ -2026,7 +2026,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/53-handbook_of_applied_cryptography_ch4-menezes_1996.pdf",
+      "file": "13-Papers/053-handbook_of_applied_cryptography_ch4-menezes_1996.pdf",
       "title": "Menezes, van Oorschot, Vanstone, Handbook of Applied Cryptography (1996), chapter 4",
       "source_page": "https://cacr.uwaterloo.ca/hac/about/chap4.pdf",
       "downloaded": "2026-11-27",
@@ -2040,7 +2040,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/54-handbook_of_applied_cryptography_ch14-menezes_1996.pdf",
+      "file": "13-Papers/054-handbook_of_applied_cryptography_ch14-menezes_1996.pdf",
       "title": "Menezes, van Oorschot, Vanstone, Handbook of Applied Cryptography (1996), chapter 14",
       "source_page": "https://cacr.uwaterloo.ca/hac/about/chap14.pdf",
       "downloaded": "2026-11-27",
@@ -2054,7 +2054,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/55-analytic_combinatorics-flajolet_2009.pdf",
+      "file": "13-Papers/055-analytic_combinatorics-flajolet_2009.pdf",
       "title": "Flajolet, Sedgewick, Analytic Combinatorics (2009)",
       "source_page": "https://algo.inria.fr/flajolet/Publications/book.pdf",
       "downloaded": "2026-11-27",
@@ -2068,7 +2068,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/56-compact_data_structures_contents-navarro_2016.pdf",
+      "file": "13-Papers/056-compact_data_structures_contents-navarro_2016.pdf",
       "title": "Navarro, Compact Data Structures (2016), contents and list of algorithms",
       "source_page": "https://users.dcc.uchile.cl/~gnavarro/CDSbook/toc.pdf",
       "downloaded": "2026-11-27",
@@ -2082,7 +2082,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/57-matters_computational_contents-arndt_2010.txt",
+      "file": "13-Papers/057-matters_computational_contents-arndt_2010.txt",
       "title": "Arndt, Matters Computational (2010), contents",
       "source_page": "https://www.jjj.de/fxt/fxtbook-toc.txt",
       "downloaded": "2026-11-27",
@@ -2096,7 +2096,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/32-libreoj-template_problems.zip",
+      "file": "14-Web Pages/032-libreoj-template_problems.zip",
       "title": "LibreOJ template problems (tag 模板), list and statements",
       "source_page": "https://loj.ac/",
       "downloaded": "2026-11-27",
@@ -2110,7 +2110,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/33-luogu-template_problems.zip",
+      "file": "14-Web Pages/033-luogu-template_problems.zip",
       "title": "Luogu template problem list and tag map",
       "source_page": "https://www.luogu.com.cn/problem/list?keyword=%E6%A8%A1%E6%9D%BF&type=P",
       "downloaded": "2026-11-27",
@@ -2124,7 +2124,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/34-aizu-courses.zip",
+      "file": "14-Web Pages/034-aizu-courses.zip",
       "title": "Aizu Online Judge course problem lists",
       "source_page": "https://onlinejudge.u-aizu.ac.jp/api/courses",
       "downloaded": "2026-11-27",
@@ -2138,7 +2138,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/35-cpbook-methods_to_solve.zip",
+      "file": "14-Web Pages/035-cpbook-methods_to_solve.zip",
       "title": "Competitive Programming 4, Methods to Solve",
       "source_page": "https://cpbook.net/methodstosolve",
       "downloaded": "2026-11-27",
@@ -2152,7 +2152,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/36-codechef-problem_tags.zip",
+      "file": "14-Web Pages/036-codechef-problem_tags.zip",
       "title": "CodeChef problem tags and Learn catalog",
       "source_page": "https://www.codechef.com/get/tags/problems",
       "downloaded": "2026-11-27",
@@ -2166,7 +2166,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/37-rosetta_code-programming_tasks.zip",
+      "file": "14-Web Pages/037-rosetta_code-programming_tasks.zip",
       "title": "Rosetta Code, Category:Programming Tasks",
       "source_page": "https://rosettacode.org/wiki/Category:Programming_Tasks",
       "downloaded": "2026-11-27",
@@ -2180,7 +2180,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/38-uoj-template_problems.zip",
+      "file": "14-Web Pages/038-uoj-template_problems.zip",
       "title": "UOJ template problems",
       "source_page": "https://uoj.ac/problems/template",
       "downloaded": "2026-11-27",
@@ -2194,7 +2194,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/39-igraph-c_reference_chapters.zip",
+      "file": "14-Web Pages/039-igraph-c_reference_chapters.zip",
       "title": "igraph C reference, 14 chapters",
       "source_page": "https://igraph.org/c/doc/",
       "downloaded": "2026-11-27",
@@ -2208,7 +2208,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/40-pari_gp-reference_chapters.zip",
+      "file": "14-Web Pages/040-pari_gp-reference_chapters.zip",
       "title": "PARI/GP reference, contents and chapter indexes",
       "source_page": "https://pari.math.u-bordeaux.fr/dochtml/html/toc.html",
       "downloaded": "2026-11-27",
@@ -2222,7 +2222,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/41-emaxx-article_index.html",
+      "file": "14-Web Pages/041-emaxx-article_index.html",
       "title": "e-maxx article index",
       "source_page": "http://e-maxx.ru/algo/",
       "downloaded": "2026-11-27",
@@ -2236,7 +2236,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/42-codeforces_blog_57282-tutorial_catalog.json",
+      "file": "14-Web Pages/042-codeforces_blog_57282-tutorial_catalog.json",
       "title": "Codeforces blog 57282, catalog of tutorials",
       "source_page": "https://codeforces.com/blog/entry/57282",
       "downloaded": "2026-11-27",
@@ -2250,7 +2250,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/43-solved_ac-tags1.pdf",
+      "file": "14-Web Pages/043-solved_ac-tags1.pdf",
       "title": "solved.ac tag list (BOJ taxonomy), saved page 1 of 8",
       "source_page": "https://solved.ac/problems/tags",
       "downloaded": "2026-11-28",
@@ -2267,7 +2267,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/43-solved_ac-tags2.pdf",
+      "file": "14-Web Pages/043-solved_ac-tags2.pdf",
       "title": "solved.ac tag list (BOJ taxonomy), saved page 2 of 8",
       "source_page": "https://solved.ac/problems/tags",
       "downloaded": "2026-11-28",
@@ -2284,7 +2284,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/43-solved_ac-tags3.pdf",
+      "file": "14-Web Pages/043-solved_ac-tags3.pdf",
       "title": "solved.ac tag list (BOJ taxonomy), saved page 3 of 8",
       "source_page": "https://solved.ac/problems/tags",
       "downloaded": "2026-11-28",
@@ -2301,7 +2301,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/43-solved_ac-tags4.pdf",
+      "file": "14-Web Pages/043-solved_ac-tags4.pdf",
       "title": "solved.ac tag list (BOJ taxonomy), saved page 4 of 8",
       "source_page": "https://solved.ac/problems/tags",
       "downloaded": "2026-11-28",
@@ -2318,7 +2318,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/43-solved_ac-tags5.pdf",
+      "file": "14-Web Pages/043-solved_ac-tags5.pdf",
       "title": "solved.ac tag list (BOJ taxonomy), saved page 5 of 8",
       "source_page": "https://solved.ac/problems/tags",
       "downloaded": "2026-11-28",
@@ -2335,7 +2335,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/43-solved_ac-tags6.pdf",
+      "file": "14-Web Pages/043-solved_ac-tags6.pdf",
       "title": "solved.ac tag list (BOJ taxonomy), saved page 6 of 8",
       "source_page": "https://solved.ac/problems/tags",
       "downloaded": "2026-11-28",
@@ -2352,7 +2352,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/43-solved_ac-tags7.pdf",
+      "file": "14-Web Pages/043-solved_ac-tags7.pdf",
       "title": "solved.ac tag list (BOJ taxonomy), saved page 7 of 8",
       "source_page": "https://solved.ac/problems/tags",
       "downloaded": "2026-11-28",
@@ -2369,7 +2369,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/43-solved_ac-tags8.pdf",
+      "file": "14-Web Pages/043-solved_ac-tags8.pdf",
       "title": "solved.ac tag list (BOJ taxonomy), saved page 8 of 8",
       "source_page": "https://solved.ac/problems/tags",
       "downloaded": "2026-11-28",
@@ -2386,7 +2386,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/44-qoj-template_problems.pdf",
+      "file": "14-Web Pages/044-qoj-template_problems.pdf",
       "title": "QOJ template problems (tag 模板题), saved page",
       "source_page": "https://qoj.ac/problems?tag=%E6%A8%A1%E6%9D%BF%E9%A2%98",
       "downloaded": "2026-11-28",
@@ -2402,7 +2402,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/45-spoj-tags.pdf",
+      "file": "14-Web Pages/045-spoj-tags.pdf",
       "title": "SPOJ problem tags, saved page",
       "source_page": "https://www.spoj.com/problems/tags/",
       "downloaded": "2026-11-28",
@@ -2419,7 +2419,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/46-leetcode-topic_tags.csv",
+      "file": "14-Web Pages/046-leetcode-topic_tags.csv",
       "title": "LeetCode problem list with topic tags (4,124 problems, 175 topics), exported",
       "source_page": "https://leetcode.com/problemset/",
       "downloaded": "2026-11-28",
@@ -2434,7 +2434,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/47-yukicoder-tags.pdf",
+      "file": "14-Web Pages/047-yukicoder-tags.pdf",
       "title": "yukicoder tag statistics, saved page (logged in)",
       "source_page": "https://yukicoder.me/statistics/tags",
       "downloaded": "2026-11-28",
@@ -2452,7 +2452,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/48-cmu_15451-lectures.pdf",
+      "file": "14-Web Pages/048-cmu_15451-lectures.pdf",
       "title": "CMU 15-451 Algorithm Design and Analysis, lecture list, saved page",
       "source_page": "https://www.cs.cmu.edu/~15451/",
       "downloaded": "2026-11-28",
@@ -2467,7 +2467,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/49-cmu_15750-lectures.pdf",
+      "file": "14-Web Pages/049-cmu_15750-lectures.pdf",
       "title": "CMU 15-750 Graduate Algorithms, lecture list, saved page",
       "source_page": "https://www.cs.cmu.edu/~15750/",
       "downloaded": "2026-11-28",
@@ -2484,7 +2484,7 @@
       "committed": false
     },
     {
-      "file": "14-Web Pages/50-algorithm_wiki-index.pdf",
+      "file": "14-Web Pages/050-algorithm_wiki-index.pdf",
       "title": "MIT Algorithm Wiki, problem families index, saved page",
       "source_page": "https://algorithm-wiki.org/families",
       "downloaded": "2026-11-28",
@@ -2505,7 +2505,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/58-encyclopedia_of_algorithms-kao_2016.pdf",
+      "file": "13-Papers/058-encyclopedia_of_algorithms-kao_2016.pdf",
       "title": "Kao (ed.), Encyclopedia of Algorithms, 2nd ed. (2016)",
       "source_page": "https://link.springer.com/referencework/10.1007/978-1-4939-2864-4",
       "downloaded": "2026-11-28",
@@ -2526,7 +2526,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/59-hackers_delight-warren_2012.pdf",
+      "file": "13-Papers/059-hackers_delight-warren_2012.pdf",
       "title": "Warren, Hacker's Delight, 2nd ed. (2012)",
       "source_page": "https://www.informit.com/store/hackers-delight-9780321842688",
       "downloaded": "2026-11-28",
@@ -2544,7 +2544,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/60-network_flows-ahuja_1993.pdf",
+      "file": "13-Papers/060-network_flows-ahuja_1993.pdf",
       "title": "Ahuja, Magnanti, Orlin, Network Flows: Theory, Algorithms, and Applications (1993)",
       "source_page": "https://www.pearson.com/en-us/subject-catalog/p/network-flows-theory-algorithms-and-applications/P200000003466",
       "downloaded": "2026-11-28",
@@ -2561,7 +2561,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/61-computational_geometry-de_berg_2008.pdf",
+      "file": "13-Papers/061-computational_geometry-de_berg_2008.pdf",
       "title": "de Berg, Cheong, van Kreveld, Overmars, Computational Geometry: Algorithms and Applications, 3rd ed. (2008)",
       "source_page": "https://link.springer.com/book/10.1007/978-3-540-77974-2",
       "downloaded": "2026-11-28",
@@ -2577,7 +2577,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/62-algorithms_on_strings_trees_sequences-gusfield_1997.pdf",
+      "file": "13-Papers/062-algorithms_on_strings_trees_sequences-gusfield_1997.pdf",
       "title": "Gusfield, Algorithms on Strings, Trees, and Sequences (1997)",
       "source_page": "https://doi.org/10.1017/CBO9780511574931",
       "downloaded": "2026-11-28",
@@ -2595,7 +2595,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/63-jewels_of_stringology-crochemore_2002.pdf",
+      "file": "13-Papers/063-jewels_of_stringology-crochemore_2002.pdf",
       "title": "Crochemore, Rytter, Jewels of Stringology (2002)",
       "source_page": "https://doi.org/10.1142/4838",
       "downloaded": "2026-11-28",
@@ -2612,7 +2612,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/64-handbook_of_data_structures-mehta_2018.pdf",
+      "file": "13-Papers/064-handbook_of_data_structures-mehta_2018.pdf",
       "title": "Mehta, Sahni (eds.), Handbook of Data Structures and Applications, 2nd ed. (2018)",
       "source_page": "https://www.routledge.com/Handbook-of-Data-Structures-and-Applications/Mehta-Sahni/p/book/9780367572006",
       "downloaded": "2026-11-28",
@@ -2633,7 +2633,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/65-taocp_4a-knuth_2011.pdf",
+      "file": "13-Papers/065-taocp_4a-knuth_2011.pdf",
       "title": "Knuth, The Art of Computer Programming, Volume 4A: Combinatorial Algorithms, Part 1 (2011)",
       "source_page": "https://www-cs-faculty.stanford.edu/~knuth/taocp.html",
       "downloaded": "2026-11-28",
@@ -2653,7 +2653,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/66-taocp_4b-knuth_2022.pdf",
+      "file": "13-Papers/066-taocp_4b-knuth_2022.pdf",
       "title": "Knuth, The Art of Computer Programming, Volume 4B: Combinatorial Algorithms, Part 2 (2022)",
       "source_page": "https://www-cs-faculty.stanford.edu/~knuth/taocp.html",
       "downloaded": "2026-11-28",
@@ -2673,7 +2673,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/67-compact_data_structures-navarro_2016.pdf",
+      "file": "13-Papers/067-compact_data_structures-navarro_2016.pdf",
       "title": "Navarro, Compact Data Structures: A Practical Approach (2016)",
       "source_page": "https://doi.org/10.1017/CBO9781316588284",
       "downloaded": "2026-11-28",
@@ -2692,7 +2692,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/68-computational_geometry_in_c-orourke_1998.pdf",
+      "file": "13-Papers/068-computational_geometry_in_c-orourke_1998.pdf",
       "title": "O'Rourke, Computational Geometry in C, 2nd ed. (1998)",
       "source_page": "https://doi.org/10.1017/CBO9780511804120",
       "downloaded": "2026-11-28",
@@ -2708,7 +2708,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/69-prime_numbers-crandall_2005.pdf",
+      "file": "13-Papers/069-prime_numbers-crandall_2005.pdf",
       "title": "Crandall, Pomerance, Prime Numbers: A Computational Perspective, 2nd ed. (2005)",
       "source_page": "https://link.springer.com/book/10.1007/0-387-28979-8",
       "downloaded": "2026-11-28",
@@ -2726,7 +2726,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/70-handbook_of_discrete_computational_geometry-goodman_2017.pdf",
+      "file": "13-Papers/070-handbook_of_discrete_computational_geometry-goodman_2017.pdf",
       "title": "Goodman, O'Rourke, Tóth (eds.), Handbook of Discrete and Computational Geometry, 3rd ed. (2017)",
       "source_page": "https://www.csun.edu/~ctoth/Handbook/HDCG3.html",
       "downloaded": "2026-11-28",
@@ -2743,7 +2743,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/71-combinatorial_optimization-schrijver_2003.pdf",
+      "file": "13-Papers/071-combinatorial_optimization-schrijver_2003.pdf",
       "title": "Schrijver, Combinatorial Optimization: Polyhedra and Efficiency (2003)",
       "source_page": "https://link.springer.com/book/9783540443896",
       "downloaded": "2026-11-28",
@@ -2760,7 +2760,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/72-introduction_to_algorithms-cormen_2022.pdf",
+      "file": "13-Papers/072-introduction_to_algorithms-cormen_2022.pdf",
       "title": "Cormen, Leiserson, Rivest, Stein, Introduction to Algorithms, 4th ed. (2022)",
       "source_page": "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/",
       "downloaded": "2026-11-28",
@@ -2778,7 +2778,7 @@
       "committed": false
     },
     {
-      "file": "13-Papers/73-guide_to_competitive_programming-laaksonen_2024.pdf",
+      "file": "13-Papers/073-guide_to_competitive_programming-laaksonen_2024.pdf",
       "title": "Laaksonen, Guide to Competitive Programming: Learning and Improving Algorithms through Contests, 3rd ed. (2024)",
       "source_page": "https://doi.org/10.1007/978-3-031-61794-2",
       "downloaded": "2026-11-28",

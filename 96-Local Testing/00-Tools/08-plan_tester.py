@@ -581,7 +581,7 @@ SYN_BATCHES = {'batches': [
       for b, pre in (('SUP17', []), ('SUP18', ['SUP17']), ('SUP19', ['SUP17', 'SUP18']), ('SUP20', []), ('SUP21', ['SUP20']))),
     *({'id': b, 'folder': f, 'targets': [f'{f}/{t}'], 'prerequisites': pre, 'tiers': ['Basic'], 'size': 'M', 'focus': 'f'}
       for b, f, t, pre in (('C07', '01-Core', '10-matrix.hpp', []), ('C08', '01-Core', '11-matrixmini.hpp', []),
-                           ('DS01', '02-Data Structures', '01-dsu.hpp', []), ('DS02', '02-Data Structures', '02-x.hpp', []),
+                           ('DS01', '02-Data Structures', '001-dsu.hpp', []), ('DS02', '02-Data Structures', '02-x.hpp', []),
                            ('GR01', '04-Graphs', '01-g.hpp', ['DS01']), ('MA01', '05-Mathematics', '01-m.hpp', [])))]}
 SYN_PACKAGES = {'statuses': ['planned', 'in-progress', 'verified'], 'models': {'fable': 'claude-fable-5-1', 'opus': 'claude-opus-5-5'},
                 'packages': [{'id': i, 'label': 'L' + i, 'batches': bs, 'phase': 'Contest Core', 'size': 'M', 'model': m,
@@ -1697,12 +1697,12 @@ class Synthetic(Base):
         target's or an --evidence path) has a limit without a `user decision <date>`, naming each, and changes nothing;
         once each is decided it sets the status. Open follow-ups of a verified package cover its limits, as in check, and its
         last follow-up stays open until they are decided."""
-        doc = self.root / '02-Data Structures/Docs/01-dsu.md'
+        doc = self.root / '02-Data Structures/Docs/001-dsu.md'
         doc.parent.mkdir(parents=True)
         doc.write_text('# DSU\n## Limits and Handoffs\n- open limit\n- decided (user decision 2026-11-26)\n')
         before = (self.root / '00-Guidelines/13-Plan/packages.json').read_text()
         r = self.run_py(self.cli, 'set', 'P030', 'verified', cwd=self.root, role='maintainer')
-        self.assertEqual((r.returncode, r.stderr.split('\n')[1:]), (1, ['  02-Data Structures/Docs/01-dsu.md:3: - open limit', '']), r.stderr)
+        self.assertEqual((r.returncode, r.stderr.split('\n')[1:]), (1, ['  02-Data Structures/Docs/001-dsu.md:3: - open limit', '']), r.stderr)
         self.assertIn('P030 not set verified: 1 limit(s) without a `user decision <date>`', r.stderr)
         self.assertEqual((self.root / '00-Guidelines/13-Plan/packages.json').read_text(), before)
         (self.root / 'notes').mkdir(exist_ok=True)
@@ -1722,7 +1722,7 @@ class Synthetic(Base):
         self.assertEqual(r.returncode, 0, 'a verified package with open follow-ups updates its note: they cover its limits')
         r = cli('follow-up', 'P030', '--done', '1')
         self.assertEqual((r.returncode, r.stderr), (1, 'P030 keeps its last follow-up while 1 limit(s) lack a `user decision <date>` '
-                                                       '(02-structure.md, Names):\n  02-Data Structures/Docs/01-dsu.md:3: - open again\n'))
+                                                       '(02-structure.md, Names):\n  02-Data Structures/Docs/001-dsu.md:3: - open again\n'))
         doc.write_text('# DSU\n## Limits and Handoffs\n- open again (user decision 2026-11-26)\n')
         self.assertEqual(cli('follow-up', 'P030', '--done', '1').returncode, 0, 'closed once its limits are decided')
 
@@ -1742,22 +1742,22 @@ class Synthetic(Base):
                                                           '| `01-s.hpp` | s | verified; [evidence](Docs/01-s.md) |\n')
         s = self.root / '07-Strings/Docs/01-s.md'
         s.write_text('# s\n\n## Limits and Handoffs\n\n- t belongs to P031 (follow-up on P031).\n')
-        dsu = self.root / '02-Data Structures/Docs/01-dsu.md'
+        dsu = self.root / '02-Data Structures/Docs/001-dsu.md'
         dsu.parent.mkdir(parents=True)
         dsu.write_text('# DSU\n## Limits and Handoffs\n- u handed on (follow-up on P031)\n')
         (self.root / '02-Data Structures/00-index.md').write_text('# 02 Data Structures — Inventory\n\n## Basic\n\n| Header | Operations | Status |\n'
-                                                                  '|---|---|---|\n| `01-dsu.hpp` | DSU | partial; [evidence](Docs/01-dsu.md) |\n')
+                                                                  '|---|---|---|\n| `001-dsu.hpp` | DSU | partial; [evidence](Docs/001-dsu.md) |\n')
         limits = lambda: [l for l in cli('check').stdout.splitlines() if 'Undecided limits' in l]
         self.assertEqual(limits(), ['Undecided limits in verified P900: 1, the first at 07-Strings/Docs/01-s.md:5 [no open follow-up on P031]; '
                                     'file a follow-up (plan.py follow-up P900 ...) or decide them (02-structure.md, Names)'])
         r = cli('set', 'P030', 'verified')
         self.assertEqual((r.returncode, r.stderr.split('\n')[1:]),
-                         (1, ['  02-Data Structures/Docs/01-dsu.md:3: [no open follow-up on P031] - u handed on (follow-up on P031)', '']), r.stderr)
+                         (1, ['  02-Data Structures/Docs/001-dsu.md:3: [no open follow-up on P031] - u handed on (follow-up on P031)', '']), r.stderr)
         self.assertEqual((cli('follow-up', 'P031', 'do t and u').returncode, cli('follow-up', 'P031', 'second').returncode), (0, 0))
         self.assertEqual(limits(), [], 'covered while P031 has an open follow-up')
         self.assertEqual(cli('set', 'P030', 'verified').returncode, 0)
         named = ['Limits citing `follow-up on P031`: delete or update each the closed follow-up(s) settled:',
-                 '  02-Data Structures/Docs/01-dsu.md:3: - u handed on (follow-up on P031)',
+                 '  02-Data Structures/Docs/001-dsu.md:3: - u handed on (follow-up on P031)',
                  '  07-Strings/Docs/01-s.md:5: - t belongs to P031 (follow-up on P031).']
         r = cli('follow-up', 'P031', '--done', '1')
         self.assertEqual((r.returncode, r.stdout.split('\n')[:5]), (0, ['P031: 1 open follow-up(s)', '1. second', *named]), r.stderr)
@@ -1770,7 +1770,7 @@ class Synthetic(Base):
         s.write_text('# s\n\n## Limits and Handoffs\n\n- none\n')
         r = cli('follow-up', 'P031', '--done', '1')
         self.assertEqual((r.returncode, r.stdout.split('\n')[:3]),
-                         (0, ['P031: 0 open follow-up(s)', named[0], '  02-Data Structures/Docs/01-dsu.md:3: - u handed on (follow-up on P031; user decision 2026-11-27)']),
+                         (0, ['P031: 0 open follow-up(s)', named[0], '  02-Data Structures/Docs/001-dsu.md:3: - u handed on (follow-up on P031; user decision 2026-11-27)']),
                          r.stderr)
         self.assertEqual(limits(), [], 'decided by the user once P031 has none open')
 

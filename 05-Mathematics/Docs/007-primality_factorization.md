@@ -1,0 +1,161 @@
+# 007-primality_factorization.hpp — Evidence
+
+`007-primality_factorization.hpp` covers deterministic primality and factorization for every unsigned 64-bit integer: trial and table tests, deterministic Miller–Rabin, Brent's Pollard rho, factorizations, divisor lists and the derived point functions, perfect-prime-power detection, coprime bases of lists and the highly composite search. Full-prefix sieves belong to `004-sieve_algorithms.hpp`, and multiplicative functions other than divisor count and sum to `008-multiplicative_functions.hpp`.
+
+## Contracts
+
+Inputs are `ulng`, so every function works on all of `[0, 2^64)` unless a precondition is stated. Primes are returned as `ulng`, exponents as `int`, and factorizations as ascending `(prime, exponent)` pairs. There is no global state; randomness is local and seeded, so every result is reproducible.
+
+The fast functions multiply through Core `Montgomery64` (any odd modulus below 2^64) with its unchecked `redc`, so hot loops hold no assertions. `primality_detail` holds:
+
+- `SMALL` (the 18 primes below 67), `splitmix` (a splitmix64 step) and `addMod` (overflow-safe `x + y mod n` for `x, y < n`);
+- `montMul` and `plainMul`, the product functors;
+- `kthRoot`, the floor k-th root: a double estimate corrected by exact overflow-checked powers;
+- four algorithm templates parametrized by the product functor: `strongProbablePrime` (the deterministic witness loop), `isPrimeWith` (the small-prime filter), `rho` (Brent attempts under a budget) and `factorizeWith` (the factorization driver).
+
+Each algorithm is therefore written once and runs on Montgomery forms for the fast functions and on plain residues for the Compact twins.
+
+### isPrimeTrial
+
+Deterministic trial division by 2, 3 and `6k ± 1` up to `floor(sqrt(n))` in `O(sqrt(n))`, false for 0 and 1. The loop condition `i <= n / i` cannot overflow.
+
+### isPrime
+
+`isPrime(n)` is exact for every `ulng`; 0 and 1 are not prime. It first divides by the 18 primes below 67 and decides `n < 67^2` directly. Any other `n` is odd and at least 67^2 and gets strong-probable-prime tests in Montgomery form: bases {2, 7, 61} below 2^32 (deterministic below 4,759,123,141), and the seven bases {2, 325, 9375, 28178, 450775, 9780504, 1795265022} above. `O(log(n))` modular multiplications.
+
+Correctness: below 2^32, Jaeschke (1993, §5) found by computation that the least strong pseudoprime to the bases 2, 7 and 61 is 4,759,123,141, which is above 2^32. From 2^32 on, correctness rests on the record at miller-rabin.appspot.com that the seven bases have no strong pseudoprime below 2^64. The page does not show that check. Any such check of a set that contains base 2 needs the full list of base-2 strong pseudoprimes below 2^64, which is Feitsma's list. Its index page says the list covers all base-2 Fermat pseudoprimes below 2^64 and marks the strong ones; it records no check of any base set. Core fetched the list on 2026-11-17 and checks its own `isPrime` against it ([05-modint.md](../../01-Core/Docs/05-modint.md)); this row's tests do not, and P052 runs the seven-base path over it. Sources: [00-sources.md](00-sources.md#fetched-2026-11-22-source-check). The page treats a base that is 0 mod `n` as a pass. Here every base lies in `[2, n)` (the three small bases are below 67^2, the seven large ones below 2^32), so the case cannot arise. The tests run every divisor of every base, including the primes 407521 and 299210837 that reach the witness loop.
+
+### Compact Twins: isPrimeCompact, pollardRhoBrentCompact, factorizeCompact
+
+The twins were written under the Compact rule of 2026-10-09, which Core type parameters superseded on 2026-11-05 (`10-decisions.md`, 2026-11-05 Mini-First, Completeness First, Extraction); settling them under the new rule is P052's follow-up. Each has the contract, domain, seed sequence and results of its fast counterpart, but multiplies with plain `__int128 %` (`plainMul`) and uses no Core reduction type. A contest copy therefore needs only `01-template.hpp` and the detail helpers `SMALL`, `splitmix`, `addMod`, `plainMul`, `strongProbablePrime`, `isPrimeWith`, `rho` and `factorizeWith`.
+
+`rho` maps the drawn constant `c` and the start value through `form` (`montForm` gives `xR mod n`; the plain form is the identity). Each fast iterate is therefore the Montgomery image of the plain iterate, `redc((zR)^2) + cR = (z^2 + c)R`, and every difference and product also maps by the unit `R`, so each gcd is the same and `pollardRhoBrentCompact(n, seed, budget)` returns exactly the divisor of `pollardRhoBrent(n, seed, budget)`. The tester checks this identity on every `n` through the factor bound. The bounds are the same; the constant factor is in the benchmark table. Functions built on the fast versions (`divisors`, `divisorCount`, …) have no twins, as the Compact rule specified.
+
+### isPrimeSpf
+
+Takes a caller-owned `LinearSieve`. It returns `s.spf[n] == n` when `n <= s.n` (O(1)) and falls back to `isPrime(n)` above the table. The sieve must not be modified between `reset` and the call.
+
+### pollardRhoBrent
+
+`pollardRhoBrent(n, seed = 0, budget = 64)` returns a proper divisor `1 < d < n` of a composite `n`. It returns 0 when `n < 4`, when `n` is prime (checked first, so no cycle search runs on primes), or when `budget` attempts all fail; `budget = 0` always gives 0. Even `n` gives 2. Each attempt draws `c` in `[1, n)` and a start in `[0, n)` from splitmix64 seeded by `seed`, so equal arguments give equal results. A returned value always divides `n` (Las Vegas with respect to the factor). Expected time is `O(n^(1/4))` multiplications per attempt (heuristic random-map model).
+
+Brent's method doubles the window `r`, accumulates `|x - y|` products in batches of 128, and takes one gcd per batch. When a batch reaches `gcd = n`, it replays the batch one step at a time from the saved point. The product lives in Montgomery form: the Montgomery residue of `|x - y|` is the difference of residues, and `R` is a unit modulo odd `n`, so `gcd(q, n)` is the gcd of the plain product.
+
+### factorize, divisorCount, divisorSum, isSquarefree, radical
+
+`factorize(n)` asserts `n >= 1` and returns ascending prime powers, empty for 1. It strips the 18 small primes, then splits the remaining cofactors with rho (fixed internal seed, unlimited retries) until every part passes `isPrime`: expected `O(n^(1/4) * log(n))` time, `O(log(n))` space. `divisorCount(n)` is the exact `d(n)` (at most 184320 below 2^64). `divisorSum(n)` is the exact `sigma(n)` as `ulll` (`sigma(n) < 2^70`). `isSquarefree(n)` and `radical(n)` read the exponents and primes. All assert `n >= 1`; under `-DNDEBUG`, `n = 0` returns the result for 1 instead of looping.
+
+### factorizeTrial
+
+Deterministic, with the output of `factorize`, in `O(sqrt(n))`. It replaces legacy `getPrimeFacSlow`, for callers who want no randomness or have small inputs.
+
+### divisors
+
+`divisors(f)` returns all positive divisors of the factorization `f` in ascending order. Each existing divisor is multiplied by each power of the next prime, which yields every divisor exactly once by unique factorization; the list is then sorted, `O(out * log(out))`. `divisors(n)` factorizes first; `n >= 1`.
+
+### isPrimePower
+
+Returns `p` when `n = p^k` with prime `p` and `k >= 1`, and 0 otherwise (0 and 1 give 0). For each prime exponent `k <= 61` it repeatedly replaces `n` by its exact k-th root, then tests the remaining base with `isPrime`. Correctness: if `n = b^e` with `e` maximal, removing prime-degree roots reaches `b` (every prime factor of `e` is at most 63), and `b` is prime iff `n` is a prime power. `O(log(n)^2)` word operations.
+
+### coprimeBase
+
+Asserts every `a_i >= 1` and ignores ones. It returns the natural (coarsest) coprime base of the list in ascending order: pairwise coprime elements above 1 such that every `a_i` is a product of their powers; empty input gives an empty base. Algorithm: pop `x`; if `x` is coprime to every kept element, keep it; otherwise remove the first kept `b` with `g = gcd(x, b) > 1` and push `g`, `b / g`, `x / g`. Each split replaces `x * b` by `x * b / g`, so there are at most `sum(log2(a_i))` splits, and each pop scans at most `64k` kept elements: `O(k^2 * w^3)` with `w = 64`.
+
+Coarsest: every pushed value is a product of powers of the natural base `B*` (gcds and quotients preserve that), and every spanning coprime base refines `B*` (Bernstein, Theorem 7.2). A result element is therefore a product of `B*` powers sharing no prime with other elements, and each `B*` element is a power of one result element; together these force equality. Bernstein's Theorem 7.3 gives the same result more directly. Every output is built from the inputs by gcds and exact quotients, so it lies in the closure of the input. A coprime base inside that closure is the natural one. The tester also compares against a brute coarsest base (primes grouped by primitive exponent vector) on random lists.
+
+### maxDivisorCount
+
+Asserts `N >= 1` and returns `(n, d(n))` for the smallest `n <= N` with the maximum divisor count, for example `(897612484786617600, 103680)` at 10^18 and `(18401055938125660800, 184320)` at `2^64 - 1`. The depth-first search runs over exponent-nonincreasing products of consecutive primes from 2: sorting any `n`'s exponents onto the smallest primes gives some `n' <= n` with the same count, so the smallest maximizer has that form. 47,616 nodes at `N = 2^64 - 1`.
+
+### Legacy Mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `millerRabin64(n)` | `isPrime(n)` |
+| `millerRabin64Compact(n)` | `isPrimeCompact(n)` |
+| `primeFactors(n)` (ascending primes with multiplicity) | `factorize(n)` flattened: `for (auto [p, e] : factorize(n)) { res.insert(res.end(), e, p); }` |
+
+## Feature-to-Test Map
+
+Entry: [`007-primality_factorization_tester.py`](<../../96-Local Testing/05-Mathematics/007-primality_factorization_tester.py>) with its C++ helper. The oracles are a separate byte sieve, plain trial division and divisor enumeration in the tester, and a Python 13-base Miller–Rabin (deterministic below 3.3 * 10^24) with exact big-integer reconstruction. Counts given as a / b / c are for quick / full / stress mode.
+
+| Feature | Oracle and edge classes |
+|---|---|
+| `isPrime`, `isPrimeSpf` | Every `n` through 10^5 / 2 * 10^6 / 10^7 against the sieve, with the table covering half the range (fallback above); every divisor of every base; 14 named strong pseudoprimes and Carmichael numbers; Chernick Carmichael numbers (30 / 400); products and squares of the six largest 32-bit primes; the three largest 64-bit primes. Python: random 64-bit and random-width values, edges `0..4`, `2^64 - 1`, `2^64 - 59`, `2^63 ± 1`, `2^62 + 1`, `2^32` neighbours, 4759123141. |
+| `isPrimeTrial` | The sieve through the factor bound; Python on random 36-bit values. |
+| Compact twins | Every primality, rho and factorization check above (exhaustive ranges, base divisors, pseudoprimes, Carmichael numbers, semiprimes, large primes, prime powers, budget and seed reproducibility) also runs on `isPrimeCompact`, `pollardRhoBrentCompact` and `factorizeCompact` against the same oracles. The Python oracle independently verifies the fast factorization and requires the Compact one to equal it. `factorizeCompact(0)` is a probe. |
+| `pollardRhoBrent` | Every `n` through the factor bound: a proper divisor for composites, 0 for primes and `n < 4`; Carmichael numbers and 32-bit semiprimes; `budget = 0`; the same seed gives the same result; Python checks divisibility on random inputs. |
+| `factorize`, `factorizeTrial` | Trial factorization of every `n` through 2 * 10^4 / 2 * 10^5 / 10^6; pseudoprime and Carmichael factorizations; all prime powers of seven primes, including `2^63`; Python reconstruction with an independent primality check on random, semiprime, prime-power, smooth and boundary values. |
+| `divisors` (both overloads), `divisorCount`, `divisorSum` | Square-root enumeration and a divisor-count sieve through the factor bound; Python divisor generation from the verified factorization (lists only when `d(n) <= 4096`); large primes. |
+| `isPrimePower`, `isSquarefree`, `radical` | Trial factorization through the factor bound; prime powers and their successors; 32-bit prime squares; Python closed forms. |
+| `coprimeBase` | 200 / 3000 / 20000 random lists of 0–6 values, each a product of up to 7 factors (2..41 including composites, or 32-bit primes): sorted, above 1, pairwise coprime, each element divides an input, inputs span; equality with the brute coarsest base on two thirds of the lists; empty input, ones, duplicates, `{6, 10}`, `{12, 18}`, `{4, 8}`, `{10^18, 10^18}`. |
+| `maxDivisorCount` | Running maximum of the divisor-count sieve for every `N` through 2 * 10^4 and every 101st beyond; known answers at 1, 10^18 and `2^64 - 1`. |
+| Preconditions | 10 checked-build probes: zero for each `n >= 1` function (including `factorizeCompact`), a zero list entry, `N = 0`. |
+
+## Commands and Results
+
+Conditions: Intel Core i9-11900H, Linux x86-64, GNU++20, CPython 3.14; GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with the assertion probes, ASan/UBSan `-O1` (full and stress). Counts are per configuration and equal on both compilers. The 2026-10-13 rows are the latest with recorded counts.
+
+| Date, package | Command | Result |
+|---|---|---|
+| 2026-10-13 P052 prune | `007-primality_factorization_tester.py --mode quick --seed 1` | PASS, 2 configurations, 424,303 C++ checks and 2,727 Python cases, 10 probes; MEMORY peak 436 MB |
+| 2026-10-13 P052 prune | `007-primality_factorization_tester.py --mode full --seed 1` | PASS, 3 configurations, 6,079,117 C++ checks and 36,027 Python cases, 10 probes; 105 s; MEMORY peak 729 MB |
+| 2026-10-13 P052 prune | same with `CXX=g++-14` | PASS, same counts; 117 s; MEMORY peak 692 MB |
+| 2026-10-13 P052 prune | `007-primality_factorization_tester.py --mode stress --seed 1` | PASS, 3 configurations, 30,402,516 C++ checks and 180,027 Python cases, 10 probes; 461 s; MEMORY peak 1,034 MB |
+| 2026-10-13 P052 prune | `008-multiplicative_functions_tester.py --mode full --seed 1`, plain and `CXX=g++-14` (its header includes this one) | PASS; results in [008-multiplicative_functions.md](008-multiplicative_functions.md#commands-and-results) |
+| 2026-10-13 P052 prune | `02-integration.py` | PASS, 135 standalone and aggregate headers, scalar and available AVX2 multi-TU, workspace; 239 s; MEMORY peak 649 MB |
+| 2026-10-13 P052 prune | `03-consistency.py`; `--braces` on `07`, `10` and their testers | no errors; no closing-brace, comment-cap or free-function violations |
+| 2026-11-10 P274 (seed 42, beside the other suites, build cache emptied before each cold run) | `01-run.py --mode full` (GCC 16.2.1) | PASS; pre-flight quick peak 789 MB; optimized 0.2 s compile + 30.0 s run, checked 17.2 s + 43.7 s, ASan-UBSan 18.8 s + 76.8 s; MEMORY peak 1026 MB |
+| 2026-11-10 P274 | `CXX=g++-14 01-run.py --mode full` (GCC 14.4.1) | PASS; pre-flight quick peak 858 MB; optimized 0.3 s + 41.4 s, checked 28.3 s + 73.4 s, ASan-UBSan 26.1 s + 100.1 s; MEMORY peak 1108 MB |
+| 2026-11-10 P274 | `01-run.py --mode quick` | PASS; optimized 22.8 s + 4.3 s, checked 17.1 s + 19.0 s; MEMORY peak 788 MB |
+| 2026-11-10 P274 | `01-run.py --mode stress --rounds 1` | PASS; pre-flight quick peak 50 MB; optimized 0.1 s + 71.1 s, checked 6.8 s + 105.9 s, ASan-UBSan 7.7 s + 156.8 s; MEMORY peak 727 MB; check counts not recorded |
+
+```bash
+python3 '96-Local Testing/05-Mathematics/007-primality_factorization_tester.py' --mode full --seed 1
+CXX=g++-14 python3 '96-Local Testing/05-Mathematics/007-primality_factorization_tester.py' --mode full --seed 1
+python3 '96-Local Testing/05-Mathematics/007-primality_factorization_tester.py' --mode stress --seed 1
+```
+
+The header, the tester and a two-translation-unit build with `010-crt.hpp` compile without warnings under `-Wall -Wextra -Wconversion -Werror` on both compilers.
+
+## Benchmarks
+
+Driver: [`007-primality_factorization_benchmark.py`](<../../96-Local Testing/05-Mathematics/007-primality_factorization_benchmark.py>) with its [C++ workload](<../../96-Local Testing/05-Mathematics/007-primality_factorization_benchmark.cpp>); raw output goes to `007-primality_factorization_benchmark.json`. It compares the Montgomery functions with their Compact twins: the same algorithms, bases, batching and seeds, multiplying with plain `__int128 %`. Conditions (2026-10-09): i9-11900H on an otherwise idle machine, GCC 16.2.1, `-std=gnu++20 -O2` (no `-march`), seed 20261009, one warmup plus five repetitions, medians; outputs compared on every repetition; peak memory 334 MB.
+
+| Workload | Montgomery (ms) | Compact (ms) | Saving |
+|---|---|---|---|
+| `isPrime`, 10^6 random odd 64-bit | 206.7 | 207.7 | 0.5% |
+| `isPrime`, 10^5 random 64-bit primes | 236.7 | 237.2 | 0.2% |
+| `isPrime`, 10^6 random 32-bit | 43.7 | 58.0 | 24.7% |
+| `factorize`, 300 semiprimes of 31- and 32-bit primes | 113.8 | 177.1 | 35.8% |
+| `factorize`, 10^4 random 64-bit | 161.0 | 245.6 | 34.4% |
+
+The Montgomery rule of `01-principles.md` is met: factorization, the representative workload, is 34–36% faster, and no workload regresses. 64-bit primality is level on this CPU, which has a fast 64-bit divider. The Compact twins cost about 1.5x on factorization, the price of a copy with no Core reduction dependency.
+
+The table predates the 2026-10-13 prune, which removed one 64-bit remainder per witness and a redundant parity guard from the measured paths. It was not re-recorded on the then-loaded machine, where an A/B of the two headers was indistinguishable (Montgomery saving 35–38% on factorization, 24–26% on 32-bit `isPrime`).
+
+## Sources
+
+Fetched on 2026-10-09 by the completeness sweep and written independently with no code copied ([00-sources.md](00-sources.md), P052 sweep): cp-algorithms and OI Wiki on Pollard rho, Nyaan and hitonanode fast factorization (both limited to 2^62), maspypy `divisors`, and OI Wiki on highly composite numbers. Jaeschke's paper, the appspot base records and Bernstein's coprime-base paper were read on 2026-11-22 ([00-sources.md](00-sources.md#fetched-2026-11-22-source-check)). Of Feitsma's pseudoprime list, on which the seven-base set rests, only the index page was read. Legacy: `OLD/5-Mathematics/05-primesandfactors.hpp`.
+
+Adopted from the P052 sweep: `factorizeTrial` (legacy `getPrimeFacSlow`), `divisors` from a factorization and `maxDivisorCount`.
+
+## Limits and Handoffs
+
+- Legacy accounting: `isPrimeMR` becomes `isPrime`; `getPrimeFacSlow` becomes `factorizeTrial`; `getOneFacBPR(n, x0, c)` becomes `pollardRhoBrent` (seeded instead of an explicit `x0`/`c`); `getPrimeFacFast` becomes `factorize` (both legacy forms returned flat prime lists; flatten as in Legacy Mapping); `getAllFac(n, opt)` becomes `divisors`; `getNumDiv` and `getSumDiv` become `divisorCount` and `divisorSum` (exact `ulll`). The legacy global `Random rnd` is gone.
+- Under `-DNDEBUG`, `n = 0` stops the loops of `factorize`, `factorizeTrial` and `coprimeBase` instead of growing memory without bound.
+- Rejected candidates are in [00-notes.md](00-notes.md), P052 research decisions.
+- The Compact twins await their settlement under Core type parameters (P052 follow-up, Contracts).
+- Probe passes predate the 2026-11-12 runner fix; the package's next run rechecks them.
+
+## Aliases
+
+Search aliases (P263, grab --find): primality test, prime test, Miller-Rabin, Pollard rho, integer factorization; 素数, 分解质因数, 质因数分解, 素性测试, 米勒-拉宾, 判断素数, 枚举约数, 约数个数, 试除法.
+
+## History
+
+- 2026-10-09: P052 initial implementation and verification; full passed (3,678,282 checks) and integration passed (112 headers).
+- 2026-10-09: P052 rerun for the Compact rule (P231): algorithm templates with product functors and four Compact twins; review found 1 defect, fixed; full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune removed `millerRabin64`, `millerRabin64Compact`, `primeFactors` (Legacy Mapping) and the witness loop's unreachable base-skip branch; review found no defect, 6 evidence findings fixed; full passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 added the search aliases, then Chinese names from OI Wiki's page titles and common names of the row's operations (Simplified, plus Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 moved the builds to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; library-wide full (g++ and g++-14), quick and stress runs passed.

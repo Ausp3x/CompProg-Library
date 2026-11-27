@@ -50,7 +50,7 @@ P231's rules are owned by [05-testing.md](../../00-Guidelines/05-testing.md) (Me
 python3 '96-Local Testing/00-Tools/05-runner_tester.py'                         # 2026-11-22: PASS, 64 tests, 86 s (05-modint.md, P005 /finish)
 python3 '96-Local Testing/00-Tools/05-runner_tester.py' --mode full --seed 1    # 2026-11-16: PASS, 63 tests, test_supervisor_death_ends_scope included
 python3 '96-Local Testing/00-Tools/17-reap_tester.py' --mode full              # 2026-11-16: PASS, 10 tests, quick too; caught each of 25 seeded defects
-python3 '96-Local Testing/01-run.py' --mode quick --no-integration              # 2026-10-09: PASS, 79 suites, each self-capped: 79 MEMORY lines, oom_kills=0; largest peaks 1267 MB (01-Core/16-poly), 1027 MB (05-dynmodint64), 968 MB (11-sorting_selection)
+python3 '96-Local Testing/01-run.py' --mode quick --no-integration              # 2026-10-09: PASS, 79 suites, each self-capped: 79 MEMORY lines, oom_kills=0; largest peaks 1267 MB (01-Core/16-poly), 1027 MB (05-dynmodint64), 968 MB (011-sorting_selection)
 python3 '96-Local Testing/02-integration.py'                                    # 2026-10-09: PASS, 112 headers, self-capped, peak 654 MB
 python3 '96-Local Testing/03-consistency.py'                                    # 2026-10-09: no errors
 ```
@@ -67,7 +67,7 @@ Seeded defects: `test_supervisor_death_ends_scope` fails on the file before 2026
 ## History
 
 - 2026-10-09: P231 introduced after the P052 incident (also guarding `01-Core/16-poly_tester.py` and `16-poly_benchmark.py`, then another package's uncommitted work); review fixed four findings; quick run of all suites, integration and consistency passed.
-- 2026-10-24: P072 `/finish` (user decision 2026-10-24): the six folder runners (`02`–`07`) accept `--configuration ASan-UBSan` in quick mode, so the pre-flight of a full or stress ASan retry no longer fails; checked with `55-fractional_programming_tester.py --mode full --configuration ASan-UBSan`.
+- 2026-10-24: P072 `/finish` (user decision 2026-10-24): the six folder runners (`02`–`07`) accept `--configuration ASan-UBSan` in quick mode, so the pre-flight of a full or stress ASan retry no longer fails; checked with `055-fractional_programming_tester.py --mode full --configuration ASan-UBSan`.
 - 2026-10-24/25: P247 (user decision 2026-10-25: kept, [00-parallel.md](00-parallel.md)): `supervise()` and the CLI reporter ignore SIGINT; an interrupted pre-flight prints `INTERRUPTED` instead of a FAIL; a second `ensure()` in one process prints its `MEMORY` line once.
 - 2026-11-04: P252 `/finish` (user decision 2026-11-04): SIGTERM and SIGHUP forwarding in `supervise()` and the CLI reporter; six tests, seven seeded defects caught.
 - 2026-11-05: P253 retired the Compact-twin check with the Compact rule.

@@ -1,6 +1,6 @@
 #include "../../02-Data Structures/00-monoids.hpp"
-#include "../../02-Data Structures/03-segmenttree.hpp"
-#include "../../02-Data Structures/12-lazysegmenttree.hpp"
+#include "../../02-Data Structures/003-segmenttree.hpp"
+#include "../../02-Data Structures/012-lazysegmenttree.hpp"
 #include "../../01-Core/05-modint.hpp"
 
 namespace {

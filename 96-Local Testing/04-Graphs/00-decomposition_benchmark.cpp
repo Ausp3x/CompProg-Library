@@ -1,5 +1,5 @@
-#include "../../04-Graphs/07-lca.hpp"
-#include "../../04-Graphs/08-scc.hpp"
+#include "../../04-Graphs/007-lca.hpp"
+#include "../../04-Graphs/008-scc.hpp"
 
 // Timings include allocation; correctness checks stay outside the timed region.
 int main(int argc, char **argv) {

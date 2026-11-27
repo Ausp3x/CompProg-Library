@@ -43,7 +43,7 @@
         "OLD/Team Notebook/src/algs.cpp:2541",
         "OLD/Team Notebook/src/algsbetter.cpp:3665"
       ],
-      "target": "02-Data Structures/08-monotone_stack.hpp",
+      "target": "02-Data Structures/008-monotone_stack.hpp",
       "resolution": "Root notified and adding largest histogram rectangle/maximal all-zero/all-one binary submatrix area+witness to existing DS08; no new header needed."
     },
     {
@@ -189,7 +189,7 @@
       "lines": 29,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/01-mod_arithmetic.hpp"
+        "05-Mathematics/001-mod_arithmetic.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -202,7 +202,7 @@
       "lines": 44,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/02-search_algorithms.hpp"
+        "05-Mathematics/002-search_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -215,7 +215,7 @@
       "lines": 37,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/03-equation_solvers.hpp"
+        "05-Mathematics/003-equation_solvers.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -228,8 +228,8 @@
       "lines": 168,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/04-sieve_algorithms.hpp",
-        "05-Mathematics/06-segmentedsieve.hpp"
+        "05-Mathematics/004-sieve_algorithms.hpp",
+        "05-Mathematics/006-segmentedsieve.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -242,8 +242,8 @@
       "lines": 153,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/07-primality_factorization.hpp",
-        "05-Mathematics/08-multiplicative_functions.hpp"
+        "05-Mathematics/007-primality_factorization.hpp",
+        "05-Mathematics/008-multiplicative_functions.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -256,8 +256,8 @@
       "lines": 41,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/08-multiplicative_functions.hpp",
-        "05-Mathematics/09-modinverse.hpp"
+        "05-Mathematics/008-multiplicative_functions.hpp",
+        "05-Mathematics/009-modinverse.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -270,7 +270,7 @@
       "lines": 58,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/10-crt.hpp"
+        "05-Mathematics/010-crt.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -283,7 +283,7 @@
       "lines": 95,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/11-discrete_log_root.hpp"
+        "05-Mathematics/011-discrete_log_root.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -310,8 +310,8 @@
       "classification": "algorithm-reference",
       "targets": [
         "01-Core/16-poly.hpp",
-        "05-Mathematics/13-convolution.hpp",
-        "05-Mathematics/14-polynomial_algorithms.hpp"
+        "05-Mathematics/013-convolution.hpp",
+        "05-Mathematics/014-polynomial_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -325,9 +325,9 @@
       "classification": "algorithm-reference",
       "targets": [
         "01-Core/16-poly.hpp",
-        "05-Mathematics/13-convolution.hpp",
-        "05-Mathematics/14-polynomial_algorithms.hpp",
-        "05-Mathematics/15-linear_recurrence.hpp"
+        "05-Mathematics/013-convolution.hpp",
+        "05-Mathematics/014-polynomial_algorithms.hpp",
+        "05-Mathematics/015-linear_recurrence.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -340,7 +340,7 @@
       "lines": 32,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/05-combinatorics.hpp"
+        "05-Mathematics/005-combinatorics.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -353,8 +353,8 @@
       "lines": 41,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/17-numerical_methods.hpp",
-        "05-Mathematics/21-integer_roots.hpp"
+        "05-Mathematics/017-numerical_methods.hpp",
+        "05-Mathematics/021-integer_roots.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -367,8 +367,8 @@
       "lines": 25,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/18-floorsum.hpp",
-        "05-Mathematics/19-josephus.hpp"
+        "05-Mathematics/018-floorsum.hpp",
+        "05-Mathematics/019-josephus.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -381,7 +381,7 @@
       "lines": 44,
       "classification": "algorithm-reference",
       "targets": [
-        "06-Miscellaneous/02-customhash.hpp"
+        "06-Miscellaneous/002-customhash.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -394,7 +394,7 @@
       "lines": 70,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/24-transform_algorithms.hpp"
+        "05-Mathematics/024-transform_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -407,7 +407,7 @@
       "lines": 15,
       "classification": "algorithm-reference",
       "targets": [
-        "06-Miscellaneous/01-random.hpp"
+        "06-Miscellaneous/001-random.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -503,71 +503,71 @@
         "01-Core/05-modint.hpp",
         "01-Core/10-matrix.hpp",
         "02-Data Structures/00-monoids.hpp",
-        "02-Data Structures/01-dsu.hpp",
-        "02-Data Structures/04-sparsetable.hpp",
-        "02-Data Structures/08-monotone_stack.hpp",
-        "02-Data Structures/11-fenwick_tree_advanced.hpp",
-        "02-Data Structures/12-lazysegmenttree.hpp",
-        "02-Data Structures/13-dynamicsegmenttree.hpp",
-        "02-Data Structures/14-segtreebeats.hpp",
-        "02-Data Structures/15-segment_tree_2d.hpp",
-        "02-Data Structures/18-persistentsegmenttree.hpp",
-        "02-Data Structures/19-treap.hpp",
-        "02-Data Structures/21-lichao.hpp",
-        "02-Data Structures/24-interval_set.hpp",
-        "02-Data Structures/26-trie.hpp",
-        "02-Data Structures/27-cartesiantree.hpp",
-        "02-Data Structures/29-weighteddsu.hpp",
-        "03-Geometry/01-point.hpp",
-        "03-Geometry/02-line_segment.hpp",
-        "03-Geometry/03-polygon.hpp",
-        "03-Geometry/05-closestpair.hpp",
-        "03-Geometry/06-circle.hpp",
-        "03-Geometry/10-halfplaneintersection.hpp",
-        "03-Geometry/11-minkowskisum.hpp",
-        "03-Geometry/12-segmentintersection.hpp",
-        "03-Geometry/13-segment_union.hpp",
-        "03-Geometry/14-minimumenclosingcircle.hpp",
-        "03-Geometry/21-manhattan_geometry.hpp",
-        "04-Graphs/02-traversal.hpp",
-        "04-Graphs/03-toposort.hpp",
-        "04-Graphs/05-shortest_path.hpp",
-        "04-Graphs/06-mst.hpp",
-        "04-Graphs/07-lca.hpp",
-        "04-Graphs/08-scc.hpp",
-        "04-Graphs/09-bridges_articulation.hpp",
-        "04-Graphs/10-euleriantrail.hpp",
-        "04-Graphs/12-all_pairs_shortest_path.hpp",
-        "04-Graphs/13-shortest_path_advanced.hpp",
-        "04-Graphs/14-tree_algorithms.hpp",
-        "04-Graphs/15-hld.hpp",
-        "04-Graphs/16-centroiddecomposition.hpp",
-        "04-Graphs/18-twosat.hpp",
-        "04-Graphs/19-max_flow.hpp",
-        "04-Graphs/20-min_cost_flow.hpp",
-        "04-Graphs/21-matching_bipartite.hpp",
-        "04-Graphs/23-assignment.hpp",
-        "04-Graphs/26-dynamic_connectivity.hpp",
-        "04-Graphs/30-flow_with_demands.hpp",
-        "05-Mathematics/01-mod_arithmetic.hpp",
-        "05-Mathematics/04-sieve_algorithms.hpp",
-        "05-Mathematics/05-combinatorics.hpp",
-        "05-Mathematics/07-primality_factorization.hpp",
-        "05-Mathematics/08-multiplicative_functions.hpp",
-        "05-Mathematics/09-modinverse.hpp",
-        "05-Mathematics/10-crt.hpp",
-        "05-Mathematics/11-discrete_log_root.hpp",
-        "05-Mathematics/16-linear_algebra.hpp",
-        "05-Mathematics/18-floorsum.hpp",
-        "05-Mathematics/23-matrixtree.hpp",
-        "05-Mathematics/24-transform_algorithms.hpp",
-        "05-Mathematics/27-optimization.hpp",
-        "06-Miscellaneous/02-customhash.hpp",
-        "06-Miscellaneous/08-sequence_algorithms.hpp",
-        "06-Miscellaneous/11-sorting_selection.hpp",
-        "06-Miscellaneous/13-knapsack.hpp",
-        "06-Miscellaneous/33-profile_dp.hpp",
-        "07-Strings/04-trie.hpp"
+        "02-Data Structures/001-dsu.hpp",
+        "02-Data Structures/004-sparsetable.hpp",
+        "02-Data Structures/008-monotone_stack.hpp",
+        "02-Data Structures/011-fenwick_tree_advanced.hpp",
+        "02-Data Structures/012-lazysegmenttree.hpp",
+        "02-Data Structures/013-dynamicsegmenttree.hpp",
+        "02-Data Structures/014-segtreebeats.hpp",
+        "02-Data Structures/015-segment_tree_2d.hpp",
+        "02-Data Structures/018-persistentsegmenttree.hpp",
+        "02-Data Structures/019-treap.hpp",
+        "02-Data Structures/021-lichao.hpp",
+        "02-Data Structures/024-interval_set.hpp",
+        "02-Data Structures/026-trie.hpp",
+        "02-Data Structures/027-cartesiantree.hpp",
+        "02-Data Structures/029-weighteddsu.hpp",
+        "03-Geometry/001-point.hpp",
+        "03-Geometry/002-line_segment.hpp",
+        "03-Geometry/003-polygon.hpp",
+        "03-Geometry/005-closestpair.hpp",
+        "03-Geometry/006-circle.hpp",
+        "03-Geometry/010-halfplaneintersection.hpp",
+        "03-Geometry/011-minkowskisum.hpp",
+        "03-Geometry/012-segmentintersection.hpp",
+        "03-Geometry/013-segment_union.hpp",
+        "03-Geometry/014-minimumenclosingcircle.hpp",
+        "03-Geometry/021-manhattan_geometry.hpp",
+        "04-Graphs/002-traversal.hpp",
+        "04-Graphs/003-toposort.hpp",
+        "04-Graphs/005-shortest_path.hpp",
+        "04-Graphs/006-mst.hpp",
+        "04-Graphs/007-lca.hpp",
+        "04-Graphs/008-scc.hpp",
+        "04-Graphs/009-bridges_articulation.hpp",
+        "04-Graphs/010-euleriantrail.hpp",
+        "04-Graphs/012-all_pairs_shortest_path.hpp",
+        "04-Graphs/013-shortest_path_advanced.hpp",
+        "04-Graphs/014-tree_algorithms.hpp",
+        "04-Graphs/015-hld.hpp",
+        "04-Graphs/016-centroiddecomposition.hpp",
+        "04-Graphs/018-twosat.hpp",
+        "04-Graphs/019-max_flow.hpp",
+        "04-Graphs/020-min_cost_flow.hpp",
+        "04-Graphs/021-matching_bipartite.hpp",
+        "04-Graphs/023-assignment.hpp",
+        "04-Graphs/026-dynamic_connectivity.hpp",
+        "04-Graphs/030-flow_with_demands.hpp",
+        "05-Mathematics/001-mod_arithmetic.hpp",
+        "05-Mathematics/004-sieve_algorithms.hpp",
+        "05-Mathematics/005-combinatorics.hpp",
+        "05-Mathematics/007-primality_factorization.hpp",
+        "05-Mathematics/008-multiplicative_functions.hpp",
+        "05-Mathematics/009-modinverse.hpp",
+        "05-Mathematics/010-crt.hpp",
+        "05-Mathematics/011-discrete_log_root.hpp",
+        "05-Mathematics/016-linear_algebra.hpp",
+        "05-Mathematics/018-floorsum.hpp",
+        "05-Mathematics/023-matrixtree.hpp",
+        "05-Mathematics/024-transform_algorithms.hpp",
+        "05-Mathematics/027-optimization.hpp",
+        "06-Miscellaneous/002-customhash.hpp",
+        "06-Miscellaneous/008-sequence_algorithms.hpp",
+        "06-Miscellaneous/011-sorting_selection.hpp",
+        "06-Miscellaneous/013-knapsack.hpp",
+        "06-Miscellaneous/033-profile_dp.hpp",
+        "07-Strings/004-trie.hpp"
       ],
       "read_scope": "All extracted class/free-function declarations reviewed, aligned with full explanatory notes and selected bodies; not a compiler-AST or correctness audit.",
       "reason": "Notebook monolith contains real algorithms; test.cpp is an889-line graph collection with empty main, not a test-only file.",
@@ -677,7 +677,7 @@
             "SegTree"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/012-lazysegmenttree.hpp"
           ]
         },
         {
@@ -686,7 +686,7 @@
             "DynSegTree"
           ],
           "targets": [
-            "02-Data Structures/13-dynamicsegmenttree.hpp"
+            "02-Data Structures/013-dynamicsegmenttree.hpp"
           ]
         },
         {
@@ -695,7 +695,7 @@
             "PerSegTree"
           ],
           "targets": [
-            "02-Data Structures/18-persistentsegmenttree.hpp"
+            "02-Data Structures/018-persistentsegmenttree.hpp"
           ]
         },
         {
@@ -704,7 +704,7 @@
             "SegTree2D"
           ],
           "targets": [
-            "02-Data Structures/15-segment_tree_2d.hpp"
+            "02-Data Structures/015-segment_tree_2d.hpp"
           ]
         },
         {
@@ -713,7 +713,7 @@
             "SegTreeBeats"
           ],
           "targets": [
-            "02-Data Structures/14-segtreebeats.hpp"
+            "02-Data Structures/014-segtreebeats.hpp"
           ]
         },
         {
@@ -722,7 +722,7 @@
             "KSPerSegTree"
           ],
           "targets": [
-            "02-Data Structures/18-persistentsegmenttree.hpp"
+            "02-Data Structures/018-persistentsegmenttree.hpp"
           ]
         },
         {
@@ -731,7 +731,7 @@
             "SparseTable"
           ],
           "targets": [
-            "02-Data Structures/04-sparsetable.hpp"
+            "02-Data Structures/004-sparsetable.hpp"
           ]
         },
         {
@@ -740,8 +740,8 @@
             "DSU"
           ],
           "targets": [
-            "02-Data Structures/01-dsu.hpp",
-            "02-Data Structures/29-weighteddsu.hpp"
+            "02-Data Structures/001-dsu.hpp",
+            "02-Data Structures/029-weighteddsu.hpp"
           ]
         },
         {
@@ -750,7 +750,7 @@
             "FenTreeRangeAdd1D"
           ],
           "targets": [
-            "02-Data Structures/11-fenwick_tree_advanced.hpp"
+            "02-Data Structures/011-fenwick_tree_advanced.hpp"
           ]
         },
         {
@@ -759,7 +759,7 @@
             "FenTree"
           ],
           "targets": [
-            "02-Data Structures/11-fenwick_tree_advanced.hpp"
+            "02-Data Structures/011-fenwick_tree_advanced.hpp"
           ]
         },
         {
@@ -768,7 +768,7 @@
             "LiChaoTree"
           ],
           "targets": [
-            "02-Data Structures/21-lichao.hpp"
+            "02-Data Structures/021-lichao.hpp"
           ]
         },
         {
@@ -777,7 +777,7 @@
             "DynamicMex"
           ],
           "targets": [
-            "02-Data Structures/24-interval_set.hpp"
+            "02-Data Structures/024-interval_set.hpp"
           ]
         },
         {
@@ -786,7 +786,7 @@
             "TreapNode"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -795,7 +795,7 @@
             "getSz"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -804,7 +804,7 @@
             "pull"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -813,7 +813,7 @@
             "push"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -822,7 +822,7 @@
             "merge"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -831,7 +831,7 @@
             "split"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -840,7 +840,7 @@
             "LcaO1"
           ],
           "targets": [
-            "04-Graphs/07-lca.hpp"
+            "04-Graphs/007-lca.hpp"
           ]
         },
         {
@@ -849,7 +849,7 @@
             "LcaLog"
           ],
           "targets": [
-            "04-Graphs/07-lca.hpp"
+            "04-Graphs/007-lca.hpp"
           ]
         },
         {
@@ -858,7 +858,7 @@
             "HLD"
           ],
           "targets": [
-            "04-Graphs/15-hld.hpp"
+            "04-Graphs/015-hld.hpp"
           ]
         },
         {
@@ -867,7 +867,7 @@
             "buildCartesianTree"
           ],
           "targets": [
-            "02-Data Structures/27-cartesiantree.hpp"
+            "02-Data Structures/027-cartesiantree.hpp"
           ]
         },
         {
@@ -876,7 +876,7 @@
             "Point"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -885,7 +885,7 @@
             "PointD"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -894,7 +894,7 @@
             "dot"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -903,7 +903,7 @@
             "cross"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -912,7 +912,7 @@
             "sgn"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -921,7 +921,7 @@
             "polyArea"
           ],
           "targets": [
-            "03-Geometry/03-polygon.hpp"
+            "03-Geometry/003-polygon.hpp"
           ]
         },
         {
@@ -930,7 +930,7 @@
             "checkInter1D"
           ],
           "targets": [
-            "03-Geometry/02-line_segment.hpp"
+            "03-Geometry/002-line_segment.hpp"
           ]
         },
         {
@@ -939,7 +939,7 @@
             "checkInterSeg"
           ],
           "targets": [
-            "03-Geometry/02-line_segment.hpp"
+            "03-Geometry/002-line_segment.hpp"
           ]
         },
         {
@@ -948,7 +948,7 @@
             "lineCircleInter"
           ],
           "targets": [
-            "03-Geometry/06-circle.hpp"
+            "03-Geometry/006-circle.hpp"
           ]
         },
         {
@@ -957,7 +957,7 @@
             "circleCircleInter"
           ],
           "targets": [
-            "03-Geometry/06-circle.hpp"
+            "03-Geometry/006-circle.hpp"
           ]
         },
         {
@@ -966,7 +966,7 @@
             "indicator"
           ],
           "targets": [
-            "03-Geometry/14-minimumenclosingcircle.hpp"
+            "03-Geometry/014-minimumenclosingcircle.hpp"
           ]
         },
         {
@@ -975,7 +975,7 @@
             "isInside"
           ],
           "targets": [
-            "03-Geometry/14-minimumenclosingcircle.hpp"
+            "03-Geometry/014-minimumenclosingcircle.hpp"
           ]
         },
         {
@@ -984,7 +984,7 @@
             "getMEC"
           ],
           "targets": [
-            "03-Geometry/14-minimumenclosingcircle.hpp"
+            "03-Geometry/014-minimumenclosingcircle.hpp"
           ]
         },
         {
@@ -993,7 +993,7 @@
             "Halfplane"
           ],
           "targets": [
-            "03-Geometry/10-halfplaneintersection.hpp"
+            "03-Geometry/010-halfplaneintersection.hpp"
           ]
         },
         {
@@ -1002,7 +1002,7 @@
             "getInter"
           ],
           "targets": [
-            "03-Geometry/10-halfplaneintersection.hpp"
+            "03-Geometry/010-halfplaneintersection.hpp"
           ]
         },
         {
@@ -1011,7 +1011,7 @@
             "halfplaneInter"
           ],
           "targets": [
-            "03-Geometry/10-halfplaneintersection.hpp"
+            "03-Geometry/010-halfplaneintersection.hpp"
           ]
         },
         {
@@ -1020,7 +1020,7 @@
             "Seg"
           ],
           "targets": [
-            "03-Geometry/12-segmentintersection.hpp"
+            "03-Geometry/012-segmentintersection.hpp"
           ]
         },
         {
@@ -1029,7 +1029,7 @@
             "findInterSegs"
           ],
           "targets": [
-            "03-Geometry/12-segmentintersection.hpp"
+            "03-Geometry/012-segmentintersection.hpp"
           ]
         },
         {
@@ -1038,7 +1038,7 @@
             "lenUnionSegs"
           ],
           "targets": [
-            "03-Geometry/13-segment_union.hpp"
+            "03-Geometry/013-segment_union.hpp"
           ]
         },
         {
@@ -1047,7 +1047,7 @@
             "interLines"
           ],
           "targets": [
-            "03-Geometry/02-line_segment.hpp"
+            "03-Geometry/002-line_segment.hpp"
           ]
         },
         {
@@ -1056,7 +1056,7 @@
             "getManhattanMSTEdges"
           ],
           "targets": [
-            "03-Geometry/21-manhattan_geometry.hpp"
+            "03-Geometry/021-manhattan_geometry.hpp"
           ]
         },
         {
@@ -1065,7 +1065,7 @@
             "minkowskiSum"
           ],
           "targets": [
-            "03-Geometry/11-minkowskisum.hpp"
+            "03-Geometry/011-minkowskisum.hpp"
           ]
         },
         {
@@ -1074,7 +1074,7 @@
             "getNearestPair"
           ],
           "targets": [
-            "03-Geometry/05-closestpair.hpp"
+            "03-Geometry/005-closestpair.hpp"
           ]
         },
         {
@@ -1083,7 +1083,7 @@
             "bfs"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -1092,7 +1092,7 @@
             "getConnectedComps"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -1101,7 +1101,7 @@
             "getTopoSort"
           ],
           "targets": [
-            "04-Graphs/03-toposort.hpp"
+            "04-Graphs/003-toposort.hpp"
           ]
         },
         {
@@ -1110,7 +1110,7 @@
             "Dijkstra"
           ],
           "targets": [
-            "04-Graphs/05-shortest_path.hpp"
+            "04-Graphs/005-shortest_path.hpp"
           ]
         },
         {
@@ -1119,7 +1119,7 @@
             "DEsopoPape"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -1128,7 +1128,7 @@
             "SPFA"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -1137,7 +1137,7 @@
             "floydWarshall"
           ],
           "targets": [
-            "04-Graphs/12-all_pairs_shortest_path.hpp"
+            "04-Graphs/012-all_pairs_shortest_path.hpp"
           ]
         },
         {
@@ -1146,7 +1146,7 @@
             "isBipartite"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -1155,7 +1155,7 @@
             "Tarjan"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ]
         },
         {
@@ -1164,7 +1164,7 @@
             "OnlineBridges"
           ],
           "targets": [
-            "04-Graphs/26-dynamic_connectivity.hpp"
+            "04-Graphs/026-dynamic_connectivity.hpp"
           ]
         },
         {
@@ -1173,7 +1173,7 @@
             "TarjanSCC"
           ],
           "targets": [
-            "04-Graphs/08-scc.hpp"
+            "04-Graphs/008-scc.hpp"
           ]
         },
         {
@@ -1182,7 +1182,7 @@
             "StrongOrientation"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ]
         },
         {
@@ -1191,7 +1191,7 @@
             "TwoSat"
           ],
           "targets": [
-            "04-Graphs/18-twosat.hpp"
+            "04-Graphs/018-twosat.hpp"
           ]
         },
         {
@@ -1200,7 +1200,7 @@
             "EulerPath"
           ],
           "targets": [
-            "04-Graphs/10-euleriantrail.hpp"
+            "04-Graphs/010-euleriantrail.hpp"
           ]
         },
         {
@@ -1209,7 +1209,7 @@
             "findDirectedCycle"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -1218,7 +1218,7 @@
             "findNegativeCycle"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -1227,7 +1227,7 @@
             "Kruskal"
           ],
           "targets": [
-            "04-Graphs/06-mst.hpp"
+            "04-Graphs/006-mst.hpp"
           ]
         },
         {
@@ -1236,7 +1236,7 @@
             "PrimDense"
           ],
           "targets": [
-            "04-Graphs/06-mst.hpp"
+            "04-Graphs/006-mst.hpp"
           ]
         },
         {
@@ -1245,7 +1245,7 @@
             "CentroidDecomposition"
           ],
           "targets": [
-            "04-Graphs/16-centroiddecomposition.hpp"
+            "04-Graphs/016-centroiddecomposition.hpp"
           ]
         },
         {
@@ -1254,8 +1254,8 @@
             "TreeEdgePainting"
           ],
           "targets": [
-            "04-Graphs/14-tree_algorithms.hpp",
-            "04-Graphs/15-hld.hpp"
+            "04-Graphs/014-tree_algorithms.hpp",
+            "04-Graphs/015-hld.hpp"
           ]
         },
         {
@@ -1264,7 +1264,7 @@
             "Dinic"
           ],
           "targets": [
-            "04-Graphs/19-max_flow.hpp"
+            "04-Graphs/019-max_flow.hpp"
           ]
         },
         {
@@ -1273,7 +1273,7 @@
             "FlowWithDemands"
           ],
           "targets": [
-            "04-Graphs/30-flow_with_demands.hpp"
+            "04-Graphs/030-flow_with_demands.hpp"
           ]
         },
         {
@@ -1282,7 +1282,7 @@
             "MinCostMaxFlow"
           ],
           "targets": [
-            "04-Graphs/20-min_cost_flow.hpp"
+            "04-Graphs/020-min_cost_flow.hpp"
           ]
         },
         {
@@ -1291,7 +1291,7 @@
             "PushRelabel"
           ],
           "targets": [
-            "04-Graphs/19-max_flow.hpp"
+            "04-Graphs/019-max_flow.hpp"
           ]
         },
         {
@@ -1300,7 +1300,7 @@
             "Kuhn"
           ],
           "targets": [
-            "04-Graphs/21-matching_bipartite.hpp"
+            "04-Graphs/021-matching_bipartite.hpp"
           ]
         },
         {
@@ -1309,7 +1309,7 @@
             "modPow"
           ],
           "targets": [
-            "05-Mathematics/01-mod_arithmetic.hpp"
+            "05-Mathematics/001-mod_arithmetic.hpp"
           ]
         },
         {
@@ -1318,7 +1318,7 @@
             "exGcd"
           ],
           "targets": [
-            "05-Mathematics/01-mod_arithmetic.hpp"
+            "05-Mathematics/001-mod_arithmetic.hpp"
           ]
         },
         {
@@ -1327,7 +1327,7 @@
             "SieveOfErath"
           ],
           "targets": [
-            "05-Mathematics/04-sieve_algorithms.hpp"
+            "05-Mathematics/004-sieve_algorithms.hpp"
           ]
         },
         {
@@ -1336,7 +1336,7 @@
             "LinearSieve"
           ],
           "targets": [
-            "05-Mathematics/04-sieve_algorithms.hpp"
+            "05-Mathematics/004-sieve_algorithms.hpp"
           ]
         },
         {
@@ -1345,7 +1345,7 @@
             "isPrimeMR"
           ],
           "targets": [
-            "05-Mathematics/07-primality_factorization.hpp"
+            "05-Mathematics/007-primality_factorization.hpp"
           ]
         },
         {
@@ -1354,7 +1354,7 @@
             "getPrimeFacSlow"
           ],
           "targets": [
-            "05-Mathematics/07-primality_factorization.hpp"
+            "05-Mathematics/007-primality_factorization.hpp"
           ]
         },
         {
@@ -1363,7 +1363,7 @@
             "getOneFacBPR"
           ],
           "targets": [
-            "05-Mathematics/07-primality_factorization.hpp"
+            "05-Mathematics/007-primality_factorization.hpp"
           ]
         },
         {
@@ -1372,7 +1372,7 @@
             "getPrimeFacFast"
           ],
           "targets": [
-            "05-Mathematics/07-primality_factorization.hpp"
+            "05-Mathematics/007-primality_factorization.hpp"
           ]
         },
         {
@@ -1381,7 +1381,7 @@
             "getAllFac"
           ],
           "targets": [
-            "05-Mathematics/08-multiplicative_functions.hpp"
+            "05-Mathematics/008-multiplicative_functions.hpp"
           ]
         },
         {
@@ -1390,7 +1390,7 @@
             "getNumDiv"
           ],
           "targets": [
-            "05-Mathematics/08-multiplicative_functions.hpp"
+            "05-Mathematics/008-multiplicative_functions.hpp"
           ]
         },
         {
@@ -1399,7 +1399,7 @@
             "getSumDiv"
           ],
           "targets": [
-            "05-Mathematics/08-multiplicative_functions.hpp"
+            "05-Mathematics/008-multiplicative_functions.hpp"
           ]
         },
         {
@@ -1408,7 +1408,7 @@
             "getPhi"
           ],
           "targets": [
-            "05-Mathematics/08-multiplicative_functions.hpp"
+            "05-Mathematics/008-multiplicative_functions.hpp"
           ]
         },
         {
@@ -1417,7 +1417,7 @@
             "getInvE"
           ],
           "targets": [
-            "05-Mathematics/09-modinverse.hpp"
+            "05-Mathematics/009-modinverse.hpp"
           ]
         },
         {
@@ -1426,7 +1426,7 @@
             "getInvP"
           ],
           "targets": [
-            "05-Mathematics/09-modinverse.hpp"
+            "05-Mathematics/009-modinverse.hpp"
           ]
         },
         {
@@ -1435,7 +1435,7 @@
             "exChiRemThm"
           ],
           "targets": [
-            "05-Mathematics/10-crt.hpp"
+            "05-Mathematics/010-crt.hpp"
           ]
         },
         {
@@ -1444,7 +1444,7 @@
             "modLog"
           ],
           "targets": [
-            "05-Mathematics/11-discrete_log_root.hpp"
+            "05-Mathematics/011-discrete_log_root.hpp"
           ]
         },
         {
@@ -1453,7 +1453,7 @@
             "getPrimRoot"
           ],
           "targets": [
-            "05-Mathematics/11-discrete_log_root.hpp"
+            "05-Mathematics/011-discrete_log_root.hpp"
           ]
         },
         {
@@ -1462,7 +1462,7 @@
             "modRoot"
           ],
           "targets": [
-            "05-Mathematics/11-discrete_log_root.hpp"
+            "05-Mathematics/011-discrete_log_root.hpp"
           ]
         },
         {
@@ -1471,7 +1471,7 @@
             "getFloorSum"
           ],
           "targets": [
-            "05-Mathematics/18-floorsum.hpp"
+            "05-Mathematics/018-floorsum.hpp"
           ]
         },
         {
@@ -1480,7 +1480,7 @@
             "ModFac"
           ],
           "targets": [
-            "05-Mathematics/05-combinatorics.hpp"
+            "05-Mathematics/005-combinatorics.hpp"
           ]
         },
         {
@@ -1489,7 +1489,7 @@
             "FastConv"
           ],
           "targets": [
-            "05-Mathematics/24-transform_algorithms.hpp"
+            "05-Mathematics/024-transform_algorithms.hpp"
           ]
         },
         {
@@ -1499,7 +1499,7 @@
           ],
           "targets": [
             "01-Core/10-matrix.hpp",
-            "05-Mathematics/16-linear_algebra.hpp"
+            "05-Mathematics/016-linear_algebra.hpp"
           ]
         },
         {
@@ -1508,7 +1508,7 @@
             "minPlusMatrixExp"
           ],
           "targets": [
-            "04-Graphs/12-all_pairs_shortest_path.hpp"
+            "04-Graphs/012-all_pairs_shortest_path.hpp"
           ]
         },
         {
@@ -1517,7 +1517,7 @@
             "matrixTreeTheorem"
           ],
           "targets": [
-            "05-Mathematics/23-matrixtree.hpp"
+            "05-Mathematics/023-matrixtree.hpp"
           ]
         },
         {
@@ -1526,7 +1526,7 @@
             "Hungarian"
           ],
           "targets": [
-            "04-Graphs/23-assignment.hpp"
+            "04-Graphs/023-assignment.hpp"
           ]
         },
         {
@@ -1535,7 +1535,7 @@
             "CustomHash"
           ],
           "targets": [
-            "06-Miscellaneous/02-customhash.hpp"
+            "06-Miscellaneous/002-customhash.hpp"
           ]
         },
         {
@@ -1544,7 +1544,7 @@
             "Trie"
           ],
           "targets": [
-            "07-Strings/04-trie.hpp"
+            "07-Strings/004-trie.hpp"
           ]
         },
         {
@@ -1553,7 +1553,7 @@
             "BitTrie"
           ],
           "targets": [
-            "02-Data Structures/26-trie.hpp"
+            "02-Data Structures/026-trie.hpp"
           ]
         },
         {
@@ -1562,7 +1562,7 @@
             "kadane"
           ],
           "targets": [
-            "06-Miscellaneous/08-sequence_algorithms.hpp"
+            "06-Miscellaneous/008-sequence_algorithms.hpp"
           ]
         },
         {
@@ -1571,7 +1571,7 @@
             "kthOrderStat"
           ],
           "targets": [
-            "06-Miscellaneous/11-sorting_selection.hpp"
+            "06-Miscellaneous/011-sorting_selection.hpp"
           ]
         },
         {
@@ -1580,7 +1580,7 @@
             "DivConqDP"
           ],
           "targets": [
-            "05-Mathematics/27-optimization.hpp"
+            "05-Mathematics/027-optimization.hpp"
           ]
         },
         {
@@ -1589,7 +1589,7 @@
             "KnuthOptDP"
           ],
           "targets": [
-            "05-Mathematics/27-optimization.hpp"
+            "05-Mathematics/027-optimization.hpp"
           ]
         },
         {
@@ -1598,7 +1598,7 @@
             "knapsack01"
           ],
           "targets": [
-            "06-Miscellaneous/13-knapsack.hpp"
+            "06-Miscellaneous/013-knapsack.hpp"
           ]
         },
         {
@@ -1607,7 +1607,7 @@
             "knapsackComplete"
           ],
           "targets": [
-            "06-Miscellaneous/13-knapsack.hpp"
+            "06-Miscellaneous/013-knapsack.hpp"
           ]
         },
         {
@@ -1616,7 +1616,7 @@
             "knapsackMultiple"
           ],
           "targets": [
-            "06-Miscellaneous/13-knapsack.hpp"
+            "06-Miscellaneous/013-knapsack.hpp"
           ]
         },
         {
@@ -1625,7 +1625,7 @@
             "getLIS"
           ],
           "targets": [
-            "06-Miscellaneous/08-sequence_algorithms.hpp"
+            "06-Miscellaneous/008-sequence_algorithms.hpp"
           ]
         },
         {
@@ -1634,7 +1634,7 @@
             "brokenProfile"
           ],
           "targets": [
-            "06-Miscellaneous/33-profile_dp.hpp"
+            "06-Miscellaneous/033-profile_dp.hpp"
           ]
         },
         {
@@ -1643,7 +1643,7 @@
             "maxZeroSubmatrix"
           ],
           "targets": [
-            "02-Data Structures/08-monotone_stack.hpp"
+            "02-Data Structures/008-monotone_stack.hpp"
           ]
         }
       ],
@@ -1802,66 +1802,66 @@
       "targets": [
         "01-Core/01-template.hpp",
         "01-Core/10-matrix.hpp",
-        "02-Data Structures/01-dsu.hpp",
-        "02-Data Structures/04-sparsetable.hpp",
-        "02-Data Structures/08-monotone_stack.hpp",
-        "02-Data Structures/11-fenwick_tree_advanced.hpp",
-        "02-Data Structures/19-treap.hpp",
-        "02-Data Structures/21-lichao.hpp",
-        "02-Data Structures/24-interval_set.hpp",
-        "02-Data Structures/26-trie.hpp",
-        "02-Data Structures/27-cartesiantree.hpp",
-        "02-Data Structures/29-weighteddsu.hpp",
-        "03-Geometry/01-point.hpp",
-        "03-Geometry/02-line_segment.hpp",
-        "03-Geometry/03-polygon.hpp",
-        "03-Geometry/05-closestpair.hpp",
-        "03-Geometry/06-circle.hpp",
-        "03-Geometry/10-halfplaneintersection.hpp",
-        "03-Geometry/11-minkowskisum.hpp",
-        "03-Geometry/12-segmentintersection.hpp",
-        "03-Geometry/13-segment_union.hpp",
-        "03-Geometry/14-minimumenclosingcircle.hpp",
-        "03-Geometry/21-manhattan_geometry.hpp",
-        "04-Graphs/02-traversal.hpp",
-        "04-Graphs/03-toposort.hpp",
-        "04-Graphs/05-shortest_path.hpp",
-        "04-Graphs/06-mst.hpp",
-        "04-Graphs/07-lca.hpp",
-        "04-Graphs/08-scc.hpp",
-        "04-Graphs/09-bridges_articulation.hpp",
-        "04-Graphs/10-euleriantrail.hpp",
-        "04-Graphs/12-all_pairs_shortest_path.hpp",
-        "04-Graphs/13-shortest_path_advanced.hpp",
-        "04-Graphs/14-tree_algorithms.hpp",
-        "04-Graphs/15-hld.hpp",
-        "04-Graphs/16-centroiddecomposition.hpp",
-        "04-Graphs/18-twosat.hpp",
-        "04-Graphs/19-max_flow.hpp",
-        "04-Graphs/20-min_cost_flow.hpp",
-        "04-Graphs/21-matching_bipartite.hpp",
-        "04-Graphs/23-assignment.hpp",
-        "04-Graphs/26-dynamic_connectivity.hpp",
-        "04-Graphs/30-flow_with_demands.hpp",
-        "05-Mathematics/01-mod_arithmetic.hpp",
-        "05-Mathematics/04-sieve_algorithms.hpp",
-        "05-Mathematics/05-combinatorics.hpp",
-        "05-Mathematics/07-primality_factorization.hpp",
-        "05-Mathematics/08-multiplicative_functions.hpp",
-        "05-Mathematics/09-modinverse.hpp",
-        "05-Mathematics/10-crt.hpp",
-        "05-Mathematics/11-discrete_log_root.hpp",
-        "05-Mathematics/16-linear_algebra.hpp",
-        "05-Mathematics/18-floorsum.hpp",
-        "05-Mathematics/23-matrixtree.hpp",
-        "05-Mathematics/24-transform_algorithms.hpp",
-        "05-Mathematics/27-optimization.hpp",
-        "06-Miscellaneous/02-customhash.hpp",
-        "06-Miscellaneous/08-sequence_algorithms.hpp",
-        "06-Miscellaneous/11-sorting_selection.hpp",
-        "06-Miscellaneous/13-knapsack.hpp",
-        "06-Miscellaneous/33-profile_dp.hpp",
-        "07-Strings/04-trie.hpp"
+        "02-Data Structures/001-dsu.hpp",
+        "02-Data Structures/004-sparsetable.hpp",
+        "02-Data Structures/008-monotone_stack.hpp",
+        "02-Data Structures/011-fenwick_tree_advanced.hpp",
+        "02-Data Structures/019-treap.hpp",
+        "02-Data Structures/021-lichao.hpp",
+        "02-Data Structures/024-interval_set.hpp",
+        "02-Data Structures/026-trie.hpp",
+        "02-Data Structures/027-cartesiantree.hpp",
+        "02-Data Structures/029-weighteddsu.hpp",
+        "03-Geometry/001-point.hpp",
+        "03-Geometry/002-line_segment.hpp",
+        "03-Geometry/003-polygon.hpp",
+        "03-Geometry/005-closestpair.hpp",
+        "03-Geometry/006-circle.hpp",
+        "03-Geometry/010-halfplaneintersection.hpp",
+        "03-Geometry/011-minkowskisum.hpp",
+        "03-Geometry/012-segmentintersection.hpp",
+        "03-Geometry/013-segment_union.hpp",
+        "03-Geometry/014-minimumenclosingcircle.hpp",
+        "03-Geometry/021-manhattan_geometry.hpp",
+        "04-Graphs/002-traversal.hpp",
+        "04-Graphs/003-toposort.hpp",
+        "04-Graphs/005-shortest_path.hpp",
+        "04-Graphs/006-mst.hpp",
+        "04-Graphs/007-lca.hpp",
+        "04-Graphs/008-scc.hpp",
+        "04-Graphs/009-bridges_articulation.hpp",
+        "04-Graphs/010-euleriantrail.hpp",
+        "04-Graphs/012-all_pairs_shortest_path.hpp",
+        "04-Graphs/013-shortest_path_advanced.hpp",
+        "04-Graphs/014-tree_algorithms.hpp",
+        "04-Graphs/015-hld.hpp",
+        "04-Graphs/016-centroiddecomposition.hpp",
+        "04-Graphs/018-twosat.hpp",
+        "04-Graphs/019-max_flow.hpp",
+        "04-Graphs/020-min_cost_flow.hpp",
+        "04-Graphs/021-matching_bipartite.hpp",
+        "04-Graphs/023-assignment.hpp",
+        "04-Graphs/026-dynamic_connectivity.hpp",
+        "04-Graphs/030-flow_with_demands.hpp",
+        "05-Mathematics/001-mod_arithmetic.hpp",
+        "05-Mathematics/004-sieve_algorithms.hpp",
+        "05-Mathematics/005-combinatorics.hpp",
+        "05-Mathematics/007-primality_factorization.hpp",
+        "05-Mathematics/008-multiplicative_functions.hpp",
+        "05-Mathematics/009-modinverse.hpp",
+        "05-Mathematics/010-crt.hpp",
+        "05-Mathematics/011-discrete_log_root.hpp",
+        "05-Mathematics/016-linear_algebra.hpp",
+        "05-Mathematics/018-floorsum.hpp",
+        "05-Mathematics/023-matrixtree.hpp",
+        "05-Mathematics/024-transform_algorithms.hpp",
+        "05-Mathematics/027-optimization.hpp",
+        "06-Miscellaneous/002-customhash.hpp",
+        "06-Miscellaneous/008-sequence_algorithms.hpp",
+        "06-Miscellaneous/011-sorting_selection.hpp",
+        "06-Miscellaneous/013-knapsack.hpp",
+        "06-Miscellaneous/033-profile_dp.hpp",
+        "07-Strings/004-trie.hpp"
       ],
       "read_scope": "All extracted class/free-function declarations reviewed, aligned with full explanatory notes and selected bodies; not a compiler-AST or correctness audit.",
       "reason": "Notebook monolith contains real algorithms; test.cpp is an889-line graph collection with empty main, not a test-only file.",
@@ -1890,7 +1890,7 @@
             "SparseTable"
           ],
           "targets": [
-            "02-Data Structures/04-sparsetable.hpp"
+            "02-Data Structures/004-sparsetable.hpp"
           ]
         },
         {
@@ -1899,8 +1899,8 @@
             "DSU"
           ],
           "targets": [
-            "02-Data Structures/01-dsu.hpp",
-            "02-Data Structures/29-weighteddsu.hpp"
+            "02-Data Structures/001-dsu.hpp",
+            "02-Data Structures/029-weighteddsu.hpp"
           ]
         },
         {
@@ -1909,7 +1909,7 @@
             "FenTreeRangeAdd1D"
           ],
           "targets": [
-            "02-Data Structures/11-fenwick_tree_advanced.hpp"
+            "02-Data Structures/011-fenwick_tree_advanced.hpp"
           ]
         },
         {
@@ -1918,7 +1918,7 @@
             "FenTree"
           ],
           "targets": [
-            "02-Data Structures/11-fenwick_tree_advanced.hpp"
+            "02-Data Structures/011-fenwick_tree_advanced.hpp"
           ]
         },
         {
@@ -1927,7 +1927,7 @@
             "LiChaoTree"
           ],
           "targets": [
-            "02-Data Structures/21-lichao.hpp"
+            "02-Data Structures/021-lichao.hpp"
           ]
         },
         {
@@ -1936,7 +1936,7 @@
             "DynamicMex"
           ],
           "targets": [
-            "02-Data Structures/24-interval_set.hpp"
+            "02-Data Structures/024-interval_set.hpp"
           ]
         },
         {
@@ -1945,7 +1945,7 @@
             "TreapNode"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -1954,7 +1954,7 @@
             "getSz"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -1963,7 +1963,7 @@
             "pull"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -1972,7 +1972,7 @@
             "push"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -1981,7 +1981,7 @@
             "merge"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -1990,7 +1990,7 @@
             "split"
           ],
           "targets": [
-            "02-Data Structures/19-treap.hpp"
+            "02-Data Structures/019-treap.hpp"
           ]
         },
         {
@@ -1999,7 +1999,7 @@
             "LcaO1"
           ],
           "targets": [
-            "04-Graphs/07-lca.hpp"
+            "04-Graphs/007-lca.hpp"
           ]
         },
         {
@@ -2008,7 +2008,7 @@
             "LcaLog"
           ],
           "targets": [
-            "04-Graphs/07-lca.hpp"
+            "04-Graphs/007-lca.hpp"
           ]
         },
         {
@@ -2017,7 +2017,7 @@
             "HLD"
           ],
           "targets": [
-            "04-Graphs/15-hld.hpp"
+            "04-Graphs/015-hld.hpp"
           ]
         },
         {
@@ -2026,7 +2026,7 @@
             "buildCartesianTree"
           ],
           "targets": [
-            "02-Data Structures/27-cartesiantree.hpp"
+            "02-Data Structures/027-cartesiantree.hpp"
           ]
         },
         {
@@ -2035,7 +2035,7 @@
             "Point"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -2044,7 +2044,7 @@
             "PointD"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -2053,7 +2053,7 @@
             "dot"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -2062,7 +2062,7 @@
             "cross"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -2071,7 +2071,7 @@
             "sgn"
           ],
           "targets": [
-            "03-Geometry/01-point.hpp"
+            "03-Geometry/001-point.hpp"
           ]
         },
         {
@@ -2080,7 +2080,7 @@
             "polyArea"
           ],
           "targets": [
-            "03-Geometry/03-polygon.hpp"
+            "03-Geometry/003-polygon.hpp"
           ]
         },
         {
@@ -2089,7 +2089,7 @@
             "checkInter1D"
           ],
           "targets": [
-            "03-Geometry/02-line_segment.hpp"
+            "03-Geometry/002-line_segment.hpp"
           ]
         },
         {
@@ -2098,7 +2098,7 @@
             "checkInterSeg"
           ],
           "targets": [
-            "03-Geometry/02-line_segment.hpp"
+            "03-Geometry/002-line_segment.hpp"
           ]
         },
         {
@@ -2107,7 +2107,7 @@
             "lineCircleInter"
           ],
           "targets": [
-            "03-Geometry/06-circle.hpp"
+            "03-Geometry/006-circle.hpp"
           ]
         },
         {
@@ -2116,7 +2116,7 @@
             "circleCircleInter"
           ],
           "targets": [
-            "03-Geometry/06-circle.hpp"
+            "03-Geometry/006-circle.hpp"
           ]
         },
         {
@@ -2125,7 +2125,7 @@
             "indicator"
           ],
           "targets": [
-            "03-Geometry/14-minimumenclosingcircle.hpp"
+            "03-Geometry/014-minimumenclosingcircle.hpp"
           ]
         },
         {
@@ -2134,7 +2134,7 @@
             "isInside"
           ],
           "targets": [
-            "03-Geometry/14-minimumenclosingcircle.hpp"
+            "03-Geometry/014-minimumenclosingcircle.hpp"
           ]
         },
         {
@@ -2143,7 +2143,7 @@
             "getMEC"
           ],
           "targets": [
-            "03-Geometry/14-minimumenclosingcircle.hpp"
+            "03-Geometry/014-minimumenclosingcircle.hpp"
           ]
         },
         {
@@ -2152,7 +2152,7 @@
             "Halfplane"
           ],
           "targets": [
-            "03-Geometry/10-halfplaneintersection.hpp"
+            "03-Geometry/010-halfplaneintersection.hpp"
           ]
         },
         {
@@ -2161,7 +2161,7 @@
             "getInter"
           ],
           "targets": [
-            "03-Geometry/10-halfplaneintersection.hpp"
+            "03-Geometry/010-halfplaneintersection.hpp"
           ]
         },
         {
@@ -2170,7 +2170,7 @@
             "halfplaneInter"
           ],
           "targets": [
-            "03-Geometry/10-halfplaneintersection.hpp"
+            "03-Geometry/010-halfplaneintersection.hpp"
           ]
         },
         {
@@ -2179,7 +2179,7 @@
             "Seg"
           ],
           "targets": [
-            "03-Geometry/12-segmentintersection.hpp"
+            "03-Geometry/012-segmentintersection.hpp"
           ]
         },
         {
@@ -2188,7 +2188,7 @@
             "findInterSegs"
           ],
           "targets": [
-            "03-Geometry/12-segmentintersection.hpp"
+            "03-Geometry/012-segmentintersection.hpp"
           ]
         },
         {
@@ -2197,7 +2197,7 @@
             "lenUnionSegs"
           ],
           "targets": [
-            "03-Geometry/13-segment_union.hpp"
+            "03-Geometry/013-segment_union.hpp"
           ]
         },
         {
@@ -2206,7 +2206,7 @@
             "interLines"
           ],
           "targets": [
-            "03-Geometry/02-line_segment.hpp"
+            "03-Geometry/002-line_segment.hpp"
           ]
         },
         {
@@ -2215,7 +2215,7 @@
             "getManhattanMSTEdges"
           ],
           "targets": [
-            "03-Geometry/21-manhattan_geometry.hpp"
+            "03-Geometry/021-manhattan_geometry.hpp"
           ]
         },
         {
@@ -2224,7 +2224,7 @@
             "minkowskiSum"
           ],
           "targets": [
-            "03-Geometry/11-minkowskisum.hpp"
+            "03-Geometry/011-minkowskisum.hpp"
           ]
         },
         {
@@ -2233,7 +2233,7 @@
             "getNearestPair"
           ],
           "targets": [
-            "03-Geometry/05-closestpair.hpp"
+            "03-Geometry/005-closestpair.hpp"
           ]
         },
         {
@@ -2242,7 +2242,7 @@
             "getConnectedComps"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -2251,7 +2251,7 @@
             "getTopoSort"
           ],
           "targets": [
-            "04-Graphs/03-toposort.hpp"
+            "04-Graphs/003-toposort.hpp"
           ]
         },
         {
@@ -2260,7 +2260,7 @@
             "Dijkstra"
           ],
           "targets": [
-            "04-Graphs/05-shortest_path.hpp"
+            "04-Graphs/005-shortest_path.hpp"
           ]
         },
         {
@@ -2269,7 +2269,7 @@
             "DEsopoPape"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -2278,7 +2278,7 @@
             "SPFA"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -2287,7 +2287,7 @@
             "floydWarshall"
           ],
           "targets": [
-            "04-Graphs/12-all_pairs_shortest_path.hpp"
+            "04-Graphs/012-all_pairs_shortest_path.hpp"
           ]
         },
         {
@@ -2296,7 +2296,7 @@
             "isBipartite"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -2305,7 +2305,7 @@
             "Tarjan"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ]
         },
         {
@@ -2314,7 +2314,7 @@
             "OnlineBridges"
           ],
           "targets": [
-            "04-Graphs/26-dynamic_connectivity.hpp"
+            "04-Graphs/026-dynamic_connectivity.hpp"
           ]
         },
         {
@@ -2323,7 +2323,7 @@
             "TarjanSCC"
           ],
           "targets": [
-            "04-Graphs/08-scc.hpp"
+            "04-Graphs/008-scc.hpp"
           ]
         },
         {
@@ -2332,7 +2332,7 @@
             "StrongOrientation"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ]
         },
         {
@@ -2341,7 +2341,7 @@
             "TwoSat"
           ],
           "targets": [
-            "04-Graphs/18-twosat.hpp"
+            "04-Graphs/018-twosat.hpp"
           ]
         },
         {
@@ -2350,7 +2350,7 @@
             "EulerPath"
           ],
           "targets": [
-            "04-Graphs/10-euleriantrail.hpp"
+            "04-Graphs/010-euleriantrail.hpp"
           ]
         },
         {
@@ -2359,7 +2359,7 @@
             "findDirectedCycle"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -2368,7 +2368,7 @@
             "findNegativeCycle"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -2377,7 +2377,7 @@
             "Kruskal"
           ],
           "targets": [
-            "04-Graphs/06-mst.hpp"
+            "04-Graphs/006-mst.hpp"
           ]
         },
         {
@@ -2386,7 +2386,7 @@
             "PrimDense"
           ],
           "targets": [
-            "04-Graphs/06-mst.hpp"
+            "04-Graphs/006-mst.hpp"
           ]
         },
         {
@@ -2395,7 +2395,7 @@
             "CentroidDecomposition"
           ],
           "targets": [
-            "04-Graphs/16-centroiddecomposition.hpp"
+            "04-Graphs/016-centroiddecomposition.hpp"
           ]
         },
         {
@@ -2404,8 +2404,8 @@
             "TreeEdgePainting"
           ],
           "targets": [
-            "04-Graphs/14-tree_algorithms.hpp",
-            "04-Graphs/15-hld.hpp"
+            "04-Graphs/014-tree_algorithms.hpp",
+            "04-Graphs/015-hld.hpp"
           ]
         },
         {
@@ -2414,7 +2414,7 @@
             "Dinic"
           ],
           "targets": [
-            "04-Graphs/19-max_flow.hpp"
+            "04-Graphs/019-max_flow.hpp"
           ]
         },
         {
@@ -2423,7 +2423,7 @@
             "FlowWithDemands"
           ],
           "targets": [
-            "04-Graphs/30-flow_with_demands.hpp"
+            "04-Graphs/030-flow_with_demands.hpp"
           ]
         },
         {
@@ -2432,7 +2432,7 @@
             "MinCostMaxFlow"
           ],
           "targets": [
-            "04-Graphs/20-min_cost_flow.hpp"
+            "04-Graphs/020-min_cost_flow.hpp"
           ]
         },
         {
@@ -2441,7 +2441,7 @@
             "PushRelabel"
           ],
           "targets": [
-            "04-Graphs/19-max_flow.hpp"
+            "04-Graphs/019-max_flow.hpp"
           ]
         },
         {
@@ -2450,7 +2450,7 @@
             "Kuhn"
           ],
           "targets": [
-            "04-Graphs/21-matching_bipartite.hpp"
+            "04-Graphs/021-matching_bipartite.hpp"
           ]
         },
         {
@@ -2459,7 +2459,7 @@
             "modPow"
           ],
           "targets": [
-            "05-Mathematics/01-mod_arithmetic.hpp"
+            "05-Mathematics/001-mod_arithmetic.hpp"
           ]
         },
         {
@@ -2468,7 +2468,7 @@
             "exGcd"
           ],
           "targets": [
-            "05-Mathematics/01-mod_arithmetic.hpp"
+            "05-Mathematics/001-mod_arithmetic.hpp"
           ]
         },
         {
@@ -2477,7 +2477,7 @@
             "SieveOfErath"
           ],
           "targets": [
-            "05-Mathematics/04-sieve_algorithms.hpp"
+            "05-Mathematics/004-sieve_algorithms.hpp"
           ]
         },
         {
@@ -2486,7 +2486,7 @@
             "LinearSieve"
           ],
           "targets": [
-            "05-Mathematics/04-sieve_algorithms.hpp"
+            "05-Mathematics/004-sieve_algorithms.hpp"
           ]
         },
         {
@@ -2495,7 +2495,7 @@
             "isPrimeMR"
           ],
           "targets": [
-            "05-Mathematics/07-primality_factorization.hpp"
+            "05-Mathematics/007-primality_factorization.hpp"
           ]
         },
         {
@@ -2504,7 +2504,7 @@
             "getPrimeFacSlow"
           ],
           "targets": [
-            "05-Mathematics/07-primality_factorization.hpp"
+            "05-Mathematics/007-primality_factorization.hpp"
           ]
         },
         {
@@ -2513,7 +2513,7 @@
             "getOneFacBPR"
           ],
           "targets": [
-            "05-Mathematics/07-primality_factorization.hpp"
+            "05-Mathematics/007-primality_factorization.hpp"
           ]
         },
         {
@@ -2522,7 +2522,7 @@
             "getPrimeFacFast"
           ],
           "targets": [
-            "05-Mathematics/07-primality_factorization.hpp"
+            "05-Mathematics/007-primality_factorization.hpp"
           ]
         },
         {
@@ -2531,7 +2531,7 @@
             "getAllFac"
           ],
           "targets": [
-            "05-Mathematics/08-multiplicative_functions.hpp"
+            "05-Mathematics/008-multiplicative_functions.hpp"
           ]
         },
         {
@@ -2540,7 +2540,7 @@
             "getNumDiv"
           ],
           "targets": [
-            "05-Mathematics/08-multiplicative_functions.hpp"
+            "05-Mathematics/008-multiplicative_functions.hpp"
           ]
         },
         {
@@ -2549,7 +2549,7 @@
             "getSumDiv"
           ],
           "targets": [
-            "05-Mathematics/08-multiplicative_functions.hpp"
+            "05-Mathematics/008-multiplicative_functions.hpp"
           ]
         },
         {
@@ -2558,7 +2558,7 @@
             "getPhi"
           ],
           "targets": [
-            "05-Mathematics/08-multiplicative_functions.hpp"
+            "05-Mathematics/008-multiplicative_functions.hpp"
           ]
         },
         {
@@ -2567,7 +2567,7 @@
             "getInvE"
           ],
           "targets": [
-            "05-Mathematics/09-modinverse.hpp"
+            "05-Mathematics/009-modinverse.hpp"
           ]
         },
         {
@@ -2576,7 +2576,7 @@
             "getInvP"
           ],
           "targets": [
-            "05-Mathematics/09-modinverse.hpp"
+            "05-Mathematics/009-modinverse.hpp"
           ]
         },
         {
@@ -2585,7 +2585,7 @@
             "exChiRemThm"
           ],
           "targets": [
-            "05-Mathematics/10-crt.hpp"
+            "05-Mathematics/010-crt.hpp"
           ]
         },
         {
@@ -2594,7 +2594,7 @@
             "modLog"
           ],
           "targets": [
-            "05-Mathematics/11-discrete_log_root.hpp"
+            "05-Mathematics/011-discrete_log_root.hpp"
           ]
         },
         {
@@ -2603,7 +2603,7 @@
             "getPrimRoot"
           ],
           "targets": [
-            "05-Mathematics/11-discrete_log_root.hpp"
+            "05-Mathematics/011-discrete_log_root.hpp"
           ]
         },
         {
@@ -2612,7 +2612,7 @@
             "modRoot"
           ],
           "targets": [
-            "05-Mathematics/11-discrete_log_root.hpp"
+            "05-Mathematics/011-discrete_log_root.hpp"
           ]
         },
         {
@@ -2621,7 +2621,7 @@
             "getFloorSum"
           ],
           "targets": [
-            "05-Mathematics/18-floorsum.hpp"
+            "05-Mathematics/018-floorsum.hpp"
           ]
         },
         {
@@ -2630,7 +2630,7 @@
             "ModFac"
           ],
           "targets": [
-            "05-Mathematics/05-combinatorics.hpp"
+            "05-Mathematics/005-combinatorics.hpp"
           ]
         },
         {
@@ -2639,7 +2639,7 @@
             "FastConv"
           ],
           "targets": [
-            "05-Mathematics/24-transform_algorithms.hpp"
+            "05-Mathematics/024-transform_algorithms.hpp"
           ]
         },
         {
@@ -2649,7 +2649,7 @@
           ],
           "targets": [
             "01-Core/10-matrix.hpp",
-            "05-Mathematics/16-linear_algebra.hpp"
+            "05-Mathematics/016-linear_algebra.hpp"
           ]
         },
         {
@@ -2658,7 +2658,7 @@
             "minPlusMatrixExp"
           ],
           "targets": [
-            "04-Graphs/12-all_pairs_shortest_path.hpp"
+            "04-Graphs/012-all_pairs_shortest_path.hpp"
           ]
         },
         {
@@ -2667,7 +2667,7 @@
             "matrixTreeTheorem"
           ],
           "targets": [
-            "05-Mathematics/23-matrixtree.hpp"
+            "05-Mathematics/023-matrixtree.hpp"
           ]
         },
         {
@@ -2676,7 +2676,7 @@
             "Hungarian"
           ],
           "targets": [
-            "04-Graphs/23-assignment.hpp"
+            "04-Graphs/023-assignment.hpp"
           ]
         },
         {
@@ -2685,7 +2685,7 @@
             "CustomHash"
           ],
           "targets": [
-            "06-Miscellaneous/02-customhash.hpp"
+            "06-Miscellaneous/002-customhash.hpp"
           ]
         },
         {
@@ -2694,7 +2694,7 @@
             "Trie"
           ],
           "targets": [
-            "07-Strings/04-trie.hpp"
+            "07-Strings/004-trie.hpp"
           ]
         },
         {
@@ -2703,7 +2703,7 @@
             "BitTrie"
           ],
           "targets": [
-            "02-Data Structures/26-trie.hpp"
+            "02-Data Structures/026-trie.hpp"
           ]
         },
         {
@@ -2712,7 +2712,7 @@
             "kadane"
           ],
           "targets": [
-            "06-Miscellaneous/08-sequence_algorithms.hpp"
+            "06-Miscellaneous/008-sequence_algorithms.hpp"
           ]
         },
         {
@@ -2721,7 +2721,7 @@
             "kthOrderStat"
           ],
           "targets": [
-            "06-Miscellaneous/11-sorting_selection.hpp"
+            "06-Miscellaneous/011-sorting_selection.hpp"
           ]
         },
         {
@@ -2730,7 +2730,7 @@
             "DivConqDP"
           ],
           "targets": [
-            "05-Mathematics/27-optimization.hpp"
+            "05-Mathematics/027-optimization.hpp"
           ]
         },
         {
@@ -2739,7 +2739,7 @@
             "KnuthOptDP"
           ],
           "targets": [
-            "05-Mathematics/27-optimization.hpp"
+            "05-Mathematics/027-optimization.hpp"
           ]
         },
         {
@@ -2748,7 +2748,7 @@
             "knapsack01"
           ],
           "targets": [
-            "06-Miscellaneous/13-knapsack.hpp"
+            "06-Miscellaneous/013-knapsack.hpp"
           ]
         },
         {
@@ -2757,7 +2757,7 @@
             "knapsackComplete"
           ],
           "targets": [
-            "06-Miscellaneous/13-knapsack.hpp"
+            "06-Miscellaneous/013-knapsack.hpp"
           ]
         },
         {
@@ -2766,7 +2766,7 @@
             "knapsackMultiple"
           ],
           "targets": [
-            "06-Miscellaneous/13-knapsack.hpp"
+            "06-Miscellaneous/013-knapsack.hpp"
           ]
         },
         {
@@ -2775,7 +2775,7 @@
             "getLIS"
           ],
           "targets": [
-            "06-Miscellaneous/08-sequence_algorithms.hpp"
+            "06-Miscellaneous/008-sequence_algorithms.hpp"
           ]
         },
         {
@@ -2784,7 +2784,7 @@
             "brokenProfile"
           ],
           "targets": [
-            "06-Miscellaneous/33-profile_dp.hpp"
+            "06-Miscellaneous/033-profile_dp.hpp"
           ]
         },
         {
@@ -2793,7 +2793,7 @@
             "maxZeroSubmatrix"
           ],
           "targets": [
-            "02-Data Structures/08-monotone_stack.hpp"
+            "02-Data Structures/008-monotone_stack.hpp"
           ]
         }
       ],
@@ -2912,7 +2912,7 @@
       "lines": 21,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/27-cartesiantree.hpp"
+        "02-Data Structures/027-cartesiantree.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -2925,7 +2925,7 @@
       "lines": 136,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/13-dynamicsegmenttree.hpp"
+        "02-Data Structures/013-dynamicsegmenttree.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -2938,7 +2938,7 @@
       "lines": 121,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/11-fenwick_tree_advanced.hpp"
+        "02-Data Structures/011-fenwick_tree_advanced.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -2951,7 +2951,7 @@
       "lines": 36,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/11-fenwick_tree_advanced.hpp"
+        "02-Data Structures/011-fenwick_tree_advanced.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -2964,7 +2964,7 @@
       "lines": 115,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/19-treap.hpp"
+        "02-Data Structures/019-treap.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -2977,7 +2977,7 @@
       "lines": 123,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/18-persistentsegmenttree.hpp"
+        "02-Data Structures/018-persistentsegmenttree.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3003,7 +3003,7 @@
       "lines": 181,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/18-persistentsegmenttree.hpp"
+        "02-Data Structures/018-persistentsegmenttree.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3016,7 +3016,7 @@
       "lines": 110,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/12-lazysegmenttree.hpp"
+        "02-Data Structures/012-lazysegmenttree.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3029,7 +3029,7 @@
       "lines": 88,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/15-segment_tree_2d.hpp"
+        "02-Data Structures/015-segment_tree_2d.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3042,7 +3042,7 @@
       "lines": 202,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/14-segtreebeats.hpp"
+        "02-Data Structures/014-segtreebeats.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3055,7 +3055,7 @@
       "lines": 28,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/04-sparsetable.hpp"
+        "02-Data Structures/004-sparsetable.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3068,7 +3068,7 @@
       "lines": 40,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/06-sqrt_decomposition.hpp"
+        "02-Data Structures/006-sqrt_decomposition.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3081,7 +3081,7 @@
       "lines": 48,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/12-segmentintersection.hpp"
+        "03-Geometry/012-segmentintersection.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3094,7 +3094,7 @@
       "lines": 18,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/13-segment_union.hpp"
+        "03-Geometry/013-segment_union.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3107,7 +3107,7 @@
       "lines": 30,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/21-manhattan_geometry.hpp"
+        "03-Geometry/021-manhattan_geometry.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3120,7 +3120,7 @@
       "lines": 22,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/11-minkowskisum.hpp"
+        "03-Geometry/011-minkowskisum.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3133,7 +3133,7 @@
       "lines": 46,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/05-closestpair.hpp"
+        "03-Geometry/005-closestpair.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3146,7 +3146,7 @@
       "lines": 46,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/10-halfplaneintersection.hpp"
+        "03-Geometry/010-halfplaneintersection.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3159,8 +3159,8 @@
       "lines": 39,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/02-line_segment.hpp",
-        "03-Geometry/06-circle.hpp"
+        "03-Geometry/002-line_segment.hpp",
+        "03-Geometry/006-circle.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3173,7 +3173,7 @@
       "lines": 97,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/21-lichao.hpp"
+        "02-Data Structures/021-lichao.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3186,7 +3186,7 @@
       "lines": 20,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/01-point.hpp"
+        "03-Geometry/001-point.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3199,7 +3199,7 @@
       "lines": 9,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/03-polygon.hpp"
+        "03-Geometry/003-polygon.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3212,7 +3212,7 @@
       "lines": 36,
       "classification": "algorithm-reference",
       "targets": [
-        "03-Geometry/14-minimumenclosingcircle.hpp"
+        "03-Geometry/014-minimumenclosingcircle.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3225,8 +3225,8 @@
       "lines": 35,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/01-dsu.hpp",
-        "02-Data Structures/29-weighteddsu.hpp"
+        "02-Data Structures/001-dsu.hpp",
+        "02-Data Structures/029-weighteddsu.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3239,7 +3239,7 @@
       "lines": 70,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/15-hld.hpp"
+        "04-Graphs/015-hld.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3252,7 +3252,7 @@
       "lines": 40,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/07-lca.hpp"
+        "04-Graphs/007-lca.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3265,7 +3265,7 @@
       "lines": 90,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/18-twosat.hpp"
+        "04-Graphs/018-twosat.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3278,8 +3278,8 @@
       "lines": 27,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/05-shortest_path.hpp",
-        "04-Graphs/13-shortest_path_advanced.hpp"
+        "04-Graphs/005-shortest_path.hpp",
+        "04-Graphs/013-shortest_path_advanced.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3292,7 +3292,7 @@
       "lines": 31,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/27-blockcuttree.hpp"
+        "04-Graphs/027-blockcuttree.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3305,7 +3305,7 @@
       "lines": 44,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/09-bridges_articulation.hpp"
+        "04-Graphs/009-bridges_articulation.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3318,7 +3318,7 @@
       "lines": 38,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/16-centroiddecomposition.hpp"
+        "04-Graphs/016-centroiddecomposition.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3331,7 +3331,7 @@
       "lines": 60,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/09-bridges_articulation.hpp"
+        "04-Graphs/009-bridges_articulation.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3344,7 +3344,7 @@
       "lines": 30,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/02-traversal.hpp"
+        "04-Graphs/002-traversal.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3357,7 +3357,7 @@
       "lines": 67,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/05-shortest_path.hpp"
+        "04-Graphs/005-shortest_path.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3370,7 +3370,7 @@
       "lines": 71,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/19-max_flow.hpp"
+        "04-Graphs/019-max_flow.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3383,7 +3383,7 @@
       "lines": 9,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/12-all_pairs_shortest_path.hpp"
+        "04-Graphs/012-all_pairs_shortest_path.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3396,7 +3396,7 @@
       "lines": 56,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/19-max_flow.hpp"
+        "04-Graphs/019-max_flow.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3409,7 +3409,7 @@
       "lines": 62,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/19-max_flow.hpp"
+        "04-Graphs/019-max_flow.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3422,7 +3422,7 @@
       "lines": 40,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/08-scc.hpp"
+        "04-Graphs/008-scc.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3435,7 +3435,7 @@
       "lines": 27,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/21-matching_bipartite.hpp"
+        "04-Graphs/021-matching_bipartite.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3448,7 +3448,7 @@
       "lines": 113,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/20-min_cost_flow.hpp"
+        "04-Graphs/020-min_cost_flow.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3461,7 +3461,7 @@
       "lines": 10,
       "classification": "algorithm-reference",
       "targets": [
-        "04-Graphs/03-toposort.hpp"
+        "04-Graphs/003-toposort.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3488,7 +3488,7 @@
       "classification": "algorithm-reference",
       "targets": [
         "01-Core/10-matrix.hpp",
-        "05-Mathematics/16-linear_algebra.hpp"
+        "05-Mathematics/016-linear_algebra.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3514,7 +3514,7 @@
       "lines": 16,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/01-mod_arithmetic.hpp"
+        "05-Mathematics/001-mod_arithmetic.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3527,7 +3527,7 @@
       "lines": 12,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/01-mod_arithmetic.hpp"
+        "05-Mathematics/001-mod_arithmetic.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3540,7 +3540,7 @@
       "lines": 15,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/04-sieve_algorithms.hpp"
+        "05-Mathematics/004-sieve_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3553,7 +3553,7 @@
       "lines": 63,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/04-sieve_algorithms.hpp"
+        "05-Mathematics/004-sieve_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3566,7 +3566,7 @@
       "lines": 28,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/07-primality_factorization.hpp"
+        "05-Mathematics/007-primality_factorization.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3579,7 +3579,7 @@
       "lines": 13,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/07-primality_factorization.hpp"
+        "05-Mathematics/007-primality_factorization.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3592,7 +3592,7 @@
       "lines": 24,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/07-primality_factorization.hpp"
+        "05-Mathematics/007-primality_factorization.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3605,7 +3605,7 @@
       "lines": 25,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/07-primality_factorization.hpp"
+        "05-Mathematics/007-primality_factorization.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3618,7 +3618,7 @@
       "lines": 25,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/08-multiplicative_functions.hpp"
+        "05-Mathematics/008-multiplicative_functions.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3631,7 +3631,7 @@
       "lines": 22,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/08-multiplicative_functions.hpp"
+        "05-Mathematics/008-multiplicative_functions.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3644,7 +3644,7 @@
       "lines": 25,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/08-multiplicative_functions.hpp"
+        "05-Mathematics/008-multiplicative_functions.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3657,7 +3657,7 @@
       "lines": 27,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/08-multiplicative_functions.hpp"
+        "05-Mathematics/008-multiplicative_functions.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3670,7 +3670,7 @@
       "lines": 15,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/09-modinverse.hpp"
+        "05-Mathematics/009-modinverse.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3683,7 +3683,7 @@
       "lines": 30,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/10-crt.hpp"
+        "05-Mathematics/010-crt.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3696,7 +3696,7 @@
       "lines": 23,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/10-crt.hpp"
+        "05-Mathematics/010-crt.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3709,7 +3709,7 @@
       "lines": 30,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/11-discrete_log_root.hpp"
+        "05-Mathematics/011-discrete_log_root.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3722,7 +3722,7 @@
       "lines": 33,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/11-discrete_log_root.hpp"
+        "05-Mathematics/011-discrete_log_root.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3735,7 +3735,7 @@
       "lines": 23,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/11-discrete_log_root.hpp"
+        "05-Mathematics/011-discrete_log_root.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3748,7 +3748,7 @@
       "lines": 14,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/18-floorsum.hpp"
+        "05-Mathematics/018-floorsum.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3775,8 +3775,8 @@
       "classification": "algorithm-reference",
       "targets": [
         "01-Core/16-poly.hpp",
-        "05-Mathematics/13-convolution.hpp",
-        "05-Mathematics/14-polynomial_algorithms.hpp"
+        "05-Mathematics/013-convolution.hpp",
+        "05-Mathematics/014-polynomial_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3790,9 +3790,9 @@
       "classification": "algorithm-reference",
       "targets": [
         "01-Core/16-poly.hpp",
-        "05-Mathematics/13-convolution.hpp",
-        "05-Mathematics/14-polynomial_algorithms.hpp",
-        "05-Mathematics/15-linear_recurrence.hpp"
+        "05-Mathematics/013-convolution.hpp",
+        "05-Mathematics/014-polynomial_algorithms.hpp",
+        "05-Mathematics/015-linear_recurrence.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3805,7 +3805,7 @@
       "lines": 18,
       "classification": "algorithm-reference",
       "targets": [
-        "02-Data Structures/24-interval_set.hpp"
+        "02-Data Structures/024-interval_set.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3818,7 +3818,7 @@
       "lines": 19,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/21-integer_roots.hpp"
+        "05-Mathematics/021-integer_roots.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3831,7 +3831,7 @@
       "lines": 13,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/19-josephus.hpp"
+        "05-Mathematics/019-josephus.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3844,9 +3844,9 @@
       "lines": 26,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/10-crt.hpp",
-        "08-Python/_03_number_theory.py",
-        "08-Python/_38_number_theory_advanced.py"
+        "05-Mathematics/010-crt.hpp",
+        "08-Python/_003_number_theory.py",
+        "08-Python/_038_number_theory_advanced.py"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Legacy inv helper maps to Basic number theory; findMinX CRT maps to Advanced number theory. Coprime-domain limitations must be audited."
@@ -3859,7 +3859,7 @@
       "lines": 52,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/13-convolution.hpp"
+        "05-Mathematics/013-convolution.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3872,7 +3872,7 @@
       "lines": 31,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/16-linear_algebra.hpp"
+        "05-Mathematics/016-linear_algebra.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3886,7 +3886,7 @@
       "classification": "algorithm-reference",
       "targets": [
         "01-Core/10-matrix.hpp",
-        "05-Mathematics/16-linear_algebra.hpp"
+        "05-Mathematics/016-linear_algebra.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3899,7 +3899,7 @@
       "lines": 56,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/05-combinatorics.hpp"
+        "05-Mathematics/005-combinatorics.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3925,7 +3925,7 @@
       "lines": 19,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/01-mod_arithmetic.hpp"
+        "05-Mathematics/001-mod_arithmetic.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3938,8 +3938,8 @@
       "lines": 50,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/01-mod_arithmetic.hpp",
-        "05-Mathematics/09-modinverse.hpp"
+        "05-Mathematics/001-mod_arithmetic.hpp",
+        "05-Mathematics/009-modinverse.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3952,7 +3952,7 @@
       "lines": 44,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/02-search_algorithms.hpp"
+        "05-Mathematics/002-search_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3965,7 +3965,7 @@
       "lines": 82,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/06-segmentedsieve.hpp"
+        "05-Mathematics/006-segmentedsieve.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3978,7 +3978,7 @@
       "lines": 24,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/17-numerical_methods.hpp"
+        "05-Mathematics/017-numerical_methods.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -3991,7 +3991,7 @@
       "lines": 26,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/03-equation_solvers.hpp"
+        "05-Mathematics/003-equation_solvers.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -4004,7 +4004,7 @@
       "lines": 13,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/03-equation_solvers.hpp"
+        "05-Mathematics/003-equation_solvers.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -4017,7 +4017,7 @@
       "lines": 62,
       "classification": "algorithm-reference",
       "targets": [
-        "06-Miscellaneous/02-customhash.hpp"
+        "06-Miscellaneous/002-customhash.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -4030,7 +4030,7 @@
       "lines": 88,
       "classification": "algorithm-reference",
       "targets": [
-        "05-Mathematics/24-transform_algorithms.hpp"
+        "05-Mathematics/024-transform_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -4043,7 +4043,7 @@
       "lines": 14,
       "classification": "algorithm-reference",
       "targets": [
-        "06-Miscellaneous/08-sequence_algorithms.hpp"
+        "06-Miscellaneous/008-sequence_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -4056,8 +4056,8 @@
       "lines": 30,
       "classification": "algorithm-reference",
       "targets": [
-        "07-Strings/19-lcs.hpp",
-        "08-Python/_12_dp.py"
+        "07-Strings/019-lcs.hpp",
+        "08-Python/_012_dp.py"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Longest common subsequence length/witness DP, prints result and runs a demo on import; future module must separate computation/I/O."
@@ -4070,8 +4070,8 @@
       "lines": 30,
       "classification": "algorithm-reference",
       "targets": [
-        "07-Strings/28-multiple_string.hpp",
-        "08-Python/_25_suffix.py"
+        "07-Strings/028-multiple_string.hpp",
+        "08-Python/_025_suffix.py"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Longest common substring DP; standalone trailing call references undefined X/Y/m/n, retained as legacy rather than executable module."
@@ -4084,7 +4084,7 @@
       "lines": 24,
       "classification": "algorithm-reference",
       "targets": [
-        "06-Miscellaneous/08-sequence_algorithms.hpp"
+        "06-Miscellaneous/008-sequence_algorithms.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -4097,7 +4097,7 @@
       "lines": 15,
       "classification": "algorithm-reference",
       "targets": [
-        "06-Miscellaneous/01-random.hpp"
+        "06-Miscellaneous/001-random.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -4110,7 +4110,7 @@
       "lines": 8,
       "classification": "algorithm-reference",
       "targets": [
-        "07-Strings/02-z.hpp"
+        "07-Strings/002-z.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
       "reason": "Named algorithm family already has an explicit current/planned canonical owner; preserve this source as a legacy reference until audited."
@@ -4124,7 +4124,7 @@
       "classification": "workspace-template-example",
       "targets": [
         "01-Core/01-template.hpp",
-        "03-Geometry/01-point.hpp"
+        "03-Geometry/001-point.hpp"
       ],
       "read_scope": "Declarations and main inspected; new.cpp is a sign-helper smoke example.",
       "reason": "Contest boilerplate/example, not an independent algorithm family.",
@@ -4139,22 +4139,22 @@
       "classification": "algorithm-collection",
       "targets": [
         "01-Core/01-template.hpp",
-        "04-Graphs/02-traversal.hpp",
-        "04-Graphs/03-toposort.hpp",
-        "04-Graphs/05-shortest_path.hpp",
-        "04-Graphs/06-mst.hpp",
-        "04-Graphs/08-scc.hpp",
-        "04-Graphs/09-bridges_articulation.hpp",
-        "04-Graphs/10-euleriantrail.hpp",
-        "04-Graphs/12-all_pairs_shortest_path.hpp",
-        "04-Graphs/13-shortest_path_advanced.hpp",
-        "04-Graphs/16-centroiddecomposition.hpp",
-        "04-Graphs/18-twosat.hpp",
-        "04-Graphs/19-max_flow.hpp",
-        "04-Graphs/20-min_cost_flow.hpp",
-        "04-Graphs/21-matching_bipartite.hpp",
-        "04-Graphs/26-dynamic_connectivity.hpp",
-        "04-Graphs/30-flow_with_demands.hpp"
+        "04-Graphs/002-traversal.hpp",
+        "04-Graphs/003-toposort.hpp",
+        "04-Graphs/005-shortest_path.hpp",
+        "04-Graphs/006-mst.hpp",
+        "04-Graphs/008-scc.hpp",
+        "04-Graphs/009-bridges_articulation.hpp",
+        "04-Graphs/010-euleriantrail.hpp",
+        "04-Graphs/012-all_pairs_shortest_path.hpp",
+        "04-Graphs/013-shortest_path_advanced.hpp",
+        "04-Graphs/016-centroiddecomposition.hpp",
+        "04-Graphs/018-twosat.hpp",
+        "04-Graphs/019-max_flow.hpp",
+        "04-Graphs/020-min_cost_flow.hpp",
+        "04-Graphs/021-matching_bipartite.hpp",
+        "04-Graphs/026-dynamic_connectivity.hpp",
+        "04-Graphs/030-flow_with_demands.hpp"
       ],
       "read_scope": "All extracted class/free-function declarations reviewed, aligned with full explanatory notes and selected bodies; not a compiler-AST or correctness audit.",
       "reason": "Notebook monolith contains real algorithms; test.cpp is an889-line graph collection with empty main, not a test-only file.",
@@ -4183,7 +4183,7 @@
             "getConnCmps"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -4192,7 +4192,7 @@
             "getTopoSort"
           ],
           "targets": [
-            "04-Graphs/03-toposort.hpp"
+            "04-Graphs/003-toposort.hpp"
           ]
         },
         {
@@ -4201,7 +4201,7 @@
             "Dijkstra"
           ],
           "targets": [
-            "04-Graphs/05-shortest_path.hpp"
+            "04-Graphs/005-shortest_path.hpp"
           ]
         },
         {
@@ -4210,7 +4210,7 @@
             "DEsopoPape"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -4219,7 +4219,7 @@
             "SPFA"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -4228,7 +4228,7 @@
             "floydWarshall"
           ],
           "targets": [
-            "04-Graphs/12-all_pairs_shortest_path.hpp"
+            "04-Graphs/012-all_pairs_shortest_path.hpp"
           ]
         },
         {
@@ -4237,7 +4237,7 @@
             "isBipartite"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -4246,7 +4246,7 @@
             "TarjanBridge"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ]
         },
         {
@@ -4255,7 +4255,7 @@
             "TarjanSCC"
           ],
           "targets": [
-            "04-Graphs/08-scc.hpp"
+            "04-Graphs/008-scc.hpp"
           ]
         },
         {
@@ -4264,7 +4264,7 @@
             "OnlineBridge"
           ],
           "targets": [
-            "04-Graphs/26-dynamic_connectivity.hpp"
+            "04-Graphs/026-dynamic_connectivity.hpp"
           ]
         },
         {
@@ -4273,7 +4273,7 @@
             "StrongOrientation"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ]
         },
         {
@@ -4282,7 +4282,7 @@
             "TwoSat"
           ],
           "targets": [
-            "04-Graphs/18-twosat.hpp"
+            "04-Graphs/018-twosat.hpp"
           ]
         },
         {
@@ -4291,7 +4291,7 @@
             "EulerPath"
           ],
           "targets": [
-            "04-Graphs/10-euleriantrail.hpp"
+            "04-Graphs/010-euleriantrail.hpp"
           ]
         },
         {
@@ -4300,7 +4300,7 @@
             "findDirectedCycle"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ]
         },
         {
@@ -4309,7 +4309,7 @@
             "findNegativeCycle"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ]
         },
         {
@@ -4318,7 +4318,7 @@
             "Kruskal"
           ],
           "targets": [
-            "04-Graphs/06-mst.hpp"
+            "04-Graphs/006-mst.hpp"
           ]
         },
         {
@@ -4327,7 +4327,7 @@
             "PrimDense"
           ],
           "targets": [
-            "04-Graphs/06-mst.hpp"
+            "04-Graphs/006-mst.hpp"
           ]
         },
         {
@@ -4336,7 +4336,7 @@
             "CentroidDecomposition"
           ],
           "targets": [
-            "04-Graphs/16-centroiddecomposition.hpp"
+            "04-Graphs/016-centroiddecomposition.hpp"
           ]
         },
         {
@@ -4345,7 +4345,7 @@
             "Dinic"
           ],
           "targets": [
-            "04-Graphs/19-max_flow.hpp"
+            "04-Graphs/019-max_flow.hpp"
           ]
         },
         {
@@ -4354,7 +4354,7 @@
             "FlowWithDemands"
           ],
           "targets": [
-            "04-Graphs/30-flow_with_demands.hpp"
+            "04-Graphs/030-flow_with_demands.hpp"
           ]
         },
         {
@@ -4363,7 +4363,7 @@
             "MaxFlowMinCut"
           ],
           "targets": [
-            "04-Graphs/20-min_cost_flow.hpp"
+            "04-Graphs/020-min_cost_flow.hpp"
           ]
         },
         {
@@ -4372,7 +4372,7 @@
             "PushRelabel"
           ],
           "targets": [
-            "04-Graphs/19-max_flow.hpp"
+            "04-Graphs/019-max_flow.hpp"
           ]
         },
         {
@@ -4381,7 +4381,7 @@
             "Kuhn"
           ],
           "targets": [
-            "04-Graphs/21-matching_bipartite.hpp"
+            "04-Graphs/021-matching_bipartite.hpp"
           ]
         }
       ],
@@ -4682,7 +4682,7 @@
       "classification": "online-driver",
       "targets": [
         "01-Core/10-matrix.hpp",
-        "05-Mathematics/48-combinatorial_linear_algebra.hpp"
+        "05-Mathematics/048-combinatorial_linear_algebra.hpp"
       ],
       "read_scope": "Abbreviated include/main bodies inspected; expanded files classified from #line markers, declaration scan and corresponding driver. Expanded Mathematics head/tail inspected; empty main is not a test.",
       "reason": "Judge-format adapter or expansion of old library headers; no online acceptance claimed.",
@@ -4713,14 +4713,14 @@
       "targets": [
         "01-Core/01-template.hpp",
         "01-Core/04-montgomery.hpp",
-        "05-Mathematics/01-mod_arithmetic.hpp",
-        "05-Mathematics/04-sieve_algorithms.hpp",
-        "05-Mathematics/07-primality_factorization.hpp",
-        "05-Mathematics/08-multiplicative_functions.hpp",
-        "05-Mathematics/09-modinverse.hpp",
-        "05-Mathematics/10-crt.hpp",
-        "05-Mathematics/11-discrete_log_root.hpp",
-        "05-Mathematics/18-floorsum.hpp"
+        "05-Mathematics/001-mod_arithmetic.hpp",
+        "05-Mathematics/004-sieve_algorithms.hpp",
+        "05-Mathematics/007-primality_factorization.hpp",
+        "05-Mathematics/008-multiplicative_functions.hpp",
+        "05-Mathematics/009-modinverse.hpp",
+        "05-Mathematics/010-crt.hpp",
+        "05-Mathematics/011-discrete_log_root.hpp",
+        "05-Mathematics/018-floorsum.hpp"
       ],
       "read_scope": "Abbreviated include/main bodies inspected; expanded files classified from #line markers, declaration scan and corresponding driver. Expanded Mathematics head/tail inspected; empty main is not a test.",
       "reason": "Judge-format adapter or expansion of old library headers; no online acceptance claimed.",
@@ -4987,7 +4987,7 @@
       "classification": "generated-online-snapshot",
       "targets": [
         "01-Core/10-matrix.hpp",
-        "05-Mathematics/48-combinatorial_linear_algebra.hpp"
+        "05-Mathematics/048-combinatorial_linear_algebra.hpp"
       ],
       "read_scope": "Abbreviated include/main bodies inspected; expanded files classified from #line markers, declaration scan and corresponding driver. Expanded Mathematics head/tail inspected; empty main is not a test.",
       "reason": "Judge-format adapter or expansion of old library headers; no online acceptance claimed.",
@@ -5286,17 +5286,17 @@
       "targets": [
         "01-Core/01-template.hpp",
         "01-Core/02-debug.hpp",
-        "02-Data Structures/12-lazysegmenttree.hpp",
-        "02-Data Structures/16-mergesorttree.hpp",
-        "02-Data Structures/21-lichao.hpp",
-        "04-Graphs/05-shortest_path.hpp",
-        "04-Graphs/07-lca.hpp",
-        "04-Graphs/09-bridges_articulation.hpp",
-        "04-Graphs/12-all_pairs_shortest_path.hpp",
-        "04-Graphs/14-tree_algorithms.hpp",
-        "04-Graphs/19-max_flow.hpp",
-        "05-Mathematics/05-combinatorics.hpp",
-        "06-Miscellaneous/08-sequence_algorithms.hpp"
+        "02-Data Structures/012-lazysegmenttree.hpp",
+        "02-Data Structures/016-mergesorttree.hpp",
+        "02-Data Structures/021-lichao.hpp",
+        "04-Graphs/005-shortest_path.hpp",
+        "04-Graphs/007-lca.hpp",
+        "04-Graphs/009-bridges_articulation.hpp",
+        "04-Graphs/012-all_pairs_shortest_path.hpp",
+        "04-Graphs/014-tree_algorithms.hpp",
+        "04-Graphs/019-max_flow.hpp",
+        "05-Mathematics/005-combinatorics.hpp",
+        "06-Miscellaneous/008-sequence_algorithms.hpp"
       ],
       "read_scope": "Reused existing source-range/symbol map after checking full-file hash; map entries inspected, bodies not re-audited.",
       "reason": "Original monolith remains intact; block migration statuses are inherited, not new verification.",
@@ -5345,9 +5345,9 @@
             "kadane"
           ],
           "targets": [
-            "06-Miscellaneous/08-sequence_algorithms.hpp"
+            "06-Miscellaneous/008-sequence_algorithms.hpp"
           ],
-          "previous_transfer_target": "06-Miscellaneous/08-sequence_algorithms.hpp",
+          "previous_transfer_target": "06-Miscellaneous/008-sequence_algorithms.hpp",
           "status": "exact-duplicate",
           "note": "Identical source body represented by the canonical extraction; original monolith remains unchanged."
         },
@@ -5358,9 +5358,9 @@
             "BridgeAlgo"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ],
-          "previous_transfer_target": "04-Graphs/09-bridges_articulation.hpp",
+          "previous_transfer_target": "04-Graphs/009-bridges_articulation.hpp",
           "status": "exact-duplicate",
           "note": ""
         },
@@ -5371,9 +5371,9 @@
             "Dijkstra"
           ],
           "targets": [
-            "04-Graphs/05-shortest_path.hpp"
+            "04-Graphs/005-shortest_path.hpp"
           ],
-          "previous_transfer_target": "04-Graphs/05-shortest_path.hpp",
+          "previous_transfer_target": "04-Graphs/005-shortest_path.hpp",
           "status": "exact-duplicate",
           "note": ""
         },
@@ -5384,7 +5384,7 @@
             "EdmondsKarp"
           ],
           "targets": [
-            "04-Graphs/19-max_flow.hpp"
+            "04-Graphs/019-max_flow.hpp"
           ],
           "previous_transfer_target": "04-Graphs/18-max_flow.hpp",
           "status": "existing-unverified",
@@ -5397,8 +5397,8 @@
             "EulerTourTree"
           ],
           "targets": [
-            "04-Graphs/14-tree_algorithms.hpp",
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "04-Graphs/014-tree_algorithms.hpp",
+            "02-Data Structures/012-lazysegmenttree.hpp"
           ],
           "previous_transfer_target": "04-Graphs/97-Legacy/03-subtree_queries.cpp",
           "status": "legacy-reference",
@@ -5411,7 +5411,7 @@
             "FloydWarshall"
           ],
           "targets": [
-            "04-Graphs/12-all_pairs_shortest_path.hpp"
+            "04-Graphs/012-all_pairs_shortest_path.hpp"
           ],
           "previous_transfer_target": "04-Graphs/11-all_pairs_shortest_path.hpp",
           "status": "exact-duplicate",
@@ -5424,9 +5424,9 @@
             "LCA"
           ],
           "targets": [
-            "04-Graphs/07-lca.hpp"
+            "04-Graphs/007-lca.hpp"
           ],
-          "previous_transfer_target": "04-Graphs/07-lca.hpp",
+          "previous_transfer_target": "04-Graphs/007-lca.hpp",
           "status": "exact-duplicate",
           "note": ""
         },
@@ -5437,7 +5437,7 @@
             "LiChaoTree"
           ],
           "targets": [
-            "02-Data Structures/21-lichao.hpp"
+            "02-Data Structures/021-lichao.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/97-Legacy/04-lichao_older.cpp",
           "status": "legacy-reference",
@@ -5450,7 +5450,7 @@
             "MergeSortTree"
           ],
           "targets": [
-            "02-Data Structures/16-mergesorttree.hpp"
+            "02-Data Structures/016-mergesorttree.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/97-Legacy/05-mergesorttree_older.cpp",
           "status": "legacy-reference",
@@ -5463,7 +5463,7 @@
             "ModFac (commented out)"
           ],
           "targets": [
-            "05-Mathematics/05-combinatorics.hpp"
+            "05-Mathematics/005-combinatorics.hpp"
           ],
           "previous_transfer_target": "05-Mathematics/97-Legacy/02-modfac.cpp",
           "status": "legacy-reference",
@@ -5485,35 +5485,35 @@
         "01-Core/12-bitmatrix.hpp",
         "01-Core/14-sparsematrix.hpp",
         "02-Data Structures/00-monoids.hpp",
-        "02-Data Structures/01-dsu.hpp",
-        "02-Data Structures/04-sparsetable.hpp",
-        "02-Data Structures/06-sqrt_decomposition.hpp",
-        "02-Data Structures/11-fenwick_tree_advanced.hpp",
-        "02-Data Structures/12-lazysegmenttree.hpp",
-        "02-Data Structures/13-dynamicsegmenttree.hpp",
-        "02-Data Structures/14-segtreebeats.hpp",
-        "02-Data Structures/15-segment_tree_2d.hpp",
-        "02-Data Structures/16-mergesorttree.hpp",
-        "02-Data Structures/17-waveletmatrix.hpp",
-        "02-Data Structures/18-persistentsegmenttree.hpp",
-        "02-Data Structures/21-lichao.hpp",
-        "02-Data Structures/23-range_query_offline.hpp",
-        "02-Data Structures/29-weighteddsu.hpp",
-        "04-Graphs/02-traversal.hpp",
-        "04-Graphs/05-shortest_path.hpp",
-        "04-Graphs/07-lca.hpp",
-        "04-Graphs/09-bridges_articulation.hpp",
-        "04-Graphs/12-all_pairs_shortest_path.hpp",
-        "04-Graphs/13-shortest_path_advanced.hpp",
-        "04-Graphs/15-hld.hpp",
-        "04-Graphs/16-centroiddecomposition.hpp",
-        "04-Graphs/18-twosat.hpp",
-        "04-Graphs/23-assignment.hpp",
-        "04-Graphs/26-dynamic_connectivity.hpp",
-        "05-Mathematics/24-transform_algorithms.hpp",
-        "06-Miscellaneous/01-random.hpp",
-        "06-Miscellaneous/02-customhash.hpp",
-        "06-Miscellaneous/08-sequence_algorithms.hpp"
+        "02-Data Structures/001-dsu.hpp",
+        "02-Data Structures/004-sparsetable.hpp",
+        "02-Data Structures/006-sqrt_decomposition.hpp",
+        "02-Data Structures/011-fenwick_tree_advanced.hpp",
+        "02-Data Structures/012-lazysegmenttree.hpp",
+        "02-Data Structures/013-dynamicsegmenttree.hpp",
+        "02-Data Structures/014-segtreebeats.hpp",
+        "02-Data Structures/015-segment_tree_2d.hpp",
+        "02-Data Structures/016-mergesorttree.hpp",
+        "02-Data Structures/017-waveletmatrix.hpp",
+        "02-Data Structures/018-persistentsegmenttree.hpp",
+        "02-Data Structures/021-lichao.hpp",
+        "02-Data Structures/023-range_query_offline.hpp",
+        "02-Data Structures/029-weighteddsu.hpp",
+        "04-Graphs/002-traversal.hpp",
+        "04-Graphs/005-shortest_path.hpp",
+        "04-Graphs/007-lca.hpp",
+        "04-Graphs/009-bridges_articulation.hpp",
+        "04-Graphs/012-all_pairs_shortest_path.hpp",
+        "04-Graphs/013-shortest_path_advanced.hpp",
+        "04-Graphs/015-hld.hpp",
+        "04-Graphs/016-centroiddecomposition.hpp",
+        "04-Graphs/018-twosat.hpp",
+        "04-Graphs/023-assignment.hpp",
+        "04-Graphs/026-dynamic_connectivity.hpp",
+        "05-Mathematics/024-transform_algorithms.hpp",
+        "06-Miscellaneous/001-random.hpp",
+        "06-Miscellaneous/002-customhash.hpp",
+        "06-Miscellaneous/008-sequence_algorithms.hpp"
       ],
       "read_scope": "Reused existing source-range/symbol map after checking full-file hash; map entries inspected, bodies not re-audited.",
       "reason": "Original monolith remains intact; block migration statuses are inherited, not new verification.",
@@ -5565,7 +5565,7 @@
             "rng"
           ],
           "targets": [
-            "06-Miscellaneous/01-random.hpp"
+            "06-Miscellaneous/001-random.hpp"
           ],
           "previous_transfer_target": "06-Miscellaneous/97-Legacy/01-random.cpp",
           "status": "legacy-reference",
@@ -5580,7 +5580,7 @@
             "safe_unordered_set"
           ],
           "targets": [
-            "06-Miscellaneous/02-customhash.hpp"
+            "06-Miscellaneous/002-customhash.hpp"
           ],
           "previous_transfer_target": "06-Miscellaneous/97-Legacy/02-customhash.cpp",
           "status": "legacy-reference",
@@ -5658,9 +5658,9 @@
             "SparseTable"
           ],
           "targets": [
-            "02-Data Structures/04-sparsetable.hpp"
+            "02-Data Structures/004-sparsetable.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/04-sparsetable.hpp",
+          "previous_transfer_target": "02-Data Structures/004-sparsetable.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5671,10 +5671,10 @@
             "DSU"
           ],
           "targets": [
-            "02-Data Structures/01-dsu.hpp",
-            "02-Data Structures/29-weighteddsu.hpp"
+            "02-Data Structures/001-dsu.hpp",
+            "02-Data Structures/029-weighteddsu.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/01-dsu.hpp",
+          "previous_transfer_target": "02-Data Structures/001-dsu.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5685,9 +5685,9 @@
             "FenTreeRangeAdd1D"
           ],
           "targets": [
-            "02-Data Structures/11-fenwick_tree_advanced.hpp"
+            "02-Data Structures/011-fenwick_tree_advanced.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/11-fenwick_tree_advanced.hpp",
+          "previous_transfer_target": "02-Data Structures/011-fenwick_tree_advanced.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5698,9 +5698,9 @@
             "FenTree"
           ],
           "targets": [
-            "02-Data Structures/11-fenwick_tree_advanced.hpp"
+            "02-Data Structures/011-fenwick_tree_advanced.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/11-fenwick_tree_advanced.hpp",
+          "previous_transfer_target": "02-Data Structures/011-fenwick_tree_advanced.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5711,7 +5711,7 @@
             "SqrtDecomp"
           ],
           "targets": [
-            "02-Data Structures/06-sqrt_decomposition.hpp"
+            "02-Data Structures/006-sqrt_decomposition.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/97-Legacy/02-sqrtdecomp.cpp",
           "status": "legacy-reference",
@@ -5724,9 +5724,9 @@
             "Mo"
           ],
           "targets": [
-            "02-Data Structures/23-range_query_offline.hpp"
+            "02-Data Structures/023-range_query_offline.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/23-range_query_offline.hpp",
+          "previous_transfer_target": "02-Data Structures/023-range_query_offline.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5737,9 +5737,9 @@
             "SegTree"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/012-lazysegmenttree.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/12-lazysegmenttree.hpp",
+          "previous_transfer_target": "02-Data Structures/012-lazysegmenttree.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5750,7 +5750,7 @@
             "DynSegTree"
           ],
           "targets": [
-            "02-Data Structures/13-dynamicsegmenttree.hpp"
+            "02-Data Structures/013-dynamicsegmenttree.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/97-Legacy/03-dynsegtree.cpp",
           "status": "legacy-reference",
@@ -5763,9 +5763,9 @@
             "PerSegTree"
           ],
           "targets": [
-            "02-Data Structures/18-persistentsegmenttree.hpp"
+            "02-Data Structures/018-persistentsegmenttree.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/18-persistentsegmenttree.hpp",
+          "previous_transfer_target": "02-Data Structures/018-persistentsegmenttree.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5776,9 +5776,9 @@
             "SegTree2D"
           ],
           "targets": [
-            "02-Data Structures/15-segment_tree_2d.hpp"
+            "02-Data Structures/015-segment_tree_2d.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/15-segment_tree_2d.hpp",
+          "previous_transfer_target": "02-Data Structures/015-segment_tree_2d.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5789,9 +5789,9 @@
             "SegTreeBeats"
           ],
           "targets": [
-            "02-Data Structures/14-segtreebeats.hpp"
+            "02-Data Structures/014-segtreebeats.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/14-segtreebeats.hpp",
+          "previous_transfer_target": "02-Data Structures/014-segtreebeats.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5802,9 +5802,9 @@
             "DynMergeSortTree"
           ],
           "targets": [
-            "02-Data Structures/16-mergesorttree.hpp"
+            "02-Data Structures/016-mergesorttree.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/16-mergesorttree.hpp",
+          "previous_transfer_target": "02-Data Structures/016-mergesorttree.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5815,9 +5815,9 @@
             "KSPerSegTree"
           ],
           "targets": [
-            "02-Data Structures/18-persistentsegmenttree.hpp"
+            "02-Data Structures/018-persistentsegmenttree.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/18-persistentsegmenttree.hpp",
+          "previous_transfer_target": "02-Data Structures/018-persistentsegmenttree.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5828,9 +5828,9 @@
             "WaveletMatrix"
           ],
           "targets": [
-            "02-Data Structures/17-waveletmatrix.hpp"
+            "02-Data Structures/017-waveletmatrix.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/17-waveletmatrix.hpp",
+          "previous_transfer_target": "02-Data Structures/017-waveletmatrix.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5841,7 +5841,7 @@
             "FastConv"
           ],
           "targets": [
-            "05-Mathematics/24-transform_algorithms.hpp"
+            "05-Mathematics/024-transform_algorithms.hpp"
           ],
           "previous_transfer_target": "05-Mathematics/97-Legacy/01-transform_algorithms.cpp",
           "status": "legacy-reference",
@@ -5854,9 +5854,9 @@
             "LiChaoTree"
           ],
           "targets": [
-            "02-Data Structures/21-lichao.hpp"
+            "02-Data Structures/021-lichao.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/21-lichao.hpp",
+          "previous_transfer_target": "02-Data Structures/021-lichao.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5867,7 +5867,7 @@
             "HLD"
           ],
           "targets": [
-            "04-Graphs/15-hld.hpp"
+            "04-Graphs/015-hld.hpp"
           ],
           "previous_transfer_target": "04-Graphs/14-hld.hpp",
           "status": "existing-unverified",
@@ -5880,9 +5880,9 @@
             "PerLiChaoTree"
           ],
           "targets": [
-            "02-Data Structures/21-lichao.hpp"
+            "02-Data Structures/021-lichao.hpp"
           ],
-          "previous_transfer_target": "02-Data Structures/21-lichao.hpp",
+          "previous_transfer_target": "02-Data Structures/021-lichao.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5893,9 +5893,9 @@
             "kadane"
           ],
           "targets": [
-            "06-Miscellaneous/08-sequence_algorithms.hpp"
+            "06-Miscellaneous/008-sequence_algorithms.hpp"
           ],
-          "previous_transfer_target": "06-Miscellaneous/08-sequence_algorithms.hpp",
+          "previous_transfer_target": "06-Miscellaneous/008-sequence_algorithms.hpp",
           "status": "existing-unverified",
           "note": "Only legacy Kadane is present; LIS/inversion count remain planned. Original source calls this an inferior version."
         },
@@ -5906,9 +5906,9 @@
             "BridgeAlgo"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ],
-          "previous_transfer_target": "04-Graphs/09-bridges_articulation.hpp",
+          "previous_transfer_target": "04-Graphs/009-bridges_articulation.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5919,9 +5919,9 @@
             "Dijkstra"
           ],
           "targets": [
-            "04-Graphs/05-shortest_path.hpp"
+            "04-Graphs/005-shortest_path.hpp"
           ],
-          "previous_transfer_target": "04-Graphs/05-shortest_path.hpp",
+          "previous_transfer_target": "04-Graphs/005-shortest_path.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5932,7 +5932,7 @@
             "FloydWarshall"
           ],
           "targets": [
-            "04-Graphs/12-all_pairs_shortest_path.hpp"
+            "04-Graphs/012-all_pairs_shortest_path.hpp"
           ],
           "previous_transfer_target": "04-Graphs/11-all_pairs_shortest_path.hpp",
           "status": "existing-unverified",
@@ -5945,9 +5945,9 @@
             "LCA"
           ],
           "targets": [
-            "04-Graphs/07-lca.hpp"
+            "04-Graphs/007-lca.hpp"
           ],
-          "previous_transfer_target": "04-Graphs/07-lca.hpp",
+          "previous_transfer_target": "04-Graphs/007-lca.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -5958,7 +5958,7 @@
             "TwoSat"
           ],
           "targets": [
-            "04-Graphs/18-twosat.hpp"
+            "04-Graphs/018-twosat.hpp"
           ],
           "previous_transfer_target": "04-Graphs/17-twosat.hpp",
           "status": "existing-unverified",
@@ -5971,7 +5971,7 @@
             "floydWarshall"
           ],
           "targets": [
-            "04-Graphs/12-all_pairs_shortest_path.hpp"
+            "04-Graphs/012-all_pairs_shortest_path.hpp"
           ],
           "previous_transfer_target": "04-Graphs/97-Legacy/01-floydwarshall.cpp",
           "status": "legacy-reference",
@@ -5984,7 +5984,7 @@
             "SPFA"
           ],
           "targets": [
-            "04-Graphs/13-shortest_path_advanced.hpp"
+            "04-Graphs/013-shortest_path_advanced.hpp"
           ],
           "previous_transfer_target": "04-Graphs/12-shortest_path_advanced.hpp",
           "status": "existing-unverified",
@@ -5997,7 +5997,7 @@
             "isBipartite"
           ],
           "targets": [
-            "04-Graphs/02-traversal.hpp"
+            "04-Graphs/002-traversal.hpp"
           ],
           "previous_transfer_target": "04-Graphs/97-Legacy/02-bipartite.cpp",
           "status": "legacy-reference",
@@ -6010,7 +6010,7 @@
             "Hungarian"
           ],
           "targets": [
-            "04-Graphs/23-assignment.hpp"
+            "04-Graphs/023-assignment.hpp"
           ],
           "previous_transfer_target": "04-Graphs/22-assignment.hpp",
           "status": "existing-unverified",
@@ -6023,9 +6023,9 @@
             "Tarjan"
           ],
           "targets": [
-            "04-Graphs/09-bridges_articulation.hpp"
+            "04-Graphs/009-bridges_articulation.hpp"
           ],
-          "previous_transfer_target": "04-Graphs/09-bridges_articulation.hpp",
+          "previous_transfer_target": "04-Graphs/009-bridges_articulation.hpp",
           "status": "existing-unverified",
           "note": ""
         },
@@ -6036,7 +6036,7 @@
             "OnlineBridges"
           ],
           "targets": [
-            "04-Graphs/26-dynamic_connectivity.hpp"
+            "04-Graphs/026-dynamic_connectivity.hpp"
           ],
           "previous_transfer_target": "04-Graphs/25-dynamic_connectivity.hpp",
           "status": "existing-unverified",
@@ -6049,7 +6049,7 @@
             "CentroidDecomposition"
           ],
           "targets": [
-            "04-Graphs/16-centroiddecomposition.hpp"
+            "04-Graphs/016-centroiddecomposition.hpp"
           ],
           "previous_transfer_target": "04-Graphs/15-centroiddecomposition.hpp",
           "status": "existing-unverified",

@@ -1,5 +1,5 @@
-#include "../../04-Graphs/05-shortest_path.hpp"
-#include "../../04-Graphs/06-mst.hpp"
+#include "../../04-Graphs/005-shortest_path.hpp"
+#include "../../04-Graphs/006-mst.hpp"
 
 int main(int argc, char **argv) {
     ulng seed = argc > 1 ? std::stoull(argv[1]) : 20260927;

@@ -10,7 +10,7 @@ The user decided these since 2026-10-10. They are binding, and only the user cha
 
 - **P010** flags choosing between operations become named mirrors (user decision 2026-11-14): `topologicalSort(g, true)` → `topologicalSortSmallest` (GR01, done), `dagShortestPaths(g, s, true)` → `dagLongestPathsFrom` (`dagLongestPaths` stays retired; GR02, done), `kruskal`/`primSparse`/`boruvka(g, true)` → `kruskalMaximum`/`primSparseMaximum`/`boruvkaMaximum` (GR02, done), `eulerianTrail(g, start, true)` → `eulerianTrailSmallest`; `KruskalReconstruction(g, maximum)` keeps its constructor parameter. Kept as well (user decision 2026-11-15): `ShortestPathResult::relax(e, a, longest)`, a member helper for hand-written relaxation loops whose caller already fixes the direction, and `primDense`'s `DenseGraph::maximum` view, which already chose each pair's minimum or maximum parallel arc. Row 03's lexicographically smallest inverse permutation is `topologicalSortEarliest`.
 - **P012** Mathematics row 01 `divMod` is named `divModFloor`, as Core's flooring `InfInt::divModFloor`, since Core's `divMod` truncates; this reverses P275's `divModFloor` → `divMod` rename (`Docs/00-duplicate-rereview.md`) (user decision 2026-11-12).
-- **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
+- **P090** `08-Python` row `_005_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
 - **P018** `06-Miscellaneous/03-fastio.hpp` moves to `01-Core/19-fastio.hpp`, a Core full header with no forwarding header in 06, and absorbs P066's planned row 17: `MmapInput` is `FastInput<0>` (a mapped regular file under Linux, else fread), `SyscallOutput` is `FastOutput` (decided 2026-11-01).
 - **P061, P191** Mathematics row 23 owns the matrix-tree counts (`countSpanningTrees`, `countArborescences`, `countRootedForests`, `eulerianCircuitCountBest`); Graphs row 53 drops `countSpanningTrees`, `countArborescences`, `countSpanningForests` and `countEulerianCircuits` (decided 2026-11-08).
@@ -19,7 +19,7 @@ The user decided these since 2026-10-10. They are binding, and only the user cha
 - **P011, P276** Graphs row 07 `getKthAncestor` (clamped negative `k`) merges into `kthAncestor`, which asserts `k >= 0` (user decision 2026-11-10).
 - **P276** `08-Python` mirrors C++ (user decision 2026-11-10, `04-python.md` Style): `_56` drops its public `BitVector` (C++ row 32 keeps it internal; `_45` `SuccinctBitVector` is the public type); `_25` drops the free `numberOfSubstrings` beside `SuffixAutomaton::distinctSubstrings`; `_38` `crtGeneral` folds into `crt`, which takes noncoprime moduli; `_15` `BoundedFlow` becomes the free `feasibleFlow` and `maxFlowWithLowerBounds` of Graphs row 30; `_18` `ParityDSU` drops `findSet` and `isSameSet`, which C++ lacks (`parity(u, v) >= 0` is the same test); `_43` `digitDp` and `digitDpRange` fold into `DigitDP::count` (closed interval).
 - **08-Python** (`/tidy` 2026-11-22; user decision 2026-11-22 to remove standard-library duplicates and doubled operations and to take the C++ names; these items are Claude's own reading of it): `countRange`, `longestIncreasingSubsequenceLength`, `rangeKthSmallest`, `convexHullCollinear`, `SortedList.lt`, `Doubling.jump` and `isBipartite` leave their modules, and the separate `_01` readers and writers merge. The full list of removals with their survivors: `08-Python/Docs/00-notes.md` (Names).
-- **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
+- **P067** `02-Data Structures/023-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
 ### Keeps
 
@@ -42,7 +42,7 @@ Items a reader could mistake for duplicates.
 | P011 | `lca_detail::Forest` inclusive `t_in`/`t_out` | Only form |
 | P011 | `functionalOrbit`, `condensationDag` | Different domain (walks that stop); replacement differs in weights, order and memory |
 | P011, P043 | `kosarajuScc`, `kuhn` | Different algorithms from `tarjanScc`, `hopcroftKarp` |
-| P012 | `floorDiv` beside `divModFloor` (`01-mod_arithmetic.hpp`) | User decision 2026-11-12: the quotient alone is the common call; `divModFloor` adds the floored remainder for either sign of `b` |
+| P012 | `floorDiv` beside `divModFloor` (`001-mod_arithmetic.hpp`) | User decision 2026-11-12: the quotient alone is the common call; `divModFloor` adds the floored remainder for either sign of `b` |
 | P012 | `ternSearch`, `ternSearchRealBracket` | Different algorithms from `fibSearch`, `goldenSearchRealBracket` |
 | P012 | `binSearch(ok, ng, f)` | Decided 2026-10-11: one orientation-free call for the common ok/ng idiom; the replacement needs `lastTrue` or `firstTrue` by orientation plus a result mapping |
 | P012 | `LinearSieve::phiTable`, `mobiusTable`, `divisorCountTable`, `divisorSumTable` | Reuse the sieve's `spf` table |
@@ -72,7 +72,7 @@ Items a reader could mistake for duplicates.
 | P043 | `hallViolator` | Named certificate (Hall violator) |
 | P055 | `FastConv::fctGcd`, `fctLcm` | Reuse a caller's `LinearSieve` |
 | P055 | `FastConv::fctGcdSimple`, `fctLcmSimple` | Different algorithm (harmonic loops) |
-| P083 | `countDistinctSubsequences` (`19-lcs.hpp`) | Different domain from P084's member |
+| P083 | `countDistinctSubsequences` (`019-lcs.hpp`) | Different domain from P084's member |
 | P057 | `polynomial_detail::inverses`, `factorials` | Internal helpers |
 | P084 | `bwt(s, sentinel)`, `dfaSearch(pattern, text, sigma)` | Headline operation; only form taking a `char` pattern |
 | P085 | `longestCommonSuffix` (row 22) | Decided 2026-10-16: kept as `BidirectionalSuffixArray::longestCommonSuffix`, which owns the forward and reversed suffix arrays (the backward query beside `SuffixArray::substringLce`) |
@@ -118,7 +118,7 @@ Items a reader could mistake for duplicates.
 | P035 | `SparseDSU` (row 65) beside `HashMap<K, int>` plus `DSU::makeSet` | Decided 2026-10-23 by the user: larger key domain (hashable keys) |
 | P035 | `ParityDSU` (row 29) beside `WeightedDSU` over Z/2 | Decided 2026-10-23 by the user: a different algorithm, a 2n-node DSU |
 | P035 | `MergeHistoryForest` (row 65) beside `KruskalReconstruction` weighted by union index and `PartiallyPersistentDSU::uniteTime` | Decided 2026-10-23 by the user: a separate builder from a union sequence, with no graph or sort |
-| P058 | `nullspace` (`16-linear_algebra.hpp`) beside the basis of `solveLinear(A, 0)` | Decided 2026-10-28 by the user: a standalone kernel basis without a right-hand side; `gaussJordan` left row 16 for `rref` the same day |
+| P058 | `nullspace` (`016-linear_algebra.hpp`) beside the basis of `solveLinear(A, 0)` | Decided 2026-10-28 by the user: a standalone kernel basis without a right-hand side; `gaussJordan` left row 16 for `rref` the same day |
 | P048 | `countTriangles` (row 35) beside an `enumerateTriangles` counting callback, `Σ countC3C4PerVertex(g).first / 3` and `Σ countTrianglesPerEdge(g) / 3` | Decided 2026-10-29 by the user: a different algorithm on dense graphs, popcount of oriented-adjacency bitsets in O(m n / 64), and one pass with no per-vertex or per-edge arrays |
 | P048 | `triangleProductSum` (row 35, formerly `triangleAggregate`) beside `enumerateTriangles` summing `x[a] * x[b] * x[c]` | Decided 2026-10-29 by the user: the named vertex-weighted triangle sum (Library Checker enumerate_triangles) |
 | P048 | `countC4` (row 35) beside `countC4PerEdge` summed over the edges of `simplify(g)` and `Σ countC3C4PerVertex(g).second`, each divided by 4 | Decided 2026-10-29 by the user: one counting pass with no per-edge or per-vertex accumulation, kept for its constant factor |
@@ -126,7 +126,7 @@ Items a reader could mistake for duplicates.
 | P048 | `enumerateTriangleEdges` beside `enumerateTriangles` (row 35) | Decided 2026-10-29 by the user: multigraph semantics with edge IDs, every combination of parallel copies, against one report per vertex triangle |
 | P048 | `localClustering`, `squareClustering`, `transitivity` and `generalizedDegree` (row 35) beside `countC3C4PerVertex`, `countTriangles` and `countTrianglesPerEdge` with degrees | Decided 2026-10-29 by the user: NetworkX `cluster.py` measures with fixed denominators and zero conventions (`squareClustering` needs P3 and the 4-cycles through v; `generalizedDegree` counts per simple pair) |
 | P048 | `averageClustering` (row 35) beside the mean of `localClustering` or `directedClustering` | Decided 2026-10-29 by the user: NetworkX `average_clustering` with `count_zeros`, dispatching on `g.directed` |
-| P072 | `kSmallestSubsetSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
+| P072 | `kSmallestSubsetSums` (`054-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
 | P059 | `isqrt` beside `isqrt128` (row 21) | Decided 2026-11-03 (`/merge-pr 3`): larger domain, a 128-bit argument; `isqrt` keeps the one-`sqrt` 64-bit path |
 | P122 | `PlusMinusOneRMQ` (row 54) beside the `EulerLCA` kernel (Graphs row 07) | Decided 2026-11-08 by the user (P254 omission sweep): row 54 keeps it public and `EulerLCA` calls it instead of a copy of its own |
 | P011 | `meet(t, a, b, c)` (Graphs row 07) beside `rerootedLCA(a, b, c)` | Decided 2026-11-15 by the user (/package GR03): the same median on every input, kept as a free function over every LCA struct that calls `rerootedLCA` |
@@ -136,7 +136,7 @@ Items a reader could mistake for duplicates.
 | P185 | `GF2k::carrylessMultiply` beside row 65 `carrylessMultiply` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper on another type, calling row 65 |
 | P186 | `determinantPolynomialMatrix` (row 44) beside row 51 `PolyMatrix::det` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper in another row, calling row 51 |
 | P013 | `permutationLehmerNaive`, `permutationFromLehmerNaive`, `permutationRankModNaive` (row 07) beside the Fenwick `permutationLehmer`, `permutationFromLehmer`, `permutationRankMod` | Decided 2026-11-16 by the user: O(n^2) scans without the Fenwick dependency, kept as lighter (`01-principles.md`, Priority; `omissions.md`, 2026-11-16) |
-| P013 | `compressCounting`, `stableRanksCounting` (row 04) beside `CoordinateCompression::encode` and `stableRanks` | Decided 2026-11-17 by the user: O(n + V) counting builds for `lng` keys, kept as faster below a measured crossover (span up to about 16n; `06-Miscellaneous/Docs/04-compression.md`, Benchmarks) |
+| P013 | `compressCounting`, `stableRanksCounting` (row 04) beside `CoordinateCompression::encode` and `stableRanks` | Decided 2026-11-17 by the user: O(n + V) counting builds for `lng` keys, kept as faster below a measured crossover (span up to about 16n; `06-Miscellaneous/Docs/004-compression.md`, Benchmarks) |
 | P013 | `argsort` beside `stableRanks` (row 04); `HashedEncounterCompression` beside `EncounterCompression` (row 04); `permute` beside `permutationCompose` (row 07) | Decided 2026-11-17 by the user: `argsort` is the inverse permutation of `stableRanks`, a different result; the hashed dictionary is another algorithm (expected O(1), equality instead of comparator equivalence); `permute` takes any element type, a larger domain |
 
 ### Rulings
@@ -156,12 +156,12 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 
 | Package | Item | Reason |
 |---|---|---|
-| P042 | `widestPath` beside `minimaxPath` (`13-shortest_path_advanced.hpp`) | Mirror (ruling 3) |
-| P015 | `forEachCombinationMask<U>(n,k)` beside `forEachCombinationSubmask(lowMask(n),k)` (`12-enumeration.hpp`) | Named special case (clarified rule): the low-`n` mask without `select`, by the canonical `BitOps::nextCombination` |
-| P015 | `forEachSubsetMask<U>(n)` beside `forEachSupermask(U(0),n)` (`12-enumeration.hpp`) | Named special case (clarified rule): every low-`n` mask by a plain counter |
-| P015 | `forEachCombinationCoolLex(n,k)` beside `forEachCombinationMaskCoolLex<U>(n,k)` (`12-enumeration.hpp`) | Different algorithm and domain: Ruskey–Williams `Loopless(s,t)` on a byte vector for any `n`, against `Word(s,t)` arithmetic on one word with `n` up to its width; both added by user decision 2026-11-27 |
-| P042 | `radius`, `diameter`, `center`, `periphery` (`12-all_pairs_shortest_path.hpp`) | Fields of the `Eccentricities` result: derived formulas (clarified rule) |
-| P042 | `floydWarshall` beside `johnson` (`12-all_pairs_shortest_path.hpp`) | Different algorithm: O(n^3) dense matrix against SCC Bellman–Ford plus n Dijkstras, same results |
+| P042 | `widestPath` beside `minimaxPath` (`013-shortest_path_advanced.hpp`) | Mirror (ruling 3) |
+| P015 | `forEachCombinationMask<U>(n,k)` beside `forEachCombinationSubmask(lowMask(n),k)` (`012-enumeration.hpp`) | Named special case (clarified rule): the low-`n` mask without `select`, by the canonical `BitOps::nextCombination` |
+| P015 | `forEachSubsetMask<U>(n)` beside `forEachSupermask(U(0),n)` (`012-enumeration.hpp`) | Named special case (clarified rule): every low-`n` mask by a plain counter |
+| P015 | `forEachCombinationCoolLex(n,k)` beside `forEachCombinationMaskCoolLex<U>(n,k)` (`012-enumeration.hpp`) | Different algorithm and domain: Ruskey–Williams `Loopless(s,t)` on a byte vector for any `n`, against `Word(s,t)` arithmetic on one word with `n` up to its width; both added by user decision 2026-11-27 |
+| P042 | `radius`, `diameter`, `center`, `periphery` (`012-all_pairs_shortest_path.hpp`) | Fields of the `Eccentricities` result: derived formulas (clarified rule) |
+| P042 | `floydWarshall` beside `johnson` (`012-all_pairs_shortest_path.hpp`) | Different algorithm: O(n^3) dense matrix against SCC Bellman–Ford plus n Dijkstras, same results |
 | P042 | `minimaxFloydWarshall` (row 12) beside `minimaxPath`, `widestPath` (row 13) | Different algorithm and result: bitset closure for every pair against one bottleneck Dijkstra with parents per source set |
 | P042 | `spfa`, `desopoPape`, `negativeSsspScaling` (row 13) beside `bellmanFord` (row 05) | Different algorithms: FIFO and deque label correcting, Goldberg bit scaling |
 | P042 | `dialDijkstra`, `radixHeapDijkstra`, `aStar`, `bidirectionalDijkstra` (row 13) beside `dijkstra` (row 05) | Different algorithms: bucket and radix queues; s–t searches with a heuristic or from both ends |
@@ -173,54 +173,54 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P032 | `PersistentRangeMex` beside `rangeMex` (row 32) | Decided by the user 2026-11-02: online persistent versions in O(n * log(n)) memory against an offline sweep in O(n) |
 | P032 | `RangeMajority` beside `RangeThresholdFrequency::frequent` with `t = (r - l) / 2 + 1` (row 32) | Decided by the user 2026-11-02: a Boyer–Moore segment tree with verification in O(n) memory against wavelet rank sampling |
 | P032 | `XorBasis::rank(x)` beside `size()`; `XorBasis::intersection` beside Core `BitMatrix` `intersectSpace` (row 62) | Decided by the user 2026-11-02: `rank(x)` is the order index of `x` among the span values (the inverse of `kth`), not the dimension; `intersection` is a 64-bit word basis in O(64^2) against packed matrices. `countRepresentable` (`1ull << size()`), `reducedEchelon` (the stored basis is kept reduced) and `min` (`reduce(x)`; the smallest nonzero span value is `kth(1)`) left the row |
-| P032 | `XorBasis::contains` (`62-xorbasis.hpp`) | Named special case of `reduce` (ruling 1) |
+| P032 | `XorBasis::contains` (`062-xorbasis.hpp`) | Named special case of `reduce` (ruling 1) |
 | P032 | `XorBasis::merge` beside `insert` over `o.b` (row 62) | Batch form (clarified rule) |
 | P032 | `PrefixXorBasis::rangeMax`, `rangeContains` beside `XorBasisCompanion::rangeXorBasisQuery` followed by `max` or `contains` (row 62) | Different algorithm and domain: online queries in O(B) over O(n * B) memory against an offline sweep in O(n + q) memory |
-| P032 | `XorBasis<false>` beside `XorBasis<true>` (row 62) | One template: the flag drops the insert masks and `represent`, which Graphs row 28 does not use (they cost 18–41% there, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>)) |
+| P032 | `XorBasis<false>` beside `XorBasis<true>` (row 62) | One template: the flag drops the insert masks and `represent`, which Graphs row 28 does not use (they cost 18–41% there, [062-xorbasis.md](<../../02-Data Structures/Docs/062-xorbasis.md#benchmarks>)) |
 | P002 | `rangeMask(bits, l, r)` (`18-bitset.hpp`) | Builder: construction plus `setRange` (clarified rule) |
 | P002 | `findNext(p)` (`18-bitset.hpp`) | Accepts `p == n`, which `findFrom` rejects (clarified rule) |
 | P002 | `none()` (`18-bitset.hpp`) | Named special case (ruling 1) |
 | P002 | `combine<Op>` (`18-bitset.hpp`) | Helper of `combineShift`; dropped from the row 2026-10-12 |
 | P002 | `setRange(l, r, false)` (`18-bitset.hpp`) | The flag is the value written, as in `set(p, v)` |
 | P004 | `redc(x, lazy)` (`04-montgomery.hpp`) | Unchecked kernel public only because there is no `private` |
-| P006 | Fenwick `lowerBound`, `upperBound`, `descend` (`02-fenwick.hpp`) | Named special case; larger domain (`x <= 0`); 11% faster (`Docs/02-fenwick.md`) |
-| P006 | `SegmentTree::apply` (`03-segmenttree.hpp`) | As the recorded keep `SqrtDecomp::apply` |
-| P006 | `DifferenceArray(2D)::clear` (`05-prefix_sum.hpp`) | Named special case, in place |
-| P006 | `PrefixSum` beside `PrefixProduct<Sum<T>>` (`05-prefix_sum.hpp`) | Named special case: the same results for an additive group, taken as a plain `T` with `+` and `-` instead of a group struct, with `prefixSum` and the braced-list constructor; `PrefixProduct` serves noncommutative groups (DS02 review, 2026-11-12) |
-| P006 | Braced-list constructors (`02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp`, `06-sqrt_decomposition.hpp`) | Without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md`, Common Foundation Contracts) |
-| P006 | `CoordinateCompression::decode` (`07-ordered_set.hpp`) | Named inverse of `encode`; replaces P013's `value` |
-| P006 | `previousGreater`, `nextGreater`, `slidingMaximum` (`08-monotone_stack.hpp`) | Named special cases |
-| P007 | `signedAreaApprox` (`03-polygon.hpp`) | Another scale: half the doubled area (clarified rule) |
-| P007 | `polygonContains`, `PolygonLocation` (`03-polygon.hpp`) | Derived classification of the winding number (clarified rule) |
-| P007 | `convexHull` (`04-convexhull.hpp`) | Constant-factor variant (ruling 4) |
-| P007 | `lowerHull`, `upperHull` beside `lowerHullIndices`, `upperHullIndices` (`04-convexhull.hpp`) | Constant-factor variant (ruling 4): points without the index sort and lookups, as `convexHull` beside `convexHullIndices` (P007 /finish review 2026-11-12) |
-| P007 | `segmentDistanceApprox` beside `linearDistanceApprox` on two segments (`02-line_segment.hpp`) | Constant-factor variant (ruling 4): long double from the exact topology, no `Rational` normalization (P007 review 2026-11-11); measured 16.2 to 18.5 times faster on random segment pairs (`04-convexhull.md`, Benchmarks, 2026-11-12) |
-| P007 | `projectLineApprox`, `reflectLineApprox`, `reflectDirectionApprox` (`02-line_segment.hpp`) | Different computation (one division, exact 0.5 where the factory gives 0.4999…) and domain (any `Point2<T>`) |
-| P008 | `Affine2Approx::orientation()` (`08-coordinate_transform.hpp`) | Derived formula: sign of `determinant()` (clarified rule) |
-| P008 | `CircleApprox::onBoundary`, `contains(dpoint)` (`06-circle.hpp`) | Named special case (ruling 1) |
-| P008 | `rectangleApprox(bool perimeter)` (`07-rotatingcalipers.hpp`) | Shared helper; dropped from the row 2026-10-12 (flag between two operations) |
-| P008 | `circleCentersApprox`, `pointTangentsApprox` (`06-circle.hpp`) | Named special cases |
-| P008 | `farthestPair` (`07-rotatingcalipers.hpp`) | Larger domain (any cloud, index ties) |
-| P009 | `Triangle2::areaApprox` (`09-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
-| P009 | `TriangleApprox::area()` (`09-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
-| P009 | `Triangle2::orient()` (`09-triangle.hpp`) | Derived formula: sign of `area2()` (clarified rule) |
-| P009 | `Triangle2::locate` (`09-triangle.hpp`) | Named special case of row 03 bounded side: O(1) on three fields without a vertex vector, `int` -1/0/1 like `CircleApprox::locate`, a degenerate triangle as its edges |
-| P010 | `Graph::read` flags, `CsrGraph::reverse`, `dfsForest`, `KruskalReconstruction::bottleneck` (`01-graph.hpp`, `02-traversal.hpp`, `06-mst.hpp`; the `maximum` flags become named mirrors, Changes) | Only forms, named special cases |
-| P011 | `StrongOrientationResult`, `strongOrientation` (`09-bridges_articulation.hpp`) | Derived `ok` flag and Robbins obstruction witness (clarified rule) |
-| P011 | `FunctionalGraph(const G &g)` (`11-functionalgraph.hpp`) | Builds from a `Graph`, not a legacy format (clarified rule) |
-| P011 | `FunctionalGraph::reachable` (`11-functionalgraph.hpp`) | Named special case (ruling 1) |
-| P011 | `FunctionalGraphFold::segment` (`11-functionalgraph.hpp`) | Helper of `fold`, `cycleAggregate`, `maxStep`; dropped from the row 2026-10-12 |
-| P012 | `starsBars`, `starsBarsExact` (`05-combinatorics.hpp`) | The positive variant is a derived formula with a guard (clarified rule) |
-| P012 | `fibonacciExact`, `LinearSieve::divisors` (`05-combinatorics.hpp`; `04-sieve_algorithms.hpp`) | Larger domain (n = 93); reuses `spf`, unsorted |
-| P013 | `compressEndpoints` (`04-compression.hpp`) | Builder over interval endpoints (clarified rule) |
-| P013 | `randBelow(n)` (`01-random.hpp`) | Helper of `randUlng`, `randLng`, `shuffle`; dropped from the row 2026-10-12 |
-| P013 | `permutationRank`, `permutationUnrank` (`07-permutation.hpp`) | Named special case |
-| P229 | `answer(a…)` (`50-interactive.hpp`) | Named special case, unbudgeted |
-| P229 | `Dice::top()` … `bottom()` (`51-grid_utilities.hpp`) | Accessors of a public data member (as `size()`, `val()`) |
-| P016 | `kmpNext(p)` (`01-prefixfunction.hpp`) | Builds the prefix function itself (clarified rule) |
-| P016 | `common(…, suffix)` (`03-stringhash.hpp`) | Helper; dropped from the row 2026-10-12 (flag form) |
-| P016 | `Trie::search`, `Trie::empty` (`04-trie.hpp`) | Named special case (ruling 1) |
-| P017 | `forbidden(u)` (`06-aho.hpp`) | Named special case (ruling 1) |
+| P006 | Fenwick `lowerBound`, `upperBound`, `descend` (`002-fenwick.hpp`) | Named special case; larger domain (`x <= 0`); 11% faster (`Docs/002-fenwick.md`) |
+| P006 | `SegmentTree::apply` (`003-segmenttree.hpp`) | As the recorded keep `SqrtDecomp::apply` |
+| P006 | `DifferenceArray(2D)::clear` (`005-prefix_sum.hpp`) | Named special case, in place |
+| P006 | `PrefixSum` beside `PrefixProduct<Sum<T>>` (`005-prefix_sum.hpp`) | Named special case: the same results for an additive group, taken as a plain `T` with `+` and `-` instead of a group struct, with `prefixSum` and the braced-list constructor; `PrefixProduct` serves noncommutative groups (DS02 review, 2026-11-12) |
+| P006 | Braced-list constructors (`002-fenwick.hpp`, `003-segmenttree.hpp`, `005-prefix_sum.hpp`, `006-sqrt_decomposition.hpp`) | Without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md`, Common Foundation Contracts) |
+| P006 | `CoordinateCompression::decode` (`007-ordered_set.hpp`) | Named inverse of `encode`; replaces P013's `value` |
+| P006 | `previousGreater`, `nextGreater`, `slidingMaximum` (`008-monotone_stack.hpp`) | Named special cases |
+| P007 | `signedAreaApprox` (`003-polygon.hpp`) | Another scale: half the doubled area (clarified rule) |
+| P007 | `polygonContains`, `PolygonLocation` (`003-polygon.hpp`) | Derived classification of the winding number (clarified rule) |
+| P007 | `convexHull` (`004-convexhull.hpp`) | Constant-factor variant (ruling 4) |
+| P007 | `lowerHull`, `upperHull` beside `lowerHullIndices`, `upperHullIndices` (`004-convexhull.hpp`) | Constant-factor variant (ruling 4): points without the index sort and lookups, as `convexHull` beside `convexHullIndices` (P007 /finish review 2026-11-12) |
+| P007 | `segmentDistanceApprox` beside `linearDistanceApprox` on two segments (`002-line_segment.hpp`) | Constant-factor variant (ruling 4): long double from the exact topology, no `Rational` normalization (P007 review 2026-11-11); measured 16.2 to 18.5 times faster on random segment pairs (`004-convexhull.md`, Benchmarks, 2026-11-12) |
+| P007 | `projectLineApprox`, `reflectLineApprox`, `reflectDirectionApprox` (`002-line_segment.hpp`) | Different computation (one division, exact 0.5 where the factory gives 0.4999…) and domain (any `Point2<T>`) |
+| P008 | `Affine2Approx::orientation()` (`008-coordinate_transform.hpp`) | Derived formula: sign of `determinant()` (clarified rule) |
+| P008 | `CircleApprox::onBoundary`, `contains(dpoint)` (`006-circle.hpp`) | Named special case (ruling 1) |
+| P008 | `rectangleApprox(bool perimeter)` (`007-rotatingcalipers.hpp`) | Shared helper; dropped from the row 2026-10-12 (flag between two operations) |
+| P008 | `circleCentersApprox`, `pointTangentsApprox` (`006-circle.hpp`) | Named special cases |
+| P008 | `farthestPair` (`007-rotatingcalipers.hpp`) | Larger domain (any cloud, index ties) |
+| P009 | `Triangle2::areaApprox` (`009-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
+| P009 | `TriangleApprox::area()` (`009-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
+| P009 | `Triangle2::orient()` (`009-triangle.hpp`) | Derived formula: sign of `area2()` (clarified rule) |
+| P009 | `Triangle2::locate` (`009-triangle.hpp`) | Named special case of row 03 bounded side: O(1) on three fields without a vertex vector, `int` -1/0/1 like `CircleApprox::locate`, a degenerate triangle as its edges |
+| P010 | `Graph::read` flags, `CsrGraph::reverse`, `dfsForest`, `KruskalReconstruction::bottleneck` (`001-graph.hpp`, `002-traversal.hpp`, `006-mst.hpp`; the `maximum` flags become named mirrors, Changes) | Only forms, named special cases |
+| P011 | `StrongOrientationResult`, `strongOrientation` (`009-bridges_articulation.hpp`) | Derived `ok` flag and Robbins obstruction witness (clarified rule) |
+| P011 | `FunctionalGraph(const G &g)` (`011-functionalgraph.hpp`) | Builds from a `Graph`, not a legacy format (clarified rule) |
+| P011 | `FunctionalGraph::reachable` (`011-functionalgraph.hpp`) | Named special case (ruling 1) |
+| P011 | `FunctionalGraphFold::segment` (`011-functionalgraph.hpp`) | Helper of `fold`, `cycleAggregate`, `maxStep`; dropped from the row 2026-10-12 |
+| P012 | `starsBars`, `starsBarsExact` (`005-combinatorics.hpp`) | The positive variant is a derived formula with a guard (clarified rule) |
+| P012 | `fibonacciExact`, `LinearSieve::divisors` (`005-combinatorics.hpp`; `004-sieve_algorithms.hpp`) | Larger domain (n = 93); reuses `spf`, unsorted |
+| P013 | `compressEndpoints` (`004-compression.hpp`) | Builder over interval endpoints (clarified rule) |
+| P013 | `randBelow(n)` (`001-random.hpp`) | Helper of `randUlng`, `randLng`, `shuffle`; dropped from the row 2026-10-12 |
+| P013 | `permutationRank`, `permutationUnrank` (`007-permutation.hpp`) | Named special case |
+| P229 | `answer(a…)` (`050-interactive.hpp`) | Named special case, unbudgeted |
+| P229 | `Dice::top()` … `bottom()` (`051-grid_utilities.hpp`) | Accessors of a public data member (as `size()`, `val()`) |
+| P016 | `kmpNext(p)` (`001-prefixfunction.hpp`) | Builds the prefix function itself (clarified rule) |
+| P016 | `common(…, suffix)` (`003-stringhash.hpp`) | Helper; dropped from the row 2026-10-12 (flag form) |
+| P016 | `Trie::search`, `Trie::empty` (`004-trie.hpp`) | Named special case (ruling 1) |
+| P017 | `forbidden(u)` (`006-aho.hpp`) | Named special case (ruling 1) |
 | P025 | `mulHigh` (`16-poly.hpp`) | Derived: product then shift (clarified rule) |
 | P025 | `mulMod(a, b, m)` (`16-poly.hpp`) | Composition: product then remainder (clarified rule) |
 | P025 | `reverse(n)` parameter (`16-poly.hpp`) | The length-n reversal, a derived formula (clarified rule) |
@@ -231,44 +231,44 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P025 | `PolyCompanion::convolutionLng`, `convolution2p64`, `convolutionArbitraryMod` (`16-poly.hpp`) | Only forms of their algorithms; different domain (raw `ulng`, runtime modulus) |
 | P025 | `poly_detail::Mont`, `Mont8`; `composeBrentKung` (`16-poly.hpp`) | Different REDC variant without per-call asserts; larger domain (rings) |
 | P026 | `integ(a, c)` parameter (`17-polymini.hpp`) | A general constant; `integ(a)` is its special case (clarified rule) |
-| P027 | `DualFenwick` (`11-fenwick_tree_advanced.hpp`) | Different purpose: range add and point get (clarified rule) |
-| P027 | `IntervalMap::fold` (`24-interval_set.hpp`) | Derived accumulation over `enumerate` (clarified rule) |
-| P027 | `IntervalSet::contains` (`24-interval_set.hpp`) | Named special case (ruling 1) |
-| P027 | `CommutativeDualSegmentTree` (`12-lazysegmenttree.hpp`) | Constant-factor variant (ruling 4) |
-| P027 | `IntervalSet::covers` (`24-interval_set.hpp`); `00-monoids.hpp` presets | Only form; named special cases |
-| P227 | `HashTable::contains`, `HashMap::get(k, def)` (`61-hashmap.hpp`) | Named special case (ruling 1) |
-| P227 | `SortedList::contains` (`64-sortedlist.hpp`) | Needs the comparator test; `count` is O(√n) |
-| P052 | `CrtIncremental` (`10-crt.hpp`) | Online form of `crt` (clarified rule) |
-| P052 | `inverseXgcd` (`09-modinverse.hpp`) | Named special case |
-| P081 | `sais(const vector<T> &)` (`12-sais.hpp`) | Compresses the alphabet itself (clarified rule) |
-| P081 | `compressAlphabet` (`12-sais.hpp`) | Different algorithm: one index sort and a scan (clarified rule) |
-| P081 | `SuffixAutomaton::isSubstring` (`10-suffixautomaton.hpp`) | Named special case (ruling 1) |
-| P043 | Tarjan inside `satisfiable` (`18-twosat.hpp`) | Constant-factor variant (ruling 4) |
-| P043 | `maximumIndependentSet()` (`21-matching_bipartite.hpp`) | Separate operation (ruling 2) |
-| P055 | `crossCorrelation` (`13-convolution.hpp`) | Derived: convolution with `b` reversed (clarified rule) |
-| P055 | `convolution2d` (`13-convolution.hpp`) | Rank-2 named special case |
-| P083 | `bitsetLcs` (`19-lcs.hpp`) | Bit-parallel on types where `lcs` falls back to the scalar DP (clarified rule) |
-| P083 | `rotationEquivalent`, `isLyndon` (`15-minrotation.hpp`; `14-lyndon.hpp`) | Named special case (ruling 1) |
-| P083 | `countPalindromicSubsequences(s, distinct)` (`19-lcs.hpp`) | Only form of both DPs |
-| P028 | `SWAGStack` (`30-aggregation_queue.hpp`) | Constant-factor variant: one array, no extra `op(e(), ·)` per fold (ruling 4) |
-| P028 | 2D point `apply` (`15-segment_tree_2d.hpp`) | As `SegmentTree::apply` and the recorded `SqrtDecomp::apply` |
-| P028 | `LazySegmentTreeBeats`; merge-sort-tree `countLess`, `countRange`, `countEqual`, `maxLeq`, `minGeq`, `set` (`14-segtreebeats.hpp`; `16-mergesorttree.hpp`) | Larger domain (`fail`); named special cases, cheaper cascades |
-| P057 | `polyMul` (`14-polynomial_algorithms.hpp`) | Composition: convolution then trim (clarified rule) |
-| P057 | `nthTermLinearRecurrence` (`15-linear_recurrence.hpp`) | Builds the generating function itself (clarified rule) |
-| P057 | `consecutiveTerms` (`15-linear_recurrence.hpp`) | Builds the generating function itself (clarified rule) |
-| P057 | `polyDivLinear`, `polyGcd`, `polyInverseMod`, `fiduccia`, `kitamasa`, `berlekampMassey` (`14-polynomial_algorithms.hpp`; `15-linear_recurrence.hpp`) | Named special cases; cheaper (`polyGcd`); only form; `tryX` pair |
-| P084 | `shiftOr`, `shiftAnd` (`17-bitap.hpp`) | Single-word constant-factor variants (ruling 4) |
-| P084 | Pattern overloads of `shiftAnd`, `shiftOr`, `shiftOrMultiword`, `bitapHamming`, `bitapEdit` (`17-bitap.hpp`) | Build the masks themselves (clarified rule) |
-| P084 | `isSubstring` (`16-string_matching.hpp`) | Named special case (ruling 1) |
-| P084 | `countOccurrences`, `BitsetText::count`, `lfMapping` (`16-string_matching.hpp`; `17-bitap.hpp`; `29-bwt.hpp`) | Only disjoint form; cheaper counts; standard map |
-| P085 | `lexMinSuffixPerPrefix`, `occurrenceCount` (`22-lexicographic_queries.hpp`) | Batch form with derived starts over `IncrementalLyndon`; derived count, `n + 1` for the empty range (clarified rule) |
-| P085 | `occurrenceRange`, `SubstringOrder` kth queries (`22-lexicographic_queries.hpp`) | Different domain from `SuffixArray::patternRange` (a substring by position, RMQ search) and different algorithm and domain from the automaton kth queries (suffix array, integer sequences) |
-| P085 | `PointUpdateHash::common`, `SequenceHash::common` (`23-dynamicstringhash.hpp`) | Helper of `lcp` and `lcs`, as `StringHash::common` |
-| P036 | `minkowskiDifference` (`11-minkowskisum.hpp`) | Derived: negation then sum (clarified rule) |
-| P036 | `minkowskiSumHull` (`11-minkowskisum.hpp`) | Larger domain: any point sets (clarified rule) |
-| P036 | `halfplane_detail::vertex`; `polygonKernel` (`10-halfplaneintersection.hpp`) | Detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md`, P036 completeness decisions) |
-| P036 | `polygonKernelLinear` (`10-halfplaneintersection.hpp`) beside `polygonKernel` | Different algorithm (Lee–Preparata, `O(n)`), user decision 2026-10-10 (`Docs/00-notes.md`, P036 completeness decisions) |
-| P033 | `lcaRmqBridge` (`27-cartesiantree.hpp`) | An LCA–RMQ reduction, not a rename (clarified rule) |
+| P027 | `DualFenwick` (`011-fenwick_tree_advanced.hpp`) | Different purpose: range add and point get (clarified rule) |
+| P027 | `IntervalMap::fold` (`024-interval_set.hpp`) | Derived accumulation over `enumerate` (clarified rule) |
+| P027 | `IntervalSet::contains` (`024-interval_set.hpp`) | Named special case (ruling 1) |
+| P027 | `CommutativeDualSegmentTree` (`012-lazysegmenttree.hpp`) | Constant-factor variant (ruling 4) |
+| P027 | `IntervalSet::covers` (`024-interval_set.hpp`); `00-monoids.hpp` presets | Only form; named special cases |
+| P227 | `HashTable::contains`, `HashMap::get(k, def)` (`061-hashmap.hpp`) | Named special case (ruling 1) |
+| P227 | `SortedList::contains` (`064-sortedlist.hpp`) | Needs the comparator test; `count` is O(√n) |
+| P052 | `CrtIncremental` (`010-crt.hpp`) | Online form of `crt` (clarified rule) |
+| P052 | `inverseXgcd` (`009-modinverse.hpp`) | Named special case |
+| P081 | `sais(const vector<T> &)` (`012-sais.hpp`) | Compresses the alphabet itself (clarified rule) |
+| P081 | `compressAlphabet` (`012-sais.hpp`) | Different algorithm: one index sort and a scan (clarified rule) |
+| P081 | `SuffixAutomaton::isSubstring` (`010-suffixautomaton.hpp`) | Named special case (ruling 1) |
+| P043 | Tarjan inside `satisfiable` (`018-twosat.hpp`) | Constant-factor variant (ruling 4) |
+| P043 | `maximumIndependentSet()` (`021-matching_bipartite.hpp`) | Separate operation (ruling 2) |
+| P055 | `crossCorrelation` (`013-convolution.hpp`) | Derived: convolution with `b` reversed (clarified rule) |
+| P055 | `convolution2d` (`013-convolution.hpp`) | Rank-2 named special case |
+| P083 | `bitsetLcs` (`019-lcs.hpp`) | Bit-parallel on types where `lcs` falls back to the scalar DP (clarified rule) |
+| P083 | `rotationEquivalent`, `isLyndon` (`015-minrotation.hpp`; `014-lyndon.hpp`) | Named special case (ruling 1) |
+| P083 | `countPalindromicSubsequences(s, distinct)` (`019-lcs.hpp`) | Only form of both DPs |
+| P028 | `SWAGStack` (`030-aggregation_queue.hpp`) | Constant-factor variant: one array, no extra `op(e(), ·)` per fold (ruling 4) |
+| P028 | 2D point `apply` (`015-segment_tree_2d.hpp`) | As `SegmentTree::apply` and the recorded `SqrtDecomp::apply` |
+| P028 | `LazySegmentTreeBeats`; merge-sort-tree `countLess`, `countRange`, `countEqual`, `maxLeq`, `minGeq`, `set` (`014-segtreebeats.hpp`; `016-mergesorttree.hpp`) | Larger domain (`fail`); named special cases, cheaper cascades |
+| P057 | `polyMul` (`014-polynomial_algorithms.hpp`) | Composition: convolution then trim (clarified rule) |
+| P057 | `nthTermLinearRecurrence` (`015-linear_recurrence.hpp`) | Builds the generating function itself (clarified rule) |
+| P057 | `consecutiveTerms` (`015-linear_recurrence.hpp`) | Builds the generating function itself (clarified rule) |
+| P057 | `polyDivLinear`, `polyGcd`, `polyInverseMod`, `fiduccia`, `kitamasa`, `berlekampMassey` (`014-polynomial_algorithms.hpp`; `015-linear_recurrence.hpp`) | Named special cases; cheaper (`polyGcd`); only form; `tryX` pair |
+| P084 | `shiftOr`, `shiftAnd` (`017-bitap.hpp`) | Single-word constant-factor variants (ruling 4) |
+| P084 | Pattern overloads of `shiftAnd`, `shiftOr`, `shiftOrMultiword`, `bitapHamming`, `bitapEdit` (`017-bitap.hpp`) | Build the masks themselves (clarified rule) |
+| P084 | `isSubstring` (`016-string_matching.hpp`) | Named special case (ruling 1) |
+| P084 | `countOccurrences`, `BitsetText::count`, `lfMapping` (`016-string_matching.hpp`; `017-bitap.hpp`; `029-bwt.hpp`) | Only disjoint form; cheaper counts; standard map |
+| P085 | `lexMinSuffixPerPrefix`, `occurrenceCount` (`022-lexicographic_queries.hpp`) | Batch form with derived starts over `IncrementalLyndon`; derived count, `n + 1` for the empty range (clarified rule) |
+| P085 | `occurrenceRange`, `SubstringOrder` kth queries (`022-lexicographic_queries.hpp`) | Different domain from `SuffixArray::patternRange` (a substring by position, RMQ search) and different algorithm and domain from the automaton kth queries (suffix array, integer sequences) |
+| P085 | `PointUpdateHash::common`, `SequenceHash::common` (`023-dynamicstringhash.hpp`) | Helper of `lcp` and `lcs`, as `StringHash::common` |
+| P036 | `minkowskiDifference` (`011-minkowskisum.hpp`) | Derived: negation then sum (clarified rule) |
+| P036 | `minkowskiSumHull` (`011-minkowskisum.hpp`) | Larger domain: any point sets (clarified rule) |
+| P036 | `halfplane_detail::vertex`; `polygonKernel` (`010-halfplaneintersection.hpp`) | Detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md`, P036 completeness decisions) |
+| P036 | `polygonKernelLinear` (`010-halfplaneintersection.hpp`) beside `polygonKernel` | Different algorithm (Lee–Preparata, `O(n)`), user decision 2026-10-10 (`Docs/00-notes.md`, P036 completeness decisions) |
+| P033 | `lcaRmqBridge` (`027-cartesiantree.hpp`) | An LCA–RMQ reduction, not a rename (clarified rule) |
 | P018 | `explicit operator bool` beside `isNil` (`07-infint.hpp`) | Decided 2026-10-16: both stay, `isNil` for Poly's `BigInt` concept and the modint-style truthiness |
 | P018 | `infint_detail` NTT, FFT and Montgomery kernels beside Poly's and `04-montgomery.hpp` | Decided 2026-10-16: InfInt keeps independent kernels and depends on `01-template.hpp` only |
 | P018 | `divModSlow` beside `divMod`; `isPerfectSquare` beside `isqrtRem`; `isProbablePrime` beside Mathematics `bpsw` | Knuth D as a separate algorithm; residue filters before the root; BPSW on arbitrary size (decided 2026-10-16) |
@@ -277,36 +277,36 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P018 | `fastio_detail` input kernels `dec8`, `decWord`, `hexWord`, `hex8`, `dec19`, `hex16` and output kernels `dec8Chars`, `dec16Chars`, `dec19Chars`, `hex16Chars`, `writeDec` (64-bit: InfInt's `writeDec24`; 128-bit: `writeDec2`), `writeHex`, `DIGITS2`, `POW10` and `decLen` beside InfInt's statics (`19-fastio.hpp`, `07-infint.hpp`) | Decided 2026-11-01 by the user: `dec19` and `hex16` read a 32-byte window before the token's end, which needs the reader's padding, where InfInt's take an exact view and never read past it; the other kernels repeat so each header copies alone, and a change to one is measured and mirrored in the other. Names follow one scheme in both headers (user decision 2026-11-01): parsers `<base><digits>` (`dec8`, `hex8`, `hex16`, `hex32`, `dec19`), digit writers `<base><digits>Chars`, out-of-line tails `<operation>Rest` (`readRest`, `toCharsRest`, `divModRest`; fast I/O names the token kind: `tokenRest`, `intRest`, `textRest`) |
 | P018 | `FastInput` `readInt` beside `readToken` + `parseInt`, `readToken(string &)` beside `readToken(string_view &)`, `read<B>`, `readText<B>` beside `readToken` + the type's `read`; `FastOutput` `print` beside `writeValue`, `writeValue` beside the typed writers, `writeText<B>` beside `charsBound` + `toChars`, the `end` byte of `write`, `writeInt`, `writeDouble` | Decided 2026-11-01 by the user: the one-call form; an owned copy where the view borrows the buffer; dispatch over ranges, pairs and tuples (`writeValue` per value, `bool` as 0/1); short text tokens taken by assignment and long ones without a copy; one room check for a value and its separator, with one retry after a drain |
 | P018 | InfInt `writeDec` beside `writeDec24` (`07-infint.hpp`); `fastio_detail::hex16` beside `hex32` (`19-fastio.hpp`) | Decided 2026-11-01 by the user: `writeDec` stays inside the caller's bounds where `writeDec24` needs 24 bytes of room; `hex16` is the one-word path of 64-bit and narrower types, `hex32` the two-word path of 128-bit ones |
-| P034 | `PartiallyPersistentDSU::uniteTime` (`10-persistentdsu.hpp`) beside row 65 `MergeHistoryForest::earliestConnectTime` | Different algorithm: a walk over attach times in the union-by-size forest, no merge forest or LCA (clarified rule) |
-| P034 | `OfflineDeletion::insert`, `erase` beside `addInterval` (`63-offline_deletion.hpp`) | Larger domain: unpaired per-key events with multiplicities, paired through an ordered map and closed at `n` (clarified rule) |
-| P047 | `blockOf` (`27-blockcuttree.hpp`) | Maps a vertex to its unique block, -1 at articulation points |
-| P047 | `maximumBranching` (`25-directedmst.hpp`) beside `DirectedMst::arborescence` | Different problem: no root, any number of roots, only positive arcs; built on the contraction engine, not a sign mirror |
-| P047 | `OfflineDynamicConnectivity::insertEdge`, `eraseEdge` beside `addEdge` (`26-dynamic_connectivity.hpp`) | Larger domain: unpaired per-pair events with multiplicities, as P034 `OfflineDeletion::insert`, `erase` |
-| P047 | `OfflineDynamicConnectivity` (`26-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (Data Structures `Docs/00-notes.md`, Ownership Boundaries, reworded) |
-| P060 | `ceilSum` (`18-floorsum.hpp`) | Named special case (ruling 3) |
-| P060 | `enumerateQuotients` (`18-floorsum.hpp`) | Stored form beside the callback `forEachQuotientBlock`, as the kept `factorize()` (clarified rule) |
-| P060 | `maxOfModOfLinear` (`18-floorsum.hpp`) beside `minOfModOfLinear` | Mirror (ruling 3) |
-| P060 | `josephus` (`19-josephus.hpp`), `josephusKth` at `t = n - 1`; `josephusK2` | Named special case (the survivor); `josephusK2` is a different algorithm (O(1) closed form). The plain O(n) loop and `josephusLarge` were merged into `josephus` by user decision 2026-10-18 |
-| P060 | `continuedFractionSqrt` (`20-continued_fraction.hpp`), `continuedFractionQuadratic(0, D, 1)` | Named special case |
-| P054 | `gridPaths` (`67-lattice_paths.hpp`) beside `combiNR(dx + dy, dx)` | Larger domain: returns 0 for unreachable targets, which `combiNR` rejects (clarified rule) |
-| P054 | `catalanConvolution`, `catalanTriangle` (`67-lattice_paths.hpp`) beside row 05 `ballot` | Named special case (the k-th power of the Catalan series equals the weak ballot to (n + k - 1, n)) and batch form in any ring (additions only) |
-| P054 | `combinatorics_advanced_detail::inverse` (`12-combinatorics_advanced.hpp`) beside row 09 `inverseXgcd` | Larger domain: a private 128-bit Euclid for moduli up to 2^64 - 1, where `inverseXgcd` takes `lng` |
-| P082 | `isSubstring` (`11-suffixtree.hpp`) | Named special case (ruling 1) |
-| P035 | `WeightedDSU` over non-commutative groups (`29-weighteddsu.hpp`; the planned `NoncommutativeWeightedDSU`) | Larger domain: non-commutative groups (clarified rule); one orientation-correct `WeightedDSU<G>` covers both |
-| P035 | `LinkedDSU::unionEnumerate` (`65-dsu_extensions.hpp`) | Derived: the newly merged pairs (clarified rule) |
-| P035 | `ComponentSumDSU` (`65-dsu_extensions.hpp`) beside row 09 `RollbackDSUAggregate` | Different algorithm: path compression, no undo |
-| P035 | `DecrementalSet` (`36-fastset.hpp`) beside `FastSet` | Different algorithm: a DSU over runs of empty words, O(alpha(n)) amortized on the erase-only domain |
-| P058 | `tridiagonalSolve` (`16-linear_algebra.hpp`) beside `bandedSolve(·, 1, 1, ·)` | Named special case (clarified rule): three-diagonal input without band packing, O(n) |
-| P058 | `inverse` (`16-linear_algebra.hpp`) beside `solveLinearMultiRhs(a, identityMatrix(n), x)` | Named special case (clarified rule): in place, square, singularity status |
-| P058 | `matrixRank` (`16-linear_algebra.hpp`) beside `rref(copy).size()` | Cheaper projection kept for its constant factor (ruling 4): forward elimination only |
-| P072 | `kLargest` (`54-kbest_enumeration.hpp`), every `kSmallest*` under `std::greater<>` | Mirror of `kSmallest*` (ruling 3) |
-| P072 | `treeKnapsack` (`29-knapsack_advanced.hpp`) beside Graphs row 14 `subtreeMergeDp` | Different algorithm: O(n * W) preorder suffix tables against O(n * W^2) subtree merging |
-| P072 | `kSmallestPairSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums({a, b})` | Named special case (clarified rule): two sorted arrays, `(sum, i, j)` tie order and index pairs, as `kSmallestSubsetSums` (Keeps) |
-| P072 | `boundedKnapsackMonotoneQueue`, `smallWeightKnapsack` (`29-knapsack_advanced.hpp`) beside `KnapsackDP::exact` (`13-knapsack.hpp`) | Different algorithms: monotone-queue O((n + 1) * (W + 1)) and SMAWK over D distinct weights O(n log n + (D + 1) * (W + 1)) against binary splitting O((W + 1) * (n + 1 + sum(log(c_i + 1)))) |
-| P072 | `knapsackCountsFps` (`29-knapsack_advanced.hpp`) beside `KnapsackCounts<ModInt>` (`13-knapsack.hpp`) | Different algorithm: power-series log/exp O((t + 1) * log(t + 2) + n) against the O((n + 1) * (W + 1)) counting DP, same counts modulo a prime above t |
+| P034 | `PartiallyPersistentDSU::uniteTime` (`010-persistentdsu.hpp`) beside row 65 `MergeHistoryForest::earliestConnectTime` | Different algorithm: a walk over attach times in the union-by-size forest, no merge forest or LCA (clarified rule) |
+| P034 | `OfflineDeletion::insert`, `erase` beside `addInterval` (`063-offline_deletion.hpp`) | Larger domain: unpaired per-key events with multiplicities, paired through an ordered map and closed at `n` (clarified rule) |
+| P047 | `blockOf` (`027-blockcuttree.hpp`) | Maps a vertex to its unique block, -1 at articulation points |
+| P047 | `maximumBranching` (`025-directedmst.hpp`) beside `DirectedMst::arborescence` | Different problem: no root, any number of roots, only positive arcs; built on the contraction engine, not a sign mirror |
+| P047 | `OfflineDynamicConnectivity::insertEdge`, `eraseEdge` beside `addEdge` (`026-dynamic_connectivity.hpp`) | Larger domain: unpaired per-pair events with multiplicities, as P034 `OfflineDeletion::insert`, `erase` |
+| P047 | `OfflineDynamicConnectivity` (`026-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (Data Structures `Docs/00-notes.md`, Ownership Boundaries, reworded) |
+| P060 | `ceilSum` (`018-floorsum.hpp`) | Named special case (ruling 3) |
+| P060 | `enumerateQuotients` (`018-floorsum.hpp`) | Stored form beside the callback `forEachQuotientBlock`, as the kept `factorize()` (clarified rule) |
+| P060 | `maxOfModOfLinear` (`018-floorsum.hpp`) beside `minOfModOfLinear` | Mirror (ruling 3) |
+| P060 | `josephus` (`019-josephus.hpp`), `josephusKth` at `t = n - 1`; `josephusK2` | Named special case (the survivor); `josephusK2` is a different algorithm (O(1) closed form). The plain O(n) loop and `josephusLarge` were merged into `josephus` by user decision 2026-10-18 |
+| P060 | `continuedFractionSqrt` (`020-continued_fraction.hpp`), `continuedFractionQuadratic(0, D, 1)` | Named special case |
+| P054 | `gridPaths` (`067-lattice_paths.hpp`) beside `combiNR(dx + dy, dx)` | Larger domain: returns 0 for unreachable targets, which `combiNR` rejects (clarified rule) |
+| P054 | `catalanConvolution`, `catalanTriangle` (`067-lattice_paths.hpp`) beside row 05 `ballot` | Named special case (the k-th power of the Catalan series equals the weak ballot to (n + k - 1, n)) and batch form in any ring (additions only) |
+| P054 | `combinatorics_advanced_detail::inverse` (`012-combinatorics_advanced.hpp`) beside row 09 `inverseXgcd` | Larger domain: a private 128-bit Euclid for moduli up to 2^64 - 1, where `inverseXgcd` takes `lng` |
+| P082 | `isSubstring` (`011-suffixtree.hpp`) | Named special case (ruling 1) |
+| P035 | `WeightedDSU` over non-commutative groups (`029-weighteddsu.hpp`; the planned `NoncommutativeWeightedDSU`) | Larger domain: non-commutative groups (clarified rule); one orientation-correct `WeightedDSU<G>` covers both |
+| P035 | `LinkedDSU::unionEnumerate` (`065-dsu_extensions.hpp`) | Derived: the newly merged pairs (clarified rule) |
+| P035 | `ComponentSumDSU` (`065-dsu_extensions.hpp`) beside row 09 `RollbackDSUAggregate` | Different algorithm: path compression, no undo |
+| P035 | `DecrementalSet` (`036-fastset.hpp`) beside `FastSet` | Different algorithm: a DSU over runs of empty words, O(alpha(n)) amortized on the erase-only domain |
+| P058 | `tridiagonalSolve` (`016-linear_algebra.hpp`) beside `bandedSolve(·, 1, 1, ·)` | Named special case (clarified rule): three-diagonal input without band packing, O(n) |
+| P058 | `inverse` (`016-linear_algebra.hpp`) beside `solveLinearMultiRhs(a, identityMatrix(n), x)` | Named special case (clarified rule): in place, square, singularity status |
+| P058 | `matrixRank` (`016-linear_algebra.hpp`) beside `rref(copy).size()` | Cheaper projection kept for its constant factor (ruling 4): forward elimination only |
+| P072 | `kLargest` (`054-kbest_enumeration.hpp`), every `kSmallest*` under `std::greater<>` | Mirror of `kSmallest*` (ruling 3) |
+| P072 | `treeKnapsack` (`029-knapsack_advanced.hpp`) beside Graphs row 14 `subtreeMergeDp` | Different algorithm: O(n * W) preorder suffix tables against O(n * W^2) subtree merging |
+| P072 | `kSmallestPairSums` (`054-kbest_enumeration.hpp`) beside `kSmallestSortedListSums({a, b})` | Named special case (clarified rule): two sorted arrays, `(sum, i, j)` tie order and index pairs, as `kSmallestSubsetSums` (Keeps) |
+| P072 | `boundedKnapsackMonotoneQueue`, `smallWeightKnapsack` (`029-knapsack_advanced.hpp`) beside `KnapsackDP::exact` (`013-knapsack.hpp`) | Different algorithms: monotone-queue O((n + 1) * (W + 1)) and SMAWK over D distinct weights O(n log n + (D + 1) * (W + 1)) against binary splitting O((W + 1) * (n + 1 + sum(log(c_i + 1)))) |
+| P072 | `knapsackCountsFps` (`029-knapsack_advanced.hpp`) beside `KnapsackCounts<ModInt>` (`013-knapsack.hpp`) | Different algorithm: power-series log/exp O((t + 1) * log(t + 2) + n) against the O((n + 1) * (W + 1)) counting DP, same counts modulo a prime above t |
 | P048 | `cycleSpaceDimension`, `isIndependentF2` (row 28) beside `m - n + connectedComponents(g).count` and `BitMatrix` rank | Derived formula; bool form (ruling 1) |
 | P048 | `eulerCharacteristic` (row 29) beside `n - m + faces().size()` | Derived formula (clarified rule) |
-| P032 | `StaticRangeFrequency::count` (`32-static_range_queries.hpp`) beside `PointSetRangeFrequency(a).count`, `MergeSortTree::countEqual`, `WaveletMatrix::countEqual`, `PersistentValueTree::countEqual` | Constant-factor variant (ruling 4): sorted (value, position) pairs, O(n) words, needs only `<` |
+| P032 | `StaticRangeFrequency::count` (`032-static_range_queries.hpp`) beside `PointSetRangeFrequency(a).count`, `MergeSortTree::countEqual`, `WaveletMatrix::countEqual`, `PersistentValueTree::countEqual` | Constant-factor variant (ruling 4): sorted (value, position) pairs, O(n) words, needs only `<` |
 | P059 | `bisectionRoot` (row 17) beside `binSearchRealBracket` | Root finding with a predicate derived from f (clarified rule) |
 | P059 | `isqrtRemainder` (row 21) beside `isqrt` | Derived formula (clarified rule) |
 | P059 | `ceilKthRoot` beside `ikthRoot` (row 21) | Derived formula: floor plus one unless exact (clarified rule) |
@@ -365,7 +365,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P135 | `Voronoi::adjacency` (rows 21, 22, 32) | Wrapper on another type calling row 31 `Delaunay::adjacency` |
 | P132 | `Plane3::distanceApprox` (row 26) | A type's members are their own context (2026-11-08); calls the free `distanceApprox` |
 | P137 | `hull3SurfaceArea`, `hull3Volume` (row 37) | Computed from the hull itself (clarified rule) |
-| P090 | `countRange` (`_02_search` (`00-index.md:10`)) | Derived: the difference of two bisects (clarified rule) |
+| P090 | `countRange` (`_002_search` (`00-index.md:10`)) | Derived: the difference of two bisects (clarified rule) |
 | P090 | `longestIncreasingSubsequenceLength` (`_05` (:13)) | Different result: the length only (clarified rule) |
 | P090 | `binarySearchInt`; `argminUnimodal` (`_02`) | `binarySearchInt`: the endpoint-independent `binSearch(ok, ng, f)` C++ keeps beside `firstTrue`, renamed `binSearch`; `argminUnimodal`: Fibonacci search, renamed `fibSearch` |
 | P091 | inlined `SegmentTreeMin`, `SegmentTreeMax`, `SegmentTreeSum`, `SparseTableGcd` (and `_29` range-add variants, P102) (`_08`, `_13`) | PyPy constant-factor variants (ruling 4) |
@@ -486,13 +486,13 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `dagShortestPaths(g, sources, longest)` flag; `06-mst.hpp` `maximum` flags of `kruskal`, `primSparse`, `boruvka`; `eulerianTrail(g, start, lexicographic)` flag | rows 05, 06, 10 | `dagLongestPathsFrom`; `kruskalMaximum`, `primSparseMaximum`, `boruvkaMaximum`; `eulerianTrailSmallest` (named mirrors, ruling 3) | remove (user decision 2026-11-14) | a flag choosing between operations is a removable form; `dagLongestPaths` stays retired (P275 guard), `KruskalReconstruction` keeps its constructor parameter; GR01 applied row 03 (`topologicalSortSmallest`), GR02 rows 05 and 06; row 10 waits for the run owning it | the flag cases | callers of the flags |
+| `dagShortestPaths(g, sources, longest)` flag; `006-mst.hpp` `maximum` flags of `kruskal`, `primSparse`, `boruvka`; `eulerianTrail(g, start, lexicographic)` flag | rows 05, 06, 10 | `dagLongestPathsFrom`; `kruskalMaximum`, `primSparseMaximum`, `boruvkaMaximum`; `eulerianTrailSmallest` (named mirrors, ruling 3) | remove (user decision 2026-11-14) | a flag choosing between operations is a removable form; `dagLongestPaths` stays retired (P275 guard), `KruskalReconstruction` keeps its constructor parameter; GR01 applied row 03 (`topologicalSortSmallest`), GR02 rows 05 and 06; row 10 waits for the run owning it | the flag cases | callers of the flags |
 
 ## P042 — 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor (in progress)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `HLD::addEdge`, `build` | `15-hld.hpp` (legacy) | `HLD(g, root)` | remove | legacy input format a builder converts (user decision 2026-11-09) | — | — |
+| `HLD::addEdge`, `build` | `015-hld.hpp` (legacy) | `HLD(g, root)` | remove | legacy input format a builder converts (user decision 2026-11-09) | — | — |
 | `apspPath`; `apspDijkstra` | row 12 | `AllPairsResult::path`; `johnson` | remove | a member of the result, and a narrowing with identical results and cost (user decision 2026-11-09) | — | — |
 | `runFloydWarshall`; `SPFA::solve` | rows 12, 13 (legacy) | `floydWarshall(g)`; `spfa` | remove | legacy forms (user decision 2026-11-09) | — | — |
 
@@ -506,7 +506,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `Mo::getHilOrd` | `23-range_query_offline.hpp:19` | Miscellaneous row 16 `hilbertIndex2D` | remove (row only) | second implementation once P066 adds `hilbertIndex2D` (Changes); pinned body stays until P067 rewrites Mo | none | `99-all.hpp:21` |
+| `Mo::getHilOrd` | `023-range_query_offline.hpp:19` | Miscellaneous row 16 `hilbertIndex2D` | remove (row only) | second implementation once P066 adds `hilbertIndex2D` (Changes); pinned body stays until P067 rewrites Mo | none | `99-all.hpp:21` |
 
 ## P076 — 06-Miscellaneous — state space search, game search (planned)
 
@@ -563,7 +563,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `lowerBound`, `upperBound`, `bisectKey` | `_02_search` (`00-index.md:10`) | `bisect_left`, `bisect_right` with `key=` | remove (row only) | stdlib under another name | — | — |
+| `lowerBound`, `upperBound`, `bisectKey` | `_002_search` (`00-index.md:10`) | `bisect_left`, `bisect_right` with `key=` | remove (row only) | stdlib under another name | — | — |
 | `modPow`, `isqrt`, `floorDiv`, `floorMod`, `divModFloor` | `_03` (:11) | `pow(a, e, m)`, `math.isqrt`, `//`, `%`, `divmod` | remove (row only) | stdlib under another name | — | `Docs/00-notes.md`, Numeric policy |
 | `comb`, `perm`; `fibonacci` | `_04` (:12) | `math.comb`, `math.perm`; `fibonacciPair(n)[0]` | remove (row only) | stdlib; projection | — | — |
 | `prefixSums` | `_05` (:13) | `accumulate(a, initial=0)` | remove (row only) | stdlib under another name | — | — |
@@ -724,14 +724,14 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `shortProduct` | row 52 | `13-convolution.hpp:282-287` `truncatedConvolution` | remove (row only) | same result | — | — |
+| `shortProduct` | row 52 | `013-convolution.hpp:282-287` `truncatedConvolution` | remove (row only) | same result | — | — |
 
 ## P200 — 05-Mathematics — tableau algorithms, convolution specialized, set power series (planned)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `connectedComponentsBySubset` | row 66 | `SetPowerSeries::log` | remove (row only) | the row defines it so | — | — |
-| `spsComposition` | row 66 | `24-transform_algorithms.hpp` `subsetConvolution`; `spsPolynomialComposite` | remove (row only) | the same task as `spsPolynomialComposite` (LC `composition_sps`), which keeps its name | — | — |
+| `spsComposition` | row 66 | `024-transform_algorithms.hpp` `subsetConvolution`; `spsPolynomialComposite` | remove (row only) | the same task as `spsPolynomialComposite` (LC `composition_sps`), which keeps its name | — | — |
 
 ## P206 — 06-Miscellaneous — probabilistic sketches, streaming algorithms, derandomization (planned)
 
@@ -750,7 +750,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `palindromicLength (per prefix)` | row 39 | `13-palindromictree.hpp:91` `palindromicLength()` | remove (row only) | existing operation | — | — |
+| `palindromicLength (per prefix)` | row 39 | `013-palindromictree.hpp:91` `palindromicLength()` | remove (row only) | existing operation | — | — |
 
 ## P213 — 07-Strings — stringisomorphism, debruijn, zivlempel, linear string algorithms, combinatorial words (planned)
 
@@ -769,7 +769,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| three-point branches of `EnclosingCircle::center`, `radius2` | `14-minimumenclosingcircle.hpp:65-66,71-72` | `Triangle2(points[0], points[1], points[2]).circumcenter()`, `.circumradius2<InfInt>()` (row 09, P009 2026-11-15) | remove | body-level second implementation: the same formulas, now public in row 09 | none | none |
+| three-point branches of `EnclosingCircle::center`, `radius2` | `014-minimumenclosingcircle.hpp:65-66,71-72` | `Triangle2(points[0], points[1], points[2]).circumcenter()`, `.circumradius2<InfInt>()` (row 09, P009 2026-11-15) | remove | body-level second implementation: the same formulas, now public in row 09 | none | none |
 
 ## Open Questions
 

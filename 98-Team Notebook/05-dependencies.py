@@ -163,7 +163,7 @@ def main() -> int:
     if args.command == "closure":
         bad = [h for h in args.header if h not in graph]
         if bad:
-            print("Unknown header (use a repository-relative path such as 02-Data Structures/01-dsu.hpp): " + ", ".join(bad), file=sys.stderr)
+            print("Unknown header (use a repository-relative path such as 02-Data Structures/001-dsu.hpp): " + ", ".join(bad), file=sys.stderr)
             return 1
         print("\n\n".join(describe(ROOT, graph, h) for h in args.header or graph))
     else:

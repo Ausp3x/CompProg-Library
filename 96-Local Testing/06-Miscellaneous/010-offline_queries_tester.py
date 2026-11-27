@@ -1,0 +1,11 @@
+"""Offline sweep order and half-open range counts against independent scans."""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+
+
+if __name__ == '__main__':
+    raise SystemExit(main('010-offline_queries', [
+        'negative-left', 'reversed-range', 'right-past-end',
+        'empty-past-end', 'left-past-end']))

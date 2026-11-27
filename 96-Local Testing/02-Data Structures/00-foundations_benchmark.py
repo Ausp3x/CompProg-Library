@@ -52,7 +52,7 @@ def main():
                             repeats=cases[0]['repeats'], checksum=cases[0]['checksum'],
                             median_seconds=statistics.median(r['seconds'] for r in cases),
                             samples_seconds=[r['seconds'] for r in cases]))
-    paths = [ROOT / '02-Data Structures/02-fenwick.hpp',
+    paths = [ROOT / '02-Data Structures/002-fenwick.hpp',
              HERE / '00-foundations_benchmark.cpp', Path(__file__)]
     cpu = next((line.split(':', 1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines()
                 if line.startswith('model name')), 'unknown')

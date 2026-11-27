@@ -60,7 +60,7 @@
       "source": "OLD/[1] algorithms.cpp",
       "start_line": 243,
       "end_line": 256,
-      "target": "06-Miscellaneous/08-sequence_algorithms.hpp",
+      "target": "06-Miscellaneous/008-sequence_algorithms.hpp",
       "symbols": [
         "kadane"
       ],
@@ -72,20 +72,20 @@
       "note": "P014 maps legacy kadane to maximumSubarray(a).sum (exact lll accumulation; 0 for empty input); the kadane adapter with its lng result-fit assert was removed on 2026-10-13 (One API per operation). Witness, bounded/circular/rectangle and other sequence features are accounted in verification.",
       "relationship": "P014 audited replacement; original source excerpt preserved",
       "historical_target_sha256": "700af8843b769f610d1fcf624161f3a89312167aba3b79ef8b2dea3778f7f752",
-      "verification": "06-Miscellaneous/Docs/08-sequence_algorithms.md",
+      "verification": "06-Miscellaneous/Docs/008-sequence_algorithms.md",
       "disposition": "exact-duplicate-mapped"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
       "start_line": 261,
       "end_line": 304,
-      "target": "04-Graphs/09-bridges_articulation.hpp",
+      "target": "04-Graphs/009-bridges_articulation.hpp",
       "symbols": [
         "BridgeAlgo"
       ],
       "dependencies": [
         "01-Core/01-template.hpp",
-        "04-Graphs/01-graph.hpp"
+        "04-Graphs/001-graph.hpp"
       ],
       "status": "exact-duplicate",
       "issues": [
@@ -100,21 +100,21 @@
       },
       "disposition": "exact-duplicate-mapped",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/09-bridges_articulation.md"
+      "verification": "04-Graphs/Docs/009-bridges_articulation.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
       "start_line": 306,
       "end_line": 344,
-      "target": "04-Graphs/05-shortest_path.hpp",
+      "target": "04-Graphs/005-shortest_path.hpp",
       "symbols": [
         "Dijkstra"
       ],
       "dependencies": [
         "01-Core/01-template.hpp",
-        "04-Graphs/01-graph.hpp",
-        "04-Graphs/02-traversal.hpp",
-        "04-Graphs/03-toposort.hpp"
+        "04-Graphs/001-graph.hpp",
+        "04-Graphs/002-traversal.hpp",
+        "04-Graphs/003-toposort.hpp"
       ],
       "status": "exact-duplicate",
       "issues": [
@@ -129,13 +129,13 @@
       },
       "disposition": "exact-duplicate-mapped",
       "relationship": "P010 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/05-shortest_path.md"
+      "verification": "04-Graphs/Docs/005-shortest_path.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
       "start_line": 348,
       "end_line": 469,
-      "target": "04-Graphs/19-max_flow.hpp",
+      "target": "04-Graphs/019-max_flow.hpp",
       "symbols": [
         "EdmondsKarp"
       ],
@@ -152,7 +152,7 @@
       "disposition": "extracted",
       "historical_target_sha256": "51c47e65e308243186a535325140440cd88ae0a3fb22bc222e7da5e190cb1d44",
       "relationship": "P044 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/19-max_flow.md"
+      "verification": "04-Graphs/Docs/019-max_flow.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -172,7 +172,7 @@
         "Static Euler subtree flattening plus range-query adapter, not a dynamic Euler-tour tree.",
         "Refers to obsolete non-template SegTree and its incompatible constructor/method interface.",
         "Historical TESTED comment is preserved, not accepted as current verification.",
-        "P042 accounts the static Euler flattening as EulerTour::subtreeRange with a segment tree; see 04-Graphs/Docs/14-tree_algorithms.md, Legacy mapping. Excerpt deleted after verification."
+        "P042 accounts the static Euler flattening as EulerTour::subtreeRange with a segment tree; see 04-Graphs/Docs/014-tree_algorithms.md, Legacy mapping. Excerpt deleted after verification."
       ],
       "source_context": null,
       "tier": "Advanced",
@@ -186,7 +186,7 @@
       "source": "OLD/[1] algorithms.cpp",
       "start_line": 545,
       "end_line": 578,
-      "target": "04-Graphs/12-all_pairs_shortest_path.hpp",
+      "target": "04-Graphs/012-all_pairs_shortest_path.hpp",
       "symbols": [
         "FloydWarshall"
       ],
@@ -209,20 +209,20 @@
       "note": "P042 maps the legacy FloydWarshall struct to floydWarshall(g); see the OLD/algorithms.cpp:4528 record.",
       "relationship": "P042 audited replacement; original source excerpt preserved",
       "historical_target_sha256": "c09f5fb8666f1c5ecc627ff8863a73651384cdb6041ee996c8ee5a6954e60f6f",
-      "verification": "04-Graphs/Docs/12-all_pairs_shortest_path.md"
+      "verification": "04-Graphs/Docs/012-all_pairs_shortest_path.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
       "start_line": 583,
       "end_line": 657,
-      "target": "04-Graphs/07-lca.hpp",
+      "target": "04-Graphs/007-lca.hpp",
       "symbols": [
         "LCA"
       ],
       "dependencies": [
         "01-Core/01-template.hpp",
-        "04-Graphs/01-graph.hpp",
-        "02-Data Structures/01-dsu.hpp"
+        "04-Graphs/001-graph.hpp",
+        "02-Data Structures/001-dsu.hpp"
       ],
       "status": "exact-duplicate",
       "issues": [
@@ -237,18 +237,18 @@
       },
       "disposition": "exact-duplicate-mapped",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/07-lca.md"
+      "verification": "04-Graphs/Docs/007-lca.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
-      "target": "02-Data Structures/21-lichao.hpp",
+      "target": "02-Data Structures/021-lichao.hpp",
       "symbols": [
         "LiChaoTree"
       ],
       "status": "verified",
       "tier": "Advanced",
       "issues": [
-        "TODO draft of a complex-vector monotone hull without queries; P032 accounted for it as not adopted, MonotoneCHT (22-convexhulltrick.hpp) being the finished structure."
+        "TODO draft of a complex-vector monotone hull without queries; P032 accounted for it as not adopted, MonotoneCHT (022-convexhulltrick.hpp) being the finished structure."
       ],
       "body_sha256": "0902112863e538076d570c9f674678e0fb966b6c5db1debb2450bfbb098b2705",
       "body_bytes": 578,
@@ -259,11 +259,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/21-lichao.md"
+      "verification": "02-Data Structures/Docs/021-lichao.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
-      "target": "02-Data Structures/16-mergesorttree.hpp",
+      "target": "02-Data Structures/016-mergesorttree.hpp",
       "symbols": [
         "MergeSortTree"
       ],
@@ -281,7 +281,7 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/16-mergesorttree.md"
+      "verification": "02-Data Structures/Docs/016-mergesorttree.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -488,7 +488,7 @@
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/04-sparsetable.hpp",
+      "target": "02-Data Structures/004-sparsetable.hpp",
       "symbols": [
         "SparseTable"
       ],
@@ -506,11 +506,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/04-sparsetable.md"
+      "verification": "02-Data Structures/Docs/004-sparsetable.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/01-dsu.hpp",
+      "target": "02-Data Structures/001-dsu.hpp",
       "symbols": [
         "DSU"
       ],
@@ -528,11 +528,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/01-dsu.md"
+      "verification": "02-Data Structures/Docs/001-dsu.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/11-fenwick_tree_advanced.hpp",
+      "target": "02-Data Structures/011-fenwick_tree_advanced.hpp",
       "symbols": [
         "FenTreeRangeAdd1D"
       ],
@@ -548,11 +548,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/11-fenwick_tree_advanced.md"
+      "verification": "02-Data Structures/Docs/011-fenwick_tree_advanced.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/11-fenwick_tree_advanced.hpp",
+      "target": "02-Data Structures/011-fenwick_tree_advanced.hpp",
       "symbols": [
         "FenTree"
       ],
@@ -570,7 +570,7 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/11-fenwick_tree_advanced.md"
+      "verification": "02-Data Structures/Docs/011-fenwick_tree_advanced.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -597,7 +597,7 @@
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/23-range_query_offline.hpp",
+      "target": "02-Data Structures/023-range_query_offline.hpp",
       "symbols": [
         "Mo"
       ],
@@ -620,7 +620,7 @@
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/12-lazysegmenttree.hpp",
+      "target": "02-Data Structures/012-lazysegmenttree.hpp",
       "symbols": [
         "SegTree"
       ],
@@ -638,11 +638,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
+      "verification": "02-Data Structures/Docs/012-lazysegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/13-dynamicsegmenttree.hpp",
+      "target": "02-Data Structures/013-dynamicsegmenttree.hpp",
       "symbols": [
         "DynSegTree"
       ],
@@ -660,11 +660,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/13-dynamicsegmenttree.md"
+      "verification": "02-Data Structures/Docs/013-dynamicsegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/18-persistentsegmenttree.hpp",
+      "target": "02-Data Structures/018-persistentsegmenttree.hpp",
       "symbols": [
         "PerSegTree"
       ],
@@ -682,11 +682,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/18-persistentsegmenttree.md"
+      "verification": "02-Data Structures/Docs/018-persistentsegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/15-segment_tree_2d.hpp",
+      "target": "02-Data Structures/015-segment_tree_2d.hpp",
       "symbols": [
         "SegTree2D"
       ],
@@ -702,11 +702,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/15-segment_tree_2d.md"
+      "verification": "02-Data Structures/Docs/015-segment_tree_2d.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/14-segtreebeats.hpp",
+      "target": "02-Data Structures/014-segtreebeats.hpp",
       "symbols": [
         "SegTreeBeats"
       ],
@@ -724,11 +724,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/14-segtreebeats.md"
+      "verification": "02-Data Structures/Docs/014-segtreebeats.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/16-mergesorttree.hpp",
+      "target": "02-Data Structures/016-mergesorttree.hpp",
       "symbols": [
         "DynMergeSortTree"
       ],
@@ -746,11 +746,11 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/16-mergesorttree.md"
+      "verification": "02-Data Structures/Docs/016-mergesorttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/18-persistentsegmenttree.hpp",
+      "target": "02-Data Structures/018-persistentsegmenttree.hpp",
       "symbols": [
         "KSPerSegTree"
       ],
@@ -769,11 +769,11 @@
         "01-Core/01-template.hpp",
         "PerSegTree (same file)"
       ],
-      "verification": "02-Data Structures/Docs/18-persistentsegmenttree.md"
+      "verification": "02-Data Structures/Docs/018-persistentsegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/17-waveletmatrix.hpp",
+      "target": "02-Data Structures/017-waveletmatrix.hpp",
       "symbols": [
         "WaveletMatrix"
       ],
@@ -791,7 +791,7 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/17-waveletmatrix.md"
+      "verification": "02-Data Structures/Docs/017-waveletmatrix.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -810,7 +810,7 @@
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/21-lichao.hpp",
+      "target": "02-Data Structures/021-lichao.hpp",
       "symbols": [
         "LiChaoTree"
       ],
@@ -828,13 +828,13 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/21-lichao.md"
+      "verification": "02-Data Structures/Docs/021-lichao.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4118,
       "end_line": 4230,
-      "target": "04-Graphs/15-hld.hpp",
+      "target": "04-Graphs/015-hld.hpp",
       "symbols": [
         "HLD"
       ],
@@ -851,11 +851,11 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "779ef5f14e078573ea3f800b9f9067d27c2f263d9b346498a152da81987de56f",
       "relationship": "P042 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/15-hld.md"
+      "verification": "04-Graphs/Docs/015-hld.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/21-lichao.hpp",
+      "target": "02-Data Structures/021-lichao.hpp",
       "symbols": [
         "PerLiChaoTree"
       ],
@@ -873,13 +873,13 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/21-lichao.md"
+      "verification": "02-Data Structures/Docs/021-lichao.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4428,
       "end_line": 4441,
-      "target": "06-Miscellaneous/08-sequence_algorithms.hpp",
+      "target": "06-Miscellaneous/008-sequence_algorithms.hpp",
       "symbols": [
         "kadane"
       ],
@@ -891,20 +891,20 @@
       "body_sha256": "a803a00922b93b26a067e3067439912ff1490fe5e11ecf1a6ef4f13ae6ffa30a",
       "relationship": "P014 audited replacement; original source excerpt preserved",
       "historical_target_sha256": "700af8843b769f610d1fcf624161f3a89312167aba3b79ef8b2dea3778f7f752",
-      "verification": "06-Miscellaneous/Docs/08-sequence_algorithms.md",
+      "verification": "06-Miscellaneous/Docs/008-sequence_algorithms.md",
       "disposition": "audited-replacement"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4443,
       "end_line": 4486,
-      "target": "04-Graphs/09-bridges_articulation.hpp",
+      "target": "04-Graphs/009-bridges_articulation.hpp",
       "symbols": [
         "BridgeAlgo"
       ],
       "dependencies": [
         "01-Core/01-template.hpp",
-        "04-Graphs/01-graph.hpp"
+        "04-Graphs/001-graph.hpp"
       ],
       "status": "verified",
       "issues": [
@@ -916,21 +916,21 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "72b9178999cf60230881996b7fdc9c52589e41d3795fb046772bf976b95321cd",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/09-bridges_articulation.md"
+      "verification": "04-Graphs/Docs/009-bridges_articulation.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4488,
       "end_line": 4526,
-      "target": "04-Graphs/05-shortest_path.hpp",
+      "target": "04-Graphs/005-shortest_path.hpp",
       "symbols": [
         "Dijkstra"
       ],
       "dependencies": [
         "01-Core/01-template.hpp",
-        "04-Graphs/01-graph.hpp",
-        "04-Graphs/02-traversal.hpp",
-        "04-Graphs/03-toposort.hpp"
+        "04-Graphs/001-graph.hpp",
+        "04-Graphs/002-traversal.hpp",
+        "04-Graphs/003-toposort.hpp"
       ],
       "status": "verified",
       "issues": [
@@ -942,13 +942,13 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "4f3d2f0af2422309d3ecc7a5592a0e7bf1913be343eda93e7039957ab591058c",
       "relationship": "P010 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/05-shortest_path.md"
+      "verification": "04-Graphs/Docs/005-shortest_path.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4528,
       "end_line": 4561,
-      "target": "04-Graphs/12-all_pairs_shortest_path.hpp",
+      "target": "04-Graphs/012-all_pairs_shortest_path.hpp",
       "symbols": [
         "FloydWarshall"
       ],
@@ -965,20 +965,20 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "c09f5fb8666f1c5ecc627ff8863a73651384cdb6041ee996c8ee5a6954e60f6f",
       "relationship": "P042 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/12-all_pairs_shortest_path.md"
+      "verification": "04-Graphs/Docs/012-all_pairs_shortest_path.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4563,
       "end_line": 4637,
-      "target": "04-Graphs/07-lca.hpp",
+      "target": "04-Graphs/007-lca.hpp",
       "symbols": [
         "LCA"
       ],
       "dependencies": [
         "01-Core/01-template.hpp",
-        "04-Graphs/01-graph.hpp",
-        "02-Data Structures/01-dsu.hpp"
+        "04-Graphs/001-graph.hpp",
+        "02-Data Structures/001-dsu.hpp"
       ],
       "status": "verified",
       "issues": [
@@ -990,13 +990,13 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "6343ab91298b9c7641c40e37e6118db7817ccad0c4694298aa8ebf2edcbe80c8",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/07-lca.md"
+      "verification": "04-Graphs/Docs/007-lca.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4641,
       "end_line": 4700,
-      "target": "04-Graphs/18-twosat.hpp",
+      "target": "04-Graphs/018-twosat.hpp",
       "symbols": [
         "TwoSat"
       ],
@@ -1012,7 +1012,7 @@
       "body_sha256": "9983a8807d6782987dcb52b1c09d567a1e0bb7f5f9043baea040b38cb050d8e0",
       "disposition": "extracted",
       "relationship": "P043 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/18-twosat.md"
+      "verification": "04-Graphs/Docs/018-twosat.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -1042,7 +1042,7 @@
       "source": "OLD/algorithms.cpp",
       "start_line": 4724,
       "end_line": 4766,
-      "target": "04-Graphs/13-shortest_path_advanced.hpp",
+      "target": "04-Graphs/013-shortest_path_advanced.hpp",
       "symbols": [
         "SPFA"
       ],
@@ -1059,7 +1059,7 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "c423d1c7927a3feb56838d3516d333a1fcb65012ee2fb11786ca49c24da4dcda",
       "relationship": "P042 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/13-shortest_path_advanced.md"
+      "verification": "04-Graphs/Docs/013-shortest_path_advanced.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -1089,7 +1089,7 @@
       "source": "OLD/algorithms.cpp",
       "start_line": 4797,
       "end_line": 4862,
-      "target": "04-Graphs/23-assignment.hpp",
+      "target": "04-Graphs/023-assignment.hpp",
       "symbols": [
         "Hungarian"
       ],
@@ -1105,19 +1105,19 @@
       "body_sha256": "445c1b5abce9dd839a5e228b716d029a9f0077a8297344dacafbeed0065ded38",
       "disposition": "extracted",
       "relationship": "P043 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/23-assignment.md"
+      "verification": "04-Graphs/Docs/023-assignment.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4864,
       "end_line": 4904,
-      "target": "04-Graphs/09-bridges_articulation.hpp",
+      "target": "04-Graphs/009-bridges_articulation.hpp",
       "symbols": [
         "Tarjan"
       ],
       "dependencies": [
         "01-Core/01-template.hpp",
-        "04-Graphs/01-graph.hpp"
+        "04-Graphs/001-graph.hpp"
       ],
       "status": "verified",
       "issues": [
@@ -1129,13 +1129,13 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "72b9178999cf60230881996b7fdc9c52589e41d3795fb046772bf976b95321cd",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/09-bridges_articulation.md"
+      "verification": "04-Graphs/Docs/009-bridges_articulation.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 4906,
       "end_line": 5003,
-      "target": "04-Graphs/26-dynamic_connectivity.hpp",
+      "target": "04-Graphs/026-dynamic_connectivity.hpp",
       "symbols": [
         "OnlineBridges"
       ],
@@ -1152,13 +1152,13 @@
       "disposition": "audited-replacement",
       "relationship": "P047 audited replacement; original source excerpt preserved",
       "historical_target_sha256": "9a09460bb819cf716b332807cfc8d136b413b2f97e673e27e77d51b60824ead9",
-      "verification": "04-Graphs/Docs/26-dynamic_connectivity.md"
+      "verification": "04-Graphs/Docs/026-dynamic_connectivity.md"
     },
     {
       "source": "OLD/algorithms.cpp",
       "start_line": 5005,
       "end_line": 5044,
-      "target": "04-Graphs/16-centroiddecomposition.hpp",
+      "target": "04-Graphs/016-centroiddecomposition.hpp",
       "symbols": [
         "CentroidDecomposition"
       ],
@@ -1174,7 +1174,7 @@
       "body_sha256": "1f28da11166e7d750e4a6de31f5358836d26fc7f8030c456959333856bf67d14",
       "disposition": "extracted",
       "relationship": "P056 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/Docs/16-centroiddecomposition.md"
+      "verification": "04-Graphs/Docs/016-centroiddecomposition.md"
     },
     {
       "source": "OLD/algorithms.cpp",

@@ -1,0 +1,148 @@
+#include "../../02-Data Structures/001-dsu.hpp"
+
+ulng seed = 20260927;
+string mode = "quick", context;
+vector<pair<int,int>> history;
+
+[[noreturn]] void fail(const string &op, const string &expected, const string &actual) {
+    cerr << "FAIL DSU seed=" << seed << " mode=" << mode << " case=" << context
+         << " operation=" << op << " expected=" << expected << " actual=" << actual
+         << " unions=";
+    for (auto [u,v] : history) { cerr << '(' << u << ',' << v << ')'; }
+    cerr << '\n'; std::exit(1);}
+template<typename T> void check(const T &actual, const T &expected, const string &op) {
+    if (actual != expected) {
+        std::ostringstream a, e; a << actual; e << expected; fail(op,e.str(),a.str());}}
+string show(const vector<vector<int>> &a) {
+    std::ostringstream out;
+    for (const auto &v : a) { out << '['; for (int x : v) { out << x << ','; } out << ']'; }
+    return out.str();}
+bool join(vector<int> &a, int u, int v) {
+    int x = a[u], y = a[v];
+    if (x == y) { return false; }
+    for (int &z : a) { if (z == y) { z = x; }}
+    return true;}
+// Union by size: a vertex at depth k lies in a component of at least 2^k vertices; compression keeps this.
+void checkDepths(const DSU &d, const vector<int> &a) {
+    int n = int(a.size());
+    check(int(d.par.size()),n,"par size");
+    for (int u = 0; u < n; ++u) {
+        if (d.par[u] < 0 || d.par[u] >= n) { fail("par["+std::to_string(u)+"]","parent in [0,n)",std::to_string(d.par[u])); }}
+    vector<int> cnt(n);
+    for (int u = 0; u < n; ++u) { ++cnt[a[u]]; }
+    for (int u = 0; u < n; ++u) {
+        int depth = 0;
+        for (int r = u; d.par[r] != r && depth <= 30; r = d.par[r]) { ++depth; }
+        if (depth > 30 || (1 << depth) > cnt[a[u]]) {
+            fail("union by size depth("+std::to_string(u)+")","2^depth<="+std::to_string(cnt[a[u]]),std::to_string(depth));}}}
+void verify(DSU &d, const vector<int> &a) {
+    int n = int(a.size());
+    check(d.n,n,"n"); checkDepths(d,a);
+    // leaders runs first, on paths not yet compressed by the checks below.
+    vector<int> leaders = d.leaders();
+    check(int(leaders.size()),n,"leaders size");
+    for (int u = 0; u < n; ++u) {
+        check(leaders[u],d.findSet(u),"leaders["+std::to_string(u)+"]"); check(a[leaders[u]],a[u],"leaders membership");}
+    vector<vector<int>> expected;
+    vector<int> seen(n,-1);
+    for (int u = 0; u < n; ++u) {
+        int count = 0;
+        for (int v = 0; v < n; ++v) {
+            bool same = a[u] == a[v]; count += same;
+            check(d.isSameSet(u,v),same,"isSameSet("+std::to_string(u)+","+std::to_string(v)+")");}
+        check(d.size(u),count,"size("+std::to_string(u)+")");
+        int r = d.findSet(u);
+        if (r < 0 || r >= n) { fail("findSet","representative in [0,n)",std::to_string(r)); }
+        check(a[r],a[u],"representative membership"); check(d.par[u],r,"full compression");
+        check(d.findSet(r),r,"root idempotence");
+        if (seen[a[u]] == -1) { seen[a[u]] = int(expected.size()); expected.emplace_back(); }
+        expected[seen[a[u]]].push_back(u);}
+    check(d.count(),int(expected.size()),"count"); check(d.ncon,d.count(),"legacy ncon");
+    check(show(d.groups()),show(expected),"groups");
+    check(show(d.groups()),show(expected),"repeated groups");}
+void graphSubsets() {
+    int limit = mode == "quick" ? 4 : 6;
+    for (int n = 0; n <= limit; ++n) {
+        vector<pair<int,int>> edges;
+        for (int u = 0; u < n; ++u) { for (int v = u+1; v < n; ++v) { edges.emplace_back(u,v); }}
+        for (int mask = 0; mask < (1 << int(edges.size())); ++mask) {
+            context = "graph n="+std::to_string(n)+" mask="+std::to_string(mask); history.clear();
+            DSU d(n); vector<int> labels(n); iota(labels.begin(),labels.end(),0);
+            for (int i = 0; i < int(edges.size()); ++i) {
+                if (mask >> i & 1) {
+                    auto [u,v] = edges[i]; history.push_back({u,v});
+                    check(d.uniteSets(u,v),join(labels,u,v),"uniteSets");}}
+            for (int u = 0; u < n; ++u) { check(d.uniteSets(u,u),false,"self union"); }
+            verify(d,labels);}}
+    cout << "PASS DSU exhaustive graph subsets n<=" << limit << '\n';}
+void unionHistories() {
+    int depth = mode == "quick" ? 3 : mode == "full" ? 5 : 6;
+    // Iterative deepening: pass k verifies only length-k histories, so the first failure is a shortest one.
+    auto rec = [&] (auto &&self, DSU d, vector<int> a, int left) -> void {
+        if (!left) { verify(d,a); return; }
+        for (int u = 0; u < 3; ++u) { for (int v = 0; v < 3; ++v) {
+            DSU next = d; auto b = a; history.push_back({u,v});
+            check(next.uniteSets(u,v),join(b,u,v),"history uniteSets");
+            self(self,std::move(next),std::move(b),left-1); history.pop_back();}}};
+    for (int k = 0; k <= depth; ++k) {
+        context = "exhaustive n=3 union histories length="+std::to_string(k); history.clear();
+        rec(rec,DSU(3),vector<int>{0,1,2},k);}
+    cout << "PASS DSU exhaustive union histories depth=" << depth << '\n';}
+void randomCases() {
+    std::mt19937_64 rng(seed);
+    int trials = mode == "quick" ? 35 : mode == "full" ? 150 : 600;
+    for (int trial = 0; trial < trials; ++trial) {
+        int n = int(rng()%65); DSU d(n); vector<int> a(n); iota(a.begin(),a.end(),0); history.clear();
+        context = "random trial="+std::to_string(trial)+" n="+std::to_string(n); verify(d,a);
+        if (!n || trial % 5 == 0) {
+            check(d.makeSet(),n,"makeSet id"); a.push_back(n++); verify(d,a);}
+        for (int op = 0; op < 200; ++op) {
+            if (rng()%20 == 0) {
+                check(d.makeSet(),n,"interleaved makeSet id"); a.push_back(n++); history.push_back({-1,-1}); continue;}
+            int u = int(rng()%n), v = int(rng()%n); history.push_back({u,v});
+            check(d.uniteSets(u,v),join(a,u,v),"random uniteSets");
+            if (op%7 == 0) { verify(d,a); }}
+        DSU copy = d; verify(copy,a); DSU moved = std::move(copy); verify(moved,a);
+        copy = DSU(n); vector<int> fresh(n); iota(fresh.begin(),fresh.end(),0); verify(copy,fresh);
+        copy = d; verify(copy,a); verify(d,a);}
+    cout << "PASS DSU random label oracle/makeSet/copy/move trials=" << trials << '\n';}
+void balancedTree() {
+    int n = mode == "quick" ? 1024 : 65536;
+    context = "balanced merges n="+std::to_string(n); history.clear(); DSU d(n);
+    for (int step = 1; step < n; step *= 2) {
+        for (int u = 0; u < n; u += 2*step) { check(d.uniteSets(u,u+step),true,"balanced merge"); }}
+    check(d.count(),1,"balanced count");
+    for (int i = n-1; i >= 0; --i) {
+        int r = d.findSet(i); check(d.par[i],r,"balanced compression"); check(d.size(i),n,"balanced size");}
+    auto groups = d.groups(); check(int(groups.size()),1,"balanced groups count");
+    check(int(groups[0].size()),n,"balanced members count");
+    for (int flip = 0; flip < 2; ++flip) {
+        context = "star unions n="+std::to_string(n)+(flip ? " uniteSets(0,i)" : " uniteSets(i,0)"); DSU star(n);
+        for (int i = 1; i < n; ++i) { check(flip ? star.uniteSets(0,i) : star.uniteSets(i,0),true,"star union"); }
+        checkDepths(star,vector<int>(n));}
+    cout << "PASS DSU balanced merges/compression/star depth n=" << n << '\n';}
+int main(int argc, char **argv) {
+    string invalid;
+    for (int i = 1; i < argc; ++i) {
+        string arg = argv[i];
+        if (i+1 == argc) { cerr << "missing value\n"; return 2; }
+        if (arg == "--seed") { seed = std::stoull(argv[++i]); }
+        else if (arg == "--mode") { mode = argv[++i]; }
+        else if (arg == "--invalid") { invalid = argv[++i]; }
+        else { cerr << "unknown option\n"; return 2; }}
+    if (!invalid.empty()) {
+        DSU d(2);
+        if (invalid == "negative-size") { DSU bad(-1); }
+        else if (invalid == "find-negative") { d.findSet(-1); }
+        else if (invalid == "find-end") { d.findSet(2); }
+        else if (invalid == "find-past") { d.findSet(3); }
+        else if (invalid == "empty-find") { DSU().findSet(0); }
+        else if (invalid == "union-end") { d.uniteSets(0,2); }
+        else if (invalid == "size-end") { d.size(2); }
+        else if (invalid == "same-end") { d.isSameSet(0,2); }
+        else if (invalid == "makeset-full") { d.n = INT_MAX; d.makeSet(); }
+        else { cerr << "unknown invalid case\n"; return 2; }
+        cerr << "precondition did not assert\n"; return 1;}
+    if (mode != "quick" && mode != "full" && mode != "stress") { return 2; }
+    cout << "DSU seed=" << seed << " mode=" << mode << '\n';
+    graphSubsets(); unionHistories(); randomCases(); balancedTree();}
