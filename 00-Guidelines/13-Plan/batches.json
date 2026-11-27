@@ -1090,7 +1090,8 @@
       "focus": "Graph storage/traversal/toposort and graph-facing DSU adapter; DS01.",
       "prerequisites": [
         "C01",
-        "DS01"
+        "DS01",
+        "DS49"
       ],
       "tiers": [
         "Basic"

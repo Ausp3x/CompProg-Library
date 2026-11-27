@@ -4,6 +4,10 @@ Owned by package P010 / GR02 (graph foundations, with `01-graph.hpp` through `05
 
 ## Contracts
 
+### Scope
+
+The row covers undirected minimum and maximum spanning forests over the integer weight domain below and the Kruskal reconstruction tree with its bottleneck queries. Directed MSTs, sensitivity and second-best MSTs, spanning-tree counting and fully dynamic MSTs belong to their own inventory rows; general LCA and dynamic-tree APIs keep their own owners.
+
 ### Weight Domain
 
 Every engine uses exact signed-integer weights from the full `lng` range and `lll` accumulated costs. Status fields distinguish absent and present answers without reserving a numeric weight. Fractional and custom-weight instantiations of the archived notebook templates are outside this integer API.
@@ -41,12 +45,13 @@ Correctness: the LCA's merge weight is the minimum possible maximum edge on a pa
 | `KruskalReconstruction: lca` | Every node | Ancestor sets |
 | `KruskalReconstruction: leafRange` | Every node | Explicit subtree leaf sets |
 | Preconditions | 21 assertion probes: each index bound of `bottleneck`, `lca` and `leafRange` at the end and past it in either argument, on a path whose 3 vertices and 5 nodes separate the vertex and node bounds; `too-many-nodes` at n = 2^30 + 1 | Expected assertion failure |
+| Size bound | `KruskalReconstruction` at n = 2^30, the largest accepted size, on a graph type holding only `n`, `directed` and `edges`, in a child process limited to 1 GiB of address space (optimized and checked builds; not under ASan, whose shadow memory needs more) | The constructor passes its assertion and ends in `bad_alloc` |
 
 ## Mutation Testing
 
 Record: mewt 4.0.0 on blob `4db8d7d8bd2d3aa65192e2e583f9878cc4c41f36` (2026-11-15, seed 1, 1 lines changed since blob `0d06a53bb94c`): 0 mutants, 0 caught (0 by timeout), 0 survived, 0 untested.
 
-The changed line is /finish's direct `DSU` include; the review's comment split and the removal of the unused `edgeLess`/`edgeOrder` defaults before it generated no mutant either. The survivors below come from the whole-file campaign of 2026-11-15 (seed 1, uniform sample of 500 of 681; 470 caught, 1 by timeout, 30 survived after the retest with the extended tester), on lines no later record covered; the two on the removed defaults are gone. Line numbers are the current header's. All are equivalent except the last row, which differs only at an input no test can build.
+The changed line is /finish's direct `DSU` include; the review's comment split and the removal of the unused `edgeLess`/`edgeOrder` defaults before it generated no mutant either. The survivors below come from the whole-file campaign of 2026-11-15 (seed 1, uniform sample of 500 of 681; 470 caught, 1 by timeout, 30 survived after the retest with the extended tester), on lines no later record covered; the two on the removed defaults are gone. The 2026-11-27 size-bound check closed `AOS 285`, `AOS 286`, `AOS 287` and `COS 498`, each applied by hand to a scratch copy and caught by the checked build. Line numbers are the current header's. All are equivalent.
 
 | Mutant | Line | Why it survives |
 |---|---|---|
@@ -61,23 +66,24 @@ The changed line is /finish's direct `DSU` include; the review's comment split a
 | `AS 253`, `swap(u, v)` → `swap(v, u)` | 161 | `swap` is symmetric. |
 | `COS 573`, `depth[u] < depth[v]` → `<=` | 161 | Swapping equal depths leaves `delta = 0`, and the lifting and the returned common parent are symmetric in u and v. |
 | `AOS 319`, `int(up.size()) - 1` → `/ 1` | 163 | The extra first iteration tests bit `levels` of `delta`, which is 0 since `delta < count < 2^levels`, so `up[levels]` is never read. |
-| `AOS 285`, `AOS 286`, `AOS 287`, `COS 498`, the size bound tightened to `2n <= INT_MAX - 1`, `<= INT_MAX`, `< INT_MAX + 1` | 135 | Not equivalent: each rejects only n = 2^30, the largest valid size, whose union tree needs over 8 GiB for `child` alone, beyond the tester's 4 GiB cap and any judge. The rejected side is tested at 2^30 + 1. |
 
 ## Commands and Results
 
-2026-11-15 (P010 GR02), after the review fixes and the direct `DSU` include. Linux x86-64, Intel Core i9-11900H shared with other sessions, GCC 16.2.1 20260810 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20, `-Wall -Wextra -Wconversion -Werror`.
+2026-11-27 (P010 limits recheck, experiment none) for the tester runs, extraction of the tester and integration; 2026-11-15 (P010 GR02) for the row so marked, the header being unchanged since. Linux x86-64, Intel Core i9-11900H shared with other sessions, GCC 16.2.1 20260810 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20, `-Wall -Wextra -Wconversion -Werror`.
 
 | Run | Result |
 |---|---|
-| Full, seed 20261115, g++ | PASS, all three builds, 866,337 checks per build, 21 probes; optimized 0.7 s, checked 3.0 s, ASan-UBSan 8.6 s beside a mutation campaign; peak 1,127 MB |
-| Full, seed 20261115, `CXX=g++-14` | PASS, all three builds, same counts; peak 1,103 MB |
-| Stress, seed 7 | PASS, all three builds, 2,052,049 checks per build; optimized 1.3 s, checked 7.9 s, ASan-UBSan 21.3 s beside a mutation campaign; peak 862 MB |
-| `05-extraction.py ops --filter 06-mst.hpp`; `testers --filter 06-mst_tester` | PASS on g++ and g++-14 (14 operations in 13 extractions); PASS |
-| `02-integration.py` | PASS, 190 standalone and aggregate headers, multi-TU, workspace |
+| Full, seed 20261127, g++ | PASS, all three builds, 871,970 checks (optimized, checked) and 871,969 (ASan-UBSan, which skips the size bound), 21 probes; optimized 0.4 s, checked 1.8 s, ASan-UBSan 4.5 s; pre-flight quick peak 909 MB; peak 1,141 MB |
+| Full, seed 20261127, `CXX=g++-14` | PASS, same counts; optimized 0.2 s, checked 2.7 s, ASan-UBSan 4.6 s; peak 1,131 MB |
+| Stress, seed 7 | PASS, all three builds, 2,052,050 checks (2,052,049 under ASan-UBSan), 21 probes; optimized 0.7 s, checked 3.8 s, ASan-UBSan 10.6 s; peak 847 MB |
+| Hand-applied size-bound mutants (scratch copy, checked build) | 4 of 4 caught: `AOS 285`, `AOS 286`, `AOS 287`, `COS 498` |
+| `05-extraction.py ops --filter 06-mst.hpp` (2026-11-15) | PASS on g++ and g++-14 (14 operations in 13 extractions) |
+| `05-extraction.py testers --filter 06-mst_tester` | PASS |
+| `02-integration.py` | PASS, 192 standalone and aggregate headers, scalar and AVX2 multi-TU, workspace; peak 3,438 MB |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261115
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261115
+python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261127
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261127
 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode stress --seed 7
 python3 '96-Local Testing/05-extraction.py' ops --filter 06-mst.hpp
 python3 '96-Local Testing/05-extraction.py' testers --filter 06-mst_tester
@@ -117,7 +123,8 @@ The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetche
 
 ## Limits and Handoffs
 
-Fractional and custom-weight domains are not claimed. Directed MSTs, sensitivity and second-best MSTs, spanning-tree counting and fully dynamic MSTs belong to their own inventory rows. Reconstruction-tree bottleneck queries belong here; general LCA and dynamic-tree APIs keep their own owners.
+- Prim on a cost oracle (maspypy `mst_prim(N, cost)`, hitonanode `mst_edges`) and the XOR minimum spanning tree (CF888G, an `implicitBoruvka` instance) belong to row 43, `43-implicit_graph.hpp` ([00-notes.md](00-notes.md#p010-gr02-omissions); follow-up on P051).
+- The Held–Karp 1-tree bound (hitonanode `minimum_one_tree`) belongs to row 73, `73-hamiltonian.hpp` ([00-notes.md](00-notes.md#p010-gr02-omissions); follow-up on P166).
 
 ## Aliases
 
@@ -136,3 +143,4 @@ Search aliases (P263, grab --find): MST (minimum spanning tree), minimum spannin
 - 2026-11-14: P010 GR02, the `maximum` flags of `kruskal`, `primSparse` and `boruvka` became the named mirrors `kruskalMaximum`, `primSparseMaximum` and `boruvkaMaximum` over shared `mst_detail` engines (flag ruling, user decision 2026-11-14); completeness sweep added nothing; full suite passed on g++ and g++-14, stress passed, extraction passed.
 - 2026-11-15: P010 GR02 whole-file mutation campaign and review: seven index-bound probes, the default union-tree check and the 2^30 + 1 size probe closed ten survivors; unused `edgeLess`/`edgeOrder` defaults removed.
 - 2026-11-15: /finish GR02: the header includes `02-Data Structures/01-dsu.hpp` directly (it uses only `DSU`), batch prerequisite DS01 declared; Borůvka edge order and the `primDense` view recorded as user decisions; benchmark gained an adversarial complete graph.
+- 2026-11-27: P010 limits recheck (experiment none): the ownership boundaries moved from Limits and Handoffs to Contracts (Scope); the GR02 handoffs to rows 43 and 73 filed as follow-ups on P051 and P166; the review found the size-bound survivors reachable, so an accepted-bound check at n = 2^30 closed `AOS 285`–`287` and `COS 498`; header unchanged; full suite passed on g++ and g++-14, stress passed, extraction of the tester and integration passed.

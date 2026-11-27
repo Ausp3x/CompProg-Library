@@ -2,6 +2,7 @@
 #include "../01-Core/01-template.hpp"
 #include "01-graph.hpp"
 #include "02-traversal.hpp"
+#include "../02-Data Structures/61-hashmap.hpp"
 
 // T: O(1), M: O(n); on a cycle order is empty and cycle is a directed witness.
 struct TopologicalResult {
@@ -99,7 +100,7 @@ GenerationsResult topologicalGenerations(const G &g) {
     for (int u = 0; u < g.n; ++u) { res.layers[level[u]].push_back(u); }
     return res;}
 
-// T: O(n + m + limit * n * log(n)), M: O(n + m + limit * n); directed only, up to limit distinct orders (Varol–Rotem), empty iff limit == 0 or g has a cycle.
+// T: O(n + m + limit * n) expected, M: O(n + m + limit * n); directed only, up to limit distinct orders (Varol–Rotem), empty iff limit == 0 or g has a cycle.
 template<class G = Graph>
 vector<vector<int>> allTopologicalSorts(const G &g, int limit) {
     assert(limit >= 0);
@@ -109,11 +110,9 @@ vector<vector<int>> allTopologicalSorts(const G &g, int limit) {
     int n = g.n;
     vector<int> label(n), a(n), pos(n), order(n);
     for (int i = 0; i < n; ++i) { label[t.order[i]] = i; }
-    vector<vector<int>> pred(n);
+    HashSet<lng> arc;
     for (int l = 0; l < n; ++l) {
-        for (int e : g[t.order[l]]) {
-            auto &p = pred[label[g.arcs[e].to]];
-            if (p.empty() || p.back() != l) { p.push_back(l); }}}
+        for (int e : g[t.order[l]]) { arc.insert(lng(l) * n + label[g.arcs[e].to]); }}
     iota(a.begin(), a.end(), 0); iota(pos.begin(), pos.end(), 0);
     while (true) {
         for (int i = 0; i < n; ++i) { order[i] = t.order[a[i]]; }
@@ -123,7 +122,7 @@ vector<vector<int>> allTopologicalSorts(const G &g, int limit) {
         for (; k >= 0; --k) {
             int j = pos[k];
             // k may pass its left neighbour l < k unless l -> k is an arc; adjacent comparable elements always share one.
-            if (j > 0 && !binary_search(pred[k].begin(), pred[k].end(), a[j - 1])) {
+            if (j > 0 && !arc.contains(lng(a[j - 1]) * n + k)) {
                 int l = a[j - 1]; a[j - 1] = k; a[j] = l; pos[k] = j - 1; pos[l] = j;
                 break;}
             for (; j < k; ++j) { a[j] = a[j + 1]; pos[a[j]] = j; }

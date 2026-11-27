@@ -1,4 +1,7 @@
 #include "../../04-Graphs/06-mst.hpp"
+#include <sys/resource.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 static ulng seed = 20260927;
 static lng checks = 0;
@@ -225,6 +228,23 @@ void large(const string &mode) {
             {kruskalMaximum(g), heavier}, {primSparseMaximum(g), heavier}, {boruvkaMaximum(g), heavier}}) {
         require(result.components == 1 && result.weight == want, "large triangle-chain minimum/maximum totals", show(want), show(result.weight));}
     std::cout << "PASS sparse minimum/maximum algorithms, triangle chain and deep reconstruction forest n=" << n << '\n';}
+// n = 2^30, the largest size the reconstruction accepts, in a child limited to 1 GiB: it must pass the assertion and fail only to allocate.
+void sizeBound() {
+    context = "size bound";
+#ifdef __SANITIZE_ADDRESS__
+    std::cout << "NOTE size bound not run under ASan, whose shadow memory needs more address space than the 1 GiB limit\n"; return;
+#endif
+    struct LargestGraph { int n = 1 << 30; bool directed = false; vector<GraphEdge> edges; } g;
+    std::cout.flush(); std::cerr.flush();
+    pid_t pid = fork();
+    if (pid == 0) {
+        rlimit cap{rlim_t(1) << 30, rlim_t(1) << 30}; setrlimit(RLIMIT_AS, &cap);
+        try { KruskalReconstruction tree(g); } catch (const std::bad_alloc &) { _exit(0); }
+        _exit(2);}
+    int status = -1;
+    require(pid > 0 && waitpid(pid, &status, 0) == pid && WIFEXITED(status) && WEXITSTATUS(status) == 0,
+            "KruskalReconstruction accepts n = 2^30", "bad_alloc past the assertion", "wait status=" + std::to_string(status));
+    std::cout << "PASS size bound: KruskalReconstruction at n = 2^30 passes its assertion\n";}
 void invalid(const string &probe) {
     Graph directed(2, true); directed.addEdge(0, 1);
     if (probe == "directed-kruskal") { (void)kruskal(directed); }
@@ -261,6 +281,6 @@ int main(int argc, char **argv) {
             if (arg == "--mode") { mode = argv[++i]; }
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); }}
-        fixtures(); exhaustive(mode); randomCases(mode); large(mode);
+        fixtures(); exhaustive(mode); randomCases(mode); large(mode); sizeBound();
         std::cout << "PASS MST checks=" << checks << " seed=" << seed << '\n'; return 0;} catch (const std::exception &error) {
         std::cerr << "FAIL MST seed=" << seed << " mode=" << mode << ' ' << error.what() << '\n'; return 1;}}

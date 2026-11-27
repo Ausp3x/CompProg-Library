@@ -1,6 +1,8 @@
 #include "../../04-Graphs/01-graph.hpp"
 #include "../../02-Data Structures/07-ordered_set.hpp"
 #include <fcntl.h>
+#include <sys/resource.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 static ulng seed = 20260927;
@@ -554,6 +556,34 @@ void builderCases(const string &mode) {
         auto g = Graph::fromMatrix(w, directed); storage(g, n, directed, want);
         identical(g, Graph::fromAdjacency(adj, directed));}
     std::cout << "PASS builders: shuffled full-range adjacency lists and matrices cases=" << count << '\n';}
+// A graph of any vertex count without its storage: the size checks read only n, directed and edges.
+struct SizedGraph {
+    int n; bool directed = false; vector<GraphEdge> edges;
+    SizedGraph(int n, vector<GraphEdge> edges = {}) : n(n), edges(std::move(edges)) {}
+};
+// Runs f in a child limited to 1 GiB of address space: a result size at its bound must pass every assertion and fail only to allocate.
+template<class F>
+void acceptedBound(const string &name, F f) {
+    std::cout.flush(); std::cerr.flush();
+    pid_t pid = fork();
+    if (pid == 0) {
+        rlimit cap{rlim_t(1) << 30, rlim_t(1) << 30}; setrlimit(RLIMIT_AS, &cap);
+        try { f(); } catch (const std::bad_alloc &) { _exit(0); }
+        _exit(2);}
+    int status = -1;
+    require(pid > 0 && waitpid(pid, &status, 0) == pid && WIFEXITED(status) && WEXITSTATUS(status) == 0,
+            "accepted size bound " + name, "bad_alloc past every assertion", "wait status=" + std::to_string(status));}
+void sizeBounds() {
+    context = "size bounds";
+#ifdef __SANITIZE_ADDRESS__
+    std::cout << "NOTE size bounds not run under ASan, whose shadow memory needs more address space than the 1 GiB limit\n"; return;
+#endif
+    acceptedBound("disjointUnion n_g + n_h == INT_MAX", [] { (void)disjointUnion(SizedGraph{INT_MAX - 1}, SizedGraph{1}); });
+    acceptedBound("cartesianProduct n_g * n_h == INT_MAX", [] { (void)cartesianProduct(SizedGraph{1}, SizedGraph{INT_MAX}); });
+    acceptedBound("coronaProduct n_g * (n_h + 1) == INT_MAX", [] { (void)coronaProduct(SizedGraph{1}, SizedGraph{INT_MAX - 1}); });
+    acceptedBound("mycielskian 2n + 1 == INT_MAX", [] { (void)mycielskian(SizedGraph{INT_MAX / 2}); });
+    acceptedBound("subdivideEdges n + m == INT_MAX", [] { (void)subdivideEdges(SizedGraph{INT_MAX - 1, {{0, 0, 0}}}); });
+    std::cout << "PASS size bounds: results of exactly INT_MAX vertices pass the assertions\n";}
 // A death probe that also names its assertion: stderr goes to a pipe, and abort passes on only when it holds want.
 static int probe_err = -1, probe_pipe = -1;
 static const char *probe_want = "";
@@ -636,6 +666,10 @@ void invalid(const string &probe) {
     // 65535 * 32768 <= INT_MAX < 65535 * 32769: only the corona size assertion may stop it.
     if (probe == "corona-overflow-window") { expectAssertion("coronaProduct"); (void)coronaProduct(Graph(65535), Graph(32768)); }
     if (probe == "mycielskian-directed") { (void)mycielskian(d); }
+    // One past each size bound; a weakened check would end at Graph's n >= 0 assertion, which the named probe rejects.
+    if (probe == "union-overflow") { expectAssertion("disjointUnion"); (void)disjointUnion(SizedGraph{INT_MAX - 1}, SizedGraph{2}); }
+    if (probe == "mycielskian-overflow") { expectAssertion("mycielskian"); (void)mycielskian(SizedGraph{INT_MAX / 2 + 1}); }
+    if (probe == "subdivide-overflow") { expectAssertion("subdivideEdges"); (void)subdivideEdges(SizedGraph{INT_MAX, {{0, 0, 0}}}); }
     if (probe == "set-union-size") { (void)graphUnion(g, three); }
     if (probe == "set-union-direction") { (void)graphUnion(g, d); }
     if (probe == "set-intersection-size") { (void)graphIntersection(three, g); }
@@ -665,6 +699,6 @@ int main(int argc, char **argv) {
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); }}
         // Quick pairs each graph with one random second factor instead of two (10 s quick bound).
-        factor_rounds = mode == "quick" ? 1 : 2; adapters(); exhaustive(mode); randomCases(mode); builderCases(mode);
+        factor_rounds = mode == "quick" ? 1 : 2; adapters(); exhaustive(mode); randomCases(mode); builderCases(mode); sizeBounds();
         std::cout << "PASS graph checks=" << checks << " seed=" << seed << '\n'; return 0;} catch (const std::exception &error) {
         std::cerr << "FAIL graph seed=" << seed << " mode=" << mode << ' ' << error.what() << '\n'; return 1;}}

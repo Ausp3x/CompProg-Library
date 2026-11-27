@@ -250,8 +250,8 @@ Copied code (`03-cpp.md`, One API per Operation): `localBridges` tests triangle 
 
 The GR02 sweeps ([sources](00-sources.md#fetched-2026-11-14-p010-gr02)) added `shortestPaths` and `dagLongestPath` to row 05 (user decision 2026-11-14). `shortestPaths` dispatches to `bellmanFord`, `zeroOneBfs` or `dijkstra` only: Dial belongs to row 13, which includes row 05, and the recorded benchmark ([05-shortest_path.md](05-shortest_path.md#benchmarks)) found no density threshold for `dijkstraDense`. The other candidates stay out:
 
-- Prim on a cost oracle (maspypy `mst_prim(N, cost)`, hitonanode `mst_edges`): an implicit-graph engine, a follow-up for row 43 beside `implicitBoruvka`.
-- XOR minimum spanning tree (CF888G, named by OI Wiki): a one-problem `implicitBoruvka` instance, a follow-up for row 43 or 95.
+- Prim on a cost oracle (maspypy `mst_prim(N, cost)`, hitonanode `mst_edges`): an implicit-graph engine, a follow-up on P051 for row 43 beside `implicitBoruvka`.
+- XOR minimum spanning tree (CF888G, named by OI Wiki): a one-problem composition of row 43's `implicitBoruvka`, which stays in row 43 (`02-structure.md`, Tiers and Core Order); a follow-up on P051.
 - Camerini's O(m) minimum bottleneck spanning tree, Filter-Kruskal, presorted Kruskal and reverse-delete: only Wikipedia names them, no swept catalog; any MST is a bottleneck tree, and `KruskalReconstruction` answers bottleneck queries.
 - Held–Karp 1-tree (hitonanode `minimum_one_tree`): a TSP bound, a follow-up for row 73.
 - Segment-tree and `std::set` Dijkstra, two-vector 0-1 BFS: the bounds of the binary heap and the deque with no wider domain; SPFA, D'Esopo–Pape, Dial and radix-heap Dijkstra stay in row 13.

@@ -4,6 +4,10 @@ Owned by package P010 / GR02 (graph foundations, with `01-graph.hpp` through `04
 
 ## Contracts
 
+### Scope
+
+The row covers single- and multi-source shortest paths, negative cycles anywhere in the graph (`findNegativeCycle`), DAG shortest and longest paths (`dagLongestPath` over the whole DAG), nearest-center cells (`voronoiCells`), the weighted ego graph and the AOE critical path, over the integer weight domain below. All-pairs paths belong to `12-all_pairs_shortest_path.hpp`, advanced single-source variants (Dial, SPFA, path counting, widest paths) to `13-shortest_path_advanced.hpp`, k shortest walks and simple paths to `32-kshortestwalks.hpp` and `59-kshortestsimplepaths.hpp`, implicit graphs to `43-implicit_graph.hpp` and temporal paths to `55-temporal_graph.hpp`.
+
 ### Weight Domain
 
 Every weighted algorithm uses exact signed-integer weights from the full `lng` range and `lll` accumulated distances. Status fields distinguish absent, finite and unbounded answers without reserving a numeric weight. Fractional and custom-weight instantiations of the archived notebook templates are outside this integer API.
@@ -170,7 +174,7 @@ The GR02 sweep (2026-11-14) sources are in [00-sources.md](00-sources.md#fetched
 
 ## Limits and Handoffs
 
-Fractional and custom-weight domains are not claimed. All-pairs, advanced, implicit, temporal and ranked shortest paths belong to their own rows (`12-all_pairs_shortest_path.hpp`, `13-shortest_path_advanced.hpp` and others).
+None.
 
 ## Aliases
 
@@ -189,3 +193,4 @@ Search aliases (P263, grab --find): 0-1 BFS, 0-c BFS, single-source shortest pat
 - 2026-11-14: P010 GR02, `zeroOneBfs` widened to {0, c} weights; added `voronoiCells`, `egoGraphWeighted`, `criticalPath`, `dagLongestPath` and the `shortestPaths` dispatcher (user decision 2026-11-14); `dagShortestPaths(g, s, true)` became `dagLongestPathsFrom` (flag ruling); `dijkstra` shares a bounded engine with `egoGraphWeighted`; full suite passed on g++ and g++-14, stress passed, extraction passed; whole-file mutation campaign (sample of 500 of 791, 456 caught after a retest).
 - 2026-11-15: P010 GR02 review fixes: `criticalPath` takes `length` over out-degree 0 vertices (the virtual-sink rule, which differs from the maximum `earliest` once a duration is negative); `DagPathResult` and `DagLongestPathResult` fields initialised; the out-of-domain negative-arc `egoGraphWeighted` fixture removed; CSR sampling stated.
 - 2026-11-15: /finish GR02: `dijkstra` runs the engine's unbounded form, compiling out the radius bookkeeping (counter A/B); `findNegativeCycle` runs on every graph; two 0-1 BFS deque-order and two Voronoi stale-label adversaries, the `finite-past`, `relax-to-past` and `zero-one-smaller` probes and an equal-value `relax` check closed the order-changing and four other survivors; a new whole-file campaign; the benchmark gained an adversarial complete graph; user decisions recorded (tie parents and cycle start unspecified, the `relax` flag kept, the smallest-center Voronoi rule).
+- 2026-11-27: P010 limits recheck (experiment none): the ownership boundaries moved from Limits and Handoffs to Contracts (Scope), leaving no open limit; no code or test change.

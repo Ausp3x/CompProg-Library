@@ -163,10 +163,7 @@
         "04-Graphs/Docs/05-shortest_path.md",
         "04-Graphs/Docs/06-mst.md"
       ],
-      "note": "Follow-ups: cost-oracle Prim (row 43), XOR MST (row 43 or 95), Held-Karp 1-tree (row 73).",
-      "followups": [
-        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
-      ]
+      "note": "Handoffs filed: cost-oracle Prim and XOR MST (follow-up on P051, row 43), Held-Karp 1-tree (follow-up on P166, row 73). allTopologicalSorts uses 02-Data Structures/61-hashmap.hpp (row verified; its package P227 is in progress for row 64)."
     },
     {
       "id": "P011",
@@ -1828,7 +1825,10 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Handoffs from P048 (user decision 2026-10-29): row 42 owns trussDecomposition (per-edge trussness by peeling triangle counts, NetworkX k_truss; row 35 countTrianglesPerEdge gives the initial supports); 04-Graphs/35-subgraph_enumeration.hpp subgraph_enumeration_detail::Ranked has its own Batagelj-Zaversnik core order, to migrate to row 42 degeneracyOrdering when verified, keeping sorted rank lists without an extra pass. Omission sweep 2026-11-08: implement onionLayers, completeGraphDecomposition in `42-graph_decomposition.hpp`; implicitZeroOneBfs, implicitScc, implicitTopologicalSort, implicitBoruvka in `43-implicit_graph.hpp`; isKEdgeConnected, isKVertexConnected, minimumEdgeCut, minimumVertexCut, allMinimumVertexCuts in `45-graph_connectivity.hpp`."
+      "note": "Handoffs from P048 (user decision 2026-10-29): row 42 owns trussDecomposition (per-edge trussness by peeling triangle counts, NetworkX k_truss; row 35 countTrianglesPerEdge gives the initial supports); 04-Graphs/35-subgraph_enumeration.hpp subgraph_enumeration_detail::Ranked has its own Batagelj-Zaversnik core order, to migrate to row 42 degeneracyOrdering when verified, keeping sorted rank lists without an extra pass. Omission sweep 2026-11-08: implement onionLayers, completeGraphDecomposition in `42-graph_decomposition.hpp`; implicitZeroOneBfs, implicitScc, implicitTopologicalSort, implicitBoruvka in `43-implicit_graph.hpp`; isKEdgeConnected, isKVertexConnected, minimumEdgeCut, minimumVertexCut, allMinimumVertexCuts in `45-graph_connectivity.hpp`.",
+      "followups": [
+        "Row 43 43-implicit_graph.hpp: add Prim on a cost oracle (maspypy mst_prim(N, cost), hitonanode mst_edges) and the XOR minimum spanning tree (CF888G, an implicitBoruvka instance), handed off by P010 GR02 (04-Graphs/Docs/00-notes.md, P010 GR02 Omissions); filed by the P010 limits recheck 2026-11-27"
+      ]
     },
     {
       "id": "P087",
@@ -3173,7 +3173,10 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement minimumCycleBasis in `72-minimumcyclebasis.hpp`; countHamiltonianPaths, minimumHamiltonianPath, metricTspApproximation, knightsTour in `73-hamiltonian.hpp`."
+      "note": "Omission sweep 2026-11-08: implement minimumCycleBasis in `72-minimumcyclebasis.hpp`; countHamiltonianPaths, minimumHamiltonianPath, metricTspApproximation, knightsTour in `73-hamiltonian.hpp`.",
+      "followups": [
+        "Row 73 73-hamiltonian.hpp: add the Held-Karp 1-tree bound (hitonanode minimum_one_tree), handed off by P010 GR02 (04-Graphs/Docs/00-notes.md, P010 GR02 Omissions); filed by the P010 limits recheck 2026-11-27"
+      ]
     },
     {
       "id": "P167",

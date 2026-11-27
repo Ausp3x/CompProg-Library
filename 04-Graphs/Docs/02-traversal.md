@@ -4,6 +4,10 @@ Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` and `03-top
 
 ## Contracts
 
+### Scope
+
+The row covers unweighted traversal, components, bipartiteness and arc classification. SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong to `68-cycle_enumeration.hpp` ([00-notes.md](00-notes.md#p010-re-audit-omissions)).
+
 ### CycleWitness and TraversalResult
 
 A present cycle satisfies `vertices.size() == arcs.size() + 1` and `vertices.front() == vertices.back()`, and repeats no other vertex or logical edge; an empty arc list means no cycle. A loop is a one-arc cycle; two parallel undirected edges form a two-arc cycle. `TraversalResult(n)` asserts `n >= 0`. Unreached `parent`, `parent_arc`, `depth` and `root` entries are `-1`; a root has depth 0, no parent and itself as root. `order` is discovery order. DFS also fills `postorder` and its first cycle; BFS leaves both empty. The internal `traversal_detail::treeCycle` closes the tree paths between the ends of a non-tree arc; it is tested through `dfs`, `dfsForest` and `bipartiteCheck`.
@@ -117,11 +121,11 @@ Retrieved and inspected on 2026-09-27; no source code was copied. The 2026-11-14
 | [cp-algorithms, Bipartite check](https://cp-algorithms.com/graph/bipartite-check.html) (updated 2026-04-02) | BFS coloring and parity criterion. |
 | [cp-algorithms, Finding a cycle](https://cp-algorithms.com/graph/finding-cycle.html) | Gray-state cycle recovery; its simple-graph limitation is lifted here with reverse-arc identities. |
 
-Legacy: the old Team Notebook `old_cycle-find-dfs.cpp` was inspected; its recursive gray-state recovery is replaced by the iterative implementation. Its broken exploratory destructive cycle-deletion snippet stays archival and is not an API. General cycle enumeration has its own inventory owner.
+Legacy: the old Team Notebook `old_cycle-find-dfs.cpp` was inspected; its recursive gray-state recovery is replaced by the iterative implementation. Its broken exploratory destructive cycle-deletion snippet stays archival and is not an API.
 
 ## Limits and Handoffs
 
-SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong to `68-cycle_enumeration.hpp` (see [00-notes.md](00-notes.md#p010-re-audit-omissions)).
+None.
 
 ## Aliases
 
@@ -138,3 +142,4 @@ Search aliases (P263, grab --find): BFS (breadth-first search), DFS (depth-first
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run passed.
 - 2026-11-14: P010 GR01, added `classifyArcs`, `classifyBfsArcs` and `egoGraph`; full suite passed on g++ and g++-14, stress passed; independent review: 8 findings (allTopologicalSorts unbounded under NDEBUG for a negative limit, comment cap, missing complexity symbols and output terms, addCycle on an empty list under NDEBUG, duplicated in-degree and layer loops, evidence wording, an unqualified std name) fixed; whole-file mutation campaign (4 survivors closed with tests, 30 equivalent).
 - 2026-11-14: /finish GR01, independent audit: 12 findings (1 medium: two bfs/dfs range-check mutants, `COS 237` and `COS 262`, wrongly recorded equivalent; 11 low) fixed; `egoGraph` stops its BFS at the radius (O(n + d)) and asserts its center, `classifyBfsArcs` rejects a `dfs` result; five new probes (closing COS 237 and COS 262) and an exact `egoGraph` edge-sequence oracle; full suite passed on g++ and g++-14, stress passed; mutation campaign on the changed lines (4 survivors equivalent). Review of the fix diff: 8 low findings (evidence wording, probe text match, stderr restore, a notes line for the bounded BFS) fixed.
+- 2026-11-27: P010 limits recheck (experiment none): the ownership boundaries moved from Limits and Handoffs to Contracts (Scope), leaving no open limit; no code or test change.

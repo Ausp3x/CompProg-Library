@@ -14,7 +14,9 @@ full and stress) and the pair-matched union/intersection/difference/symmetric
 difference (against a random overlapping graph, both orders, and itself)
 against independent oracles: exact edge sequences built from the definitions,
 multiplicity-matrix product identities, Floyd hop distances, count maps, and
-hand-computed named fixtures (C4, K4, C5, P4 squared, triangle corona).
+hand-computed named fixtures (C4, K4, C5, P4 squared, triangle corona). Every
+mode checks that results of exactly INT_MAX vertices pass the size assertions
+(a bad_alloc under a 1 GiB address-space limit, not under ASan).
 The shared driver adds checked precondition probes and ASan/UBSan in full/stress.
 """
 import sys
@@ -36,5 +38,6 @@ if __name__ == '__main__':
         'union-direction', 'join-direction', 'cartesian-direction', 'tensor-direction', 'strong-direction',
         'lexicographic-direction', 'rooted-direction', 'rooted-negative', 'rooted-end', 'corona-direction', 'corona-direction-reverse',
         'modular-directed', 'modular-mixed', 'product-overflow', 'corona-overflow', 'corona-overflow-window', 'mycielskian-directed',
+        'union-overflow', 'mycielskian-overflow', 'subdivide-overflow',
         'set-union-size', 'set-union-direction', 'set-intersection-size', 'set-intersection-direction',
         'set-difference-size', 'set-difference-direction', 'set-symmetric-size', 'set-symmetric-direction']))

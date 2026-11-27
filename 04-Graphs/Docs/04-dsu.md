@@ -4,6 +4,10 @@ Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` through `03
 
 ## Contracts
 
+### Scope
+
+The row is the graph-facing DSU adapter only. Weighted, rollback and other DSU variants belong to Data Structures ([00-notes.md](00-notes.md#ownership-boundaries)).
+
 ### graphComponents
 
 Returns the canonical P006 `DSU` after uniting the ends of every edge: connected components, or weak components of a directed graph. Loops are allowed. The DSU is re-exported by inclusion, with no duplicate implementation.
@@ -28,7 +32,7 @@ Linux x86-64, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14, GNU++20. T
 | 2026-11-14 | Full, seed 20261114, `CXX=g++-14` | PASS, same counts (0.6 s, 1.9 s, 23.5 s), peak 951 MB |
 | 2026-11-14 | `05-extraction.py testers --filter 04-dsu_tester` | PASS |
 | 2026-11-14 | `01-run.py --mode quick --filter 04-Graphs`; `02-integration.py` | PASS |
-| 2026-10-12 | Stress, seed 7 | PASS, all three builds, 9,925,404 checks per build, peak 634 MB |
+| 2026-11-27 | Stress, seed 7 (experiment none) | PASS, all three builds, 9,925,404 checks per build, 3 probes (optimized 0.7 s, checked 2.3 s, ASan-UBSan 26.8 s), peak 608 MB |
 
 The 2026-11-14 full runs were repeated after /finish GR01 changed comment lines of `01-graph.hpp`; the times above are from that repeat.
 
@@ -44,11 +48,11 @@ python3 '96-Local Testing/03-consistency.py'
 
 ## Sources
 
-No external source beyond the canonical P006 DSU evidence, which assigns potential/parity and component edge-count variants to their Advanced owners; this graph adapter does not claim them.
+No external source beyond the canonical P006 DSU evidence.
 
 ## Limits and Handoffs
 
-Weighted, rollback and other DSU variants are owned by Data Structures (see [00-notes.md](00-notes.md#ownership-boundaries)).
+None.
 
 ## Aliases
 
@@ -63,3 +67,4 @@ Search aliases (P263, grab --find): 弱连通分量, 弱连通组件, 连通分�
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run passed.
 - 2026-11-14: P010 GR01 rerun after the `01-graph.hpp` additions, repeated after /finish GR01's comment-only change; header and tests unchanged; full suite passed on g++ and g++-14, extraction testers, quick runner and integration passed.
+- 2026-11-27: P010 limits recheck (experiment none): the ownership boundaries moved from Limits and Handoffs to Contracts (Scope), leaving no open limit; stress rerun after the 2026-11-14 changes to `01-graph.hpp` in the include closure passed; no code or test change.

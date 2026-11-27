@@ -4,6 +4,10 @@ Owned by package P010 / GR01 (graph foundations, with `02-traversal.hpp` through
 
 ## Contracts
 
+### Scope
+
+The row covers graph storage, construction and graph operations; `Graph::addEdge` may grow a graph between queries. Algorithms that maintain their answers under edge updates belong to their own rows: `26-dynamic_connectivity.hpp`, `63-fully_dynamic_connectivity.hpp`, `70-incrementalscc.hpp` and `71-dynamicmst.hpp` ([00-notes.md](00-notes.md#placement-decisions-recorded)).
+
 ### GraphEdge and GraphArc
 
 `GraphEdge {u, v, w}` is a logical edge in insertion order. `GraphArc {from, to, id, rev, w}` is an oriented arc: `id` is its logical edge, `rev` the reciprocal arc of an undirected edge and `-1` for a directed arc. An undirected edge, including a loop, has two distinct reciprocal arcs `a` and `a + 1`.
@@ -112,29 +116,30 @@ Correctness: each product is the direct construction of its definition over edge
 | `toUndirected`, `toDirected`, `subdivideEdges`, `mycielskian` | Every graph | Edge lists from the definitions; fixtures (Mycielskian of K2 is C5) |
 | `disjointUnion`, `graphJoin`, `cartesianProduct`, `tensorProduct`, `strongProduct`, `lexicographicProduct`, `rootedProduct` (every root), `coronaProduct`, `modularProduct` | Each graph with random second factors of 0–3 vertices on both sides; fixtures (K2 × K2 as C4, 2K2 and K4; P4 squared; corona as a triangle) | Exact expected edge sequence from the definition, and an adjacency-count identity from the factors' matrices |
 | `graphUnion`, `graphIntersection`, `graphDifference`, `graphSymmetricDifference` | Both argument orders and each graph with itself | Count-map matching per endpoint pair; max, min, excess and absolute-difference pair counts |
-| Preconditions | 82 assertion probes, among them `induced-negative`, `induced-end`, `induced-duplicate`, `contract-size`, `contract-count`, `contract-negative`, `contract-end`, `adjacency-negative`, `adjacency-end`, `adjacency-asymmetric`, `adjacency-multiplicity`, `adjacency-loop-once`, `adjacency-weight`, `adjacency-loop-weight`, `matrix-ragged`, `matrix-asymmetric` | Expected assertion failure |
+| Size bounds | `disjointUnion`, `cartesianProduct`, `coronaProduct`, `mycielskian` and `subdivideEdges` with a result of exactly `INT_MAX` vertices, on a graph type holding only `n`, `directed` and `edges`, in a child process limited to 1 GiB of address space (optimized and checked builds; not under ASan, whose shadow memory needs more) | The call passes every assertion and ends in `bad_alloc` |
+| Preconditions | 85 assertion probes, among them `induced-negative`, `induced-end`, `induced-duplicate`, `contract-size`, `contract-count`, `contract-negative`, `contract-end`, `adjacency-negative`, `adjacency-end`, `adjacency-asymmetric`, `adjacency-multiplicity`, `adjacency-loop-once`, `adjacency-weight`, `adjacency-loop-weight`, `matrix-ragged`, `matrix-asymmetric` | Expected assertion failure |
 
-Probe design: the `*-past-end` probes (for `operator[]` of both graphs, `inducedSubgraph` and `restrictedView`) and the root probes use operands past the end or edgeless graphs, so no later assertion can stand in for the checked one. `corona-overflow-window` (65535 × 32768) also requires the failing assertion to name `coronaProduct` on stderr, since a weakened check would end at Graph's `n >= 0` assertion instead. The `int` overflow checks of `disjointUnion`, `mycielskian` and `subdivideEdges` would need about 2^30 vertices and are not probed.
+Probe design: the `*-past-end` probes (for `operator[]` of both graphs, `inducedSubgraph` and `restrictedView`) and the root probes use operands past the end or edgeless graphs, so no later assertion can stand in for the checked one. `corona-overflow-window` (65535 × 32768) also requires the failing assertion to name `coronaProduct` on stderr, since a weakened check would end at Graph's `n >= 0` assertion instead; `union-overflow`, `mycielskian-overflow` and `subdivide-overflow` do the same one vertex past the bound of `disjointUnion`, `mycielskian` and `subdivideEdges`, on the storage-free graph type of the size-bound row.
 
 ## Commands and Results
 
-2026-11-14 (P010 GR01), Linux x86-64, Intel Core i9-11900H shared with other sessions, GCC 16.2.1 20260810 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20, `-Wall -Wextra -Wconversion -Werror`.
+2026-11-27 (P010 limits recheck, experiment none) for the tester runs, extraction of the tester and integration; 2026-11-14 (P010 GR01) for the rows so marked, the header being unchanged since. Linux x86-64, Intel Core i9-11900H shared with other sessions, GCC 16.2.1 20260810 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20, `-Wall -Wextra -Wconversion -Werror`.
 
 | Run | Result |
 |---|---|
-| Full, seed 20261114, g++ | PASS, all three builds, 117,431,920 checks per build, 82 probes; optimized 1.6 s, checked 5.0 s, ASan-UBSan 22.5 s; peak 1,569 MB |
-| Full, seed 20261114, `CXX=g++-14` | PASS, all three builds, same counts; optimized 1.6 s, checked 4.9 s, ASan-UBSan 21.0 s; peak 1,562 MB |
-| Stress, seed 7 | PASS, all three builds, 906,034,947 checks per build; optimized 11.3 s, checked 39.0 s, ASan-UBSan 195.3 s; peak 706 MB |
-| `01-run.py --mode quick --filter 04-Graphs --seed 42 --no-integration` | PASS, all 32 graph suites, before /finish; its rerun was stopped for low system memory, and the suites /finish changed passed quick as the preflight of their full runs |
-| `05-extraction.py ops --filter 04-Graphs/01-graph.hpp`; `testers --filter 01-graph_tester` | PASS on g++ and g++-14; PASS |
-| `02-integration.py` (190 standalone and aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 3,077 MB |
+| Full, seed 20261127, g++ | PASS, all three builds, 113,094,467 checks (optimized, checked) and 113,094,462 (ASan-UBSan, which skips the five size bounds), 85 probes; optimized 1.9 s, checked 6.1 s, ASan-UBSan 25.9 s; pre-flight quick peak 1,090 MB; peak 1,575 MB |
+| Full, seed 20261127, `CXX=g++-14` | PASS, same counts; optimized 3.1 s, checked 5.5 s, ASan-UBSan 23.9 s; peak 1,560 MB |
+| Stress, seed 7 | PASS, all three builds, 906,034,952 checks (906,034,947 under ASan-UBSan), 85 probes; optimized 10.4 s, checked 35.9 s, ASan-UBSan 188.8 s; peak 687 MB |
+| Hand-applied size-bound mutants (scratch copy, checked build) | 7 of 7 caught: `COS 1635`, `AOS 939`, and `<` or `-` in the `disjointUnion`, `mycielskian` and `productBase` bounds |
+| `05-extraction.py ops --filter 04-Graphs/01-graph.hpp` (2026-11-14) | PASS on g++ and g++-14 |
+| `05-extraction.py testers --filter 01-graph_tester` | PASS |
+| `02-integration.py` (192 standalone and aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 3,438 MB |
 | `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261114
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261114
+python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261127
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261127
 python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration
 python3 '96-Local Testing/05-extraction.py' ops --filter '04-Graphs/01-graph.hpp'
 python3 '96-Local Testing/05-extraction.py' testers --filter 01-graph_tester
 python3 '96-Local Testing/02-integration.py'
@@ -147,7 +152,7 @@ python3 '96-Local Testing/03-consistency.py'
 
 Record: mewt 4.0.0 on blob `a2d829d3fa367f3b3b176a7cd381684ef722f56e` (2026-11-14, seed 1, 2 lines changed since blob `6e0e4e552eb6`): 0 mutants, 0 caught (0 by timeout), 0 survived, 0 untested. /finish GR01 changed only the comment lines above `GraphEdge` and `GraphArc`.
 
-The survivors below come from the whole-file campaign of 2026-11-14 (seed 1, uniform sample of 500 of 1723 mutants; after the rerun with the extended tester, 458 caught, 9 by timeout, and 42 survived, of which /finish GR01 closed `AOS 853` and `COS 1634` with the `corona-overflow-window` probe). The newer record covers only comment lines, so their arguments stand. All 40 are equivalent; line numbers are the current header's.
+The survivors below come from the whole-file campaign of 2026-11-14 (seed 1, uniform sample of 500 of 1723 mutants; after the rerun with the extended tester, 458 caught, 9 by timeout, and 42 survived, of which /finish GR01 closed `AOS 853` and `COS 1634` with the `corona-overflow-window` probe, and the 2026-11-27 size-bound checks closed `COS 1635` and `AOS 939`, each applied by hand to a scratch copy and caught by the checked build). The newer record covers only comment lines, so their arguments stand. All 38 are equivalent; line numbers are the current header's.
 
 | Mutant | Line | Why it is equivalent |
 |---|---|---|
@@ -167,9 +172,7 @@ The survivors below come from the whole-file campaign of 2026-11-14 (seed 1, uni
 | `COS 1364`, `seen[v] != u` → `<` | 201 | Stamps are `-1` or earlier scanning vertices, all below `u`. |
 | `AOS 824`, `s + 1` → `s * 1` | 314 | The loop then starts at `s`, which `v != s` excludes. |
 | `COS 1595`, `es[j].u == es[i].u` → `<=` | 386 | The buffer is stably sorted by `u`, so `es[j].u >= es[i].u` for `j >= i`. |
-| `COS 1635`, `<= INT_MAX` → `< INT_MAX` | 445 | Unreachable: `INT_MAX` is prime, so equality needs a factor with about 2^31 vertices (48 GiB). |
 | `AS 594`, `productBase(h, g)` | 460 | `modularProduct` takes undirected factors and `productBase` asserts equal direction, so the swapped call builds the same `h.n * g.n` vertices. |
-| `AOS 939`, `n + m` → `n - m` in the subdivision size assertion | 485 | Unreachable: the two differ only when `n + m > INT_MAX`, which needs about 2^31 vertices (24 bytes of adjacency each) or edges (16 bytes plus two 24-byte arcs each), at least 32 GiB, far past the 4 GiB test cap and any judge. |
 
 Earlier hand-planted mutation checks (2026-10-07 and 2026-10-12) are superseded by this campaign.
 
@@ -202,7 +205,7 @@ The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetche
 
 ## Limits and Handoffs
 
-Dynamic graphs are owned by their separate inventory rows.
+None.
 
 ## Aliases
 
@@ -219,3 +222,4 @@ Search aliases (P263, grab --find): 图的存储, 邻接表, 邻接矩阵, 前�
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run passed.
 - 2026-11-14: P010 GR01, added `Graph::addPath`, `addCycle`, `addStar`, `Subgraph::vertex`, `edgeSubgraph`, `restrictedView`, `subdivideEdges`, `complementGraph`, `disjointUnion`, `graphJoin`, the four edge-set operations, seven products, `mycielskian`, `graphPower`, `toUndirected`, `toDirected`, `inDegrees`, `edgeId`; full suite passed on g++ and g++-14, stress passed; independent review: 8 findings (allTopologicalSorts unbounded under NDEBUG for a negative limit, comment cap, missing complexity symbols and output terms, addCycle on an empty list under NDEBUG, duplicated in-degree and layer loops, evidence wording, an unqualified std name) fixed; whole-file mutation campaign, 12 survivors closed by new probes and the rest recorded equivalent (lineGraph edge order specified, user decision 2026-11-14).
 - 2026-11-14: /finish GR01, independent audit: 12 findings (1 medium: two bfs/dfs range-check mutants wrongly recorded equivalent; 11 low) fixed; GraphArc got its own complexity line; past-end probes for both `operator[]`, `inducedSubgraph` and `restrictedView`, a `corona-overflow-window` probe that requires the corona assertion (closing AOS 853 and COS 1634), and an exact `inducedSubgraph` edge-sequence oracle; full suite passed on g++ and g++-14, stress passed; mutation record on the changed lines (comments only, 0 mutants). Review of the fix diff: 8 low findings (evidence wording, probe text match, stderr restore, a notes line for the bounded BFS) fixed.
+- 2026-11-27: P010 limits recheck (experiment none): the ownership boundaries moved from Limits and Handoffs to Contracts (Scope); the review found the size-bound survivors reachable, so five accepted-bound checks at exactly `INT_MAX` vertices and the `union-overflow`, `mycielskian-overflow` and `subdivide-overflow` probes closed `COS 1635` and `AOS 939`; header unchanged; full suite passed on g++ and g++-14, stress passed, extraction of the tester and integration passed.
