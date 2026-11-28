@@ -203,7 +203,7 @@ Modes (optimized build):
 
 The checked build (about 50× slower) and the ASan/UBSan build (about 10×) run reduced sizes. Checked uses exhaustive n ≤ 5, K_n ≤ 40, large shapes at a tenth, and only the K200 + 5000 dispatch core and dense graphs to n = 300. ASan uses exhaustive n ≤ 5, K_n ≤ 66, large shapes at an eighth and dense graphs to n = 1000 including the boundary. Both run stress at full-mode rounds, and the stress-only large sizes run in the optimized build alone.
 
-Inclusion through `99-all.hpp` and two translation units are covered by `02-integration.py`.
+Inclusion through `999-all.hpp` and two translation units are covered by `02-integration.py`.
 
 Moved from quick to full and stress by the 10 s quick bound (P274), in the optimized build: K_n at n = 40, 63..66 and 127..130, the bipartite shape 40 × 60, and the domain edge at unscaled weights (`w^3` past 2^63); quick checks the same edge at weights scaled by 1000, as the checked build always has.
 

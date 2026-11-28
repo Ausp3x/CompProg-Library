@@ -116,7 +116,7 @@ def main():
             unit = Path(header.relative_to(ROOT).with_suffix('.cpp').as_posix().replace('/', '__').replace(' ', '_'))
             unit.write_text(f'#include "{header}"\nint main() {{}}\n')
             tasks.append((LIGHT, [([*compiler, *flags, '-fsyntax-only', str(unit)],)]))
-        includes = ''.join(f'#include "{p}"\n' for p in headers if p.name == '99-all.hpp')
+        includes = ''.join(f'#include "{p}"\n' for p in headers if p.name == '999-all.hpp')
         a,b = Path('a.cpp'),Path('b.cpp')
         a.write_text(includes+'int other(); int main() { return other(); }\n')
         b.write_text(includes+'int other() { return 0; }\n')

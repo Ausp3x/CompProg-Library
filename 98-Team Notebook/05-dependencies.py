@@ -140,7 +140,7 @@ def describe(root: Path, graph: dict[str, list[str]], header: str) -> str:
 
 def chart(graph: dict[str, list[str]], folder: str) -> str:
     """Mermaid flowchart of a folder's headers (arrow: includes), without the template edge and aggregates."""
-    own = [h for h in graph if h.startswith(folder + "/") and not re.search(r"/9[89]-", h)]
+    own = [h for h in graph if h.startswith(folder + "/") and not re.search(r"/99[89]-", h)]
     edges = [(h, d) for h in own for d in graph[h] if d != TEMPLATE]
     nodes = list(dict.fromkeys(x for e in edges for x in e))
     ids = {h: f"n{i}" for i, h in enumerate(nodes)}

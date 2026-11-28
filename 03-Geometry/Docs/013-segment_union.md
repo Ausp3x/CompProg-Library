@@ -147,7 +147,7 @@ Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, GNU++20.
 | 2026-10-19 | same with `CXX=g++-14` | PASS, same counts, 4 probes, `MEMORY peak=2083MB` |
 | 2026-10-19 | `013-segment_union_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 17,600,194 checks, `MEMORY peak=489MB` |
 | 2026-10-19 | `-Wall -Wextra -Wconversion` builds of the tester and benchmark with `g++` and `g++-14`, with and without `-DNDEBUG`; the header alone with `int` rectangles and `double` segments | No warnings; correct results |
-| 2026-10-19 | `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
+| 2026-10-19 | `02-integration.py` (every header alone, aggregates, two translation units including `999-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
 | 2026-10-19 | `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
 | 2026-10-19 | `03-consistency.py`; `--braces` on the header, tester and benchmark | No errors; no violations, comment share 32 of 419 lines |
 

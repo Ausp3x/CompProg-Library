@@ -120,7 +120,7 @@ Package runs 2026-10-19 (the tester rows predate the 2026-11-10 P276 rename run,
 | same with `CXX=g++-14` | PASS, same counts, 6 probes, `MEMORY peak=601MB` |
 | `019-lattice_geometry_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 550,936 checks and 6,000 Python `Fraction` rows, `MEMORY peak=455MB` |
 | `-Wall -Wextra -Wconversion` build of the tester with `g++` and `g++-14` | No warnings |
-| `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
+| `02-integration.py` (every header alone, aggregates, two translation units including `999-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
 | `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
 | `03-consistency.py`; `--braces` on the header, tester and benchmark | No errors; no violations |
 | Mathematics `020-continued_fraction_tester.py --mode full --seed 1` (includes `018-floorsum.hpp`), `g++` and `g++-14` | PASS, 3,805,206 checks and 3000 Python rows per configuration, 17 probes, `MEMORY peak=818MB` and `817MB` |

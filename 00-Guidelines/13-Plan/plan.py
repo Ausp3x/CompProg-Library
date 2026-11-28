@@ -759,7 +759,7 @@ def ready_text(root, limit):
     busy = [p['id'] for p, _, b, _, _, _ in rows if b]
     out += [f'Live here (worktree or uncommitted files), folders reserved: {", ".join(busy)}.'] if busy else []
     out += ['', 'Shared files every session touches (expect small merges): 01-prompts.md, 00-Guidelines/13-Plan/packages.json, '
-            '96-Local Testing/00-index.md, 96-Local Testing/01-run.py. Same-folder packages also share 00-index.md and the 98/99 aggregates; run those sequentially.']
+            '96-Local Testing/00-index.md, 96-Local Testing/01-run.py. Same-folder packages also share 00-index.md and the 998/999 aggregates; run those sequentially.']
     return '\n'.join(out)
 
 

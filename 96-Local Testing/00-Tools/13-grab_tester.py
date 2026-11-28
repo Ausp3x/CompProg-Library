@@ -1210,7 +1210,7 @@ class Extras(Base):
         if not HAVE_CLANG:
             self.skipTest('SKIP libclang: python3 cannot import clang.cindex')
         self.root = write_tree(self.tmp / 'extras', {T: FILES[T] + 'using ulng = uint64_t;\n', D: FILES[D], self.W: WRAP,
-                                                     '02-Data Structures/98-basic.hpp': '#pragma once\n#include "05-wrap.hpp"\n',
+                                                     '02-Data Structures/998-basic.hpp': '#pragma once\n#include "05-wrap.hpp"\n',
                                                      self.MODE: MODE_HPP, self.Y: Y_HPP, self.FOLD: FOLD_HPP, H.MONOIDS: MONOIDS_HPP,
                                                      self.NET: NET_HPP, self.NET_USE: NET_USE_HPP,
                                                      self.REACH: REACH_HPP, self.REACH_USE: REACH_USE_HPP, self.LOOKUP: LOOKUP_HPP,
@@ -1256,7 +1256,7 @@ class Extras(Base):
     def test_bundle_aggregate(self):
         src = self.root / '97-Online Testing/src/j/agg.cpp'
         write_tree(self.root, {src.relative_to(self.root).as_posix():
-                               '#include "../../../02-Data Structures/98-basic.hpp"\nint main() { printf("%d\\n", Base().get2()); }\n'})
+                               '#include "../../../02-Data Structures/998-basic.hpp"\nint main() { printf("%d\\n", Base().get2()); }\n'})
         out = G.bundle(src, self.root, self.ix)
         self.true('#include "' not in out and 'struct Base {' in out and 'twiceK' not in out, out=out)
         for cxx in self.compilers():
@@ -1696,7 +1696,7 @@ class Harness(Base):
             T: '#pragma once\n', D: '#ifdef __AVX2__\n#endif\n', '01-Core/03-fast.hpp': '#ifdef __AVX2__\n#endif\n',
             '01-Core/04-fastmini.hpp': '#ifdef __AVX2__\n#endif\n', '01-Core/05-uses.hpp': '#include "01-template.hpp"\n#include "04-fastmini.hpp"\n',
             '01-Core/06-wide.hpp': '#include "03-fast.hpp"\n', '01-Core/07-scalar.hpp': '#include "01-template.hpp"\nint f();\n',
-            '01-Core/08-sse.hpp': '#if defined(__SSE4_2__)\n#endif\n', '01-Core/98-basic.hpp': '#include "03-fast.hpp"\n',
+            '01-Core/08-sse.hpp': '#if defined(__SSE4_2__)\n#endif\n', '01-Core/998-basic.hpp': '#include "03-fast.hpp"\n',
             '01-Core/notes.hpp': '#ifdef __AVX2__\n#endif\n', '01-Core/10-grid.hpp': '#include "01-template.hpp"\n',
             '01-Core/11-gridmini.hpp': '#include "01-template.hpp"\n', '01-Core/12-box.hpp': '#include "01-template.hpp"\n',
             '01-Core/00-index.md': '| `12-box.hpp` | yes | Box: x | verified |\n| `13-boxmini.hpp` | yes | BoxMini: x | planned |\n'})
@@ -1851,11 +1851,11 @@ class HarnessIndex(FixtureBase):
                 what='prose in docstrings and comments is not a declaration; literals with ; { } or #include are C++')
 
     def test_harness_aggregate(self):
-        (self.fx / '05-Mathematics/99-all.hpp').write_text('#pragma once\n#include "98-basic.hpp"\n#include "02-unrelated.hpp"\n')
-        (self.fx / '05-Mathematics/98-basic.hpp').write_text('#pragma once\n#include "01-beta.hpp"\n')
-        self.addCleanup(lambda: [(self.fx / f'05-Mathematics/{n}').unlink() for n in ('99-all.hpp', '98-basic.hpp')])
+        (self.fx / '05-Mathematics/999-all.hpp').write_text('#pragma once\n#include "998-basic.hpp"\n#include "02-unrelated.hpp"\n')
+        (self.fx / '05-Mathematics/998-basic.hpp').write_text('#pragma once\n#include "01-beta.hpp"\n')
+        self.addCleanup(lambda: [(self.fx / f'05-Mathematics/{n}').unlink() for n in ('999-all.hpp', '998-basic.hpp')])
         with patch.object(H, 'ROOT', self.fx):
-            self.eq(G.aggregate(self.fx, self.ix.graph, '05-Mathematics/99-all.hpp'), [B, U], what='nested aggregates resolve to headers')
+            self.eq(G.aggregate(self.fx, self.ix.graph, '05-Mathematics/999-all.hpp'), [B, U], what='nested aggregates resolve to headers')
 
     def test_harness_scratch(self):
         base = self.tmp / 'work'
@@ -1865,15 +1865,15 @@ class HarnessIndex(FixtureBase):
                  '02-Data Structures/01-alpha_helper.cpp': 'int helper() { return useAlias(2); }\n', '_00_shared.py': 'X = 1\n',
                  '02-Data Structures/__pycache__/junk.pyc': '', '.run-stats.json': '{"quick 02-Data Structures/01-alpha_tester.py": [90, 1.0]}'}
         write_tree(tests, files)
-        (self.fx / '01-Core/98-basic.hpp').write_text('#pragma once\n#include "01-template.hpp"\n')
-        self.addCleanup(lambda: (shutil.rmtree(tests), (self.fx / '01-Core/98-basic.hpp').unlink()))
+        (self.fx / '01-Core/998-basic.hpp').write_text('#pragma once\n#include "01-template.hpp"\n')
+        self.addCleanup(lambda: (shutil.rmtree(tests), (self.fx / '01-Core/998-basic.hpp').unlink()))
         tester = tests / '02-Data Structures/01-alpha_tester.py'
         with patch.object(H, 'ROOT', self.fx):
             path, names = H.scratch(self.ix, tester, [tests / '02-Data Structures/01-alpha_helper.cpp'], base)
         tree = path.parents[2]
         self.eq((path.relative_to(tree).as_posix(), names, tree.parent), ('96-Local Testing/02-Data Structures/01-alpha_tester.py',
                                                                           ['helperA', 'useAlias'], base), what='lonely is outside the named closure')
-        self.eq([(tree / h).read_bytes() for h in (T, D, '01-Core/98-basic.hpp')], [(self.fx / h).read_bytes() for h in (T, D, '01-Core/98-basic.hpp')])
+        self.eq([(tree / h).read_bytes() for h in (T, D, '01-Core/998-basic.hpp')], [(self.fx / h).read_bytes() for h in (T, D, '01-Core/998-basic.hpp')])
         for h in (A, B, U):  # each stub: its quoted includes, then its own kept lines in their original order
             orig = (self.fx / h).read_text().split('\n')
             incs = [l for l in orig if l.lstrip().startswith('#include "')]

@@ -109,7 +109,7 @@ Modes:
 - full: m ≤ 2 exhaustive; 4,000, 1,000 and 600 rounds; n = 30,000; costed n = 1,500 and 300.
 - stress: 20,000, 5,000 and 3,000 rounds; n = 100,000; costed n = 3,000 and 600.
 
-The checked build runs the large sections at a tenth of the size. Inclusion through `99-all.hpp` and two translation units are covered by `02-integration.py`.
+The checked build runs the large sections at a tenth of the size. Inclusion through `999-all.hpp` and two translation units are covered by `02-integration.py`.
 
 ## Commands and Results
 

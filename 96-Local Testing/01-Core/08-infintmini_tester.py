@@ -7,7 +7,7 @@ division by construction, adversarial long-division windows, aliasing, trim and 
 and streams the generated cases through the --protocol process, comparing every line with
 Python's integers and a model of the signed-infinity rules (a fixed sentinel grid in every
 mode). The checked build also runs the --invalid precondition probes; the header alone, a
-standalone copy (the pasted template, no includes) and the 98-basic/99-all aggregates are
+standalone copy (the pasted template, no includes) and the 998-basic/999-all aggregates are
 compiled, and a program with both InfInt and InfIntMini compares them on the shared domain
 (supporting evidence only). quick: operands up to 600 digits. full: adds ASan/UBSan (64 MB
 quarantine), operands up to 133000 digits and NTT products up to 2^15 limbs. stress:
@@ -355,7 +355,7 @@ def main() -> int:
             copy = standalone_source(directory)
             builder.build("standalone copy compile", [*flags, "-O2"], [copy], str(directory / "copy"), 180)
             execute([str(directory / "copy")], "standalone copy run", 60, env)
-            for aggregate in ("98-basic.hpp", "99-all.hpp"):
+            for aggregate in ("998-basic.hpp", "999-all.hpp"):
                 source = directory / f"{aggregate}.cpp"
                 source.write_text(f'#include "{ROOT / "01-Core" / aggregate}"\nint main() {{ return iintmini(7).toString() == "7" ? 0 : 1; }}\n')
                 builder.syntax(f"{aggregate} compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], source, 180)

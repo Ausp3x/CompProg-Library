@@ -826,7 +826,7 @@ class Site:
                f"{sum(map(lines, order))} lines.", "", "| Lines | File |", "|---|---|"]
         out += [f"| {lines(h)} | {name(h)} |" for h in order]
         out += ["", f"Extract only the declarations a name reaches with {name('09-Contest Testing/10-grab.py')}."]
-        users = [h for h, ds in self.graph.items() if target in ds and not re.search(r"/9[89]-", h)]
+        users = [h for h, ds in self.graph.items() if target in ds and not re.search(r"/99[89]-", h)]
         out += ["", "Included by: " + (", ".join(name(h) for h in users) if users else "no header") + "."]
         return "\n".join(out)
 

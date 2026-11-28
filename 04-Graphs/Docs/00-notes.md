@@ -44,7 +44,6 @@
 - Shortest-path counting, shortest-path DAG, widest/minimax paths and Goldberg negative-weight scaling were placed in `013-shortest_path_advanced.hpp` rather than reopening the verified `005-shortest_path.hpp`.
 - `lineGraph`, `inducedSubgraph`, `contract` and `simplify` belong to `001-graph.hpp` because they are representation utilities; maximum-weight spanning forests are separate `006-mst.hpp` engines because negating full-range `lng` weights overflows.
 - Incremental SCC, dynamic connectivity and bridge maintenance, block-cut and bridge-tree queries, tree/HLD aggregates and postman augmentation belong to rows 70, 26, 27, 15 and 69; Euler-trail counting is Mathematics 23's. Functional successor updates are outside row 11's static contract.
-- The folder's prefixes are used up (user decision 2026-11-22): rows take 01–97 and the aggregates 98 and 99. The next package that needs a new row first groups a topic into a numbered subfolder (`02-structure.md`, Names). Prefix 97 also names `97-Legacy/`; that clash ends when the folder is deleted after rows 12 and 14 are verified.
 
 ## P010 Common Contract
 

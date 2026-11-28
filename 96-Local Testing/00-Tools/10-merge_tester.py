@@ -88,7 +88,7 @@ without XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS, cgroup memory.max and pids
 gates (all PASS with tested/master, a re-gate that carries the suites and integration over when only regular evidence documents changed since they passed over the same master, and runs everything otherwise, gate order, caps and CXX per gate, CXX not leaked, failing gate, plan doctor passing on lines master's doctor reports and failing on a new line or a crash, failed pre-flight
 skips full runs, one CXX failing, gates and testers writing into the tree still pass and leave it unchanged, a deleted
 tester of the package fails, dirty or unbased worktree refused; mutation records: the headers the pull request adds or
-modifies (<01-07 folder>/<NN>-*.hpp, not 98-/99- aggregates, nested, deleted or master-only ones), sorted, split by the
+modifies (<01-07 folder>/<NN>-*.hpp, not 998-/999- aggregates, nested, deleted or master-only ones), sorted, split by the
 oracle o_mutation_gates, per header: loose (`check --existing`) when every subject of the branch commits changing it is a
 /prune or /restyle one (any package id, the subject line only; prune-only, restyle-only, both, multi-line message, a
 maintainer fix of another file) or another package of master's plan lists the header's evidence document and the pull
@@ -361,11 +361,11 @@ def o_lead(n):
 
 
 def o_mutated(p):
-    """A header that carries a mutation record: <01-07 folder>/<NN>-<name>.hpp (two or three digits), not a 98- or 99- aggregate."""
+    """A header that carries a mutation record: <01-07 folder>/<NN>-<name>.hpp (two or three digits), not a 998- or 999- aggregate."""
     parts = p.split('/')
     k = o_lead(parts[-1])
     return (len(parts) == 2 and o_numbered(parts[0]) and parts[0][1] in '1234567' and k in (2, 3) and parts[1][k:k + 1] == '-'
-            and parts[1][:3] not in ('98-', '99-') and parts[1].endswith('.hpp') and len(parts[1]) > k + 5)
+            and parts[1][:4] not in ('998-', '999-') and parts[1].endswith('.hpp') and len(parts[1]) > k + 5)
 
 
 def o_mechanical(subject):
@@ -2666,18 +2666,18 @@ class Gates(Base):
         self.no_mutation(r, info)
 
     MASTER_HEADERS = {'02-Data Structures/05-x.hpp': '#pragma once\n', '04-Graphs/03-gone.hpp': '#pragma once\n',
-                      '02-Data Structures/98-basic.hpp': '#pragma once\n', '05-Mathematics/02-kept.hpp': '#pragma once\n',
+                      '02-Data Structures/998-basic.hpp': '#pragma once\n', '05-Mathematics/02-kept.hpp': '#pragma once\n',
                       **{f'{d}/00-index.md': '# Inventory\n' for d in ('03-Geometry', '04-Graphs', '05-Mathematics', '06-Miscellaneous')}}
 
     def header_pr(self):
         """Master gains four headers (and inventories for plan.py); the pull request, rebased on it, modifies one and an aggregate, adds three (one nested,
-        one 99- aggregate) and deletes one. Returns the headers 04-mutation.py check must get, by the oracle o_mutated."""
+        one 999- aggregate) and deletes one. Returns the headers 04-mutation.py check must get, by the oracle o_mutated."""
         for rel, text in self.MASTER_HEADERS.items():
             write(self.main, rel, text)
         commit(self.main, 'master headers')
         git(self.wt, 'rebase', '-q', 'master')
         edits = {'02-Data Structures/05-x.hpp': '#pragma once\n// pr\n', '03-Geometry/07-y.hpp': '#pragma once\n',
-                 '02-Data Structures/98-basic.hpp': '#pragma once\n#include "05-x.hpp"\n', '03-Geometry/99-all.hpp': '#pragma once\n',
+                 '02-Data Structures/998-basic.hpp': '#pragma once\n#include "05-x.hpp"\n', '03-Geometry/999-all.hpp': '#pragma once\n',
                  '03-Geometry/Docs/07-y.hpp': '#pragma once\n'}
         for rel, text in edits.items():
             write(self.wt, rel, text)
@@ -2946,7 +2946,7 @@ class Gates(Base):
         for p in ('01-Core/x.hpp', '01-Core/1-x.hpp', '09-x/01-a.hpp', '01-Core/Docs/01-x.hpp', '07-Strings/_4_s.py', '07-Strings/04-s.py',
                   '01-Core/01-x.hpp.bak'):
             self.assertFalse(o_header(p) or MP.HEADER.fullmatch(p), p)
-        for p in ('01-Core/01-x.hpp', '07-Strings/12-a-b.hpp', '02-Data Structures/97-x.hpp', '01-Core/98-x.hpp', '03-Geometry/99-all.hpp',
+        for p in ('01-Core/01-x.hpp', '07-Strings/12-a-b.hpp', '02-Data Structures/97-x.hpp', '01-Core/998-x.hpp', '01-Core/098-x.hpp', '03-Geometry/999-all.hpp',
                   '08-Python/01-x.hpp', '09-x/01-a.hpp', '01-Core/Docs/01-x.hpp', '01-Core/1-x.hpp', '01-Core/01-.hpp', '07-Strings/_04_s.py'):
             self.assertEqual(o_mutated(p), bool(MP.MUTATED.fullmatch(p)), p)
         mutation = load(ROOT / '96-Local Testing/04-mutation.py', 'merge_tester_mutation')

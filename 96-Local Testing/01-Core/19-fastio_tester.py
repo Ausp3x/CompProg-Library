@@ -366,11 +366,11 @@ def static_checks(builder: Builder, compiler: list[str], flags: list[str], env, 
     alone = Path(directory) / "alone.cpp"
     alone.write_text(f'#include "{HEADER}"\nint main() {{ FastInput<> in; FastOutput<> out; int x = 0; in.read(x); return out.print(x) && out.flush() ? 0 : 1; }}\n')
     builder.syntax("header-alone compile", flags, alone, 180)
-    for name in ("98-basic.hpp", "99-all.hpp"):
+    for name in ("998-basic.hpp", "999-all.hpp"):
         aggregate = Path(directory) / f"aggregate-{name}.cpp"
         aggregate.write_text(f'#include "{ROOT / "01-Core" / name}"\n#include "{HEADER}"\nint main() {{ FastOutput<> out; return out.print(1) ? 0 : 1; }}\n')
         builder.syntax(f"{name} aggregate compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], aggregate, 180)
-    report("PASS", "header-alone, 98-basic and 99-all aggregate compilation")
+    report("PASS", "header-alone, 998-basic and 999-all aggregate compilation")
     for name, body, word in REJECTIONS:
         probe = Path(directory) / "reject.cpp"
         probe.write_text(f'#include "{HEADER}"\nint main() {{ {body} return 0; }}\n')

@@ -102,7 +102,7 @@ def resource_dir() -> list[str]:
 
 def library(root: Path = ROOT) -> dict[str, list[str]]:
     """Library header -> its quoted includes (repository-relative), aggregates excluded."""
-    return {h: incs for h, incs in DEPS.headers(root).items() if not re.search(r'/9[89]-', h)}
+    return {h: incs for h, incs in DEPS.headers(root).items() if not re.search(r'/99[89]-', h)}
 
 
 def closure(graph: dict[str, list[str]], header: str) -> list[str]:
@@ -1144,7 +1144,7 @@ def bundle(source: Path, root: Path = ROOT, ix: Index | None = None) -> str:
             h = h.relative_to(root).as_posix() if h.is_relative_to(root) else ''
             if h in ix.graph:
                 found.append((i, [h]))
-            elif re.search(r'^0[1-7]-[^/]+/9[89]-[^/]*\.hpp$', h) and (root / h).is_file():
+            elif re.search(r'^0[1-7]-[^/]+/99[89]-[^/]*\.hpp$', h) and (root / h).is_file():
                 found.append((i, aggregate(root, ix.graph, h)))
             else:
                 raise GrabError(f'{rel}:{i + 1}: {m[1]} is not a library header (use --bundler oj-bundle)')
@@ -1171,13 +1171,13 @@ def bundle(source: Path, root: Path = ROOT, ix: Index | None = None) -> str:
 
 
 def aggregate(root: Path, graph: dict[str, list[str]], rel: str) -> list[str]:
-    """Library headers an aggregate (`98-basic.hpp`, `99-all.hpp`) includes, through nested aggregates."""
+    """Library headers an aggregate (`998-basic.hpp`, `999-all.hpp`) includes, through nested aggregates."""
     out = []
     for inc, _ in DEPS.includes((root / rel).read_text(encoding='utf-8')):
         h = os.path.normpath(os.path.join(os.path.dirname(rel), inc))
         if h in graph:
             out.append(h)
-        elif re.search(r'(^|/)9[89]-[^/]*\.hpp$', h) and (root / h).is_file():
+        elif re.search(r'(^|/)99[89]-[^/]*\.hpp$', h) and (root / h).is_file():
             out += aggregate(root, graph, h)
     return list(dict.fromkeys(out))
 

@@ -106,7 +106,7 @@ Stage seconds: quick 170, full on the optimized build 15, full on the other buil
 
 ## Limits and Handoffs
 
-Lazy and dual segment trees are row 12, dynamic ones row 13 and persistent ones row 18. The presets and adapters (`Sum`, `Min`, `Monoid` and the rest) live in row 00, `00-monoids.hpp`, which `98-basic.hpp` includes and this header does not. `reset`/`build` stay out, with the reason in [00-notes.md](00-notes.md#p006-re-audit-omissions).
+Lazy and dual segment trees are row 12, dynamic ones row 13 and persistent ones row 18. The presets and adapters (`Sum`, `Min`, `Monoid` and the rest) live in row 00, `00-monoids.hpp`, which `998-basic.hpp` includes and this header does not. `reset`/`build` stay out, with the reason in [00-notes.md](00-notes.md#p006-re-audit-omissions).
 
 ## Aliases
 

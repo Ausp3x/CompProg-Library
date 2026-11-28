@@ -84,7 +84,7 @@ Every command passed; times are compile + run.
   | `021-integer_roots_tester.py --mode full --seed 1` | PASS, 3 configurations, 113,762,108 C++ checks, 3,000 Python oracle rows, 6 assertion probes, `MEMORY peak=816MB` |
   | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=817MB` |
   | `021-integer_roots_tester.py --mode stress --seed 2` | PASS, 240,355,320 C++ checks, 20,000 Python rows, `MEMORY peak=893MB` |
-  | `02-integration.py` (header alone, `99-all`, two translation units) | PASS, `MEMORY peak=1704MB cap=8192MB` |
+  | `02-integration.py` (header alone, `999-all`, two translation units) | PASS, `MEMORY peak=1704MB cap=8192MB` |
   | `03-consistency.py --braces` on the header and tester | PASS |
 
 A mutation check on scratch copies in P059 caught three faults: rounding `<` changed to `<=`, the dropped negative correction in `icbrt`, and a rounding loop capped at 100 steps. Turning `while` into `if` in `isqrt128` and moving the `k >= 64` cutoff to 65 keep identical results, as the bounds in Contracts predict.

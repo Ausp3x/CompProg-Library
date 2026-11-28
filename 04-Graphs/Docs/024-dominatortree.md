@@ -57,7 +57,7 @@ Machine: Intel Core i9-11900H, GNU++20, CPython 3.14, GCC 16.2.1 and GCC 14.4.1 
 | 2026-10-09 | `024-dominatortree_tester.py --mode full --seed 1` | PASS 3 configurations, 267,714 cases, 24,270,210 checks, 7 probes; MEMORY peak 725 MB |
 | 2026-10-09 | `CXX=g++-14 024-dominatortree_tester.py --mode full --seed 2` | PASS 3 configurations, 267,714 cases, 24,257,760 checks, 7 probes; MEMORY peak 756 MB |
 | 2026-10-09 | `024-dominatortree_tester.py --mode stress --seed 3` | PASS 3 configurations, 293,714 cases, 33,805,505 checks, 7 probes; MEMORY peak 1,049 MB |
-| 2026-10-09 | `02-integration.py --sanitizers` | PASS 113 standalone and aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,755 MB |
+| 2026-10-09 | `02-integration.py --sanitizers` | PASS 113 standalone and aggregate headers (header alone, `999-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,755 MB |
 | 2026-10-09 | `03-consistency.py` | No P043 errors |
 
 ```bash

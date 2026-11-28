@@ -6995,7 +6995,7 @@
         "01-Core/16-poly.hpp"
       ],
       "size": "L",
-      "focus": "Short aliases to minis (`03-cpp.md`, Headers, 2026-11-05): `mint`, `iint` and `FPS` move to `06-modintmini.hpp`, `08-infintmini.hpp` and `17-polymini.hpp`, replacing `mintmini` and `iintmini`; every use of a full alias becomes the struct name (`ModInt<998244353>`, `InfInt`, `Poly<T>`) in headers, testers, benchmarks, judge sources and documents, so no behavior changes. `05-modint.hpp` leaves Core Basic like the other full types with a mini (`98-basic.hpp`, the Basic column, the aggregate check in `03-consistency.py`).",
+      "focus": "Short aliases to minis (`03-cpp.md`, Headers, 2026-11-05): `mint`, `iint` and `FPS` move to `06-modintmini.hpp`, `08-infintmini.hpp` and `17-polymini.hpp`, replacing `mintmini` and `iintmini`; every use of a full alias becomes the struct name (`ModInt<998244353>`, `InfInt`, `Poly<T>`) in headers, testers, benchmarks, judge sources and documents, so no behavior changes. `05-modint.hpp` leaves Core Basic like the other full types with a mini (`998-basic.hpp`, the Basic column, the aggregate check in `03-consistency.py`).",
       "prerequisites": [
         "C17"
       ],
@@ -8774,7 +8774,7 @@
       "id": "GR84",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/100-dynamic_matching.hpp"
+        "04-Graphs/098-dynamic_matching.hpp"
       ],
       "support_targets": [],
       "size": "S",
@@ -8791,7 +8791,7 @@
       "id": "GR85",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/101-dynamic_shortest_paths.hpp"
+        "04-Graphs/099-dynamic_shortest_paths.hpp"
       ],
       "support_targets": [],
       "size": "M",
@@ -8808,7 +8808,7 @@
       "id": "GR86",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/102-graph_drawing.hpp"
+        "04-Graphs/100-graph_drawing.hpp"
       ],
       "support_targets": [],
       "size": "XL",
@@ -8825,7 +8825,7 @@
       "id": "GR87",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/103-graph_partitioning.hpp"
+        "04-Graphs/101-graph_partitioning.hpp"
       ],
       "support_targets": [],
       "size": "L",
@@ -8842,7 +8842,7 @@
       "id": "GR88",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/104-maximum_cut.hpp"
+        "04-Graphs/102-maximum_cut.hpp"
       ],
       "support_targets": [],
       "size": "M",
@@ -8859,7 +8859,7 @@
       "id": "GR89",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/105-metric_embeddings.hpp"
+        "04-Graphs/103-metric_embeddings.hpp"
       ],
       "support_targets": [],
       "size": "M",
@@ -8876,7 +8876,7 @@
       "id": "GR90",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/106-phylogenetics.hpp"
+        "04-Graphs/104-phylogenetics.hpp"
       ],
       "support_targets": [],
       "size": "XL",
@@ -8893,7 +8893,7 @@
       "id": "GR91",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/107-planar_algorithms.hpp"
+        "04-Graphs/105-planar_algorithms.hpp"
       ],
       "support_targets": [],
       "size": "M",
@@ -8910,7 +8910,7 @@
       "id": "GR92",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/108-shortest_path_preprocessing.hpp"
+        "04-Graphs/106-shortest_path_preprocessing.hpp"
       ],
       "support_targets": [],
       "size": "M",
@@ -8927,7 +8927,7 @@
       "id": "GR93",
       "folder": "04-Graphs",
       "targets": [
-        "04-Graphs/109-spanning_tree_problems.hpp"
+        "04-Graphs/107-spanning_tree_problems.hpp"
       ],
       "support_targets": [],
       "size": "M",

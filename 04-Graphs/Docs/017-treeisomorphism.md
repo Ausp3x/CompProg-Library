@@ -140,7 +140,7 @@ Machine: Intel Core i9-11900H, GNU++20, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`)
 | 2026-10-16 | `017-treeisomorphism_tester.py --mode full --seed 1` | PASS 3 configurations, 20,249 cases, 4,664,734 checks (optimized; 3,366,430 in the capped checked build), 9 probes; 5 large non-isomorphic pairs; MEMORY peak 889 MB |
 | 2026-10-16 | `CXX=g++-14 017-treeisomorphism_tester.py --mode full --seed 2` | PASS 3 configurations, 20,249 cases, 4,805,639 checks, 9 probes; MEMORY peak 884 MB |
 | 2026-10-16 | `017-treeisomorphism_tester.py --mode stress --seed 3` | PASS 3 configurations, 290,393 cases, 39,646,926 checks (optimized: every labelled tree n ≤ 8, 10,000 families, 1,000,000-vertex shapes; ASan/UBSan 4,810,977 and checked 3,512,673 at their caps), 9 probes; MEMORY peak 896 MB |
-| 2026-10-16 | `02-integration.py --sanitizers` | PASS 144 standalone and aggregate headers (each header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,763 MB |
+| 2026-10-16 | `02-integration.py --sanitizers` | PASS 144 standalone and aggregate headers (each header alone, `999-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,763 MB |
 | 2026-10-16 | `03-consistency.py` | No errors |
 
 ```bash

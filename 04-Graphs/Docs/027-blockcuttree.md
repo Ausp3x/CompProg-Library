@@ -103,7 +103,7 @@ Machine: Intel Core i9-11900H, GNU++20, CPython 3.14.8, GCC 16.2.1 and GCC 14.4.
 | 2026-10-18 | `027-blockcuttree_tester.py --mode full --seed 1` | PASS 3 configurations, 4,100 cases, 3,760,807 checks per configuration, 7 probes; MEMORY peak 793 MB |
 | 2026-10-18 | `CXX=g++-14 027-blockcuttree_tester.py --mode full --seed 2` | PASS 3 configurations, 4,100 cases, 3,743,480 checks per configuration, 7 probes; MEMORY peak 810 MB |
 | 2026-10-18 | `027-blockcuttree_tester.py --mode stress --seed 3` | PASS 3 configurations, 16,100 cases, 12,653,109 checks per configuration, 7 probes; MEMORY peak 953 MB |
-| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
+| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `999-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
 | 2026-10-18 | `03-consistency.py` | No errors |
 
 ```bash

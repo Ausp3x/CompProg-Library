@@ -5,7 +5,7 @@ quick: every fixture test (strip_cpp, includes, scan, closure, describe, chart, 
 closure; the closure concatenated in typing order, quoted includes removed, compiles with `-fsyntax-only`) on a fixed
 sample of 15 headers, every other repository oracle (scanner graph, typing order, line counts, describe text) on all
 headers, the plan.py checks on a copy of the working tree, and 20 seeded random DAGs.
-full: quick with both compiler oracles on every 01-07 header (thread pool; the compile oracle skips the 98/99
+full: quick with both compiler oracles on every 01-07 header (thread pool; the compile oracle skips the 998/999
 aggregates and admits its compiles within the memory cap in force, COMPILE_MB each) and 100 random DAGs.
 stress: full with --rounds random DAGs (default 1000), each also written to disk and checked through headers(),
 closure() and describe().
@@ -54,10 +54,10 @@ CXX = os.environ.get("CXX", "g++")
 COMPILE_MB = 1300  # one -fsyntax-only TU: the 05-Mathematics closure peaked at 1189 MB on g++-14 with C03's 05-modint.hpp (2026-11-27)
 MODE, SEED, ROUNDS = "full", 42, 1000
 SAMPLE = ["05-Mathematics/012-combinatorics_advanced.hpp", "03-Geometry/014-minimumenclosingcircle.hpp",
-          "05-Mathematics/007-primality_factorization.hpp", "01-Core/16-poly.hpp", "05-Mathematics/99-all.hpp",
-          "01-Core/01-template.hpp", "01-Core/05-modint.hpp", "01-Core/09-rational.hpp", "01-Core/99-all.hpp",
-          "02-Data Structures/001-dsu.hpp", "02-Data Structures/99-all.hpp", "04-Graphs/99-all.hpp",
-          "06-Miscellaneous/002-customhash.hpp", "07-Strings/99-all.hpp", "03-Geometry/98-basic.hpp"]
+          "05-Mathematics/007-primality_factorization.hpp", "01-Core/16-poly.hpp", "05-Mathematics/999-all.hpp",
+          "01-Core/01-template.hpp", "01-Core/05-modint.hpp", "01-Core/09-rational.hpp", "01-Core/999-all.hpp",
+          "02-Data Structures/001-dsu.hpp", "02-Data Structures/999-all.hpp", "04-Graphs/999-all.hpp",
+          "06-Miscellaneous/002-customhash.hpp", "07-Strings/999-all.hpp", "03-Geometry/998-basic.hpp"]
 QUICK_SKIP = {"test_repo_mm_closure_all", "test_repo_compile_closure_all"}
 
 
@@ -376,8 +376,8 @@ class Fixtures(Base):
             "03-Geometry/05-leaf.hpp": inc("../01-Core/01-template.hpp"),
             "03-Geometry/06-uses.hpp": inc("05-leaf.hpp"),
             "03-Geometry/sub/07-nested.hpp": inc("../001-point.hpp"),
-            "03-Geometry/98-basic.hpp": inc("001-point.hpp", "02-line.hpp"),
-            "03-Geometry/99-all.hpp": inc("98-basic.hpp", "03-alone.hpp"),
+            "03-Geometry/998-basic.hpp": inc("001-point.hpp", "02-line.hpp"),
+            "03-Geometry/999-all.hpp": inc("998-basic.hpp", "03-alone.hpp"),
         })
         return DEPS.headers(self.root)
 
@@ -410,11 +410,11 @@ class Fixtures(Base):
         g = self.chart_fixture()
         own = [h for h in g if h.startswith("03-Geometry/")]
         labels, groups, edges, tail = self.parse_chart(DEPS.chart(g, "03-Geometry"))
-        want = {(h, d) for h in own if not re.match(r"03-Geometry/9[89]-", h) for d in g[h] if d != DEPS.TEMPLATE}
+        want = {(h, d) for h in own if not re.match(r"03-Geometry/99[89]-", h) for d in g[h] if d != DEPS.TEMPLATE}
         self.assertEqual(edges, want)
         self.assertEqual(set(labels.values()), {x for e in want for x in e})
         self.assertNotIn(DEPS.TEMPLATE, labels.values())
-        self.assertFalse(any("/98-" in x or "/99-" in x for x in labels.values()))
+        self.assertFalse(any("/998-" in x or "/999-" in x for x in labels.values()))
         self.assertEqual(set(groups), {"03-Geometry", "01-Core", "06-Miscellaneous"})
         self.assertEqual(list(groups)[0], "03-Geometry")
         alone = {"03-Geometry/03-alone.hpp", "03-Geometry/04-alone.hpp"}
@@ -531,7 +531,7 @@ class Repository(Base):
     def check_compile(self, hs):
         if not shutil.which((shlex.split(CXX) or [""])[0]):
             self.skipTest(f"SKIP compiler {CXX} not found")
-        hs = [h for h in hs if not re.search(r"/9[89]-", h)]
+        hs = [h for h in hs if not re.search(r"/99[89]-", h)]
         builder = Builder(shlex.split(CXX), self.root)  # admits compiles within the cap in force: one at a time under the pre-flight's
 
         def run(h):
@@ -855,12 +855,12 @@ class PlanRules(Base):
         owned = {t for b in batches["batches"] for t in b["targets"]}
         host = next(t for t in sorted(owned) if t.startswith("05-Mathematics/") and (self.copy / t).exists())
         folder = self.copy / "05-Mathematics"
-        self.assertNotIn("05-Mathematics/99-all.hpp", owned)
+        self.assertNotIn("05-Mathematics/999-all.hpp", owned)
         original = (self.copy / host).read_bytes()
         self.addCleanup((self.copy / host).write_bytes, original)
         self.addCleanup((folder / "90-unowned.hpp").unlink, missing_ok=True)
         (folder / "90-unowned.hpp").write_text('#pragma once\n#include "' + host.split("/")[1] + '"\n')
-        (self.copy / host).write_bytes(original + b'#include "90-unowned.hpp"\n#include "99-all.hpp"\n')
+        (self.copy / host).write_bytes(original + b'#include "90-unowned.hpp"\n#include "999-all.hpp"\n')
         got = self.plan.include_edges(self.copy, batches)
         self.assertEqual(set(got), edges)
         self.assertEqual(self.plan.check(self.copy), [])

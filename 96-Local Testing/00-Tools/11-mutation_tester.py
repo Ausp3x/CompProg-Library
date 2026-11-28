@@ -710,7 +710,7 @@ class Pure(Base):
         cwd = os.getcwd()
         self.addCleanup(os.chdir, cwd)
         os.chdir(self.tmp)  # an argument missing under ROOT is resolved against the cwd
-        for bad in ('README.md', '02-Data Structures/09-missing.hpp', '02-Data Structures/98-basic.hpp', 'x/' + h1):
+        for bad in ('README.md', '02-Data Structures/09-missing.hpp', '02-Data Structures/998-basic.hpp', 'x/' + h1):
             code, out, err = self.main('check', h1, bad, root=self.tmp)
             self.eq((code, out, err.strip()), (1, '', f'FAIL check: not library headers: {bad}'), arg=bad)
 
@@ -785,14 +785,14 @@ class Repo(Base):
         A, B, C, D = '02-Data Structures/01-a.hpp', '02-Data Structures/02-b.hpp', '04-Graphs/03-c.hpp', '05-Mathematics/04-d.hpp'
         Mh, N, U, I = '02-Data Structures/06-m.hpp', '07-Strings/01-new.hpp', '06-Miscellaneous/02-u.hpp', '04-Graphs/09-ignored.hpp'
         root = init_repo(self.tmp / 'repo')
-        put(root, {A: 'a', B: 'b', C: 'c', D: 'd', Mh: 'm', '02-Data Structures/98-basic.hpp': 'agg', '.gitignore': I + '\n',
+        put(root, {A: 'a', B: 'b', C: 'c', D: 'd', Mh: 'm', '02-Data Structures/998-basic.hpp': 'agg', '.gitignore': I + '\n',
                    '02-Data Structures/Docs/01-a.md': '# a\n'})
         commit(root)
         git(root, 'checkout', '-q', '-b', 'feat')
         put(root, {A: 'a2'})
         commit(root)
         (root / D).unlink()
-        put(root, {N: 'n', '02-Data Structures/99-all.hpp': 'all', '08-Python/01-py.hpp': 'p', '02-Data Structures/sub/01-deep.hpp': 'x',
+        put(root, {N: 'n', '02-Data Structures/999-all.hpp': 'all', '08-Python/01-py.hpp': 'p', '02-Data Structures/sub/01-deep.hpp': 'x',
                    'README.md': 'r', '02-Data Structures/01-a.cpp': 'c'})
         commit(root)
         git(root, 'checkout', '-q', 'master')
@@ -1220,7 +1220,7 @@ class Run(Base):
 
     def repo(self, tester=True):
         root = init_repo(self.tmp / 'repo')
-        put(root, {self.H: TOY, '02-Data Structures/Docs/01-toy.md': '# toy\n', 'README.md': 'r', '02-Data Structures/98-basic.hpp': 'a',
+        put(root, {self.H: TOY, '02-Data Structures/Docs/01-toy.md': '# toy\n', 'README.md': 'r', '02-Data Structures/998-basic.hpp': 'a',
                    **({self.T: 'print(1)\n'} if tester else {})})
         commit(root)
         return root
@@ -1231,7 +1231,7 @@ class Run(Base):
 
     def test_run_not_a_header(self):
         root = self.repo()
-        for arg in (root / 'README.md', root / '02-Data Structures/98-basic.hpp', root / '02-Data Structures/07-missing.hpp', self.tmp / 'x.hpp'):
+        for arg in (root / 'README.md', root / '02-Data Structures/998-basic.hpp', root / '02-Data Structures/07-missing.hpp', self.tmp / 'x.hpp'):
             code, out, err = self.run_main(root, str(arg))
             self.true(code == 1 and err.startswith(f'FAIL run: {arg}: not a library header'), arg=arg, err=err)
 

@@ -100,7 +100,7 @@ Package runs 2026-10-19: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 
 | same with `CXX=g++-14` | PASS, same counts, 6 probes, `MEMORY peak=613MB` |
 | `014-minimumenclosingcircle_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 10,452,444 checks and 8,000 Python rows, `MEMORY peak=445MB` |
 | `-Wall -Wextra -Wconversion` build of the tester and benchmark with `g++` and `g++-14` | No warnings |
-| `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
+| `02-integration.py` (every header alone, aggregates, two translation units including `999-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
 | `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
 | `03-consistency.py`; `--braces` on the header, tester and benchmark | No errors; no violations |
 | `01-run.py --mode full`, library-wide, 2026-11-10 (P274, seed 42, build cache emptied before each cold run) | PASS; GCC 16.2.1: optimized 0.2 s compile + 6.3 s run, checked 27.6 s + 9.1 s, ASan/UBSan 38.4 s + 17.8 s, peak 1160 MB (pre-flight quick 929 MB); GCC 14.4.1: optimized 0.2 s + 6.3 s, checked 30.9 s + 9.8 s, ASan/UBSan 43.3 s + 16.3 s, peak 1153 MB (pre-flight quick 981 MB) |

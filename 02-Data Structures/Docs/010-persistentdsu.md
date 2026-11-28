@@ -73,7 +73,7 @@ Package runs:
 | 2026-10-17 (P034) | `python3 '96-Local Testing/02-Data Structures/010-persistentdsu_tester.py' --mode full --seed 20261017` (GCC 16.2.1) | PASS, 628,346 checks per configuration, 10 assertion probes, MEMORY peak 466 MB |
 | 2026-10-17 (P034) | `CXX=g++-14 python3 '96-Local Testing/02-Data Structures/010-persistentdsu_tester.py' --mode full --seed 20261017` (GCC 14.4.1) | PASS, 628,346 checks per configuration, 10 assertion probes, MEMORY peak 466 MB |
 | 2026-10-17 (P034) | `python3 '96-Local Testing/02-Data Structures/010-persistentdsu_tester.py' --mode stress --seed 7` (one round) | PASS, all three configurations, 4,205,789 checks per configuration, MEMORY peak 927 MB |
-| 2026-10-17 (P034) | `python3 '96-Local Testing/02-integration.py' --sanitizers` | PASS: 153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 1820 MB |
+| 2026-10-17 (P034) | `python3 '96-Local Testing/02-integration.py' --sanitizers` | PASS: 153 standalone and aggregate headers, `999-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 1820 MB |
 | 2026-10-17 (P034) | `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
 ## Sources

@@ -461,7 +461,7 @@ for folder in counts:
         if not p.is_file() or '97-Legacy' in p.parts or p.suffix not in ('.hpp', '.py'):
             continue
         target = str(p.relative_to(ROOT))
-        if p.name.startswith(('98-', '99-', '_98_', '_99_')) or p.name == '__init__.py':
+        if p.name.startswith(('998-', '999-', '_998_', '_999_')) or p.name == '__init__.py':
             continue
         require(target in inventories or target in support_targets, 'Uninventoried active source: ' + target)
         if p.suffix == '.hpp':
@@ -495,10 +495,10 @@ for folder in [*counts, '96-Local Testing', '97-Online Testing/src', '99-Workspa
             require(any((d / inc).is_file() for d in search), 'Unresolved include: ' + str(p.relative_to(ROOT)) + ': ' + inc)
 
 core_headers = {p.name for p in (ROOT / '01-Core').glob('*.hpp') if p.name[:2].isdigit() and int(p.name[:2]) < 98}
-all_text = (ROOT / '01-Core/99-all.hpp').read_text()
+all_text = (ROOT / '01-Core/999-all.hpp').read_text()
 all_includes = re.findall(r'^#include "([^"\n]+)"', all_text, re.M)
 require(set(all_includes) == core_headers and len(all_includes) == len(set(all_includes)), 'Core All aggregate coverage/duplicates')
-for name in ('98-basic.hpp', '99-all.hpp'):
+for name in ('998-basic.hpp', '999-all.hpp'):
     incs = re.findall(r'^#include "([^"\n]+)"', (ROOT / '01-Core' / name).read_text(), re.M)
     require({'05-modint.hpp', '06-modintmini.hpp'} <= set(incs), 'Missing modular family in Core aggregate: ' + name)
 

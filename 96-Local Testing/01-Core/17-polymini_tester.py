@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PolyMini oracle suite: quick smoke, full feature coverage, extended seeded stress.
 
-Every mode compiles the header alone, inside 98-basic and 99-all, and as an
+Every mode compiles the header alone, inside 998-basic and 999-all, and as an
 extracted copy of PolyMini plus ModIntMini with only <bits/stdc++.h>, the
 namespace and the three width aliases; then builds and runs the optimized
 (-DNDEBUG) and checked scalar configurations, plus AVX2/FMA/BMI2 when the CPU
@@ -159,7 +159,7 @@ def main() -> int:
             alone.write_text(f'#include "{HEADER}"\n#include "{ROOT / "01-Core/06-modintmini.hpp"}"\n'
                              'int main() { PolyMini<ModIntMini<998244353>> a = {1, 2}; return (a * a).size() == 3 ? 0 : 1; }\n')
             builder.syntax("header-alone compile", flags, alone, 180)
-            for aggregate in ("98-basic.hpp", "99-all.hpp"):
+            for aggregate in ("998-basic.hpp", "999-all.hpp"):
                 path = temp / f"{aggregate}.cpp"
                 path.write_text(f'#include "{ROOT / "01-Core" / aggregate}"\n#include "{HEADER}"\n'
                                 'int main() { PolyMini<mint> a = {1, 2}; return int((a * a).size()) - 3; }\n')
@@ -171,7 +171,7 @@ def main() -> int:
                             + extract_struct(text, "ModIntMini") + "\n" + extract_struct(text, "PolyMini") + COPY_PROGRAM)
             builder.build("extracted-copy compile", [*flags, "-O2"], [copy], str(temp / "copy"), 180)
             execute([str(temp / "copy")], "extracted-copy execute", 60, env)
-            report("PASS", "header-alone, 98-basic, 99-all and extracted-copy builds")
+            report("PASS", "header-alone, 998-basic, 999-all and extracted-copy builds")
             progress(f"compile {len(variants)} configurations")
             compiled = builder.build_all([(name, f"compile {name} mode={args.mode} seed={args.seed}", [*flags, *options], [SOURCE, SECOND], str(temp / name), 1200,
                                            1800 if name.startswith("sanitized") else 1450) for name, options in variants])

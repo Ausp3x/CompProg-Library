@@ -144,7 +144,7 @@ Package runs 2026-10-19: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and 14.4
 | 2026-10-19: same with `CXX=g++-14` | PASS, 1,504,912 checks per configuration, 12 probes, `MEMORY peak=1229MB` |
 | 2026-10-19: `015-convex_polygon_query_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 9,133,475 checks, `MEMORY peak=452MB` |
 | 2026-10-19: `-Wall -Wextra -Wconversion` build of the tester and benchmark with `g++` and `g++-14`, and the header with `-DNDEBUG` | No warnings |
-| 2026-10-19: `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
+| 2026-10-19: `02-integration.py` (every header alone, aggregates, two translation units including `999-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
 | 2026-10-19: `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
 | 2026-10-19: `03-consistency.py` | No errors |
 | 2026-11-10 P274: `01-run.py --mode full` (GCC 16.2.1) | PASS (counts not recorded); pre-flight quick peak 950 MB; optimized 0.1 s compile + 3.2 s run, checked 31.5 s + 12.2 s, ASan/UBSan 40.2 s + 45.9 s; MEMORY peak 1241 MB |

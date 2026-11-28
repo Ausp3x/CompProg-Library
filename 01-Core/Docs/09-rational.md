@@ -85,7 +85,7 @@ Under `NDEBUG` every violated precondition stays bounded and free of undefined b
 | `toMod` for `mint`, `ModInt61`, `ModIntMini<1000000007>` and `DynModInt64` modulo 10^12 (composite), nonunits excluded | identities; `md` |
 | Streams (`p/q`, decimal with exponent, failbit on `0.5/2`, end of input), `std::hash` with `unordered_set` | identities |
 | Preconditions under the checked build (19 `--invalid` cases: zero denominator, unrepresentable constructor, `raw` denominator, `inv` of 0 and of the minimum, `pow(0, -1)`, `pow` overflow, division by zero, `+` and `*` overflow, unary minus and `abs` of the minimum, `fromDouble` of NaN and of an unrepresentable value, bases 37 and 1, `toDecimal(-1)`, a narrowing conversion, an InfInt sentinel) | `--invalid` |
-| Header alone without InfInt (`Frac`, `Rational<lll>`), two translation units, `99-all`; compile-fail checks (floating constructor, floating second argument, floating operand, floating comparison, `Rational<int>`); `Poly<Frac>` product, `divMod`, `eval` and `deriv` against hand results | the driver's compile steps; `otherUnit` |
+| Header alone without InfInt (`Frac`, `Rational<lll>`), two translation units, `999-all`; compile-fail checks (floating constructor, floating second argument, floating operand, floating comparison, `Rational<int>`); `Poly<Frac>` product, `divMod`, `eval` and `deriv` against hand results | the driver's compile steps; `otherUnit` |
 
 Quick runs 150 values per type (about 6,300 protocol cases), full 1500 per type (about 61,000) plus the sanitizer build, stress 5000 per type per `--rounds` seed. The quick corpus executes every line of the header (gcov, 2026-10-17). Hand-seeded faults (2026-10-17, quick mode): each of 13 faults (tie rule of `round`, the sticky bit, the `g2` cancellation, the sign of `<=>` for negatives, trailing-zero stripping, the decimal carry digit, the minimum's range check, the 128-bit shift, the last bit of the 256-bit division, the high word of the 256-bit product, the carry of the 256-bit sum, the guard bit of `s`, the native remainder) failed the suite.
 
@@ -102,7 +102,7 @@ Library-wide runs of 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, b
 
 2026-11-22 (`/finish C03`, rerun on the committed `05-modint.hpp`, [05-modint.md](05-modint.md#commands-and-results)): `python3 '96-Local Testing/01-Core/09-rational_tester.py' --mode quick --seed 1` passed, 2 configurations, 26 s.
 
-Final header, 2026-10-17 (GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Intel Core i9-11900H; other worktrees' suites ran at the same time; pre-flight quick peaks 524–555 MB under the 2048 MB cap). Every run also ran the driver's compile steps (header alone without InfInt, `99-all`, five compile-fail checks, the `Poly<Frac>` consumer).
+Final header, 2026-10-17 (GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Intel Core i9-11900H; other worktrees' suites ran at the same time; pre-flight quick peaks 524–555 MB under the 2048 MB cap). Every run also ran the driver's compile steps (header alone without InfInt, `999-all`, five compile-fail checks, the `Poly<Frac>` consumer).
 
 ```bash
 python3 '96-Local Testing/03-consistency.py' --braces 01-Core/09-rational.hpp '96-Local Testing/01-Core/09-rational_tester.cpp' '96-Local Testing/01-Core/09-rational_tester_tu.cpp' '96-Local Testing/01-Core/09-rational_benchmark.cpp'   # no violations

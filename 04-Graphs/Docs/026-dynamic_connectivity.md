@@ -88,7 +88,7 @@ Machine: Intel Core i9-11900H, GNU++20, CPython 3.14.8, GCC 16.2.1 and GCC 14.4.
 | 2026-10-18 | `026-dynamic_connectivity_tester.py --mode full --seed 1` | PASS 3 configurations, 11,000 cases, 2,716,597 checks per configuration, 8 probes; MEMORY peak 979 MB |
 | 2026-10-18 | `CXX=g++-14 026-dynamic_connectivity_tester.py --mode full --seed 2` | PASS 3 configurations, 11,000 cases, 2,614,197 checks per configuration, 8 probes; MEMORY peak 970 MB |
 | 2026-10-18 | `026-dynamic_connectivity_tester.py --mode stress --seed 3` | PASS 3 configurations, 70,000 cases, 16,251,916 checks per configuration, 8 probes; MEMORY peak 1,569 MB |
-| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
+| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `999-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
 | 2026-10-18 | `03-consistency.py` | No errors |
 
 ```bash

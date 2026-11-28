@@ -11,7 +11,7 @@ itself checked against float(Fraction)), fromDouble, read in bases 2-36 with the
 component rule, toString, toDecimal, toMod for four modular types, converting
 constructors, normalization and raw. Cases include constructed additions whose cross sum
 overflows 128 (or 256) bits before cancelling. The checked build runs the --invalid
-probes; the header alone (without InfInt) and the 99-all aggregate are compiled.
+probes; the header alone (without InfInt) and the 999-all aggregate are compiled.
 quick: 150 values per type. full: 1500 and ASan/UBSan. stress: 5000 per --rounds seed.
 Every check survives -DNDEBUG.
 """
@@ -464,8 +464,8 @@ def main() -> int:
             builder.build("header-alone compile without InfInt", [*flags, "-O2"], [alone], str(directory / "alone"), 180)
             execute([str(directory / "alone")], "header-alone run", 60, env)
             aggregate = directory / "all.cpp"
-            aggregate.write_text(f'#include "{ROOT / "01-Core/99-all.hpp"}"\nint main() {{ return Rational<InfInt>(3).toString() == "3" ? 0 : 1; }}\n')
-            builder.syntax("99-all compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], aggregate, 180)
+            aggregate.write_text(f'#include "{ROOT / "01-Core/999-all.hpp"}"\nint main() {{ return Rational<InfInt>(3).toString() == "3" ? 0 : 1; }}\n')
+            builder.syntax("999-all compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], aggregate, 180)
             for label, body in (("floating constructor", "Frac x(0.5);"), ("floating second argument", "Frac x(1, 2.5);"),
                                 ("floating operand", "Frac x(1); x = x + 0.5;"), ("floating comparison", "bool b = Frac(0) == 0.5; (void)b;"),
                                 ("unsupported T", "Rational<int> x(1, 2); (void)x;")):
@@ -480,7 +480,7 @@ def main() -> int:
                             '    return q == a && r.isNil() && c[1] == Frac(-9, 10) && c[3] == Frac(2, 5) && eval(a, Frac(3, 2)) == Frac(9, 2) && deriv(a)[1] == Frac(4) ? 0 : 1; }\n')
             builder.build("Poly<Frac> consumer compile", ["-std=gnu++20", "-O2"], [poly], str(directory / "poly"), 600)
             execute([str(directory / "poly")], "Poly<Frac> consumer run", 60, env)
-            report("PASS", "header-alone (no InfInt), 99-all, compile-fail checks and the Poly<Frac> consumer")
+            report("PASS", "header-alone (no InfInt), 999-all, compile-fail checks and the Poly<Frac> consumer")
             compiled = builder.build_all([(variant, f"compile {variant}", [*flags, *options], [SOURCE, SECOND], str(directory / variant), 1200,
                                            800 if variant == "sanitized" else 620) for variant, options in variants])
             def one(variant, options):

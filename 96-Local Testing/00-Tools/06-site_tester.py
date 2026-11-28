@@ -719,7 +719,7 @@ def fixture(root: Path) -> None:
         "01-Core/03-barrett.hpp": T + inc("01-template.hpp") + "struct Barrett {};\n",
         "01-Core/05-thing.hpp": thing,
         "01-Core/06-thingmini.hpp": T + inc("01-template.hpp") + "struct ThingMini {};",
-        "01-Core/99-all.hpp": inc("01-template.hpp", "03-barrett.hpp", "05-thing.hpp", "06-thingmini.hpp"),
+        "01-Core/999-all.hpp": inc("01-template.hpp", "03-barrett.hpp", "05-thing.hpp", "06-thingmini.hpp"),
         "01-Core/Docs/00-notes.md": "# 01 Core — notes\n\n## Shared\n\nSee [the thing](../05-thing.hpp) and "
         "[DS](<../../02-Data Structures/00-index.md#advanced>).\n",
         "01-Core/Docs/00-sources.md": "# Sources\n",
@@ -735,7 +735,7 @@ def fixture(root: Path) -> None:
         "02-Data Structures/02-adv.hpp": T + inc("001-dsu.hpp", "../01-Core/05-thing.hpp") + "struct Adv {};\n",
         "02-Data Structures/03-red.hpp": T + inc("../01-Core/01-template.hpp", "../01-Core/03-barrett.hpp")
         + "struct RedCompact {\n};\n",
-        "02-Data Structures/99-all.hpp": inc("001-dsu.hpp", "02-adv.hpp", "03-red.hpp"),
+        "02-Data Structures/999-all.hpp": inc("001-dsu.hpp", "02-adv.hpp", "03-red.hpp"),
         "02-Data Structures/Docs/00-notes.md": "# 02 Data Structures — notes\n\n## Rules\n\n- See [dsu](../001-dsu.hpp) and "
         "[core notes](../../01-Core/Docs/00-notes.md#shared).\n",
         "02-Data Structures/Docs/001-dsu.md": DSU_EVIDENCE.replace("ABS", str(root / "01-Core/01-template.hpp")),
@@ -1444,7 +1444,7 @@ class Fixture(Base):
         self.assertIn(f"Included by: {name(adv)}.", files["docs/02-data-structures/001-dsu.md"])
         tpl = files["docs/01-core/01-template.md"]
         self.assertIn("Includes: nothing.", tpl)
-        users = [h for h, ds in graph.items() if "01-Core/01-template.hpp" in ds and not re.search(r"/9[89]-", h)]
+        users = [h for h, ds in graph.items() if "01-Core/01-template.hpp" in ds and not re.search(r"/99[89]-", h)]
         self.assertEqual(sorted(re.findall(r"`([^`]+)`", re.search(r"Included by: (.*)\.\n", tpl)[1])), sorted(users))
         self.assertNotIn("## Dependencies", files["docs/08-python/01-x.md"])
 
@@ -1919,7 +1919,7 @@ class Repository(Base):
         users = {h: [] for h in self.graph}
         for h, ds in self.graph.items():
             for d in ds:
-                if d in users and not re.search(r"/9[89]-", h):
+                if d in users and not re.search(r"/99[89]-", h):
                     users[d].append(h)
         for t in self.rows:
             if t not in self.graph:
@@ -2028,7 +2028,7 @@ class Tree:
         for f in self.folders:
             own = [t for t in self.order if t.startswith(f + "/") and t.endswith(".hpp")]
             if own and rng.random() < .5:
-                self.files[f"{f}/99-all.hpp"] = inc(*(t.split("/")[1] for t in own))
+                self.files[f"{f}/999-all.hpp"] = inc(*(t.split("/")[1] for t in own))
             for t in own:
                 if rng.random() < .4:
                     self.files[f"96-Local Testing/{f}/{pname(t)}_tester.py"] = ""
@@ -2057,7 +2057,7 @@ class Tree:
         rng, k = self.rng, len(self.links)
         label = f"T{k}T" if rng.random() < .8 else f"`T{k}T`"
         anchor = "#" + rng.choice(self.anchor_pool) if rng.random() < .5 else ""
-        all_targets = list(self.rows) + [f"{f}/99-all.hpp" for f in self.folders]
+        all_targets = list(self.rows) + [f"{f}/999-all.hpp" for f in self.folders]
         kind = rng.randrange(12)
         if kind == 0:
             url = "https://example.org/x.md" + anchor if rng.random() < .7 else "mailto:a@b.c"

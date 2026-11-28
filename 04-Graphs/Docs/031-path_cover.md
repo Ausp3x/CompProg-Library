@@ -77,7 +77,7 @@ Machine: Intel Core i9-11900H, GNU++20, CPython 3.14.8, GCC 16.2.1 and GCC 14.4.
 | 2026-10-18 | `031-path_cover_tester.py --mode full --seed 1` | PASS 3 configurations, 3,573 cases, 584,347 checks per configuration, 6 probes; MEMORY peak 535 MB |
 | 2026-10-18 | `CXX=g++-14 031-path_cover_tester.py --mode full --seed 2` | PASS 3 configurations, 3,573 cases, 588,334 checks per configuration, 6 probes; MEMORY peak 565 MB |
 | 2026-10-18 | `031-path_cover_tester.py --mode stress --seed 3` | PASS 3 configurations, 15,573 cases, 1,664,913 checks per configuration, 6 probes; MEMORY peak 1,070 MB |
-| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
+| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `999-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
 | 2026-10-18 | `03-consistency.py` | No errors |
 
 ```bash

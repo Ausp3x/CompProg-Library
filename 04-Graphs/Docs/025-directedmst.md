@@ -63,7 +63,7 @@ Machine: Intel Core i9-11900H, GNU++20, CPython 3.14.8, GCC 16.2.1 and GCC 14.4.
 | 2026-10-18 | `025-directedmst_tester.py --mode full --seed 1` | PASS 3 configurations, 14,166 cases, 1,249,345 checks per configuration, 7 probes; MEMORY peak 601 MB |
 | 2026-10-18 | `CXX=g++-14 025-directedmst_tester.py --mode full --seed 2` | PASS 3 configurations, 14,166 cases, 1,814,630 checks per configuration, 7 probes; MEMORY peak 620 MB |
 | 2026-10-18 | `025-directedmst_tester.py --mode stress --seed 3` | PASS 3 configurations, 54,166 cases, 5,418,102 checks per configuration, 7 probes; MEMORY peak 858 MB |
-| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
+| 2026-10-18 | `02-integration.py --sanitizers` | PASS: 159 standalone and aggregate headers (header alone, `999-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 1,829 MB |
 | 2026-10-18 | `03-consistency.py` | No errors |
 
 ```bash

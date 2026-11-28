@@ -649,7 +649,7 @@ class Integration(Base):
     def test_main_builds(self):
         root, here = self.root / 'repo', self.root / 'repo/96-Local Testing'
         for rel, text in {'01-Core/01-a.hpp': '#pragma once\ninline int a() { return 1; }\n',
-                          '01-Core/99-all.hpp': '#pragma once\n#include "01-a.hpp"\n',
+                          '01-Core/999-all.hpp': '#pragma once\n#include "01-a.hpp"\n',
                           '02-Data Structures/01-x.hpp': '#pragma once\ninline int x() { return 2; }\n',
                           '99-Workspace/template.cpp': 'int main() {}\n',
                           '96-Local Testing/01-Core/01-t_tester.cpp': '#include "../../01-Core/01-a.hpp"\nint main() { return a() - 1; }\n'}.items():

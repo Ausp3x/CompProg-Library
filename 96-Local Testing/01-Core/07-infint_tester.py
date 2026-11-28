@@ -798,9 +798,9 @@ def main() -> int:
             alone.write_text(f'#include "{ROOT / "01-Core/07-infint.hpp"}"\nint main() {{ iint a("12345678901234567890"); return (a * a) % 7 == InfInt(2) ? 0 : 1; }}\n')
             builder.syntax("header-alone compile", flags, alone, 180)
             aggregate = Path(directory) / "aggregate.cpp"
-            aggregate.write_text(f'#include "{ROOT / "01-Core/99-all.hpp"}"\n#include "{ROOT / "01-Core/07-infint.hpp"}"\nint main() {{ return 0; }}\n')
-            builder.syntax("99-all aggregate compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], aggregate, 180)
-            report("PASS", "header-alone and 99-all aggregate compilation")
+            aggregate.write_text(f'#include "{ROOT / "01-Core/999-all.hpp"}"\n#include "{ROOT / "01-Core/07-infint.hpp"}"\nint main() {{ return 0; }}\n')
+            builder.syntax("999-all aggregate compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], aggregate, 180)
+            report("PASS", "header-alone and 999-all aggregate compilation")
             progress(f"compile {len(variants)} configurations")
             compiled = builder.build_all([(name, f"compile {name} mode={args.mode} seed={args.seed}", [*flags, *options], [SOURCE, SECOND], str(Path(directory) / name), 1200,
                                            1500 if name.startswith("sanitized") else 1000) for name, options in variants])

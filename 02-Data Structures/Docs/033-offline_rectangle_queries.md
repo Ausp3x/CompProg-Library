@@ -76,7 +76,7 @@ Latest per-header run 2026-10-14, after the review fixes, on the same machine wi
 | `033-offline_rectangle_queries_tester.py --mode full --seed 20261014` (GCC 16.2.1) | PASS, 1,145,792 checks per configuration, 8 assertion probes, MEMORY peak 628 MB |
 | `CXX=g++-14 033-offline_rectangle_queries_tester.py --mode full --seed 20261014` (GCC 14.4.1) | PASS, 1,145,792 checks per configuration, 8 assertion probes, MEMORY peak 619 MB |
 | `01-run.py --mode stress --seed 7 --rounds 1` | PASS, 3 configurations, 6,699,211 checks per configuration, MEMORY peak 649 MB |
-| `02-integration.py --sanitizers` | PASS: 143 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 2758 MB |
+| `02-integration.py --sanitizers` | PASS: 143 standalone and aggregate headers, `999-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 2758 MB |
 | `03-consistency.py` | No errors |
 
 Informal timing on 2026-10-14 (ad-hoc driver, not a benchmark driver; best of 5, `-O2 -DNDEBUG`, GCC 16.2.1, random coordinates below 10^9, N = Q = 2 * 10^5, add calls included): static rectangle sum 219 ms, interleaved point add and rectangle sum 519 ms, static rectangle add and rectangle sum (mod 998244353) 592 ms, interleaved rectangle add and point get 300 ms.

@@ -506,7 +506,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `Mo::getHilOrd` | `023-range_query_offline.hpp:19` | Miscellaneous row 16 `hilbertIndex2D` | remove (row only) | second implementation once P066 adds `hilbertIndex2D` (Changes); pinned body stays until P067 rewrites Mo | none | `99-all.hpp:21` |
+| `Mo::getHilOrd` | `023-range_query_offline.hpp:19` | Miscellaneous row 16 `hilbertIndex2D` | remove (row only) | second implementation once P066 adds `hilbertIndex2D` (Changes); pinned body stays until P067 rewrites Mo | none | `999-all.hpp:21` |
 
 ## P076 — 06-Miscellaneous — state space search, game search (planned)
 

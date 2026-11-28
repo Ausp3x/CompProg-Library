@@ -46,7 +46,7 @@ Conditions: Intel Core i9-11900H, Linux x86-64, GNU++20, CPython 3.14.7, GCC 16.
 | 2026-10-13 (P229 prune) | `python3 '96-Local Testing/06-Miscellaneous/050-interactive_tester.py' --mode full --seed 1` | PASS, 3 configurations, 69,489 checks, 8 scenarios, 20 games, 4 assertion probes, peak 415 MB |
 | 2026-10-13 (P229 prune) | `CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/050-interactive_tester.py' --mode full --seed 2` | PASS, 3 configurations, 68,710 checks, 8 scenarios, 20 games, 4 assertion probes, peak 428 MB |
 | 2026-10-13 (P229 prune) | `python3 '96-Local Testing/03-consistency.py' --braces 06-Miscellaneous/050-interactive.hpp '96-Local Testing/06-Miscellaneous/050-interactive_tester.cpp'` | no violations |
-| 2026-10-13 (P229 prune) | `python3 '96-Local Testing/02-integration.py'` | PASS, 135 standalone and aggregate headers, multi-TU, workspace; the header is warning-free with `-Wall -Wextra -Wconversion` on GCC 16.2 and 14.4 in a two-TU build through `99-all.hpp` |
+| 2026-10-13 (P229 prune) | `python3 '96-Local Testing/02-integration.py'` | PASS, 135 standalone and aggregate headers, multi-TU, workspace; the header is warning-free with `-Wall -Wextra -Wconversion` on GCC 16.2 and 14.4 in a two-TU build through `999-all.hpp` |
 | 2026-10-13 (P229 prune) | `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
 ## Benchmarks

@@ -71,7 +71,7 @@ Latest per-header run 2026-10-09 on the same machine with CPython 3.14, in the o
 | `061-hashmap_tester.py --mode full --seed 20261009` (GCC 16.2.1) | PASS, 3,695,536 checks per configuration, 8 assertion probes, MEMORY peak 646 MB |
 | `CXX=g++-14 061-hashmap_tester.py --mode full --seed 20261009` (GCC 14.4.1, floor) | PASS, 3,695,536 checks per configuration, 8 assertion probes, MEMORY peak 665 MB |
 | `01-run.py --mode stress --seed 7 --rounds 1` | PASS, 3 configurations, 16,915,676 checks per configuration, MEMORY peak at most 835 MB |
-| `02-integration.py` on GCC 16.2.1 and 14.4.1 | PASS: 114 standalone/aggregate headers (this one alone, in `99-all.hpp` and in `98-basic.hpp`), scalar and AVX2 two-translation-unit builds, workspace |
+| `02-integration.py` on GCC 16.2.1 and 14.4.1 | PASS: 114 standalone/aggregate headers (this one alone, in `999-all.hpp` and in `998-basic.hpp`), scalar and AVX2 two-translation-unit builds, workspace |
 | `03-consistency.py` | No errors; the closing-brace rule and comment cap hold on this header, its tester and its benchmark |
 
 ```bash

@@ -57,7 +57,7 @@ Latest per-header run 2026-10-17 on the same machine with CPython 3.14.8, in the
 | `035-persistentarray_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 2,863,577 checks per configuration, 7 assertion probes, MEMORY peak 588 MB |
 | `CXX=g++-14 035-persistentarray_tester.py --mode full --seed 20261017` (GCC 14.4.1) | PASS, 2,863,577 checks per configuration, 7 assertion probes, MEMORY peak 589 MB |
 | `035-persistentarray_tester.py --mode stress --seed 7` | PASS, 3 configurations, 5,413,519 checks per configuration, MEMORY peak 959 MB |
-| `02-integration.py --sanitizers` | PASS: 153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 1820 MB |
+| `02-integration.py --sanitizers` | PASS: 153 standalone and aggregate headers, `999-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 1820 MB |
 | `03-consistency.py` | No errors |
 
 A hand mutation check (temporary header copies, quick mode seed 7, `-O2 -DNDEBUG`) detected 5 of 5 injected faults: the leaf chunk not copied by `set`, a wrong digit shift in `get`, the fill value ignored, a non-minimal height, and a `toVector` overrun.

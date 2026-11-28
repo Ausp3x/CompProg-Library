@@ -84,7 +84,7 @@ Latest per-header run 2026-10-17 on the same machine with CPython 3.14.8, in the
 | `063-offline_deletion_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3,659,275 checks per configuration, 9 assertion probes, MEMORY peak 555 MB; worst QueueUndo ratio `calls / (ops (1 + log2(peak + 1)))` 1.136 |
 | `CXX=g++-14 063-offline_deletion_tester.py --mode full --seed 20261017` (GCC 14.4.1) | PASS, 3,659,275 checks per configuration, 9 assertion probes, MEMORY peak 610 MB |
 | `063-offline_deletion_tester.py --mode stress --seed 7` | PASS, 3 configurations, 8,360,815 checks per configuration, MEMORY peak 768 MB; worst QueueUndo ratio 1.128 |
-| `02-integration.py --sanitizers` | PASS: 153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 1820 MB |
+| `02-integration.py --sanitizers` | PASS: 153 standalone and aggregate headers, `999-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 1820 MB |
 | `03-consistency.py` | No errors |
 
 A hand mutation check (temporary header copies, quick mode seed 7, `-O2 -DNDEBUG`) detected 5 of 5 injected faults: the left decomposition step not advanced, pruning by AND, the oldest update kept by `popFront`, `erase` pairing the oldest copy, and `popFront` stopping early.

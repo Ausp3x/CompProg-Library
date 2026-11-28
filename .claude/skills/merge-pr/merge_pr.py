@@ -52,7 +52,7 @@ HOST_RUN = re.compile(r'(96-Local Testing|00-Guidelines/13-Plan)/([^/]+\.(py|pyc
                       r'|\.claude/skills/setup-check/setup_check\.py|95-Resources/00-sources\.py')
 AGENT = re.compile(r'(.+/)?\.claude/.+|(.+/)?(CLAUDE[^/]*\.md|AGENTS\.md)|\.mcp\.json')  # ... and those Claude Code loads in the worktree
 HEADER = re.compile(r'0[1-8]-[^/]+/(\d{2,3}-[^/]+\.hpp|_\d{2,3}_[^/]+\.py)')  # an inventory target
-MUTATED = re.compile(r'0[1-7]-[^/]+/(?!9[89]-)\d{2,3}-[^/]+\.hpp')  # 04-mutation.py HEADER (10-merge_tester compares them)
+MUTATED = re.compile(r'0[1-7]-[^/]+/(?!99[89]-)\d{2,3}-[^/]+\.hpp')  # 04-mutation.py HEADER (10-merge_tester compares them)
 DOCS = re.compile(r'0[1-8]-[^/]+/Docs/[^/]+\.md')  # read by the gates that always run, by no suite or sanitizer build
 MECHANICAL = re.compile(r'P\d{3}: (prune duplicates|restyle)')  # the commit subjects of /prune and /restyle
 # a line that records someone's decision: the user's, or one dated (`decided 2026-11-05`, `(user, 2026-11-05)`)

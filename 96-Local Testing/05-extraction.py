@@ -128,7 +128,7 @@ def core_full(root):
     out, index = set(), root / '01-Core/00-index.md'
     rows = index.read_text(encoding='utf-8') if index.is_file() else ''
     for p in sorted((root / '01-Core').glob('[0-9][0-9]-*.hpp')):
-        if p.name[:2] in ('01', '02', '98', '99') or 'mini' in p.name:
+        if p.name[:2] in ('01', '02') or 'mini' in p.name:
             continue
         text = p.read_text(encoding='utf-8')
         incs = [i for i, _ in grab.DEPS.includes(text)]
@@ -443,7 +443,7 @@ def scratch(ix, tester, files, base):
     tree = Path(tempfile.mkdtemp(prefix='cp-extraction-', dir=base))
     text = '\n'.join(f.read_text(encoding='utf-8') for f in [tester, *files])
     named = {h for h in ix.graph if Path(h).name in text and h not in grab.EXCLUDED}  # the headers its builds include
-    for a in sorted(ROOT.glob('0[1-7]-*/9[89]-*.hpp')):
+    for a in sorted(ROOT.glob('0[1-7]-*/99[89]-*.hpp')):
         if a.relative_to(ROOT).as_posix() in text or (a.parent.name == rel.parts[1] and a.name in text):
             named |= set(grab.aggregate(ROOT, ix.graph, a.relative_to(ROOT).as_posix()))
     allowed = {d for h in named for d in grab.closure(ix.graph, h)} or None
@@ -456,7 +456,7 @@ def scratch(ix, tester, files, base):
             continue
         incs = [l for l in ix.text(h) if re.match(r'\s*#\s*include\s*"', l)]
         dst.write_text('#pragma once\n' + ''.join(l + '\n' for l in incs) + (grab.render(ix, {h: lines[h]}) if h in lines else ''))
-    for a in ROOT.glob('0[1-7]-*/9[89]-*.hpp'):
+    for a in ROOT.glob('0[1-7]-*/99[89]-*.hpp'):
         shutil.copy2(a, tree / a.relative_to(ROOT))
     tests = tree / '96-Local Testing'
     shutil.copytree(ROOT / '96-Local Testing' / rel.parts[1], tests / rel.parts[1],

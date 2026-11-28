@@ -75,7 +75,7 @@ Latest per-header run 2026-10-14, after the review fixes, on the same machine wi
 | `026-trie_tester.py --mode full --seed 20261014` (GCC 16.2.1) | PASS, 11,852,623 checks per configuration, 28 assertion probes, MEMORY peak 664 MB |
 | `CXX=g++-14 026-trie_tester.py --mode full --seed 20261014` (GCC 14.4.1) | PASS, 11,852,623 checks per configuration, 28 assertion probes, MEMORY peak 679 MB |
 | `01-run.py --mode stress --seed 7 --rounds 1` | PASS, 3 configurations, 15,456,616 checks per configuration, MEMORY peak 776 MB |
-| `02-integration.py --sanitizers` | PASS: 143 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 2758 MB |
+| `02-integration.py --sanitizers` | PASS: 143 standalone and aggregate headers, `999-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; MEMORY peak 2758 MB |
 | `03-consistency.py` | No errors |
 
 ```bash

@@ -95,7 +95,7 @@ Package runs 2026-10-19: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 
 | same with `CXX=g++-14` | PASS, 533,011 checks per configuration, 7 probes, `MEMORY peak=574MB` |
 | `054-fixed_radius_queries_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 4,281,677 checks, `MEMORY peak=341MB` |
 | `-Wall -Wextra -Wconversion` build of the tester and the benchmark with `g++` and `g++-14` | No warnings |
-| `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
+| `02-integration.py` (every header alone, aggregates, two translation units including `999-all.hpp`) | PASS, 168 headers, `MEMORY peak=652MB` |
 | `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
 | `03-consistency.py --braces` on the header, tester and benchmark; `03-consistency.py` | No violations (comment share 15 of 191 lines); no errors |
 | `01-run.py --mode full`, library-wide, 2026-11-10 (P274, seed 42, build cache emptied before each cold run) | PASS; GCC 16.2.1: optimized 0.1 s compile + 4.3 s run, checked 16.2 s + 13.5 s, ASan/UBSan 18.6 s + 27.4 s, peak 972 MB (pre-flight quick 790 MB); GCC 14.4.1: optimized 0.3 s + 6.5 s, checked 33.0 s + 25.7 s, ASan/UBSan 29.0 s + 46.0 s, peak 1026 MB (pre-flight quick 839 MB) |

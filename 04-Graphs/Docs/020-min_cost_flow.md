@@ -109,7 +109,7 @@ Machine: Intel Core i9-11900H, GNU++20, CPython 3.14, GCC 16.2.1 and GCC 14.4.1 
 | 2026-10-14 | `CXX=g++-14 020-min_cost_flow_tester.py --mode full --seed 20261013` | PASS, same counts; MEMORY peak 782 MB (pre-flight quick 720 MB) |
 | 2026-10-14 | `020-min_cost_flow_tester.py --mode stress --seed 7` | PASS 3 configurations, 68,345 cases; 13,906,568 checks optimized and ASan/UBSan, 4,115,298 checked; 24 probes; MEMORY peak 888 MB |
 | 2026-10-13 | `020-min_cost_flow_benchmark.py` | PASS, every result checked; MEMORY peak 341 MB |
-| 2026-10-14 | `02-integration.py` | PASS: 138 standalone and aggregate headers (including `020-min_cost_flow.hpp` alone and `99-all.hpp`), scalar and available-AVX2 multi-TU, workspace; MEMORY peak 647 MB |
+| 2026-10-14 | `02-integration.py` | PASS: 138 standalone and aggregate headers (including `020-min_cost_flow.hpp` alone and `999-all.hpp`), scalar and available-AVX2 multi-TU, workspace; MEMORY peak 647 MB |
 | 2026-10-14 | `03-consistency.py`, with `--braces` on the header, tester and benchmark | No errors |
 | 2026-10-13 | `NDEBUG` boundedness probe (ad hoc, `-O1 -DNDEBUG -fsanitize=address,undefined`, 512 MB cap) | Cases below; no sanitizer report; peak 27 MB |
 | 2026-10-13 | `@reviewer` (independent: own unit-step Bellman–Ford SSP oracle, 3,000 rounds under ASan/UBSan and 30,000 at `-O2` with assertions, n ≤ 12 and up to 40 calls each; 20,000 × 300-call `NDEBUG` zero-length-piece fuzz; reran quick, full and consistency) | No wrong answer on valid inputs; 6 findings fixed, 4 suggestions adopted; by the user's decision `flow` stays beside `slope` (Keeps in `duplicates.md`) |
