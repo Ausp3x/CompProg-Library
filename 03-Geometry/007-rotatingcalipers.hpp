@@ -3,10 +3,6 @@
 #include "001-point.hpp"
 #include "004-convexhull.hpp"
 
-namespace calipers_detail {
-    template<typename T> bool bounded(Point2<T> q) { return q.x >= -1000000000 && q.x <= 1000000000 && q.y >= -1000000000 && q.y <= 1000000000; }
-} // namespace calipers_detail
-
 // T: O(1), M: O(1). Exact squared distance; empty input has -1 witnesses.
 struct ConvexDiameter { int first = -1, second = -1; lll squared = 0; };
 // T: O(1), M: O(1). Rounded width; witnesses edge/opposite are -1 empty, 0/0 singleton, 0/1 segment.
@@ -19,34 +15,9 @@ struct CaliperBoxApprox {
     array<int, 2> edges{-1, -1};
 };
 
-// S: O(n), Q: O(n), M: O(n). Strictly convex CCW hull, any start, |x|, |y| <= 10^9, n <= INT_MAX / 2; exact choices.
-struct ConvexCalipers {
-    vector<point> p, e;
-    vector<int> opposite;
-    vector<lll> width;
-    int n;
-
-    template<typename T> explicit ConvexCalipers(const vector<Point2<T>> &h) : n(0) {
-        static_assert(std::is_integral_v<T> && std::is_signed_v<T>);
-        assert(h.size() <= INT_MAX / 2);
-        n = int(h.size());
-        for (auto q : h) {
-            assert(calipers_detail::bounded(q));
-            p.push_back(q.template cast<lng>());}
-        if (n < 2) { return; }
-        assert(p[0] != p[1]);
-        if (n == 2) { return; }
-        for (int i = 0; i < n; ++i) {
-            assert(orient(p[i], p[(i + 1) % n], p[(i + 2) % n]) > 0);
-            e.push_back(p[(i + 1) % n] - p[i]);}
-        int j = 0;
-        for (int k = 1; k < n; ++k) { if (cross(e[0], p[k] - p[0]) > cross(e[0], p[j] - p[0])) { j = k; } }
-        for (int i = 0; i < n; ++i) {
-            while (cross(e[i], p[(j + 1) % n] - p[i]) > cross(e[i], p[j] - p[i])) { j = (j + 1) % n; }
-            opposite.push_back(j); width.push_back(cross(e[i], p[j] - p[i]));}}
-
+namespace calipers_detail {
     // Exact a / b < c / d for b, d > 0 by continued fractions; O(1) words for 128-bit operands.
-    static bool ratioLess(ulll a, ulll b, ulll c, ulll d) {
+    inline bool ratioLess(ulll a, ulll b, ulll c, ulll d) {
         assert(b && d);
         bool flip = false;
         for (;;) {
@@ -55,6 +26,67 @@ struct ConvexCalipers {
             a %= b; c %= d;
             if (!a || !c) { return flip ? a > c : a < c; }
             swap(a, b); swap(c, d); flip = !flip;}}
+    template<typename T> bool bounded(Point2<T> q) { return q.x >= -1000000000 && q.x <= 1000000000 && q.y >= -1000000000 && q.y <= 1000000000; }
+    template<typename T> vector<point> hull(const vector<Point2<T>> &h) {
+        static_assert(std::is_integral_v<T> && std::is_signed_v<T>);
+        assert(h.size() <= INT_MAX / 2);
+        vector<point> p;
+        for (auto q : h) {
+            assert(bounded(q));
+            p.push_back(q.template cast<lng>());}
+        int n = int(p.size());
+        assert(n < 2 || p[0] != p[1]);
+        for (int i = 0; n > 2 && i < n; ++i) { assert(orient(p[i], p[(i + 1) % n], p[(i + 2) % n]) > 0); }
+        return p;}
+    inline CaliperBoxApprox degenerate(const vector<point> &p) {
+        CaliperBoxApprox ans;
+        if (!p.empty()) {
+            ans.exists = true; ans.vertices.fill(p[0].cast<long double>());
+            if (p.size() == 2) { ans.vertices[1] = ans.vertices[2] = p[1].cast<long double>(); ans.perimeter = 2 * distanceApprox(p[0], p[1]); }}
+        return ans;}
+    // Base edge e from o: x from left to right along e, y from 0 to v along perp(e), both in units of 1 / |e|^2.
+    inline CaliperBoxApprox rectangle(point o, point e, lll left, lll right, lll v, int edge) {
+        CaliperBoxApprox ans; ans.exists = true; ans.edges[0] = edge;
+        dpoint a = e.cast<long double>(), b = perp(a), s = o.cast<long double>();
+        long double d = static_cast<long double>(norm2(e)), h = static_cast<long double>(v);
+        for (int k = 0; k < 4; ++k) {
+            long double x = static_cast<long double>(k == 1 || k == 2 ? right : left), y = k >= 2 ? h : 0;
+            ans.vertices[k] = s + a * (x / d) + b * (y / d);}
+        long double u = static_cast<long double>(right - left);
+        ans.area = u * h / d; ans.perimeter = 2 * (u + h) / std::sqrt(d);
+        return ans;}
+    // Freeman-Shapira: every edge scans every vertex for its extremes; the first least exact ratio wins, as in rectangleApprox.
+    template<typename T> CaliperBoxApprox quadratic(const vector<Point2<T>> &h, bool perimeter) {
+        vector<point> p = hull(h);
+        int n = int(p.size()), best = -1;
+        if (n < 3) { return degenerate(p); }
+        lll left = 0, right = 0, width = 0; ulll num = 0, den = 1;
+        for (int i = 0; i < n; ++i) {
+            point e = p[(i + 1) % n] - p[i];
+            lll lo = 0, hi = 0, v = 0;
+            for (auto q : p) { lo = min(lo, dot(e, q - p[i])); hi = max(hi, dot(e, q - p[i])); v = max(v, cross(e, q - p[i])); }
+            ulll a = perimeter ? ulll(hi - lo + v) * (hi - lo + v) : ulll(hi - lo) * v, b = norm2(e);
+            if (best == -1 || ratioLess(a, b, num, den)) { best = i; num = a; den = b; left = lo; right = hi; width = v; }}
+        return rectangle(p[best], p[(best + 1) % n] - p[best], left, right, width, best);}
+} // namespace calipers_detail
+
+// S: O(n), Q: O(n), M: O(n). Strictly convex CCW hull, any start, |x|, |y| <= 10^9, n <= INT_MAX / 2; exact choices.
+struct ConvexCalipers {
+    vector<point> p, e;
+    vector<int> opposite;
+    vector<lll> width;
+    int n;
+
+    template<typename T> explicit ConvexCalipers(const vector<Point2<T>> &h) : p(calipers_detail::hull(h)), n(int(p.size())) {
+        if (n < 3) { return; }
+        for (int i = 0; i < n; ++i) { e.push_back(p[(i + 1) % n] - p[i]); }
+        int j = 0;
+        for (int k = 1; k < n; ++k) { if (cross(e[0], p[k] - p[0]) > cross(e[0], p[j] - p[0])) { j = k; } }
+        for (int i = 0; i < n; ++i) {
+            while (cross(e[i], p[(j + 1) % n] - p[i]) > cross(e[i], p[j] - p[i])) { j = (j + 1) % n; }
+            opposite.push_back(j); width.push_back(cross(e[i], p[j] - p[i]));}}
+
+    static bool ratioLess(ulll a, ulll b, ulll c, ulll d) { return calipers_detail::ratioLess(a, b, c, d); }
 
     vector<pair<int, int>> antipodalPairs() const {
         if (n < 2) { return {}; }
@@ -85,12 +117,7 @@ struct ConvexCalipers {
             if (ratioLess(ulll(width[i]) * width[i], norm2(e[i]), ulll(width[best]) * width[best], norm2(e[best]))) { best = i; }}
         return {static_cast<long double>(width[best]) / normApprox(e[best]), best, opposite[best]};}
 
-    CaliperBoxApprox degenerateBox() const {
-        CaliperBoxApprox ans;
-        if (n) {
-            ans.exists = true; ans.vertices.fill(p[0].cast<long double>());
-            if (n == 2) { ans.vertices[1] = ans.vertices[2] = p[1].cast<long double>(); ans.perimeter = 2 * distanceApprox(p[0], p[1]); }}
-        return ans;}
+    CaliperBoxApprox degenerateBox() const { return calipers_detail::degenerate(p); }
 
     CaliperBoxApprox minimumAreaRectangleApprox() const { return rectangleApprox(false); }
     CaliperBoxApprox minimumPerimeterRectangleApprox() const { return rectangleApprox(true); }
@@ -105,15 +132,7 @@ struct ConvexCalipers {
             ulll a = perimeter ? ulll(u + v) * (u + v) : ulll(u) * v, b = norm2(e[i]);
             if (best == -1 || ratioLess(a, b, num, den)) {
                 best = i; num = a; den = b; left = dot(e[i], p[lo] - p[i]); right = dot(e[i], p[hi] - p[i]);}}
-        CaliperBoxApprox ans; ans.exists = true; ans.edges[0] = best;
-        dpoint a = e[best].cast<long double>(), b = perp(a), o = p[best].cast<long double>();
-        long double d = static_cast<long double>(norm2(e[best])), v = static_cast<long double>(width[best]);
-        for (int k = 0; k < 4; ++k) {
-            long double x = static_cast<long double>(k == 1 || k == 2 ? right : left), y = k >= 2 ? v : 0;
-            ans.vertices[k] = o + a * (x / d) + b * (y / d);}
-        long double u = static_cast<long double>(right - left);
-        ans.area = u * v / d; ans.perimeter = 2 * (u + v) / std::sqrt(d);
-        return ans;}
+        return calipers_detail::rectangle(p[best], e[best], left, right, width[best], best);}
 
     // Polar vertices of P - P are +-e_i / width_i; the maximum determinant pair is found with a monotone pointer.
     CaliperBoxApprox minimumAreaParallelogramApprox() const {
@@ -186,6 +205,10 @@ struct ConvexCalipers {
         return 2 / PI * (res + integral(last, 2 * PI));}
 };
 
+// T: O(n^2), M: O(n). ConvexCalipers' hull domain; the box minimumAreaRectangleApprox returns (Freeman-Shapira: every edge, every vertex).
+template<typename T> CaliperBoxApprox minimumAreaRectangleApproxQuadratic(const vector<Point2<T>> &h) { return calipers_detail::quadratic(h, false); }
+// T: O(n^2), M: O(n). ConvexCalipers' hull domain; the box minimumPerimeterRectangleApprox returns.
+template<typename T> CaliperBoxApprox minimumPerimeterRectangleApproxQuadratic(const vector<Point2<T>> &h) { return calipers_detail::quadratic(h, true); }
 // T: O(n * log(n)), M: O(n). Integral |x|, |y| <= 10^9; farthest original indices, lexicographically smallest, distinct for n >= 2.
 template<typename T> ConvexDiameter farthestPair(const vector<Point2<T>> &p) {
     vector<int> id = convexHullIndices(p);

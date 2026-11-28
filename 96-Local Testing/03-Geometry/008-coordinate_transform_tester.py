@@ -17,7 +17,7 @@ def option(name, fallback):
 
 
 def fixtures(path, mode, seed):
-    rng = random.Random(seed)
+    rng, lines = random.Random(seed), random.Random(f'line-{seed}')  # lines: its own stream, the maps stay unchanged
     count = {'quick': 100, 'full': 3000, 'stress': 20000}[mode]
 
     def apply(f, p):
@@ -55,7 +55,32 @@ def fixtures(path, mode, seed):
             else:
                 values += [0, 0]
             values += [Fraction(h[0], h[2]), Fraction(h[1], h[2])] if h[2] else [0, 0]
+            # applyDirection(p): the exact vector image over its 80-digit square-root length; 0 flags a zero image.
+            vx, vy = apply(m, p[:2] + [0])[:2]
+            length = (Decimal((vx * vx + vy * vy).numerator) / Decimal((vx * vx + vy * vy).denominator)).sqrt()
+            values += [1, Decimal(vx.numerator) / vx.denominator / length,
+                       Decimal(vy.numerator) / vy.denominator / length] if vx or vy else [0, 0, 0]
+            values += apply(m, h[:2] + [1])[:2]  # applyLinear({p, (h.x, h.y)}) second endpoint
+            # applyLine: the line through two integer points z0 != z1 with normal perp(z1 - z0), the exact images of
+            # z0, z1 and z2 = z0 + normal (value |normal|^2 on the line's positive side), then the image line or 0.
+            z0 = [lines.randint(-100, 100) for _ in range(2)]
+            z1 = [lines.randint(-100, 100) for _ in range(2)]
+            if z1 == z0:
+                z1[0] += 1
+            nx, ny = z0[1] - z1[1], z1[0] - z0[0]
+            images = [apply(m, z + [1])[:2] for z in (z0, z1, [z0[0] + nx, z0[1] + ny])]
+            values += [nx, ny, nx * z0[0] + ny * z0[1], *images[0], *images[1], *images[2]]
+            values += [1, *image_line(images, nx * nx + ny * ny)] if det else [0, 0, 0, 0]
+            values += [int(f == [Fraction(x) for x in g])]
             out.write(' '.join(format_value(x) for x in values) + '\n')
+
+
+def image_line(images, side):
+    """The line through the first two images, scaled so that the third image has value side (Fraction)."""
+    (w0, w1, w2), F = images, Fraction
+    n = (F(w0[1] - w1[1]), F(w1[0] - w0[0]))
+    k = F(side) / (n[0] * (w2[0] - w0[0]) + n[1] * (w2[1] - w0[1]))
+    return k * n[0], k * n[1], k * (n[0] * w0[0] + n[1] * w0[1])
 
 
 # Largest numerator or denominator Rational<lng> ('L') and Rational<lll> ('X') hold; 'I' is Rational<InfInt>.
@@ -217,6 +242,81 @@ def solve(m):
     return det, [r[3:] for r in rows]
 
 
+def solve_any(m, t):
+    """Some solution of the possibly singular 2x2 system m x = t (free unknowns 0), or None when it has none."""
+    rows, pivots = [[Fraction(m[i][0]), Fraction(m[i][1]), Fraction(t[i])] for i in range(2)], []
+    for col in range(2):
+        k = next((i for i in range(len(pivots), 2) if rows[i][col]), None)
+        if k is None:
+            continue
+        r = len(pivots)
+        rows[r], rows[k] = rows[k], rows[r]
+        rows[r] = [x / rows[r][col] for x in rows[r]]
+        for i in range(2):
+            if i != r and rows[i][col]:
+                rows[i] = [x - rows[i][col] * y for x, y in zip(rows[i], rows[r])]
+        pivots.append(col)
+    if any(rows[i][2] for i in range(len(pivots), 2)):
+        return None
+    x = [Fraction(0), Fraction(0)]
+    for i, col in enumerate(pivots):
+        x[col] = rows[i][2]
+    return x
+
+
+def members(M):
+    """isTranslation ... isSimilarity of the 3x3 map M, decided constructively: solve for the factory's arguments, then
+    rebuild the map pointwise from image() and compare. The linear part of each factory is fixed by its arguments."""
+    (a, b, tx), (c, d, ty) = M[0], M[1]
+
+    def same(op, args):
+        return from_images(lambda z: image(op, args, z)) == M
+
+    def fixed():  # a point p with M p = p, that is (I - L) p = t
+        return solve_any(((1 - a, -b), (-c, 1 - d)), (tx, ty))
+
+    def column(m):  # the line direction of a rank-one v v^T / |v|^2: any nonzero column
+        return next(((m[0][j], m[1][j]) for j in range(2) if m[0][j] or m[1][j]), None)
+
+    def axis(k, t):  # center coordinate x with (1 - k) x = t
+        return t / (1 - k) if k != 1 else Fraction(0) if t == 0 else None
+    res = [same('tr', [tx, ty])]
+    center = [axis(a, tx), axis(d, ty)]
+    res.append(None not in center and same('scc', [a, d, *center]))
+    p = fixed()
+    res.append(a * a + c * c == 1 and p is not None and same('roc', [a, c, *p]))
+    for m, op in (([[a, b], [c, d]], 'pr'), ([[(a + 1) / 2, b / 2], [c / 2, (d + 1) / 2]], 're')):
+        v = column(m)
+        res.append(v is not None and p is not None and same(op, [*p, p[0] + v[0], p[1] + v[1]]))
+    res.append(same('si', [*map(Fraction, (0, 0, 1, 0)), tx, ty, tx + a, ty + c]))
+    return res
+
+
+def m_predicates(f):
+    """Per predicate, the largest numerator or denominator its R operations reach, short-circuited as in the header."""
+    def run(k):
+        Watch.peak = 0
+        a, b, c, d, tx, ty, one = *f, Watch(1)
+        if k == 2 and a.v == d.v and b.v == (-c).v:
+            a * a + c * c
+        if k == 3 and b.v == c.v and (a + d).v == 1 and (a * d).v == (b * b).v and (a * tx + b * ty).v == 0:
+            c * tx + d * ty
+        if k == 4 and a.v == (-d).v and b.v == c.v and (a * a + b * b).v == 1 and ((a + one) * tx + b * ty).v == 0:
+            c * tx + (d + one) * ty
+        if k == 5:
+            -c
+        return Watch.peak
+    return [run(k) for k in range(6)]
+
+
+def m_line(f, inv, l, p):
+    """applyLine's R operations, then the value of p on the line and of its image on the image line."""
+    x, y = inv[0] * l[0] + inv[2] * l[1], inv[1] * l[0] + inv[3] * l[1]
+    k = l[2] + x * f[4] + y * f[5]
+    q = m_point(f, p)
+    x * q[0] + y * q[1] - k, l[0] * p[0] + l[1] * p[1] - l[2]
+
+
 def pythagorean(m, n, sign=(1, 1), swap=False):
     h = m * m + n * n
     co, si = Fraction(m * m - n * n, h), Fraction(2 * m * n, h)
@@ -253,12 +353,34 @@ def exact_record(tag, f, g, p, u, v, strict):
     values = [*coefficients(F), *coefficients(G), *happly(F, p, 1), *happly(F, v, 0), det, *coefficients(fix),
               *coefficients(mmul(F, G)), *coefficients(mmul(G, F)), *happly(mmul(F, G), p, 1)]
     values += [1, *coefficients(inverse)] if inverse else [0] * 7
-    w(values)
+    # applyLine's input: the line through u and v with normal perp(v - u), or x = u.x when u == v.
+    a, b = (u[1] - v[1], v[0] - u[0]) if u != v else (Fraction(1), Fraction(0))
+    line = [a, b, a * u[0] + b * u[1]]
+    w(values + line)
     order = 'LXI'
     final = next(t for t in order[order.index(tag):] if t == 'I' or Watch.peak <= LIMIT[t])
     assert not strict or final == tag, (tag, final, f, g, Watch.peak.bit_length())
-    return final, Watch.peak, ' '.join([final, f[0], *map(str, f[1]), g[0], *map(str, g[1]),
-                                        *map(str, (*p, *u, *v)), *map(str, values)])
+    peak = Watch.peak
+
+    def fits(run):  # the new operations run only where their R operations fit the record's type: flag 2 skips
+        Watch.peak = 0
+        run()
+        return final == 'I' or Watch.peak <= LIMIT[final]
+    extra = list(line)
+    if inverse is None:
+        extra += [0, 0, 0, 0]
+    elif fits(lambda: m_line(mf, inv, w(line), wp)):
+        z = (line[2] / a, Fraction(0)) if a else (Fraction(0), line[2] / b)
+        zs = (z, (z[0] - b, z[1] + a), (z[0] + a, z[1] + b))
+        extra += [1, *image_line([happly(F, q, 1) for q in zs], a * a + b * b)]
+    else:
+        extra += [2, 0, 0, 0]
+    extra += [1, *happly(F, u, 1)] if fits(lambda: m_point(mf, wu)) else [2, 0, 0]
+    extra += [int(coefficients(F) == coefficients(G))]
+    for M, m in ((F, mf), (G, mg), (mmul(F, G), m_mul(mf, mg)), (mmul(G, F), m_mul(mg, mf))):
+        extra += [int(x) if final == 'I' or k <= LIMIT[final] else 2 for x, k in zip(members(M), m_predicates(m))]
+    return final, peak, ' '.join([final, f[0], *map(str, f[1]), g[0], *map(str, g[1]),
+                                  *map(str, (*p, *u, *v)), *map(str, values), *map(str, extra)])
 
 
 def exact_fixtures(path, mode, seed):
@@ -338,6 +460,34 @@ def exact_fixtures(path, mode, seed):
             (tag, ('raw', [F(0), F(0), F(0), F(0), F(1), F(-1)]), ('si', [F(0), F(0), F(2), F(0), F(1), F(1), F(1), F(3)]),
              [F(4), F(4)], [F(1), F(1)], [F(1), F(2)]),
         ]
+    def raw(*maps):  # the coefficients of the composition of maps, the last applied first
+        res = from_images(lambda z: z)
+        for h in maps:
+            res = mmul(res, from_images(lambda z, h=h: image(*h, z)))
+        return 'raw', coefficients(res)
+    P, Q, half = [F(1), F(2), F(4), F(6)], [F(3, 2), F(2)], F(1, 2)
+    special = [  # predicate boundaries: each pair is f and g, so f * g and g * f are checked too
+        (('raw', [F(1), F(0), F(0), F(1), F(0), F(0)]), ('tr', [F(3), F(-2)])),  # identity, pure translation
+        (('raw', [F(0)] * 6), ('raw', [F(0), F(0), F(0), F(0), F(2), F(-3)])),  # zero and constant maps
+        (('raw', [F(1), F(0), F(0), F(3), F(5), F(0)]), ('raw', [F(2), F(0), F(0), F(1), F(0), F(7)])),  # factor 1, t != 0
+        (('raw', [F(2), F(0), F(0), F(1), F(4), F(0)]), ('raw', [F(1), F(0), F(0), F(-1), F(0), F(0)])),  # axis scaling, x-axis reflection
+        (raw(('tr', Q), ('re', P)), raw(('tr', Q), ('pr', P))),  # glide reflection, projection moved along its line
+        (raw(('tr', [F(-4), F(3)]), ('pr', P)), raw(('tr', [F(-8), F(6)]), ('re', P))),  # moved along the normal: still members
+        (('raw', [F(1), F(1), F(0), F(0), F(0), F(0)]), ('raw', [F(1), F(0), F(1), F(0), F(0), F(5)])),  # oblique idempotents
+        # Axis-parallel lines moved along themselves: only one of the two fixed-line equations fails.
+        (('raw', [F(1), F(0), F(0), F(0), F(5), F(0)]), ('raw', [F(0), F(0), F(0), F(1), F(0), F(5)])),
+        (('raw', [F(-1), F(0), F(0), F(1), F(0), F(3)]), ('raw', [F(1), F(0), F(0), F(-1), F(3), F(0)])),
+        (('raw', [F(-1), F(0), F(0), F(1), F(4), F(0)]), ('raw', [F(0), F(0), F(0), F(1), F(2), F(0)])),  # members
+        (('raw', [half, half, half, half, F(1), F(-1)]), ('raw', [half, F(0), F(0), half, F(0), F(0)])),  # trace 1: rank 1 and 2
+        (('raw', [F(-1), F(0), F(0), F(-1), F(4), F(6)]), ('raw', [F(0), F(-1), F(1), F(0), F(5), F(5)])),  # half and quarter turns
+        (('raw', [F(3, 5), F(4, 5), F(4, 5), F(-3, 5), F(1), F(2)]), ('raw', [F(3, 5), F(4, 5), F(4, 5), F(-3, 5), F(-1, 5), F(2, 5)])),
+        (('raw', [F(2), F(0), F(0), F(-2), F(0), F(0)]), ('raw', [F(1), F(-1), F(1), F(1), F(3), F(4)])),  # non-unit forms
+        (('raw', [F(2), F(0), F(0), F(2), F(1), F(1)]), ('raw', [F(1), F(1), F(1), F(1), F(0), F(0)])),
+        (('re', [F(0), F(0), F(1), F(0)]), ('re', [F(0), F(0), F(1), F(1)])),  # reflections composing to a rotation
+        (('re', [F(0), F(0), F(1), F(0)]), ('re', [F(0), F(1), F(1), F(1)])),  # and to a translation
+    ]
+    for tag in 'LXI':
+        fixed += [(tag, f, g, [F(1), F(1)], [F(0), F(2)], [F(3), F(1)]) for f, g in special]
     intent = {'small': 'LXI', 'medium': 'LX', 'large': 'X', 'huge': 'I'}
     peaks = {'L': 0, 'X': 0, 'I': 0}
     with path.open('w') as out:
@@ -370,4 +520,4 @@ if __name__ == '__main__':
                                                          'reflection-point', 'similarity-point', 'rotate-approx-nan',
                                                          'exact-rotation-nonunit', 'exact-rotation-over', 'projection-infinite', 'similarity-infinite', 'exact-projection-point',
                                                          'exact-reflection-point', 'exact-similarity-point',
-                                                         'exact-overflow']))
+                                                         'exact-overflow', 'direction-zero']))

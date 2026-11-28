@@ -11,6 +11,13 @@ struct Affine2Approx {
 
     dpoint applyPoint(dpoint p) const { return applyVector(p) + t; }
     dpoint applyVector(dpoint v) const { return {a * v.x + b * v.y, c * v.x + d * v.y}; }
+    dpoint applyDirection(dpoint v) const { return unitApprox(applyVector(v)); }
+    array<dpoint, 2> applyLinear(const array<dpoint, 2> &s) const { return {applyPoint(s[0]), applyPoint(s[1])}; }
+    bool applyLine(const array<long double, 3> &l, array<long double, 3> &out) const {
+        Affine2Approx g;
+        if (!inverse(g)) { return false; }
+        long double x = g.a * l[0] + g.c * l[1], y = g.b * l[0] + g.d * l[1];
+        out = {x, y, l[2] + x * t.x + y * t.y}; return true;}
     Point3<long double> applyHomogeneous(Point3<long double> p) const {
         return {a * p.x + b * p.y + t.x * p.z, c * p.x + d * p.y + t.y * p.z, p.z};}
     long double determinant() const { return a * d - b * c; }
@@ -21,6 +28,7 @@ struct Affine2Approx {
         Affine2Approx r{d / det, -b / det, -c / det, a / det};
         r.t = -r.applyVector(t); out = r; return true;}
 
+    friend bool operator==(const Affine2Approx &, const Affine2Approx &) = default;
     friend Affine2Approx operator*(const Affine2Approx &f, const Affine2Approx &g) {
         return {f.a * g.a + f.b * g.c, f.a * g.b + f.b * g.d,
                 f.c * g.a + f.d * g.c, f.c * g.b + f.d * g.d, f.applyPoint(g.t)};}
@@ -81,6 +89,12 @@ template<typename R = Rational<lll>> struct Affine2 {
 
     array<R, 2> applyVector(const array<R, 2> &v) const { return {a * v[0] + b * v[1], c * v[0] + d * v[1]}; }
     array<R, 2> applyPoint(const array<R, 2> &p) const { auto v = applyVector(p); return {v[0] + tx, v[1] + ty}; }
+    array<array<R, 2>, 2> applyLinear(const array<array<R, 2>, 2> &s) const { return {applyPoint(s[0]), applyPoint(s[1])}; }
+    bool applyLine(const array<R, 3> &l, array<R, 3> &out) const {
+        Affine2 g;
+        if (!inverse(g)) { return false; }
+        R x = g.a * l[0] + g.c * l[1], y = g.b * l[0] + g.d * l[1];
+        out = {x, y, l[2] + x * tx + y * ty}; return true;}
     R determinant() const { return a * d - b * c; }
     Affine2 fixing(const array<R, 2> &p, const array<R, 2> &u) const {
         auto v = applyVector(p);
@@ -90,6 +104,15 @@ template<typename R = Rational<lll>> struct Affine2 {
         if (det == R()) { return false; }
         out = Affine2{d / det, -b / det, -c / det, a / det}.fixing({tx, ty}, {}); return true;}
 
+    // Each is true exactly when the factory of that name builds the map from some arguments over R.
+    bool isTranslation() const { return a == R(1) && b == R() && c == R() && d == R(1); }
+    bool isScaling() const { return b == R() && c == R() && (a != R(1) || tx == R()) && (d != R(1) || ty == R()); }
+    bool isRotation() const { return isSimilarity() && a * a + c * c == R(1) && (a != R(1) || (tx == R() && ty == R())); }
+    bool isProjection() const { return b == c && a + d == R(1) && a * d == b * b && a * tx + b * ty == R() && c * tx + d * ty == R(); }
+    bool isReflection() const { return a == -d && b == c && a * a + b * b == R(1) && (a + R(1)) * tx + b * ty == R() && c * tx + (d + R(1)) * ty == R(); }
+    bool isSimilarity() const { return a == d && b == -c; }
+
+    friend bool operator==(const Affine2 &, const Affine2 &) = default;
     friend Affine2 operator*(const Affine2 &f, const Affine2 &g) {
         auto t = f.applyPoint({g.tx, g.ty});
         return {f.a * g.a + f.b * g.c, f.a * g.b + f.b * g.d, f.c * g.a + f.d * g.c, f.c * g.b + f.d * g.d, t[0], t[1]};}

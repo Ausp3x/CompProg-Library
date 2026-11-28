@@ -146,7 +146,8 @@
       ],
       "note": "Drop the keep_collinear policy of convexHullMelkman (user decision 2026-11-22): the code, row 04's Operations cell and 004-convexhull.md Limits change together, and the 2026-11-12 exception in 00-Guidelines/23-Sweep Ledgers/omissions.md closes. The next mutation campaign rechecks canonicalDirection's INT_MIN assert survivors CR 212 and COS 811 in 001-point.hpp, recorded as masked by libstdc++'s debug gcd assertion in the checked build (user decision 2026-11-12) when the runner still accepted any assertion; since the runner fix of 2026-11-12 (68e30c1) only glibc assertions count, so a probe can now require the header's own. The next run also rechecks the probe passes of rows 03 and 04 that predate that fix. Follow-ups outside GE01 are in 03-Geometry/Docs/00-notes.md (P007 Re-Audit Decisions). Omission sweep 2026-11-27: implement AngleRange in `001-point.hpp`. Omission sweep 2026-11-28: implement bresenhamLine in `002-line_segment.hpp`; implement rasterizePolygon in `003-polygon.hpp`.",
       "followups": [
-        "Row 02 projectLineApprox, reflectLineApprox, reflectDirectionApprox and signedLineDistanceApprox divide by norm2(b - a), which loses precision when that square is subnormal (|b - a| near 1e-2470: TriangleApprox-like case p=(0,1), a=(0,0), b=(3e-2474,4e-2474) gives distance 0.6000147, not 0.6) and asserts when it overflows; hypot normalization keeps both exact to rounding. P009 adopted it for TriangleApprox::altitudes/altitudeFeet (user decision 2026-11-27); filed by P009 2026-11-27"
+        "Row 02 projectLineApprox, reflectLineApprox, reflectDirectionApprox and signedLineDistanceApprox divide by norm2(b - a), which loses precision when that square is subnormal (|b - a| near 1e-2470: TriangleApprox-like case p=(0,1), a=(0,0), b=(3e-2474,4e-2474) gives distance 0.6000147, not 0.6) and asserts when it overflows; hypot normalization keeps both exact to rounding. P009 adopted it for TriangleApprox::altitudes/altitudeFeet (user decision 2026-11-27); filed by P009 2026-11-27",
+        "001-point.hpp: add fromPolarApprox (point from length and angle, OI Wiki 坐标系) to row 01 beside argApprox and normApprox, found by the P008 re-audit sweep 2026-11-14 (03-Geometry/Docs/00-notes.md, P008 Re-Audit Decisions)"
       ]
     },
     {
@@ -267,10 +268,7 @@
         "03-Geometry/Docs/007-rotatingcalipers.md",
         "03-Geometry/Docs/008-coordinate_transform.md"
       ],
-      "note": "",
-      "followups": [
-        "Limits recheck: make each Limits and Handoffs item done, moved to Contracts when the algorithm or contract implies it, or decided by the user (02-structure.md, Names); filed by the final process change, user decisions 2026-11-26 and 2026-11-27"
-      ]
+      "note": "Follow-ups 1-4 done 2026-11-27/28 (/package, /finish P008): Affine2Approx and Affine2 line images, map equality and exact factory predicates; closestPairSimple and the Freeman-Shapira quadratic rectangles kept as lighter forms (user decision 2026-11-27); closestPairApprox now a random-incremental grid from 1,024 points with the divide and conquer as fallback (adopted on the recorded benchmark)."
     },
     {
       "id": "P009",
@@ -4077,17 +4075,18 @@
     },
     {
       "id": "P279",
-      "label": "03-Geometry — movable separability, polygon distance advanced",
+      "label": "03-Geometry — movable separability, polygon distance advanced, calipers triangulations",
       "batches": [
         "GE59",
-        "GE67"
+        "GE67",
+        "GE68"
       ],
       "phase": "Specialist and Research Families",
-      "size": "M+M",
+      "size": "M+M+M",
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Created by the P275 re-review (2026-11-10). Omission sweep 2026-11-28: implement translationSeparationOrder in `068-movable_separability.hpp`."
+      "note": "Created by the P275 re-review (2026-11-10); GE68 added by P008 (user decision 2026-11-27). Omission sweep 2026-11-28: implement translationSeparationOrder in `068-movable_separability.hpp`."
     },
     {
       "id": "P280",

@@ -56,6 +56,10 @@ The area of the intersection of the two filled disks. Disjoint or tangent disks 
 - `powerApprox(c, p) = |p - c|^2 - r^2`: negative inside, zero on the boundary, positive outside, and the squared tangent length from an exterior point. It is exact for integer-valued inputs whose squares are below `2^64`.
 - `radicalAxisApprox(a, b, out)` returns `false` for concentric circles, leaving `out` unchanged. Otherwise `out = {p, p + perp(b.c - a.c)}`, the line of equal power, where `p` is its foot on the center line. Its left side holds the points with smaller power to `a`. For intersecting circles the line passes through both intersection points.
 
+### Ownership
+
+Other rows own adaptive and exact floating predicates (row 36, GE11), algebraic circle constructions including the Apollonian circle (row 24, GE29), minimum enclosing circles (row 14, GE05), circle unions (row 23, GE10) and circle-polygon operations (row 16, GE24).
+
 ## Feature-to-Test Map
 
 `96-Local Testing/03-Geometry/006-circle_tester.py` drives the suite; its docstring states the mode sizes. Residuals use a `2e-12` scaled absolute or relative allowance on the stated finite domain; slice integration allows `8e-6` of the smaller area. Failures print the seed, phase, operation, reproducing input and predicate.
@@ -132,7 +136,7 @@ The implementation is written from geometric identities (2026-09-27, extended 20
 
 ## Limits and Handoffs
 
-No claim of universally certified floating geometry is made. Other packages own adaptive and exact floating predicates (GE11), algebraic circle constructions including the Apollonian circle (row 24 / GE29), minimum enclosing circles (GE05), and circle unions and circle-polygon operations (GE10 and GE24).
+None.
 
 ## Aliases
 
@@ -147,3 +151,4 @@ Search aliases (P263, grab --find): 圆的切线, 公切线, 两圆交点, 圆�
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder` with `-Wall -Wextra -Wconversion -Werror` and the 10 s quick bound; `[[maybe_unused]]` on names only an `assert` uses, no logic change; no mutation campaign in P274 (user decision 2026-11-10); library-wide full, quick and stress passed.
 - 2026-11-14: P008 re-audit (experiment none): the completeness sweep found no operation missing from the row; first mutation campaign; five tests closed its gaps (`onBoundary`, the right-hand-first order of `commonTangentsApprox`, now documented by user decision, the `nan-line` probe, the exact `segmentArea` switch at 0.5, exact nested-disk areas) and an endpoint-tangency segment regression was added; no header change; full on g++ and g++-14, stress, extraction and `02-integration.py --sanitizers` passed; the independent review found no defect in this header.
 - 2026-11-15: `/finish P008` (experiment none): the independent review showed four survivors recorded as equivalent were distinguishable (IF 221 and COS 1045 by disks disjoint by `6e-20`, COS 982 and 994 by near-tangent segments); each is now a regression, and the computed signs those segments depend on are pinned in Contracts (user decision 2026-11-14); second whole-file campaign caught 487 of 500, 13 equivalent survivors; no header change; full on g++ and g++-14, stress, extraction and `02-integration.py` passed.
+- 2026-11-27: `/package P008`, Limits recheck (experiment none): the items naming other rows' operations moved to Contracts (Ownership), and the uncertified floating claim is the folder policy the Numeric Policy links; independent review of the documents; no code or test change.

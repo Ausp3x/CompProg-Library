@@ -18,7 +18,7 @@ template<typename T> void print(Point2<T> q) {
         std::cerr << std::hexfloat << '(' << static_cast<long double>(q.x) << ',' << static_cast<long double>(q.y) << ')' << std::defaultfloat;}
     else { std::cerr << '(' << +q.x << ',' << +q.y << ')'; }}
 template<typename T> string typeName() {
-    if constexpr (std::is_floating_point_v<T>) { return sizeof(T) == 4 ? "float" : sizeof(T) == 8 ? "double" : "long double"; }
+    if constexpr (std::is_floating_point_v<T>) { return sizeof(T) == 4 ? "float" : sizeof(T) == 8 ? "double" : std::is_same_v<T, long double> ? "long double" : "__float128"; }
     else { return "int" + std::to_string(8 * sizeof(T)); }}
 ClosestPair solve(const vector<point> &p) { return closestPair(p); }
 ClosestPair solve(const vector<point3> &p) { return closestPair3(p); }
@@ -59,8 +59,18 @@ template<typename T> void verifyRandomized(const vector<Point2<T>> &p, ClosestPa
             string what = "closestPairRandomized (deletion-minimal) type=" + typeName<T>() + " rngseed=" + std::to_string(s);
             require(false, q, oracle(q), closestPairRandomized(q, s), what.c_str());}
         ++checks;}}
+// The ordered-set sweep: the O(n^2) oracle's answer, and closestPair's on their shared domain.
+template<typename T> void verifySimple(const vector<Point2<T>> &p, ClosestPair want) {
+    auto got = closestPairSimple(p);
+    if (!equal(want, got)) {
+        auto q = shrink(p, [](const vector<Point2<T>> &r) { return !equal(oracle(r), closestPairSimple(r)); });
+        string what = "closestPairSimple (deletion-minimal) type=" + typeName<T>();
+        require(false, q, oracle(q), closestPairSimple(q), what.c_str());}
+    ++checks;
+    auto fast = closestPair(p);
+    require(equal(fast, got), p, fast, got, "closestPairSimple against closestPair");}
 void extra(const vector<point3> &, ClosestPair) {}
-template<typename T> void extra(const vector<Point2<T>> &p, ClosestPair want) { verifyRandomized(p, want); }
+template<typename T> void extra(const vector<Point2<T>> &p, ClosestPair want) { verifySimple(p, want); verifyRandomized(p, want); }
 template<typename P> void verify(vector<P> p) {
     auto before = p; auto want = oracle(p), got = solve(p);
     if (!equal(want, got)) {
@@ -82,10 +92,12 @@ template<typename T, typename R> [[noreturn]] void failure(const string &what, c
               << " expected="; printIds(want); std::cerr << " actual="; printIds(got); std::cerr << " input=";
     for (auto q : p) { print(q); }
     std::cerr << '\n'; std::exit(1);}
+// Signs of zeros too; __builtin_signbit also takes __float128, which std::signbit does not.
+template<typename T> bool negative(T x) { if constexpr (std::is_floating_point_v<T>) { return __builtin_signbit(x); } else { return x < 0; } }
 template<typename T> bool same(const vector<Point2<T>> &a, const vector<Point2<T>> &b) {
     if (a.size() != b.size()) { return false; }
     for (size_t i = 0; i < a.size(); ++i) {
-        if (!(a[i] == b[i]) || std::signbit(a[i].x) != std::signbit(b[i].x) || std::signbit(a[i].y) != std::signbit(b[i].y)) { return false; }}
+        if (!(a[i] == b[i]) || negative(a[i].x) != negative(b[i].x) || negative(a[i].y) != negative(b[i].y)) { return false; }}
     return true;}
 // The contract's computed squared distance: each coordinate widened to long double, subtracted, squared, summed.
 template<typename T> long double approx2(Point2<T> a, Point2<T> b) {
@@ -98,14 +110,35 @@ template<typename T> pair<int, int> approxOracle(const vector<Point2<T>> &p) {
             long double v = approx2(p[i], p[j]);
             if (best.first < 0 || v < d) { best = {i, j}; d = v; }}}
     return best;}
+// One extra closestPairApprox seed per case, drawn from a generator seeded by main.
+static std::mt19937_64 caseSeeds;
+// Las Vegas: the default seed, the shared seeds and one per case must each return the brute-force ids.
+vector<ulng> approxSeeds() {
+    vector<ulng> all{CustomHash::rnd};
+    all.insert(all.end(), seeds.begin(), seeds.end());
+    all.push_back(caseSeeds());
+    return all;}
 template<typename T> void verifyApprox(const vector<Point2<T>> &p) {
-    auto before = p; auto want = approxOracle(p), got = closestPairApprox(p);
-    ++checks;
-    if (want != got) {
-        auto q = shrink(p, [](const vector<Point2<T>> &r) { return approxOracle(r) != closestPairApprox(r); });
-        failure("closestPairApprox (deletion-minimal)", q, approxOracle(q), closestPairApprox(q));}
-    ++checks;
-    if (!same(p, before)) { failure("closestPairApprox input preserved", before, want, got); }}
+    auto before = p; auto want = approxOracle(p);
+    for (ulng s : approxSeeds()) {
+        auto got = closestPairApprox(p, s);
+        ++checks;
+        if (want != got) {
+            auto q = shrink(p, [&](const vector<Point2<T>> &r) { return approxOracle(r) != closestPairApprox(r, s); });
+            failure("closestPairApprox (deletion-minimal) rngseed=" + std::to_string(s), q, approxOracle(q), closestPairApprox(q, s));}
+        ++checks;
+        if (!same(p, before)) { failure("closestPairApprox input preserved rngseed=" + std::to_string(s), before, want, got); }
+        // closestPairApprox takes the grid only from 1024 points; small cases drive it directly, and an answer it gives must be exact.
+        if (p.size() < 2) { continue; }
+        closest_detail::Best<long double> b;
+        ++checks;
+        if (closest_detail::incremental(p, b, s) && b.ids != want) {
+            auto q = shrink(p, [&](const vector<Point2<T>> &r) {
+                closest_detail::Best<long double> c;
+                return r.size() >= 2 && closest_detail::incremental(r, c, s) && c.ids != approxOracle(r);});
+            closest_detail::Best<long double> c;
+            closest_detail::incremental(q, c, s);
+            failure("closest_detail::incremental (deletion-minimal) rngseed=" + std::to_string(s), q, approxOracle(q), c.ids);}}}
 // O(n^3) oracle with the contract's expression: d(i, j) + d(j, k) + d(i, k) on long double points, first strict minimum in (i, j, k) order.
 template<typename T> array<int, 3> triangleOracle(const vector<Point2<T>> &p) {
     int n = int(p.size());
@@ -196,6 +229,32 @@ template<typename T> void approxTyped(std::mt19937_64 &rng, int rounds) {
     for (int t = 0; t < rounds; ++t) {
         auto p = floatingCase<T>(rng, t);
         verifyApprox(p); std::shuffle(p.begin(), p.end(), rng); verifyApprox(p);}}
+// Grid fallbacks at any point of a seed's order: a repeat; a pair 1e-12 (or 1e-6, kept) apart in a 1000-wide cloud; a point at 1e20;
+// sides at 1e600, 2^980 and 2^975 multiples (both sides of 2^980); 2^-1074, 2^-1030 (subnormal) and 2^-1000 multiples.
+void approxFallbacks(std::mt19937_64 &rng, int rounds) {
+    for (int t = 0; t < rounds; ++t) {
+        int n = 2 + int(rng() % 300), cls = t % 7;
+        auto unit = [&] { return double(rng() >> 11) * 0x1p-53 * 1000; };
+        // Point k jittered by 0-2 units in its own 4 x 4 block of a 16-column lattice: distinct points 1 to 2 units apart.
+        auto lattice = [&](int k, double s) { return Point2<double>{double(k % 16 * 4 + int(rng() % 3)) * s, double(k / 16 * 4 + int(rng() % 3)) * s}; };
+        const double tiny[] = {0x1p-1074, 0x1p-1030, 0x1p-1000};
+        if (cls == 4) {
+            vector<Point2<long double>> p;
+            for (int k = 0; k < n; ++k) { p.push_back({static_cast<long double>(rng() % 40) * 1e600L, static_cast<long double>(rng() % 40) * 1e600L}); }
+            verifyApprox(p); std::shuffle(p.begin(), p.end(), rng); verifyApprox(p);
+            continue;}
+        vector<Point2<double>> p;
+        for (int k = 0; k < n; ++k) {
+            if (cls == 0) { p.push_back({double(rng() % 1000), double(rng() % 1000)}); }
+            if (cls >= 1 && cls <= 3) { p.push_back({unit(), unit()}); }
+            if (cls == 5) { p.push_back(lattice(k, t / 7 % 2 ? 0x1p980 : 0x1p975)); }
+            if (cls == 6) { p.push_back(lattice(k, tiny[t / 7 % 3])); }}
+        auto c = p[rng() % p.size()];
+        auto at = p.begin() + ptrdiff_t(rng() % (p.size() + 1));
+        if (cls == 0) { p.insert(at, c); }
+        if (cls == 1 || cls == 2) { p.insert(at, {c.x + (cls == 1 ? 1e-12 : 1e-6), c.y}); }
+        if (cls == 3) { p.insert(at, {1e20, unit()}); }
+        verifyApprox(p); std::shuffle(p.begin(), p.end(), rng); verifyApprox(p);}}
 // Small grids, duplicate pools (groups of 2 and 3+), exact pairs, collinear sets, thin strips, 1e9 and 1e18 clouds, far clusters.
 template<typename T> void triangleTyped(std::mt19937_64 &rng, int rounds) {
     using L = std::numeric_limits<T>;
@@ -252,6 +311,28 @@ template<typename T> void triangleLarge(std::mt19937_64 &rng, int n) {
         if (OPTIMIZED) {
             ++checks;
             if (seconds > 20) { failure("minimumPerimeterTriangleApprox time " + std::to_string(seconds) + "s > 20s shape=" + std::to_string(shape), vector<Point2<T>>{}, want, got); }}}}
+// Every seed returns want, keeps the input and, in the optimized build, finishes within 5 s (measured well under 0.1 s).
+template<typename T> void timedApprox(const vector<Point2<T>> &p, pair<int, int> want, const string &what) {
+    auto before = p;
+    for (ulng s : approxSeeds()) {
+        auto start = std::chrono::steady_clock::now();
+        auto got = closestPairApprox(p, s);
+        double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        string tag = " " + what + " rngseed=" + std::to_string(s);
+        if (OPTIMIZED) {
+            ++checks;
+            if (seconds > 5) { failure("closestPairApprox time " + std::to_string(seconds) + "s > 5s" + tag, vector<Point2<T>>{}, want, got); }}
+        ++checks;
+        if (got != want) { failure("closestPairApprox large known answer" + tag, vector<Point2<T>>{}, want, got); }
+        ++checks;
+        if (!same(p, before)) { failure("closestPairApprox large input preserved" + tag, vector<Point2<T>>{}, want, got); }}}
+// White-box: on distinct points within the grid's scale the incremental path itself must answer, for every seed, without the fallback.
+template<typename T> void requireGridPath(const vector<Point2<T>> &p, pair<int, int> want, const string &what) {
+    for (ulng s : approxSeeds()) {
+        closest_detail::Best<long double> b;
+        bool grid = closest_detail::incremental(p, b, s);
+        ++checks;
+        if (!grid || b.ids != want) { failure("closestPairApprox grid path (incremental returned " + std::to_string(grid) + ") " + what + " rngseed=" + std::to_string(s), vector<Point2<T>>{}, want, b.ids); }}}
 template<typename T> void approxLarge(int n) {
     for (int shape = 0; shape < 4; ++shape) {
         vector<Point2<T>> p;
@@ -263,21 +344,48 @@ template<typename T> void approxLarge(int n) {
         // Planted quarter-unit neighbour of point 0: the unique minimum, below every unit-spaced pair; shape 3 is all duplicates.
         p.push_back({T(0.25L), T(shape == 2 ? 0.25L : 0.0L)});
         if (shape == 1) { p.back() = {T(0), T(-0.25L)}; }
-        pair<int, int> want{0, shape == 3 ? 1 : n};
-        auto before = p;
-        auto start = std::chrono::steady_clock::now();
-        auto got = closestPairApprox(p);
-        double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
-        if (OPTIMIZED) {
-            ++checks;
-            if (seconds > 5) { failure("closestPairApprox time " + std::to_string(seconds) + "s > 5s shape=" + std::to_string(shape), vector<Point2<T>>{}, want, got); }}
+        timedApprox(p, {0, shape == 3 ? 1 : n}, "planted shape=" + std::to_string(shape));}}
+// Multiples of 2^-6 below 2^25: 31-bit numerators square exactly in long double, so closestPair on them is an exact oracle;
+// random, jittered lattice with a planted pair, shuffled line with tied gaps, 200-point clusters (repeats take the fallback).
+void approxLargeExact(std::mt19937_64 &rng, int n) {
+    int side = int(std::sqrt(n)) + 1;
+    for (int shape = 0; shape < 4; ++shape) {
+        vector<point> q;
+        lng x = 0, cx = 0, cy = 0;
+        pair<int, int> planted{-1, -1};
+        for (int i = 0; i < n; ++i) {
+            if (shape == 0) { q.push_back({lng(rng() % (1ULL << 31)), lng(rng() % (1ULL << 31))}); }
+            if (shape == 1) { q.push_back({64000 * (i % side) + lng(rng() % 6400), 64000 * (i / side) + lng(rng() % 6400)}); }
+            if (shape == 2) { q.push_back({x += lng(rng() % 1000) + 1, 0}); }
+            if (shape == 3) {
+                if (i % 200 == 0) { cx = lng(rng() % ((1ULL << 31) - 4096)); cy = lng(rng() % ((1ULL << 31) - 4096)); }
+                q.push_back({cx + lng(rng() % 4096), cy + lng(rng() % 4096)});}}
+        if (shape == 1) {
+            // A pair 1/64 apart in the middle of a lattice square, far from every jittered lattice point.
+            int a = int(rng() % ulng(n)), b = int(rng() % ulng(n - 1)); b += b >= a;
+            lng c = 64000 * lng(rng() % ulng(side - 1)) + 32000, d = 64000 * lng(rng() % ulng(n / side - 1)) + 32000;
+            q[size_t(a)] = {c, d}; q[size_t(b)] = {c + 1, d};
+            planted = std::minmax(a, b);}
+        if (shape == 2) { std::shuffle(q.begin(), q.end(), rng); }
+        auto want = closestPair(q);
         ++checks;
-        if (got != want) { failure("closestPairApprox large known answer shape=" + std::to_string(shape), vector<Point2<T>>{}, want, got); }
-        ++checks;
-        if (!same(p, before)) { failure("closestPairApprox large input preserved", vector<Point2<T>>{}, want, got); }}}
+        if (shape == 1 && want.ids != planted) { failure("closestPair planted lattice pair", vector<point>{}, planted, want.ids); }
+        vector<Point2<double>> p;
+        for (auto r : q) { p.push_back({double(r.x) / 64, double(r.y) / 64}); }
+        timedApprox(p, want.ids, "exact double shape=" + std::to_string(shape));
+        if (shape < 3) { requireGridPath(p, want.ids, "exact double shape=" + std::to_string(shape)); }}}
+// A 40-wide lattice, 4 units apart and jittered by 0-2, times a power of two: the computed distances are exact, so closestPair on
+// the numerators is the oracle; at 2^-1074 (double) and 2^-1063 (long double, about 1e-320) 1 / side overflows a double.
+template<typename T> void approxTinyLattice(std::mt19937_64 &rng, int n, T unit) {
+    vector<point> q;
+    for (int k = 0; k < n; ++k) { q.push_back({k % 40 * 4 + lng(rng() % 3), k / 40 * 4 + lng(rng() % 3)}); }
+    auto want = closestPair(q);
+    vector<Point2<T>> p;
+    for (auto r : q) { p.push_back({T(r.x) * unit, T(r.y) * unit}); }
+    timedApprox(p, want.ids, "tiny lattice type=" + typeName<T>());}
 int main(int argc, char **argv) {
     string mode = "full", invalid;
-    bool protocol = false, three = false, randomized = false, naive = false;
+    bool protocol = false, three = false, randomized = false, naive = false, simple = false;
     for (int i = 1; i < argc; ++i) {
         string a = argv[i]; if (a == "--mode") { mode = argv[++i]; }
         else if (a == "--seed") { seed = std::stoull(argv[++i]); }
@@ -286,6 +394,7 @@ int main(int argc, char **argv) {
         else if (a == "--oracle3") { protocol = three = true; }
         else if (a == "--oracle-randomized") { protocol = randomized = true; }
         else if (a == "--oracle-naive") { protocol = naive = true; }
+        else if (a == "--oracle-simple") { protocol = simple = true; }
         else if (a == "--oracle3-naive") { protocol = three = naive = true; }}
     const lng lo = std::numeric_limits<lng>::min(), hi = std::numeric_limits<lng>::max();
     if (!invalid.empty()) {
@@ -298,6 +407,9 @@ int main(int argc, char **argv) {
         else if (invalid == "span-z3") { closestPair3(vector<point3>{{0, 0, lo}, {0, 0, hi}}); }
         else if (invalid == "diagonal3") { closestPair3(vector<point3>{{lo / 2, lo / 2, lo / 2}, {hi / 2, hi / 2, hi / 2}}); }
         else if (invalid == "naive-span-x") { closestPairNaive(vector<point>{{lo, 0}, {hi, 0}}); }
+        else if (invalid == "simple-span-x") { closestPairSimple(vector<point>{{lo, 0}, {hi, 0}}); }
+        else if (invalid == "approx-nan") { closestPairApprox(vector<Point2<double>>{{0, 0}, {std::numeric_limits<double>::quiet_NaN(), 0}}, 1); }
+        else if (invalid == "triangle-nan") { minimumPerimeterTriangleApprox(vector<Point2<double>>{{0, 0}, {1, 0}, {0, std::numeric_limits<double>::quiet_NaN()}}); }
         else if (invalid == "naive-diagonal3") { closestPair3Naive(vector<point3>{{lo / 2, lo / 2, lo / 2}, {hi / 2, hi / 2, hi / 2}}); }
         else { return 2; }
         return 0;}
@@ -312,11 +424,12 @@ int main(int argc, char **argv) {
                 for (ulng s : std::initializer_list<ulng>{0, ~0ULL, CustomHash::splitMix64(seed + ulng(cases))}) {
                     auto ans = closestPairRandomized(flat, s); cout << ans.ids.first << ' ' << ans.ids.second << ' ' << decimal(ans.distance2) << '\n';}
                 continue;}
-            auto ans = three ? (naive ? closestPair3Naive(p) : closestPair3(p)) : naive ? closestPairNaive(flat) : closestPair(flat); cout << ans.ids.first << ' ' << ans.ids.second << ' ' << decimal(ans.distance2) << '\n';}
+            auto ans = three ? (naive ? closestPair3Naive(p) : closestPair3(p)) : naive ? closestPairNaive(flat) : simple ? closestPairSimple(flat) : closestPair(flat); cout << ans.ids.first << ' ' << ans.ids.second << ' ' << decimal(ans.distance2) << '\n';}
         return 0;}
     std::mt19937_64 rng(seed);
     std::mt19937_64 seedRng(seed ^ 0x5eed5eed5eedULL);
     for (int k = mode == "quick" ? 1 : mode == "full" ? 4 : 8; k--; ) { seeds.push_back(seedRng()); }
+    caseSeeds.seed(seed ^ 0xca5e5eedULL);
     phase = "regressions / full-width translated clusters";
     for (const vector<point> &p : vector<vector<point>>{
         {}, {{lo, hi}}, {{hi, lo}, {hi, lo}}, {{0, 0}, {3, 4}},
@@ -355,6 +468,12 @@ int main(int argc, char **argv) {
     require(equal(b, {{0, 1}, 65535LL * 65535LL}), vector<point>{}, {{0, 1}, 65535LL * 65535LL}, b, "int16_t");
     auto c = closestPair(vector<Point2<int8_t>>{{-128, 0}, {127, 0}});
     require(equal(c, {{0, 1}, 65025}), vector<point>{}, {{0, 1}, 65025}, c, "int8_t");
+    auto as = closestPairSimple(vector<Point2<int>>{{std::numeric_limits<int>::min(), 0}, {std::numeric_limits<int>::max(), 0}});
+    require(equal(as, a), vector<point>{}, a, as, "closestPairSimple int");
+    auto bs = closestPairSimple(vector<Point2<int16_t>>{{-32768, 0}, {32767, 0}});
+    require(equal(bs, b), vector<point>{}, b, bs, "closestPairSimple int16_t");
+    auto cs = closestPairSimple(vector<Point2<int8_t>>{{-128, 0}, {127, 0}});
+    require(equal(cs, c), vector<point>{}, c, cs, "closestPairSimple int8_t");
     phase = "large no-duplicate equal-support grid and line";
     int n = mode == "quick" ? 500 : mode == "full" ? 50000 : 250000;
     for (int shape = 0; shape < 5; ++shape) {
@@ -374,10 +493,16 @@ int main(int argc, char **argv) {
         require(!OPTIMIZED || seconds <= 5, vector<point>{}, want, got, "large known minimum time > 5s");
         require(equal(want, got), p, want, got, "large known minimum");
         require(before == p, p, want, got, "large input preserved");
+        start = std::chrono::steady_clock::now();
+        auto sim = closestPairSimple(p);
+        seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        require(!OPTIMIZED || seconds <= 5, vector<point>{}, want, sim, "closestPairSimple large known minimum time > 5s");
+        require(equal(want, sim), vector<point>{}, want, sim, "closestPairSimple large known minimum");
+        require(before == p, vector<point>{}, want, sim, "closestPairSimple large input preserved");
         for (ulng s : seeds) {
             auto r = closestPairRandomized(p, s);
             require(equal(want, r), vector<point>{}, want, r, ("closestPairRandomized large known minimum rngseed=" + std::to_string(s)).c_str());}}
-    phase = "closestPairRandomized large random, clustered and extreme-span clouds against closestPair";
+    phase = "closestPairRandomized and closestPairSimple large random, clustered and extreme-span clouds against closestPair";
     for (int shape = 0; shape < 4; ++shape) {
         vector<point> p;
         for (int i = 0; i < n; ++i) {
@@ -387,6 +512,11 @@ int main(int argc, char **argv) {
             if (shape == 2) { p.push_back({lo + lng(rng() % 4), lo + lng(rng() % ulng(n))}); }
             if (shape == 3) { p.push_back({i % 2 ? lo + lng(rng() % ulng(n)) : lng(ulng(lo) + (ROOT - 16)) - lng(rng() % ulng(n)), hi - lng(rng() % 4)}); }}
         auto want = closestPair(p);
+        auto start = std::chrono::steady_clock::now();
+        auto sim = closestPairSimple(p);
+        double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        require(!OPTIMIZED || seconds <= 5, vector<point>{}, want, sim, ("closestPairSimple large agreement time > 5s shape=" + std::to_string(shape)).c_str());
+        require(equal(want, sim), vector<point>{}, want, sim, ("closestPairSimple large agreement shape=" + std::to_string(shape)).c_str());
         for (ulng s : seeds) {
             auto r = closestPairRandomized(p, s);
             require(equal(want, r), vector<point>{}, want, r, ("closestPairRandomized large agreement shape=" + std::to_string(shape) + " rngseed=" + std::to_string(s)).c_str());}}
@@ -398,22 +528,81 @@ int main(int argc, char **argv) {
     {
         using D = Point2<double>;
         const double z = -0.0;
-        auto r1 = closestPairApprox(vector<D>{{0, 0}, {1, 1}, {z, 0}});
-        if (r1 != pair{0, 2}) { failure("closestPairApprox signed zero equals zero", vector<D>{{0, 0}, {1, 1}, {z, 0}}, pair{0, 2}, r1); }
-        // True minimum is (2, 3); 1e-22 is below half an ulp of 1 in long double, so (0, 1) ties it and wins on ids.
-        auto r2 = closestPairApprox(vector<D>{{0, 0}, {1, 1e-11}, {5, 0}, {6, 0}});
-        if (r2 != pair{0, 1}) { failure("closestPairApprox rounding tie", vector<D>{{0, 0}, {1, 1e-11}, {5, 0}, {6, 0}}, pair{0, 1}, r2); }
-        checks += 2;
+        for (ulng s : approxSeeds()) {
+            string tag = " rngseed=" + std::to_string(s);
+            auto r1 = closestPairApprox(vector<D>{{0, 0}, {1, 1}, {z, 0}}, s);
+            if (r1 != pair{0, 2}) { failure("closestPairApprox signed zero equals zero" + tag, vector<D>{{0, 0}, {1, 1}, {z, 0}}, pair{0, 2}, r1); }
+            // True minimum is (2, 3); 1e-22 is below half an ulp of 1 in long double, so (0, 1) ties it and wins on ids.
+            auto r2 = closestPairApprox(vector<D>{{0, 0}, {1, 1e-11}, {5, 0}, {6, 0}}, s);
+            if (r2 != pair{0, 1}) { failure("closestPairApprox rounding tie" + tag, vector<D>{{0, 0}, {1, 1e-11}, {5, 0}, {6, 0}}, pair{0, 1}, r2); }
+            checks += 2;}
+        // E = 2^40 side for a unit closest distance: spans E - 1 keep the grid, E and above fall back; far unit pairs tie (0, 1) or lose it.
+        const double e = 0x1p40 + 0x1p32, t = 0x1p-1074;
         for (const vector<D> &p : vector<vector<D>>{{}, {{z, z}}, {{1e300, -1e300}, {1e300, -1e300}}, {{1e16, 0}, {1e16 + 1, 0}, {0, 0}},
-                                                    {{3, 0}, {2, 0}, {1, 0}, {0, 0}}, {{-1e-300, 0}, {1e-300, 0}, {0, 1e-300}}}) { verifyApprox(p); }
+                                                    {{3, 0}, {2, 0}, {1, 0}, {0, 0}}, {{-1e-300, 0}, {1e-300, 0}, {0, 1e-300}},
+                                                    {{0, 0}, {1, 1}, {0, 0}}, {{5, 5}, {0, 0}, {1, 0}, {5, 5}, {0, 0}, {9, 9}},
+                                                    {{0, 0}, {1e-12, 0}, {1e20, 0}}, {{1e20, 0}, {3, 4}, {0, 0}, {0, 1e-12}},
+                                                    {{e - 2, 0}, {e - 1, 0}, {0, 0}, {1, 0}}, {{e - 1, 0}, {e, 0}, {0, 0}, {1, 0}},
+                                                    {{0, 0}, {1, 0}, {e - 2, 1}, {e - 1, 1}}, {{0, 0}, {1, 0}, {e, 1}, {e + 1, 1}},
+                                                    {{0, 0}, {1.5, 0}, {e - 2, 0}, {e - 1, 0}, {e / 2, 3}}, {{0, 0}, {1.5, 0}, {e - 1, 0}, {e, 0}, {e / 2, 3}},
+                                                    {{-1e308, 0}, {1e308, 0}, {1e308, 1}}, {{0, 0}, {0x1p978, 0}, {0x1p979, 0}},
+                                                    {{0, 0}, {0x1p980, 0}, {0x1p981, 0x1p980}}, {{0, 0}, {0x1p980 * (1 - 0x1p-9), 0}, {0x1p982, 0}},
+                                                    {{0, 0}, {300 * t, 0}, {301 * t, 0}, {511 * t, 0}, {0, 200 * t}}}) { verifyApprox(p); }
         verifyApprox(vector<Point2<float>>{{0.1f, 0}, {0.2f, 0}, {0.3f, 0}, {0.4f, 0}});
+        verifyApprox(vector<Point2<float>>{{0, 0}, {0.5f, 0.5f}, {0, 0}, {1e30f, 0}});
         verifyApprox(vector<Point2<long double>>{{1e2000L, 0}, {1e2000L, 1}, {-1e2000L, 0}});
+        verifyApprox(vector<Point2<long double>>{{0, 0}, {1e600L, 0}, {3e600L, 1e600L}, {-2e600L, 5e599L}, {1e600L, 1e600L}});
+        verifyApprox(vector<Point2<long double>>{{0, 0}, {1e300L, 0}, {3e300L, 1e300L}, {-2e300L, 5e299L}});
+        verifyApprox(vector<Point2<long double>>{{0, 0}, {1e-320L, 0}, {3e-320L, 0}, {2e-320L, 5e-321L}});
+        // Spans of 2^60 from a zero minimum: past the span guard, cells from double differences split the tied pair (0, 1) whenever two
+        // of the six unit-spaced points precede its second point, which most seeds give.
+        verifyApprox(vector<Point2<long double>>{{0x1p60L + 383, 0}, {0x1p60L + 384, 0}, {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}});
+        verifyApprox(vector<Point2<long double>>{{0, 0x1p60L + 383}, {0, 0x1p60L + 384}, {0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}});
     }
     phase = "closestPairApprox random rounding ties, signed zeros, duplicates, lines and wide exponents";
     int approxRounds = mode == "quick" ? 24 : mode == "full" ? 1200 : 8000;
     approxTyped<float>(rng, approxRounds); approxTyped<double>(rng, approxRounds); approxTyped<long double>(rng, approxRounds);
+    phase = "closestPairApprox fallbacks: repeated points, span >= 2^40 side, side >= 2^980, subnormal distances";
+    approxFallbacks(rng, mode == "quick" ? 14 : mode == "full" ? 700 : 5600);
     phase = "closestPairApprox large planted minimum";
     approxLarge<float>(n); approxLarge<double>(n); approxLarge<long double>(n);
+    phase = "closestPairApprox large exact doubles: random, jittered lattice, line, clusters";
+    approxLargeExact(rng, mode == "quick" ? 2000 : 200000);
+    phase = "closestPairApprox subnormal and 1e-320 lattices (1 / side beyond double)";
+    approxTinyLattice<double>(rng, mode == "quick" ? 2000 : 50000, 0x1p-1074);
+    approxTinyLattice<long double>(rng, mode == "quick" ? 2000 : 50000, 0x1p-1063L);
+    phase = "closestPairApprox __float128 coordinates and the non-finite entry check";
+    {
+        // Gaps 4 * 2^-60 at 1 and a point 2^-60 from the 33rd: cells computed in double merge them, long double ones (as dist2) do not.
+        vector<Point2<__float128>> p;
+        for (int k = 0; k < 1200; ++k) { p.push_back({1 + __float128(4 * k) * __float128(0x1p-60L), 0}); }
+        p.push_back({1 + __float128(129) * __float128(0x1p-60L), 0});
+        verifyApprox(p);
+        requireGridPath(p, {32, 1200}, "__float128 gaps below the double ulp");
+        // Distinct __float128 points that round to one long double point are at computed distance 0, so (1, 2) beats the repeat (3, 4).
+        __float128 e = __float128(0x1p-100L);
+        verifyApprox(vector<Point2<__float128>>{{100, 0}, {1 + e, 0}, {1, 0}, {5, 0}, {5, 0}});
+        vector<Point2<__float128>> q;
+        for (int k = 0; k < 2000; ++k) { q.push_back({__float128(3 * k + 10), __float128(7 * (k % 13))}); }
+        q[5] = {1 + e, 0}; q[6] = {1, 0}; q[1998] = q[1999];
+        verifyApprox(q);
+        // Long double cases with points moved below the long double ulp, which round back onto them, and repeats.
+        for (int t = 0; t < approxRounds; ++t) {
+            auto r = floatingCase<__float128>(rng, t);
+            for (auto &c : r) {
+                if (rng() % 3 == 0) { c.x += (c.x != 0 ? c.x : 1) * e; }}
+            if (!r.empty() && rng() % 2) { r.push_back(r[rng() % r.size()]); }
+            verifyApprox(r); std::shuffle(r.begin(), r.end(), rng); verifyApprox(r);}}
+#ifdef NDEBUG
+    {
+        // Past the violated finite precondition the entry check returns before any allocation or sort (Contracts, a memory-safe
+        // boundedness check): NaN or infinite x or y.
+        const double nan = std::numeric_limits<double>::quiet_NaN(), inf = std::numeric_limits<double>::infinity();
+        for (Point2<double> bad : {Point2<double>{nan, 0}, {0, nan}, {inf, 0}, {0, -inf}}) {
+            vector<Point2<double>> p{{0, 0}, bad, {1, 0}};
+            ++checks;
+            if (closestPairApprox(p, 1) != pair{-1, -1}) { failure("closestPairApprox non-finite under NDEBUG", p, pair{-1, -1}, closestPairApprox(p, 1)); }}}
+#endif
     phase = "minimumPerimeterTriangleApprox regressions";
     {
         auto r1 = minimumPerimeterTriangleApprox(vector<point>{{0, 0}, {5, 5}});

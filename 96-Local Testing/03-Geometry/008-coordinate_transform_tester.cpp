@@ -18,8 +18,38 @@ namespace test {
         close(got.x, want.x, op + " x", tol, point_scale); close(got.y, want.y, op + " y", tol, point_scale);}
     void readMap(std::istream &in, Affine2Approx &f) { in >> f.a >> f.b >> f.c >> f.d >> f.t.x >> f.t.y; }
     dpoint readPoint(std::istream &in) { dpoint p; in >> p.x >> p.y; return p; }
-    bool bitwise(dpoint x, dpoint y) {
-        return x.x == y.x && x.y == y.y && std::signbit(x.x) == std::signbit(y.x) && std::signbit(x.y) == std::signbit(y.y);}
+    bool bitwise(long double x, long double y) { return x == y && std::signbit(x) == std::signbit(y); }
+    bool bitwise(dpoint x, dpoint y) { return bitwise(x.x, y.x) && bitwise(x.y, y.y); }
+
+    // Exact affine images keep line values: l(z) == out(f(z)). Bounds use the inverse's pre-cancellation term sizes.
+    void lines(const Affine2Approx &f, const array<long double, 3> &l, const dpoint (&images)[3], dpoint p, dpoint image,
+               int flag, const array<long double, 3> &want) {
+        const array<long double, 3> sentinel{2, 3, 5};
+        auto out = sentinel, alias = l;
+        require(f.applyLine(l, out) == (flag == 1) && f.applyLine(alias, alias) == (flag == 1), "applyLine existence");
+        if (!flag) {
+            require(out == sentinel && alias == l, "singular applyLine leaves out unchanged"); return;}
+        require(bitwise(out[0], alias[0]) && bitwise(out[1], alias[1]) && bitwise(out[2], alias[2]), "applyLine self alias bitwise");
+        long double det = abs(f.determinant());
+        long double sx = (abs(f.d * l[0]) + abs(f.c * l[1])) / det, sy = (abs(f.b * l[0]) + abs(f.a * l[1])) / det;
+        long double sk = abs(l[2]) + sx * abs(f.t.x) + sy * abs(f.t.y);
+        close(out[0], want[0], "applyLine x vs Fraction", 2e-14L, sx); close(out[1], want[1], "applyLine y vs Fraction", 2e-14L, sy);
+        close(out[2], want[2], "applyLine K vs Fraction", 2e-14L, sk);
+        auto value = [&](dpoint w, long double expect, const string &op) {
+            close(out[0] * w.x + out[1] * w.y - out[2], expect, op, 2e-14L, sx * abs(w.x) + sy * abs(w.y) + sk);};
+        value(images[0], 0, "first line point maps onto image line"); value(images[1], 0, "second line point maps onto image line");
+        value(images[2], l[0] * l[0] + l[1] * l[1], "positive side value kept");
+        require(out[0] * images[2].x + out[1] * images[2].y - out[2] > 0, "positive side kept");
+        value(image, l[0] * p.x + l[1] * p.y - l[2], "line value preserved at p");}
+
+    void equality(const Affine2Approx &f, const Affine2Approx &g, int flag) {
+        require((f == g) == (flag == 1) && (g == f) == (flag == 1), "operator== vs Fraction");
+        auto e = f; require(e == f, "operator== copy");
+        for (long double *x : {&e.a, &e.b, &e.c, &e.d, &e.t.x, &e.t.y}) {
+            long double old = *x;
+            *x = std::nextafter(old, std::numeric_limits<long double>::infinity()); require(!(e == f) && !(f == e), "operator== one ulp apart");
+            if (old == 0) { *x = -0.L; require(e == f, "operator== negative zero"); }
+            *x = old;}}
 
     void fractions() {
         const char *path = std::getenv("CP_TRANSFORM_ORACLE"); require(path, "fixture environment");
@@ -32,7 +62,12 @@ namespace test {
             auto point_want = readPoint(row), vector_want = readPoint(row);
             Point3<long double> homogeneous; row >> homogeneous.x >> homogeneous.y >> homogeneous.z;
             auto composed = readPoint(row); long double det; row >> det;
-            auto inverse_want = readPoint(row), cartesian = readPoint(row); require(bool(row), "valid fixture");
+            auto inverse_want = readPoint(row), cartesian = readPoint(row);
+            int direction_flag; row >> direction_flag; auto direction_want = readPoint(row);
+            auto segment_want = readPoint(row); array<long double, 3> l; row >> l[0] >> l[1] >> l[2];
+            dpoint images[3]; for (auto &w : images) { w = readPoint(row); }
+            int line_flag; array<long double, 3> line_want; row >> line_flag >> line_want[0] >> line_want[1] >> line_want[2];
+            int equal_flag; row >> equal_flag; string rest; require(bool(row) && !(row >> rest), "valid fixture");
             close(f.applyPoint(p), point_want, "point vs Fraction");
             close(f.applyVector(p), vector_want, "vector vs Fraction");
             auto got = f.applyHomogeneous(h);
@@ -60,8 +95,27 @@ namespace test {
                 require(inv.a == saved.a && inv.b == saved.b && inv.c == saved.c && inv.d == saved.d && inv.t == saved.t,
                         "singular output unchanged");}
             dpoint result{123, 456}; require(cartesianApprox(h, result) == (h.z != 0), "Cartesian existence");
-            close(result, h.z ? cartesian : dpoint{123, 456}, "Cartesian Fraction or unchanged output");}
+            close(result, h.z ? cartesian : dpoint{123, 456}, "Cartesian Fraction or unchanged output");
+            require(direction_flag == (f.applyVector(p) != dpoint{}), "direction fixture flag");
+            if (direction_flag) {
+                auto direction = f.applyDirection(p);
+                require(bitwise(direction, unitApprox(f.applyVector(p))), "applyDirection equals unitApprox(applyVector) bitwise");
+                close(direction.x, direction_want.x, "applyDirection vs Fraction x"); close(direction.y, direction_want.y, "applyDirection vs Fraction y");}
+            dpoint q{h.x, h.y}; auto segment = f.applyLinear({p, q});
+            require(bitwise(segment[0], f.applyPoint(p)) && bitwise(segment[1], f.applyPoint(q)), "applyLinear equals applyPoint bitwise");
+            close(segment[0], point_want, "applyLinear first vs Fraction"); close(segment[1], segment_want, "applyLinear second vs Fraction");
+            lines(f, l, images, p, point_want, line_flag, line_want);
+            equality(f, g, equal_flag);}
         require(count > 0, "nonempty fixtures"); cout << "PASS Fraction records=" << count << '\n';}
+
+    // Under an invertible map the image line takes at f(z) the value the line takes at z.
+    void lineValues(const Affine2Approx &f, const array<long double, 3> &l, std::initializer_list<dpoint> points) {
+        array<long double, 3> out{}; require(f.applyLine(l, out), "invertible applyLine");
+        for (auto z : points) {
+            auto w = f.applyPoint(z);
+            long double scale = abs(l[0] * z.x) + abs(l[1] * z.y) + abs(l[2]) + abs(out[0] * w.x) + abs(out[1] * w.y) + abs(out[2])
+                                + (abs(out[0]) + abs(out[1])) * point_scale;
+            close(out[0] * w.x + out[1] * w.y - out[2], l[0] * z.x + l[1] * z.y - l[2], "applyLine value invariance", 2e-12L, scale);}}
 
     void geometry() {
         std::mt19937_64 rng(seed); int rounds = mode == "quick" ? 100 : mode == "full" ? 5000 : 40000;
@@ -115,6 +169,20 @@ namespace test {
             close(similarity.applyPoint(center + v), p + perp(v) * 2.L, "similarity second endpoint", 2e-12L);
             close(similarity.applyVector(v), perp(v) * 2.L, "similarity vector", 2e-12L);
             close(Affine2Approx::similarity(center, center + v, p, p).applyPoint(v), p, "constant similarity");
+            long double phase_v = std::atan2(v.y, v.x) + angle;
+            auto direction = rotation.applyDirection(v);
+            require(bitwise(direction, unitApprox(rotation.applyVector(v))), "applyDirection rotation bitwise");
+            close(direction.x, std::cos(phase_v), "applyDirection polar x", 2e-12L); close(direction.y, std::sin(phase_v), "applyDirection polar y", 2e-12L);
+            auto turn = similarity.applyDirection(v), want = unitApprox(perp(v));
+            close(turn.x, want.x, "applyDirection similarity x", 2e-12L); close(turn.y, want.y, "applyDirection similarity y", 2e-12L);
+            auto segment = projection.applyLinear({p, center + 2.L * v});
+            close(segment[0], foot, "applyLinear projection foot", 2e-12L); close(segment[1], center + 2.L * v, "applyLinear projection fixes line", 2e-12L);
+            array<long double, 3> l{v.x, v.y, dot(v, p)};
+            for (const auto *m : {&rotation, &reflection, &scaling, &similarity}) { lineValues(*m, l, {p, center, p + perp(v), center + v}); }
+            auto sentinel = l; sentinel[0] += 1;
+            auto out = sentinel; require(projection.applyLine(l, out) == (projection.determinant() != 0), "projection applyLine flag");
+            if (projection.determinant() == 0) { require(out == sentinel, "projection applyLine unchanged"); }
+            out = sentinel; require(!constant.applyLine(l, out) && out == sentinel, "rank zero applyLine unchanged");
             dpoint finite; auto h = rotation.applyHomogeneous({p.x * -3, p.y * -3, -3});
             require(cartesianApprox(h, finite), "homogeneous finite conversion");
             close(finite, rotation.applyPoint(p), "homogeneous scale invariance", 2e-12L);}
@@ -122,6 +190,11 @@ namespace test {
         auto f = Affine2Approx::projection({1, 2}, {1, 9}); require(f.orientation() == 0 && !f.inverse(f), "rank one inverse");
         Affine2Approx tiny{1, 0, 0, 1e-30L}, inverse;
         require(tiny.inverse(inverse), "nonzero small determinant not suppressed"); close(inverse.d, 1e30L, "small inverse");
+        context = "operator== fixtures";
+        require(Affine2Approx{} == Affine2Approx::translation({}) && Affine2Approx{} == Affine2Approx::scaling(1, 1)
+                && Affine2Approx{} == Affine2Approx::rotation(0, {3, -4}), "operator== identity forms");
+        require(Affine2Approx{1, -0.L, 0, 1, {-0.L, 0}} == Affine2Approx{}, "operator== signed zeros");
+        require(!(Affine2Approx::translation({0, 1e-4000L}) == Affine2Approx{}), "operator== tiny translation");
         cout << "PASS geometric cases=" << rounds << '\n';}
 
     // Exact Affine2 over Rational<lng>, Rational<lll> (the default R) and Rational<InfInt> against Python Fraction 3x3
@@ -136,6 +209,18 @@ namespace test {
                 std::ostringstream s; s << op << " index=" << i << " expected=" << want[i] << " actual=" << got[i];
                 require(false, s.str());}}
         require(true, op);}
+
+    // Exact checks: applyLine singular, invertible and skipped; applyLinear; predicates skipped, true and false.
+    std::array<int, 7> counts{};
+    const char *PREDICATES[6] = {"isTranslation", "isScaling", "isRotation", "isProjection", "isReflection", "isSimilarity"};
+    template<typename A> bool predicate(const A &f, int k) {
+        switch (k) {
+            case 0: return f.isTranslation();
+            case 1: return f.isScaling();
+            case 2: return f.isRotation();
+            case 3: return f.isProjection();
+            case 4: return f.isReflection();
+            default: return f.isSimilarity();}}
 
     template<typename R> Exact<R> exactMap(std::istream &in, string &op, vector<array<R, 2>> &marks) {
         using A = Exact<R>; using P = array<R, 2>;
@@ -163,6 +248,11 @@ namespace test {
         P p = pt(), u = pt(), v = pt();
         C fw = map(), gw = map(); P pw = pt(), vw = pt(); R dw = x();
         C fixw = map(), fgw = map(), gfw = map(); P fgpw = pt(); int flag = -1; in >> flag; C invw = map();
+        using L = array<R, 3>;
+        L l, lw; for (auto &y : l) { y = x(); }
+        int line_flag = -1; in >> line_flag; for (auto &y : lw) { y = x(); }
+        int linear_flag = -1, equal_flag = -1; in >> linear_flag; P uw = pt(); in >> equal_flag;
+        array<int, 24> predicates; for (auto &y : predicates) { in >> y; }
         string rest; require(bool(in) && !(in >> rest), "exact record shape");
         const C identity{R(1), R(), R(), R(1), R(), R()};
         same(coefficients(f), fw, "factory f vs Fraction"); same(coefficients(g), gw, "factory g vs Fraction");
@@ -186,7 +276,36 @@ namespace test {
         if (fop == "pr") { same(coefficients(f * f), fw, "projection idempotence"); }
         if (fop == "re") { same(coefficients(f * f), identity, "reflection involution"); same(array<R, 1>{dw}, array<R, 1>{R(-1)}, "reflection determinant"); }
         if (fop == "ro" || fop == "roc") { same(f.applyPoint(marks[0]), marks[0], "rotation fixes center"); same(array<R, 1>{dw}, array<R, 1>{R(1)}, "rotation determinant"); }
-        if (fop == "si") { same(f.applyPoint(marks[0]), marks[2], "similarity maps p to u"); same(f.applyPoint(marks[1]), marks[3], "similarity maps q to v"); }}
+        if (fop == "si") { same(f.applyPoint(marks[0]), marks[2], "similarity maps p to u"); same(f.applyPoint(marks[1]), marks[3], "similarity maps q to v"); }
+        // Flag 2 skips an operation whose R intermediates overflow the record's bounded type (outside its domain).
+        if (line_flag != 2) {
+            const L sentinel{R(17), R(19), R(23)};
+            L got = sentinel, alias = l;
+            require(f.applyLine(l, got) == (line_flag == 1) && f.applyLine(alias, alias) == (line_flag == 1), "exact applyLine existence");
+            same(got, line_flag == 1 ? lw : sentinel, "exact applyLine vs Fraction or unchanged");
+            same(alias, line_flag == 1 ? lw : l, "exact applyLine self alias");
+            if (line_flag == 1) {
+                auto w = f.applyPoint(p);
+                same(array<R, 1>{got[0] * w[0] + got[1] * w[1] - got[2]}, array<R, 1>{l[0] * p[0] + l[1] * p[1] - l[2]}, "exact line value preserved");}
+            ++counts[line_flag];}
+        if (linear_flag != 2) {
+            auto segment = f.applyLinear({p, u});
+            same(segment[0], pw, "applyLinear first vs Fraction"); same(segment[1], uw, "applyLinear second vs Fraction");
+            ++counts[3];}
+        require((f == g) == (equal_flag == 1) && (g == f) == (equal_flag == 1), "exact operator== vs Fraction");
+        A e = f; require(e == f, "exact operator== copy");
+        for (R *y : {&e.a, &e.b, &e.c, &e.d, &e.tx, &e.ty}) {
+            R old = *y; *y = old == R() ? R(1) : R(); require(!(e == f) && !(f == e), "exact operator== one coefficient differs");
+            *y = old;}
+        if (flag == 1) { require(f * out == A{} && out * f == A{}, "exact operator== inverse composes to identity"); }
+        const A maps[4] = {f, g, f * g, g * f};
+        for (int i = 0; i < 24; ++i) {
+            int want = predicates[size_t(i)];
+            if (want == 2) { ++counts[4]; continue; }
+            const char *names[4] = {"f", "g", "f * g", "g * f"};
+            require(predicate(maps[i / 6], i % 6) == (want == 1),
+                    string("exact ") + PREDICATES[i % 6] + " of " + names[i / 6] + " vs Fraction expected=" + std::to_string(want));
+            ++counts[want ? 5 : 6];}}
 
     void exact() {
         const char *path = std::getenv("CP_TRANSFORM_EXACT"); require(path, "exact fixture environment");
@@ -200,7 +319,10 @@ namespace test {
             else if (type == "I") { exactRecord<Rational<InfInt>>(row); ++types[2]; }
             else { require(false, "exact record type"); }}
         require(types[0] > 0 && types[1] > 0 && types[2] > 0, "every exact type has records");
-        cout << "PASS exact Affine2 records=" << count << " lng=" << types[0] << " lll=" << types[1] << " InfInt=" << types[2] << '\n';}
+        require(counts[0] > 0 && counts[1] > 0 && counts[3] > 0 && counts[5] > 0 && counts[6] > 0, "every new exact check ran");
+        cout << "PASS exact Affine2 records=" << count << " lng=" << types[0] << " lll=" << types[1] << " InfInt=" << types[2] << '\n';
+        cout << "PASS exact applyLine singular=" << counts[0] << " invertible=" << counts[1] << " overflow-skipped=" << count - counts[0] - counts[1]
+             << " applyLinear=" << counts[3] << " predicates true=" << counts[5] << " false=" << counts[6] << " overflow-skipped=" << counts[4] << '\n';}
 } // namespace test
 
 int main(int argc, char **argv) {
@@ -215,6 +337,7 @@ int main(int argc, char **argv) {
             if (probe == "reflection-point") { Affine2Approx::reflection({1, 2}, {1, 2}); }
             if (probe == "similarity-point") { Affine2Approx::similarity({1, 2}, {1, 2}, {}, {3, 4}); }
             using Q = Rational<lll>; using P = array<Q, 2>;
+            if (probe == "direction-zero") { Affine2Approx::scaling(0, 1).applyDirection({1, 0}); }
             if (probe == "rotate-approx-nan") { rotateApprox({1, 2}, std::numeric_limits<long double>::quiet_NaN()); }
             if (probe == "exact-rotation-nonunit") { Affine2<>::rotation(Q(3, 5), Q(3, 5)); }
             if (probe == "exact-rotation-over") { Affine2<>::rotation(Q(4, 5), Q(4, 5)); }

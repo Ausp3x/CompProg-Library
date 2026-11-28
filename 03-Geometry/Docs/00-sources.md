@@ -51,7 +51,7 @@
 | maspypy geo/apollonian_circle.hpp | https://maspypy.github.io/library/geo/apollonian_circle.hpp | row 24 `apollonianCircle` (ratio locus) |
 | maspypy geo/furthest_pair.hpp; Library Checker furthest_pair | https://maspypy.github.io/library/geo/furthest_pair.hpp, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/furthest_pair/task.md | `farthestPair` (point-cloud wrapper with original indices) |
 | Toussaint 1983, Solving geometric problems with the rotating calipers; Wikipedia, Rotating calipers | https://www.cs.swarthmore.edu/~adanner/cs97/s08/pdf/calipers.pdf, https://en.wikipedia.org/wiki/Rotating_calipers | two-polygon calipers problems (rows 04, 11, 17, 25, 53 and 76) |
-| CGAL Aff_transformation_2 | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__2.html | exact rational transforms (`Affine2`); line and direction images and map equality (not adopted) |
+| CGAL Aff_transformation_2 | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__2.html | exact rational transforms (`Affine2`); line and direction images, map equality and the exact `is*` predicates (added by the P008 follow-ups, user decision 2026-11-27) |
 
 ## P009 Completeness Sweep, Fetched 2026-10-07
 
@@ -321,15 +321,15 @@ Four `@researcher` passes, one per GE02 row; decisions in [00-notes.md](00-notes
 
 | Source | URL | Used for |
 |---|---|---|
-| OI Wiki 平面最近点对 | https://oi-wiki.org/geometry/nearest-points/ | 05: `closestPair`, `closestPairRandomized`, `minimumPerimeterTriangleApprox` (divide and conquer, expected-linear grid); the set sweep and incremental grid not adopted |
+| OI Wiki 平面最近点对 | https://oi-wiki.org/geometry/nearest-points/ | 05: `closestPair`, `closestPairRandomized`, `minimumPerimeterTriangleApprox` (divide and conquer, expected-linear grid); `closestPairSimple` (set sweep) and `closestPairApprox`'s incremental grid (user decision 2026-11-27) |
 | cp-algorithms, nearest points | https://cp-algorithms.com/geometry/nearest_points.html | 05: Rabin's sampled grid (`closestPairRandomized`), the minimum-perimeter triangle extension |
-| KACTL ClosestPair.h | https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/ClosestPair.h | 05: ordered-set sweep, not adopted |
-| maspypy geo/closest_pair.hpp, suisen geom/closest_pair.hpp | https://maspypy.github.io/library/geo/closest_pair.hpp, https://suisen-cp.github.io/cp-library-cpp/library/geom/closest_pair.hpp | 05: incremental grid and bottom-up divide and conquer, not adopted; `closestPairApprox` (complex long double) |
+| KACTL ClosestPair.h | https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/ClosestPair.h | 05: `closestPairSimple` (ordered-set sweep, a lighter form kept by user decision 2026-11-27) |
+| maspypy geo/closest_pair.hpp, suisen geom/closest_pair.hpp | https://maspypy.github.io/library/geo/closest_pair.hpp, https://suisen-cp.github.io/cp-library-cpp/library/geom/closest_pair.hpp | 05: `closestPairApprox` (complex long double); maspypy's random-incremental grid, adopted as its fast path (2026-11-27); suisen's floating divide and conquer not adopted (user decision 2026-11-27) |
 | KACTL, maspypy, Nyaan, ei1333, hitonanode circle files | https://github.com/kth-competitive-programming/kactl/tree/main/content/geometry, https://maspypy.github.io/library/geo/cross_point.hpp, https://nyaannyaan.github.io/library/geometry/circle.hpp, https://ei1333.github.io/library/geometry/circle.hpp, https://hitonanode.github.io/cplib-cpp/geometry/geometry.hpp | 06: every operation already in the row or owned elsewhere |
 | AOJ CGL_7_I | https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_7_I | 06: `diskOverlapAreaApprox` |
 | OI Wiki 旋转卡壳 | https://oi-wiki.org/geometry/rotating-calipers/ | 07: `expectedBoxAreaApprox` (exercise CF 1578F "Framing Pictures") |
-| Wikipedia, Rotating calipers; Toussaint 1983 | https://en.wikipedia.org/wiki/Rotating_calipers, https://www.cs.swarthmore.edu/~adanner/cs97/s08/pdf/calipers.pdf | 07: problem list checked; Freeman–Shapira quadratic rectangle not adopted; transversal and triangulation problems are follow-ups |
-| CGAL Aff_transformation_2 | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__2.html | 08: `Affine2` translation, scaling, reflection, rotation from a rational sine and cosine; the rational rotation approximation not adopted |
+| Wikipedia, Rotating calipers; Toussaint 1983 | https://en.wikipedia.org/wiki/Rotating_calipers, https://www.cs.swarthmore.edu/~adanner/cs97/s08/pdf/calipers.pdf | 07: problem list checked; `minimumAreaRectangleApproxQuadratic` and `minimumPerimeterRectangleApproxQuadratic` (Freeman–Shapira, lighter forms kept by user decision 2026-11-27); the triangulation and placement problems are planned row 77 (GE68), the transversals checked by GE67 |
+| CGAL Aff_transformation_2 | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__2.html | 08: `Affine2` translation, scaling, reflection, rotation from a rational sine and cosine; line, ray, segment and direction images (`applyLinear`, `applyLine`, `applyDirection`), `operator==` and the `is_*` predicates (`isTranslation` and the others, user decision 2026-11-27); the rational rotation approximation not adopted |
 | KACTL linearTransformation.h | https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/linearTransformation.h | 08: alias of `similarity` then `applyPoint` |
 | OI Wiki 坐标系 | https://oi-wiki.org/math/coordinate/ | `fromPolarApprox`, a follow-up for row 01 |
 

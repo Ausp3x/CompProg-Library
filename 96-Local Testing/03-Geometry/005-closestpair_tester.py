@@ -15,7 +15,13 @@ collinear 1x3 lists through length 7, all 3x3 subsets (and all 4x4 subsets outsi
 random rounds per int8/int16/int/lng/float/double/long double, and planted large inputs (2,000 points in
 quick, 200,000 otherwise). Three build configurations outside quick; all modes include boundary regressions.
 closestPairNaive, closestPair3Naive and minimumPerimeterTriangleApproxNaive run beside their fast forms on every
-oracle-checked case; the two pair scans also through the Python bigint protocol. Once per full or stress run, -fsyntax-only compiles check that every static_assert admits its documented
+oracle-checked case; the two pair scans also through the Python bigint protocol. closestPairSimple runs on every
+oracle-checked 2D case (typed rounds included) against the O(n^2) oracle and closestPair, on the timed large shapes
+and agreement clouds, through the Python bigint protocol and in the simple-span-x probe. Every closestPairApprox case
+runs with the default seed, the closestPairRandomized seeds and one drawn per case; 14/700/5,600 fallback rounds
+(repeated points, span >= 2^40 side, side >= 2^980, subnormal distances) and fixed boundary cases are checked against
+the brute force, and four exact-double shapes of 2,000 (quick) or 200,000 points against closestPair, timed.
+Once per full or stress run, -fsyntax-only compiles check that every static_assert admits its documented
 coordinate types and rejects one type just outside them.
 """
 import math
@@ -39,7 +45,11 @@ DOMAIN_CASES = [('closestPair', 'Point2<int>', True), ('closestPair', 'Point2<ln
                 ('closestPair', 'Point2<double>', False), ('closestPairRandomized', 'Point2<lng>', True),
                 ('closestPairRandomized', 'Point2<lll>', False), ('closestPairRandomized', 'Point2<double>', False),
                 ('closestPair3', 'Point3<lng>', True), ('closestPair3', 'Point3<lll>', False), ('closestPair3', 'Point3<double>', False),
-                ('closestPairApprox', 'Point2<double>', True), ('closestPairApprox', 'Point2<int>', False),
+                ('closestPairApprox', 'Point2<double>', True), ('closestPairApprox', 'Point2<float>', True),
+                ('closestPairApprox', 'Point2<long double>', True), ('closestPairApprox', 'Point2<__float128>', True), ('closestPairApprox', 'Point2<int>', False),
+                ('closestPairSimple', 'Point2<int>', True), ('closestPairSimple', 'Point2<lng>', True),
+                ('closestPairSimple', 'Point2<int8_t>', True), ('closestPairSimple', 'Point2<lll>', False),
+                ('closestPairSimple', 'Point2<double>', False),
                 ('minimumPerimeterTriangleApprox', 'Point2<lng>', True), ('minimumPerimeterTriangleApprox', 'Point2<int8_t>', True),
                 ('minimumPerimeterTriangleApprox', 'Point2<long double>', True), ('minimumPerimeterTriangleApprox', 'Point2<lll>', False),
                 ('closestPairNaive', 'Point2<lng>', True), ('closestPairNaive', 'Point2<lll>', False), ('closestPairNaive', 'Point2<double>', False),
@@ -83,6 +93,7 @@ def bigint_oracle(binary, args, env):
     check(binary, args, env, 2, '--oracle-randomized', 3)
     check(binary, args, env, 3, '--oracle3', 1)
     check(binary, args, env, 2, '--oracle-naive', 1)
+    check(binary, args, env, 2, '--oracle-simple', 1)
     check(binary, args, env, 3, '--oracle3-naive', 1)
 
 
@@ -141,4 +152,5 @@ def check(binary, args, env, dim, flag, copies):
 
 if __name__ == '__main__':
     raise SystemExit(main('005-closestpair', ['span-x', 'span-y', 'diagonal', 'randomized-span-x', 'randomized-span-y',
-                                     'randomized-diagonal', 'span-z3', 'diagonal3', 'naive-span-x', 'naive-diagonal3'], bigint_oracle))
+                                     'randomized-diagonal', 'span-z3', 'diagonal3', 'naive-span-x', 'naive-diagonal3',
+                                     'simple-span-x', 'approx-nan', 'triangle-nan'], bigint_oracle))

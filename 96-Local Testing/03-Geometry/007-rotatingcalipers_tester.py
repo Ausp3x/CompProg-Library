@@ -11,8 +11,11 @@ segments, a C++ literal-rotation Gauss-Legendre oracle (hulls up to 64 vertices,
 translation and scale invariance, rectangle known answers ab + (a^2 + b^2) / pi; the Python oracle (box_area) adds
 needles, tiny and near-collinear 10^9 hulls, lattice circles of radius 65 and 1105 (full +32045, stress +1185665)
 and 40/400/2000 random hulls, each with its cyclic, quarter-turn and translated variants.
-Once per full or stress run, -fsyntax-only compiles check that farthestPair and farthestPairNaive admit signed integral
-coordinates and fail their static_assert on floating ones.
+minimumAreaRectangleApproxQuadratic and minimumPerimeterRectangleApproxQuadratic, on every hull verify sees: bitwise
+equal to the calipers' boxes, flush with the first edge of least exact objective (all-edges, all-vertices 256-bit oracle)
+and the box oracle; 32- and 8-bit right triangles with known answers; full and stress add a 3001-vertex parabola at two starts.
+Once per full or stress run, -fsyntax-only compiles check that ConvexCalipers, the two quadratic rectangles, farthestPair
+and farthestPairNaive admit signed integral coordinates and fail their static_assert on floating ones.
 """
 import os
 import shlex
@@ -30,8 +33,10 @@ import random
 HEADER = Path(__file__).resolve().parents[2] / '03-Geometry' / '007-rotatingcalipers.hpp'
 DOMAIN_CHECKED = False
 DOMAIN_LOCK = threading.Lock()
-DOMAIN_CASES = [('farthestPair', 'Point2<lng>', True), ('farthestPair', 'Point2<int8_t>', True), ('farthestPair', 'Point2<double>', False),
-                ('farthestPairNaive', 'Point2<lng>', True), ('farthestPairNaive', 'Point2<int8_t>', True), ('farthestPairNaive', 'Point2<double>', False)]
+DOMAIN_CASES = [(f, t, t != 'Point2<double>') for f in ('farthestPair', 'farthestPairNaive', 'ConvexCalipers', 'minimumAreaRectangleApproxQuadratic',
+                                                       'minimumPerimeterRectangleApproxQuadratic')
+                for t in ('Point2<lng>', 'Point2<int8_t>', 'Point2<double>')]
+DOMAIN_BATCH = 6
 
 
 def domain(env):
@@ -41,15 +46,16 @@ def domain(env):
         if DOMAIN_CHECKED:
             return
         command = [*shlex.split(env.get('CXX', os.environ.get('CXX', 'g++'))), '-std=gnu++20', '-fsyntax-only', '-x', 'c++', '-']
-        cases = [(f, t, valid, subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env))
-                 for f, t, valid in DOMAIN_CASES]
-        for f, t, valid, process in cases:
-            source = f'#include "{HEADER}"\nint main() {{ (void){f}(vector<{t}>{{}}); }}\n'
-            _, stderr = process.communicate(source, timeout=120)
-            ok = process.returncode == 0 if valid else process.returncode != 0 and 'static assertion failed' in stderr
-            if not ok:
-                raise RuntimeError(f'command={shlex.join(command)} {f}(vector<{t}>) expected {"compile" if valid else "static_assert failure"} '
-                                   f'returncode={process.returncode}\n{stderr[-2000:]}')
+        for k in range(0, len(DOMAIN_CASES), DOMAIN_BATCH):     # at most DOMAIN_BATCH compilers at once
+            cases = [(f, t, valid, subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env))
+                     for f, t, valid in DOMAIN_CASES[k:k + DOMAIN_BATCH]]
+            for f, t, valid, process in cases:
+                source = f'#include "{HEADER}"\nint main() {{ (void){f}(vector<{t}>{{}}); }}\n'
+                _, stderr = process.communicate(source, timeout=120)
+                ok = process.returncode == 0 if valid else process.returncode != 0 and 'static assertion failed' in stderr
+                if not ok:
+                    raise RuntimeError(f'command={shlex.join(command)} {f}(vector<{t}>) expected {"compile" if valid else "static_assert failure"} '
+                                       f'returncode={process.returncode}\n{stderr[-2000:]}')
         DOMAIN_CHECKED = True
     print(f'PASS rotatingcalipers type domains: {len(DOMAIN_CASES)} -fsyntax-only compiles', flush=True)
 
@@ -224,4 +230,5 @@ def box_oracle(binary, args, env):
     print(f'PASS rotatingcalipers Python box-area oracle: {len(groups)} hulls, {total} calls (cyclic start, quarter turn, translation)', flush=True)
 
 if __name__ == '__main__':
-    raise SystemExit(main('007-rotatingcalipers', ['clockwise', 'collinear', 'duplicate', 'range', 'denominator', 'farthest-bound', 'farthest-naive-bound'], oracle))
+    raise SystemExit(main('007-rotatingcalipers', ['clockwise', 'collinear', 'duplicate', 'range', 'denominator', 'farthest-bound', 'farthest-naive-bound',
+                                          *(f'{form}-quadratic-{probe}' for form in ('area', 'perimeter') for probe in ('clockwise', 'collinear', 'duplicate', 'range'))], oracle))

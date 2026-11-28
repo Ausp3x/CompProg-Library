@@ -64,13 +64,14 @@ int main(int argc, char **argv) {
         if (n <= 2048) {
             auto b = brute(p);
             if (b.ids != expected.ids || b.distance2 != expected.distance2) { std::cerr << "brute mismatch\n"; return 1; }}
-        for (string method : {"closestPair", "closestPairRandomized", "legacy", "brute"}) {
+        for (string method : {"closestPair", "closestPairSimple", "closestPairRandomized", "legacy", "brute"}) {
             if (method == "brute" && n > 2048) { continue; }
             vector<double> times;
             for (int rep = -1; rep < 5; ++rep) {
                 auto start = std::chrono::steady_clock::now();
                 ClosestPair a;
                 if (method == "closestPair") { a = closestPair(p); }
+                else if (method == "closestPairSimple") { a = closestPairSimple(p); }
                 else if (method == "closestPairRandomized") { a = closestPairRandomized(p, seed + ulng(rep + 2) * 0x9e3779b97f4a7c15ULL); }
                 else if (method == "brute") { a = brute(p); }
                 else { auto ids = getNearestPair(p); a = {ids, dist2(p[ids.first], p[ids.second])}; }
@@ -97,6 +98,38 @@ int main(int argc, char **argv) {
                 if (rep >= 0) { times.push_back(std::chrono::duration<double, std::micro>(end - start).count()); }}
             sort(times.begin(), times.end());
             cout << "{\"n\":" << n << ",\"shape\":\"random-long-double\",\"method\":\"" << method << "\",\"median_us\":" << times[2] << "}\n";}}}
+    // Floating shapes: closestPairApprox, the incremental grid alone (below its 1024-point dispatch too) and the divide and conquer.
+    auto floating = [&]<typename T>(T, const char *type) {
+        std::uniform_real_distribution<double> unit(0, 1);
+        for (int n : {256, 512, 768, 1024, 1536, 2048, 4096, 200000}) { for (string shape : {"random", "jitter-grid", "clusters", "line", "duplicates"}) {
+            vector<Point2<T>> q;
+            for (int i = 0; i < n; ++i) {
+                double u = unit(rng), v = unit(rng), c = double(rng() % 10) * 1e5;
+                if (shape == "random") { q.push_back({T(2e6 * u - 1e6), T(2e6 * v - 1e6)}); }
+                if (shape == "jitter-grid") { q.push_back({T(i % 447 + 1e-3 * u), T(i / 447 + 1e-3 * v)}); }
+                if (shape == "clusters") { q.push_back({T(c + 10 * u), T(c + 10 * v)}); }
+                if (shape == "line") { q.push_back({T(2e6 * u - 1e6), T(0)}); }
+                if (shape == "duplicates") { q.push_back({T(i / 2), T(i / 2 % 3)}); }}
+            auto expected = closest_detail::closest2(q).ids; auto before = q;
+            for (string method : {"closestPairApprox", "grid", "divideAndConquer"}) {
+                // The grid gives up on repeated points.
+                if (method == "grid" && shape == "duplicates") { continue; }
+                vector<double> times;
+                for (int rep = -1; rep < 5; ++rep) {
+                    auto start = std::chrono::steady_clock::now();
+                    ulng s = seed + ulng(rep + 2) * 0x9e3779b97f4a7c15ULL;
+                    pair<int, int> ids{-2, -2};
+                    if (method == "divideAndConquer") { ids = closest_detail::closest2(q).ids; }
+                    else if (method == "closestPairApprox") { ids = closestPairApprox(q, s); }
+                    else if (closest_detail::Best<long double> b; closest_detail::incremental(q, b, s)) { ids = b.ids; }
+                    auto end = std::chrono::steady_clock::now();
+                    if (ids != expected || q != before) { std::cerr << "result mismatch " << method << ' ' << shape << '\n'; return false; }
+                    checksum += ulng(ids.first + 1);
+                    if (rep >= 0) { times.push_back(std::chrono::duration<double, std::micro>(end - start).count()); }}
+                sort(times.begin(), times.end());
+                cout << "{\"n\":" << n << ",\"shape\":\"" << type << '-' << shape << "\",\"method\":\"" << method << "\",\"median_us\":" << times[2] << "}\n";}}}
+        return true;};
+    if (!floating(0.0, "double") || !floating(0.0L, "long-double")) { return 1; }
     for (int n : {32, 512, 2048, 200000}) {
         for (string shape : {"random", "grid", "duplicate-pairs"}) {
             vector<point> p;

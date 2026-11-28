@@ -105,6 +105,47 @@ void verifyBox(const CaliperBoxApprox &box, bool rectangle, long double area, lo
         for (auto v : input) { require(cross(e, v.cast<long double>() - p[i]) >= -1e-11L * scale * scale, "box CCW containment"); }}
     require(std::abs(a / 2 - box.area) <= 2e-12L * box.area + 128 * std::numeric_limits<long double>::epsilon() * scale * scale, "vertex area", box.area, a / 2);
     require(near(peri, box.perimeter), "vertex perimeter", box.perimeter, peri);}
+// Every edge against every vertex: perpendicular range [lo, hi], projection extent u, exact optima and the first edge attaining each.
+struct EdgeOracle {
+    vector<point> e; vector<lll> lo, hi, w, u; Fraction width, area, perimeter; int area_edge = -1, perimeter_edge = -1;
+    explicit EdgeOracle(const vector<point> &h) {
+        int n = int(h.size());
+        for (int i = 0; i < n && n >= 3; ++i) {
+            e.push_back(h[(i + 1) % n] - h[i]);
+            lll l = 0, r = 0, xlo = scalar(e[i], h[0]), xhi = xlo;
+            for (auto q : h) {
+                lll s = det(e[i], q - h[i]); l = min(l, s); r = max(r, s);
+                s = scalar(e[i], q); xlo = min(xlo, s); xhi = max(xhi, s);}
+            lo.push_back(l); hi.push_back(r); w.push_back(r - l); u.push_back(xhi - xlo);
+            Fraction fw{ulll(w[i]) * w[i], norm(i)}, fa = areaAt(i), fp{ulll(u[i] + w[i]) * (u[i] + w[i]), norm(i)};
+            if (!i || fw < width) { width = fw; }
+            if (!i || fa < area) { area = fa; area_edge = i; }
+            if (!i || fp < perimeter) { perimeter = fp; perimeter_edge = i; }}}
+    ulll norm(int i) const { return ulll(scalar(e[i], e[i])); }
+    Fraction areaAt(int i) const { return {ulll(u[i]) * w[i], norm(i)}; }
+};
+bool same(long double a, long double b) { return a == b && std::signbit(a) == std::signbit(b); }
+bool identical(const CaliperBoxApprox &a, const CaliperBoxApprox &b) {
+    bool ok = a.exists == b.exists && a.edges == b.edges && same(a.area, b.area) && same(a.perimeter, b.perimeter);
+    for (int k = 0; k < 4; ++k) { ok = ok && same(a.vertices[k].x, b.vertices[k].x) && same(a.vertices[k].y, b.vertices[k].y); }
+    return ok;}
+// Freeman-Shapira forms: bitwise the calipers' boxes, flush with the first edge of least exact objective, and the box oracle.
+void verifyQuadratic(const EdgeOracle &o, const CaliperBoxApprox &ar, const CaliperBoxApprox &pr) {
+    int n = int(input.size());
+    auto qa = minimumAreaRectangleApproxQuadratic(input), qp = minimumPerimeterRectangleApproxQuadratic(input);
+    require(identical(qa, ar), "minimumAreaRectangleApproxQuadratic bitwise equals minimumAreaRectangleApprox", ar.area, qa.area);
+    require(identical(qp, pr), "minimumPerimeterRectangleApproxQuadratic bitwise equals minimumPerimeterRectangleApprox", pr.perimeter, qp.perimeter);
+    if (n < 3) {
+        long double small_perimeter = n == 2 ? 2 * distanceApprox(input[0], input[1]) : 0;
+        for (auto box : {qa, qp}) {
+            require(box.edges[0] == -1 && box.edges[1] == -1, "degenerate quadratic box has no supporting edge");
+            for (int k = 0; k < 4 && n; ++k) { require(box.vertices[k] == input[n == 2 && (k == 1 || k == 2)].cast<long double>(), "degenerate quadratic box vertex layout"); }
+            verifyBox(box, true, 0, small_perimeter);}
+        return;}
+    require(qa.edges[0] == o.area_edge && qa.edges[1] == -1, "quadratic area rectangle on the first edge of least exact area", o.area_edge, qa.edges[0]);
+    require(qp.edges[0] == o.perimeter_edge && qp.edges[1] == -1, "quadratic perimeter rectangle on the first edge of least exact perimeter", o.perimeter_edge, qp.edges[0]);
+    verifyBox(qa, true, o.area.value());
+    verifyBox(qp, true, o.areaAt(o.perimeter_edge).value(), 2 * std::sqrt(o.perimeter.value()));}
 long double verify(vector<point> p) {
     input = std::move(p); int n = int(input.size()); ConvexCalipers calipers(input);
     long double box = checkExpected(input, calipers, quadrature && n <= 64);
@@ -119,21 +160,11 @@ long double verify(vector<point> p) {
     auto pairs = calipers.antipodalPairs(); set<pair<int, int>> actual(pairs.begin(), pairs.end()), expected;
     require(actual.size() == pairs.size(), "antipodal unique pairs");
     if (n == 2) { expected.emplace(0, 1); }
-    vector<point> e; vector<lll> w, u; Fraction min_width, min_area, min_perimeter, min_para;
-    for (int i = 0; i < n && n >= 3; ++i) {
-        e.push_back(input[(i + 1) % n] - input[i]);
-        lll lo = 0, hi = 0, xlo = scalar(e[i], input[0]), xhi = xlo;
-        for (auto q : input) {
-            lll s = det(e[i], q - input[i]); lo = min(lo, s); hi = max(hi, s);
-            s = scalar(e[i], q); xlo = min(xlo, s); xhi = max(xhi, s);}
-        for (int j = 0; j < n; ++j) { for (int k = j + 1; k < n; ++k) {
-            lll a = det(e[i], input[j] - input[i]), b = det(e[i], input[k] - input[i]);
-            if ((a == lo && b == hi) || (a == hi && b == lo)) { expected.emplace(j, k); }}}
-        w.push_back(hi - lo); u.push_back(xhi - xlo); lll norm = scalar(e[i], e[i]);
-        Fraction width{ulll(w[i]) * w[i], ulll(norm)}, area{ulll(u[i]) * w[i], ulll(norm)}, perimeter{ulll(u[i] + w[i]) * (u[i] + w[i]), ulll(norm)};
-        if (!i || width < min_width) { min_width = width; }
-        if (!i || area < min_area) { min_area = area; }
-        if (!i || perimeter < min_perimeter) { min_perimeter = perimeter; }}
+    EdgeOracle oracle(input); const auto &e = oracle.e; const auto &w = oracle.w; const auto &u = oracle.u;
+    Fraction min_width = oracle.width, min_area = oracle.area, min_perimeter = oracle.perimeter, min_para;
+    for (int i = 0; i < n && n >= 3; ++i) { for (int j = 0; j < n; ++j) { for (int k = j + 1; k < n; ++k) {
+        lll a = det(e[i], input[j] - input[i]), b = det(e[i], input[k] - input[i]), lo = oracle.lo[i], hi = oracle.hi[i];
+        if ((a == lo && b == hi) || (a == hi && b == lo)) { expected.emplace(j, k); }}}}
     require(actual == expected, "all antipodal support events");
     bool found = false;
     for (int i = 0; i < n && n >= 3; ++i) { for (int j = i + 1; j < n; ++j) {
@@ -149,11 +180,18 @@ long double verify(vector<point> p) {
         for (auto box : {calipers.minimumAreaRectangleApprox(), calipers.minimumPerimeterRectangleApprox(), calipers.minimumAreaParallelogramApprox()}) {
             require(box.edges[0] == -1 && box.edges[1] == -1, "degenerate box has no supporting edge");
             for (int k = 0; k < 4 && n; ++k) { require(box.vertices[k] == input[n == 2 && (k == 1 || k == 2)].cast<long double>(), "degenerate box vertex layout"); }}}
+    require(calipers.n == n && calipers.p == input, "calipers keep the hull");
+    require(int(calipers.e.size()) == (n >= 3 ? n : 0) && calipers.opposite.size() == calipers.e.size() && calipers.width.size() == calipers.e.size(), "edge fields hold one entry per edge from three points, none below");
+    if (n >= 3) {
+        auto point_box = calipers.degenerateBox();
+        require(point_box.exists && point_box.edges[0] == -1 && point_box.edges[1] == -1 && point_box.area == 0 && point_box.perimeter == 0, "degenerateBox on three or more points is the first point's box");
+        for (int k = 0; k < 4; ++k) { require(point_box.vertices[k] == input[0].cast<long double>(), "degenerateBox on three or more points repeats the first point"); }}
     long double small_perimeter = n == 2 ? 2 * distanceApprox(input[0], input[1]) : 0;
     auto ar = calipers.minimumAreaRectangleApprox(), pr = calipers.minimumPerimeterRectangleApprox(), pa = calipers.minimumAreaParallelogramApprox();
     verifyBox(ar, true, min_area.value(), n < 3 ? small_perimeter : -1);
     verifyBox(pr, true, n < 3 ? 0 : (Fraction{ulll(u[pr.edges[0]]) * w[pr.edges[0]], ulll(scalar(e[pr.edges[0]], e[pr.edges[0]]))}).value(), n < 3 ? small_perimeter : 2 * std::sqrt(min_perimeter.value()));
     verifyBox(pa, false, min_para.value(), n < 3 ? small_perimeter : -1);
+    verifyQuadratic(oracle, ar, pr);
     require(box >= ar.area * (1 - BOX_TOL), "expected box area at least the minimum-area rectangle", ar.area, box);
     if (n >= 3) {
         require(pa.edges[0] >= 0 && pa.edges[1] >= 0 && pa.edges[0] != pa.edges[1], "parallelogram support edges");
@@ -209,7 +247,12 @@ int main(int argc, char **argv) {
         if (invalid == "denominator") { return ConvexCalipers::ratioLess(0, 0, 0, 1); }
         if (invalid == "farthest-bound") { return farthestPair(vector<point>{{0, 0}, {-1000000001, 0}}).first; }
         if (invalid == "farthest-naive-bound") { return farthestPairNaive(vector<point>{{0, 0}, {0, 1000000001}}).first; }
+        int form = 0;
+        for (auto [prefix, f] : {pair{string("area-quadratic-"), 1}, pair{string("perimeter-quadratic-"), 2}}) {
+            if (invalid.starts_with(prefix)) { invalid = invalid.substr(prefix.size()); form = f; }}
         vector<point> p = invalid == "clockwise" ? vector<point>{{0,0},{0,1},{1,0}} : invalid == "collinear" ? vector<point>{{0,0},{1,0},{2,0}} : invalid == "duplicate" ? vector<point>{{0,0},{0,0}} : vector<point>{{1000000001,0}};
+        if (form == 1) { return minimumAreaRectangleApproxQuadratic(p).exists; }
+        if (form == 2) { return minimumPerimeterRectangleApproxQuadratic(p).exists; }
         ConvexCalipers c(p); return c.n == -1;}
     std::mt19937_64 rng(seed);
     phase = "regressions and extreme coordinates";
@@ -301,6 +344,15 @@ int main(int argc, char **argv) {
     auto far8n = farthestPairNaive(vector<Point2<int8_t>>{{-128, -128}, {127, 127}, {127, 127}});
     require(far32n.first == 1 && far32n.second == 2 && far32n.squared == 25, "32-bit farthestPairNaive");
     require(far8n.first == 0 && far8n.second == 1 && far8n.squared == 2 * 255 * 255, "8-bit farthestPairNaive");
+    // Right triangles: all three edges tie in area (first edge 0); edges 0 and 2 tie in perimeter, the hypotenuse loses.
+    vector<Point2<int>> tri32{{0, 0}, {3, 0}, {0, 4}};
+    vector<Point2<int8_t>> tri8{{-128, -128}, {127, -128}, {-128, 127}};
+    auto qa32 = minimumAreaRectangleApproxQuadratic(tri32), qp32 = minimumPerimeterRectangleApproxQuadratic(tri32);
+    auto qa8 = minimumAreaRectangleApproxQuadratic(tri8), qp8 = minimumPerimeterRectangleApproxQuadratic(tri8);
+    require(identical(qa32, small.minimumAreaRectangleApprox()) && identical(qp32, small.minimumPerimeterRectangleApprox()), "32-bit quadratic rectangles bitwise equal the calipers'");
+    require(identical(qa8, ConvexCalipers(tri8).minimumAreaRectangleApprox()) && identical(qp8, ConvexCalipers(tri8).minimumPerimeterRectangleApprox()), "8-bit quadratic rectangles bitwise equal the calipers'");
+    require(qa32.edges[0] == 0 && qa32.area == 12 && qa32.perimeter == 14 && qp32.edges[0] == 0 && qp32.area == 12 && qp32.perimeter == 14, "32-bit quadratic rectangles known answer", 12, qa32.area);
+    require(qa8.edges[0] == 0 && qa8.area == 65025 && qa8.perimeter == 1020 && qp8.edges[0] == 0 && qp8.perimeter == 1020, "8-bit quadratic rectangles known answer", 65025, qa8.area);
     phase = "large strict convex parabola";
     int half = mode == "quick" ? 50 : mode == "full" ? 5000 : 15000; vector<point> p;
     for (int x = -half; x <= half; ++x) { p.push_back({x, lng(x) * x}); }
@@ -314,4 +366,11 @@ int main(int argc, char **argv) {
     require(box >= ar.area * (1 - BOX_TOL), "large expected box area at least the minimum-area rectangle", ar.area, box);
     std::rotate(p.begin(), p.begin() + half, p.end()); sameAs(box, ConvexCalipers(p).expectedBoxAreaApprox(), "large expected box area cyclic start");
     for (auto &q : p) { q = {-q.y, q.x}; } sameAs(box, ConvexCalipers(p).expectedBoxAreaApprox(), "large expected box area quarter turn");
+    if (mode != "quick") {
+        phase = "Freeman-Shapira rectangles on a 3001-vertex parabola, two starts";
+        vector<point> h;
+        for (int x = -1500; x <= 1500; ++x) { h.push_back({x, lng(x) * x}); }
+        for (int start : {0, 1000}) {
+            std::rotate(h.begin(), h.begin() + start, h.end()); input = h; ConvexCalipers c(h);
+            verifyQuadratic(EdgeOracle(h), c.minimumAreaRectangleApprox(), c.minimumPerimeterRectangleApprox());}}
     std::cout << "PASS rotatingcalipers seed=" << seed << " mode=" << mode << " checks=" << checks << '\n';}

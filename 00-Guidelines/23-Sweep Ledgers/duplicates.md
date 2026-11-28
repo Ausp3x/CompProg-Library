@@ -201,6 +201,9 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P008 | `rectangleApprox(bool perimeter)` (`007-rotatingcalipers.hpp`) | Shared helper; dropped from the row 2026-10-12 (flag between two operations) |
 | P008 | `circleCentersApprox`, `pointTangentsApprox` (`006-circle.hpp`) | Named special cases |
 | P008 | `farthestPair` (`007-rotatingcalipers.hpp`) | Larger domain (any cloud, index ties) |
+| P008 | `closestPairSimple` (`005-closestpair.hpp`) | Different algorithm, the lighter form of `closestPair` (KACTL's sweep; a Priority exception, user decision 2026-11-27, `omissions.md`) |
+| P008 | `minimumAreaRectangleApproxQuadratic`, `minimumPerimeterRectangleApproxQuadratic` (`007-rotatingcalipers.hpp`) | Different algorithm, the lighter forms of the calipers' rectangles (Freeman–Shapira; a Priority exception, user decision 2026-11-27, `omissions.md`) |
+| P008 | `applyLinear` on `Affine2Approx` and `Affine2`, `Affine2Approx::applyDirection` (`008-coordinate_transform.hpp`) | Named compositions: a segment, ray or line as its two mapped points; the unit image of a direction (user decision 2026-11-27, `03-Geometry/Docs/00-notes.md`) |
 | P009 | `Triangle2::areaApprox` (`009-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
 | P009 | `TriangleApprox::area()` (`009-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
 | P009 | `Triangle2::orient()` (`009-triangle.hpp`) | Derived formula: sign of `area2()` (clarified rule) |
